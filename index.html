@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rohan's GAMSAT | Stop Guessing. Start Getting In.</title>
+  <meta name="description" content="GAMSAT tutoring by a top 1% scorer and current USyd medical student. Proven methods that have helped 1,000+ future doctors across Australia, the UK and Ireland.">
+  <meta property="og:title" content="Rohan's GAMSAT | Stop Guessing. Start Getting In.">
+  <meta property="og:description" content="GAMSAT tutoring that has helped 1,000+ future doctors. Led by a top 1% USyd medical student.">
+  <meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/64503896d9df3114f57b664b/6e1d8d0c-5ff5-4965-8239-428a596a9291/182983_Bhatia_Rohan12638_Square_Background_RGB.jpg">
+  <meta property="og:url" content="https://www.rohanstutoring.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rohan's GAMSAT | Stop Guessing. Start Getting In.">
+  <meta name="twitter:description" content="GAMSAT tutoring that has helped 1,000+ future doctors. Led by a top 1% USyd medical student.">
+  <meta name="twitter:image" content="https://images.squarespace-cdn.com/content/v1/64503896d9df3114f57b664b/6e1d8d0c-5ff5-4965-8239-428a596a9291/182983_Bhatia_Rohan12638_Square_Background_RGB.jpg">
+  <link rel="icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <!-- Fonts: DM Serif Display (headlines) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Schema markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Rohan's Tutoring",
+    "url": "https://www.rohanstutoring.com",
+    "description": "GAMSAT tutoring and coaching by a top 1% USyd medical student.",
+    "founder": {
+      "@type": "Person",
+      "name": "Rohan Bhatia"
+    },
+    "areaServed": ["Australia", "United Kingdom", "Ireland"]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Do I need a science background?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Our methods work for students from any background — arts, commerce, science. The GAMSAT rewards reasoning and communication, not memorised content. We teach you how to think, not what to recall."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is this different from the big prep companies?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The big companies charge $3,000–$5,000+ for recycled content delivered by tutors who sat the exam years ago. Our tutors are current medical students. We know the current exam. Our classes are small enough that you get individual attention."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I join if I'm based in the UK or Ireland?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. We have a significant cohort of UK and Irish students. All sessions are online and scheduled around time zones. We know the GAMSAT application requirements for Irish and UK medical schools."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What if I've already sat the GAMSAT multiple times?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Advanced Mastery Series is built for resitters. If you've hit a score ceiling, the problem is usually strategic, not effort. We'll work out what's holding you back and build a plan around that, not a generic curriculum."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there a free trial?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Book a free 20-minute call and we'll identify your exact gaps and recommend the right course for your situation. No pressure, no sales script. If we don't think we can help, we'll say so."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="/" class="nav__logo">
+        <span class="nav__logo-r">R</span>ohan's GAMSAT
+      </a>
+      <ul class="nav__links">
+        <li><a href="#courses">Courses</a></li>
+        <li><a href="#resources">Free Resources</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="#blog">Blog</a></li>
+      </ul>
+      <a href="#book" class="btn btn--nav">Book Free Trial</a>
+      <button class="nav__burger" aria-label="Menu" id="burger">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav__mobile" id="mobileMenu">
+      <a href="#courses">Courses</a>
+      <a href="#resources">Free Resources</a>
+      <a href="about.html">About</a>
+      <a href="#book">Book Free Trial</a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+
+    <!-- Background layer -->
+    <div class="hero__bg">
+      <div class="hero__grain"></div>
+      <div class="hero__orb hero__orb--1"></div>
+      <div class="hero__orb hero__orb--2"></div>
+    </div>
+
+    <!-- Photo: absolutely positioned, right half, top-aligned -->
+    <div class="hero__photo-col" aria-hidden="true">
+      <img
+        src="assets/rohan-hero.png"
+        alt=""
+        class="hero__photo"
+      >
+      <div class="hero__photo-fade"></div>
+    </div>
+
+    <!-- Floating credential card: bottom-right -->
+    <div class="hero__cred-card reveal reveal--delay-3">
+      <div class="hero__cred-avatar">RB</div>
+      <div class="hero__cred-info">
+        <strong>Rohan Bhatia</strong>
+        <span>MD Year 3, University of Sydney</span>
+        <span class="hero__cred-badge">Top 1% GAMSAT scorer</span>
+      </div>
+    </div>
+
+    <!-- Floating proof pill: upper-right -->
+    <div class="hero__proof-pill reveal reveal--delay-4">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--green)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Roheed: S2 51 <strong>→ 85</strong> in one sitting
+    </div>
+
+    <!-- Left-column content -->
+    <div class="hero__inner">
+      <div class="hero__content">
+
+        <div class="hero__badge reveal">
+          <span class="hero__badge-dot"></span>
+          Enrolments open — September 2026 sitting
+        </div>
+
+        <h1 class="hero__headline reveal reveal--delay-1">
+          From stuck<br>
+          <em>to medicine.</em>
+        </h1>
+
+        <p class="hero__sub reveal reveal--delay-2">
+          GAMSAT methods that have helped <strong>1,000+ future doctors</strong> across Australia, the UK and Ireland. Led by a top 1% scorer currently in his third year at USyd medicine.
+        </p>
+
+        <div class="hero__ctas reveal reveal--delay-3">
+          <a href="#courses" class="btn btn--primary btn--lg">See the Courses</a>
+          <a href="#book" class="btn btn--ghost btn--lg">Book a Free Trial</a>
+        </div>
+
+        <!-- Stat strip -->
+        <div class="hero__stats reveal reveal--delay-4">
+          <div class="hero__stat">
+            <div class="hero__stat-row">
+              <span class="hero__stat-num" data-count="1000">0</span><span class="hero__stat-suffix">+</span>
+            </div>
+            <span class="hero__stat-label">Students Coached</span>
+          </div>
+          <div class="hero__stat-divider"></div>
+          <div class="hero__stat">
+            <div class="hero__stat-row">
+              <span class="hero__stat-num" data-count="1">0</span><span class="hero__stat-suffix">%</span>
+            </div>
+            <span class="hero__stat-label">Top Percentile Score</span>
+          </div>
+          <div class="hero__stat-divider"></div>
+          <div class="hero__stat">
+            <div class="hero__stat-row">
+              <span class="hero__stat-num" data-count="3">0</span>
+            </div>
+            <span class="hero__stat-label">Countries Served</span>
+          </div>
+          <div class="hero__stat-divider"></div>
+          <div class="hero__stat">
+            <div class="hero__stat-row">
+              <span class="hero__stat-num" data-count="5">0</span><span class="hero__stat-suffix">yrs</span>
+            </div>
+            <span class="hero__stat-label">Teaching Experience</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="hero__scroll">
+      <span>Scroll</span>
+      <div class="hero__scroll-line"></div>
+    </div>
+
+  </section>
+
+  <!-- ============ STUDENT TYPE SELECTOR ============ -->
+  <section class="selector" id="start">
+    <div class="container">
+      <div class="selector__header reveal">
+        <span class="label">Where are you right now?</span>
+        <h2>Find the right starting point</h2>
+      </div>
+
+      <div class="selector__cards">
+        <div class="selector__card reveal">
+          <div class="selector__card-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3L2 9l10 6 10-6-10-6zM2 15l10 6 10-6"/></svg>
+          </div>
+          <span class="selector__card-tag">First timer</span>
+          <h3>New to the GAMSAT?</h3>
+          <p>You need a clear starting point and a study plan that actually makes sense. No overwhelm, just progress.</p>
+          <a href="https://www.rohanstutoring.com/store/p/comprehensive" class="btn btn--outline">Start Here →</a>
+        </div>
+
+        <div class="selector__card selector__card--featured reveal reveal--delay-1">
+          <div class="selector__card-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 8v4l3 3"/></svg>
+          </div>
+          <span class="selector__card-tag">Resitter</span>
+          <h3>Sat it but still stuck?</h3>
+          <p>You studied hard but aren't sure what went wrong. We'll diagnose the gaps and build a targeted plan.</p>
+          <a href="https://www.rohanstutoring.com/store/p/comprehensive" class="btn btn--primary">Most Popular →</a>
+        </div>
+
+        <div class="selector__card reveal reveal--delay-2">
+          <div class="selector__card-icon">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="selector__card-tag">Veteran</span>
+          <h3>Plateaued on the same score?</h3>
+          <p>You're putting in effort but not seeing meaningful improvement. Time to shift from effort to strategy.</p>
+          <a href="https://www.rohanstutoring.com/store/p/advanced-mastery-series" class="btn btn--outline">Break Through →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="how" id="how">
+    <div class="container">
+      <div class="how__header reveal">
+        <span class="label">The Method</span>
+        <h2>No fluff. No recycled content.<br>Just what moves your score.</h2>
+      </div>
+
+      <div class="how__steps">
+        <div class="how__step reveal">
+          <div class="how__step-num">01</div>
+          <div class="how__step-body">
+            <h3>Diagnose the real problem</h3>
+            <p>Most students practise the wrong things harder. We start by identifying exactly where your marks are being lost, not guessing at it.</p>
+          </div>
+        </div>
+        <div class="how__step reveal reveal--delay-1">
+          <div class="how__step-num">02</div>
+          <div class="how__step-body">
+            <h3>Learn proven frameworks</h3>
+            <p>The S2 Slam System. The S1 Analytical Method. Not generic tips you'll forget under pressure. Repeatable frameworks built on what the exam actually rewards.</p>
+          </div>
+        </div>
+        <div class="how__step reveal reveal--delay-2">
+          <div class="how__step-num">03</div>
+          <div class="how__step-body">
+            <h3>Apply under real conditions</h3>
+            <p>Live clinics, essay marking, and mock exams with direct feedback from tutors who scored in the top percentile. Not graduates who sat the GAMSAT five years ago.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COURSES ============ -->
+  <section class="courses" id="courses">
+    <div class="container">
+      <div class="courses__header reveal">
+        <span class="label">The Courses</span>
+        <h2>Affordable and up-to-date.<br>Without the $5,000 price tag.</h2>
+      </div>
+
+      <div class="courses__grid">
+
+        <article class="course-card reveal">
+          <div class="course-card__header">
+            <span class="course-card__section">Flagship</span>
+            <h3 class="course-card__title">GAMSAT Comprehensive Course</h3>
+          </div>
+          <p class="course-card__desc">Live sessions across S1, S2, and S3. Full frameworks, essay marking, and direct tutor access. The complete package for serious students.</p>
+          <ul class="course-card__features">
+            <li>Live clinics each section</li>
+            <li>Essay marking included</li>
+            <li>Direct tutor access</li>
+            <li>AU / UK / Ireland students</li>
+          </ul>
+          <a href="https://www.rohanstutoring.com/store/gamsat-comprehensive-course" class="btn btn--primary course-card__cta">View Course</a>
+        </article>
+
+        <article class="course-card course-card--featured reveal reveal--delay-1">
+          <div class="course-card__badge">Most Popular</div>
+          <div class="course-card__header">
+            <span class="course-card__section">Full Package</span>
+            <h3 class="course-card__title">Rohan's GAMSAT Blueprint</h3>
+          </div>
+          <p class="course-card__desc">Every resource and framework bundled. Self-paced study with everything needed to go from stuck to ready.</p>
+          <ul class="course-card__features">
+            <li>S1 + S2 + S3 materials</li>
+            <li>S2 Slam System included</li>
+            <li>Lifetime access</li>
+            <li>Regularly updated content</li>
+          </ul>
+          <a href="https://www.rohanstutoring.com/store/p/rohans-gamsat-blueprint-the-full-package" class="btn btn--primary course-card__cta">View Blueprint</a>
+        </article>
+
+        <article class="course-card reveal reveal--delay-2">
+          <div class="course-card__header">
+            <span class="course-card__section">Advanced</span>
+            <h3 class="course-card__title">Advanced Mastery Series</h3>
+          </div>
+          <p class="course-card__desc">For students who've already sat and need to break through a score ceiling. Section-specific mastery for S1 and S2 at the highest level.</p>
+          <ul class="course-card__features">
+            <li>High-yield section focus</li>
+            <li>Advanced essay techniques</li>
+            <li>Score ceiling strategies</li>
+            <li>Small cohort sizes</li>
+          </ul>
+          <a href="https://www.rohanstutoring.com/store/p/advanced-mastery-series" class="btn btn--outline course-card__cta">View Course</a>
+        </article>
+
+        <article class="course-card reveal reveal--delay-3">
+          <div class="course-card__header">
+            <span class="course-card__section">Targeted</span>
+            <h3 class="course-card__title">S2 Essay Marking</h3>
+          </div>
+          <p class="course-card__desc">Submit essays and receive detailed written feedback from a top-percentile marker. Understand exactly what the examiners reward and penalise.</p>
+          <ul class="course-card__features">
+            <li>Line-by-line feedback</li>
+            <li>Rubric-aligned marking</li>
+            <li>Turnaround within 48h</li>
+            <li>Resubmit once</li>
+          </ul>
+          <a href="https://www.rohanstutoring.com/store/p/s2-essay-marking" class="btn btn--outline course-card__cta">View Service</a>
+        </article>
+
+      </div>
+
+      <div class="courses__footer reveal">
+        <p>Not sure which course is right for you?</p>
+        <a href="#book" class="btn btn--ghost">Book a free 20-minute call →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SOCIAL PROOF ============ -->
+  <section class="proof" id="proof">
+    <div class="proof__bg">
+      <div class="proof__grain"></div>
+    </div>
+    <div class="container">
+      <div class="proof__header reveal">
+        <span class="label" style="color: var(--green);">Results</span>
+        <h2>Real students.<br>Real scores. Real acceptances.</h2>
+      </div>
+
+      <div class="proof__grid">
+
+        <div class="proof__card reveal">
+          <div class="proof__card-score">75</div>
+          <p class="proof__card-text">"Scored a 75 and received an offer for a DMD at USYD. Rohan's approach changed how I think about S2."</p>
+          <div class="proof__card-author">
+            <span class="proof__card-name">DMD Student, USyd</span>
+            <span class="proof__card-tag">Section 2</span>
+          </div>
+        </div>
+
+        <div class="proof__card reveal reveal--delay-1">
+          <div class="proof__card-score">81</div>
+          <p class="proof__card-text">"S2 score of 81. His teaching style is versatile and the Slam System actually gives you something to execute under pressure."</p>
+          <div class="proof__card-author">
+            <span class="proof__card-name">MD Student</span>
+            <span class="proof__card-tag">Section 2</span>
+          </div>
+        </div>
+
+        <div class="proof__card reveal reveal--delay-2">
+          <div class="proof__card-score">+8</div>
+          <p class="proof__card-text">"Went from 62 to 70 overall. I'd spent a year spinning my wheels before finding Rohan's method. Wish I'd found it sooner."</p>
+          <div class="proof__card-author">
+            <span class="proof__card-name">Accepted into Medicine</span>
+            <span class="proof__card-tag">Full GAMSAT</span>
+          </div>
+        </div>
+
+        <div class="proof__card reveal reveal--delay-3">
+          <div class="proof__card-score">✓</div>
+          <p class="proof__card-text">"Dentistry at USYD. I was so stuck with S1 and couldn't see how I'd ever crack it. The structured approach made all the difference."</p>
+          <div class="proof__card-author">
+            <span class="proof__card-name">Dentistry Student, USyd</span>
+            <span class="proof__card-tag">Section 1</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="proof__uni-strip reveal">
+        <span class="proof__uni-label">Students accepted into</span>
+        <div class="proof__unis">
+          <span>University of Sydney</span>
+          <span>University of Melbourne</span>
+          <span>UQ</span>
+          <span>Notre Dame</span>
+          <span>Deakin</span>
+          <span>Trinity College Dublin</span>
+          <span>University of Manchester</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOUNDER ============ -->
+  <section class="founder" id="about">
+    <div class="container">
+      <div class="founder__inner">
+        <div class="founder__image-wrap reveal">
+          <!-- NANO BANANA ASSET HERE — 3D portrait of Rohan, dimensions: 560px x 640px -->
+          <div class="founder__image-placeholder">
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/64503896d9df3114f57b664b/182983_Bhatia_Rohan12638_Square_Background_RGB.jpg"
+              alt="Rohan Bhatia, Founder of Rohan's Tutoring, USyd MD student"
+              loading="lazy"
+              width="560" height="560"
+            >
+          </div>
+          <div class="founder__image-badge">
+            <span>Top 1%</span>
+            <small>GAMSAT Score</small>
+          </div>
+        </div>
+
+        <div class="founder__content">
+          <span class="label reveal">The Founder</span>
+          <h2 class="reveal reveal--delay-1">I know what it feels like<br>to walk out frustrated.</h2>
+          <div class="founder__body reveal reveal--delay-2">
+            <p>When I started preparing for the GAMSAT, I had no idea where to go. I tried the big prep companies. I paid the prices. And I kept getting stuck.</p>
+            <p>So I rebuilt my approach. I studied philosophy, psychology, and literature to understand what the exam actually tests. I built a framework that turned vague feedback like "lacks depth" into steps I could act on.</p>
+            <p>Eventually, I scored in the <strong>top 1% of GAMSAT students</strong> and landed a spot at the University of Sydney. I'm now in my third year of medicine, and I teach with the exam still fresh.</p>
+          </div>
+          <div class="founder__creds reveal reveal--delay-3">
+            <div class="founder__cred">
+              <strong>MD Year 3</strong>
+              <span>University of Sydney</span>
+            </div>
+            <div class="founder__cred">
+              <strong>900+ Students</strong>
+              <span>Coached to date</span>
+            </div>
+            <div class="founder__cred">
+              <strong>AU / UK / IE</strong>
+              <span>Countries reached</span>
+            </div>
+          </div>
+          <a href="about.html" class="btn btn--outline reveal reveal--delay-4">Meet the full team →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FREE RESOURCES ============ -->
+  <section class="resources" id="resources">
+    <div class="container">
+      <div class="resources__header reveal">
+        <span class="label">Free Resources</span>
+        <h2>Start here. No strings attached.</h2>
+        <p>These tools were built to give you a genuine head start. No email capture, no upsell.</p>
+      </div>
+
+      <div class="resources__grid">
+        <a href="https://www.rohanstutoring.com/quote-generator" class="resource-card reveal">
+          <div class="resource-card__icon">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 8h4m-4 8h6M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+          </div>
+          <h3>S2 Quote Generator</h3>
+          <p>Instantly generate GAMSAT-style Section 2 quote prompts to practise your essays anytime.</p>
+          <span class="resource-card__link">Try it free →</span>
+        </a>
+
+        <a href="https://www.rohanstutoring.com/s1-mock" class="resource-card reveal reveal--delay-1">
+          <div class="resource-card__icon">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7 2H5a2 2 0 00-2 2v16a2 2 0 002 2h14a2 2 0 002-2V4a2 2 0 00-2-2h-2M9 2h6"/></svg>
+          </div>
+          <h3>S1 Mini Mock</h3>
+          <p>A full Section 1 mini-mock with passages, questions, and marking guide. Timed practice under real conditions.</p>
+          <span class="resource-card__link">Take the mock →</span>
+        </a>
+
+        <a href="https://www.rohanstutoring.com/section-1-tracker" class="resource-card reveal reveal--delay-2">
+          <div class="resource-card__icon">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><polyline stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Section 1 Question Tracker</h3>
+          <p>Track your S1 question bank performance, identify patterns, and focus your practice where it counts most.</p>
+          <span class="resource-card__link">Get the tracker →</span>
+        </a>
+      </div>
+
+      <!-- S2 Slam System lead magnet -->
+      <div class="slam reveal">
+        <div class="slam__content">
+          <span class="label" style="color:var(--green)">Free Essay System</span>
+          <h3>The S2 Slam System</h3>
+          <p>The essay formula that has helped 900+ future doctors write with clarity and depth under timed conditions.</p>
+        </div>
+        <a href="https://www.rohanstutoring.com/#resources" class="btn btn--primary btn--lg">Get the System Free</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <div class="faq__header reveal">
+        <span class="label">Common Questions</span>
+        <h2>What students ask before enrolling</h2>
+      </div>
+
+      <div class="faq__list">
+        <details class="faq__item reveal">
+          <summary>Do I need a science background?</summary>
+          <div class="faq__answer">
+            <p>No. Our methods work for students from any background — arts, commerce, science. The GAMSAT rewards reasoning and communication, not memorised content. We teach you how to think, not what to recall.</p>
+          </div>
+        </details>
+
+        <details class="faq__item reveal reveal--delay-1">
+          <summary>How is this different from the big prep companies?</summary>
+          <div class="faq__answer">
+            <p>The big companies charge $3,000–$5,000+ for recycled content delivered by tutors who sat the exam years ago. Our tutors are current medical students. We know the current exam. Our classes are small enough that you get individual attention.</p>
+          </div>
+        </details>
+
+        <details class="faq__item reveal reveal--delay-2">
+          <summary>Can I join if I'm based in the UK or Ireland?</summary>
+          <div class="faq__answer">
+            <p>Yes. We have a significant cohort of UK and Irish students. All sessions are online and scheduled around time zones. We know the GAMSAT application requirements for Irish and UK medical schools.</p>
+          </div>
+        </details>
+
+        <details class="faq__item reveal reveal--delay-3">
+          <summary>What if I've already sat the GAMSAT multiple times?</summary>
+          <div class="faq__answer">
+            <p>The Advanced Mastery Series is built for resitters. If you've hit a score ceiling, the problem is usually strategic, not effort. We'll work out what's holding you back and build a plan around that, not a generic curriculum.</p>
+          </div>
+        </details>
+
+        <details class="faq__item reveal reveal--delay-4">
+          <summary>Is there a free trial?</summary>
+          <div class="faq__answer">
+            <p>Yes. Book a free 20-minute call and we'll identify your exact gaps and recommend the right course for your situation. No pressure, no sales script. If we don't think we can help, we'll say so.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOOK / CTA ============ -->
+  <section class="book" id="book">
+    <div class="book__bg">
+      <div class="book__orb"></div>
+    </div>
+    <div class="container">
+      <div class="book__inner reveal">
+        <span class="label" style="color: var(--blue-light)">Ready to start?</span>
+        <h2>Book your free<br><em>20-minute strategy call.</em></h2>
+        <p>Tell us where you're at. We'll tell you exactly what to do next. No pressure. No sales pitch.</p>
+        <a href="https://www.rohanstutoring.com/book-your-gameplan" class="btn btn--white btn--lg">Book the Call →</a>
+        <p class="book__note">Prefer to browse first? <a href="#courses">See all courses</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <span class="footer__logo"><span class="nav__logo-r">R</span>ohan's GAMSAT</span>
+          <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
+          <div class="footer__socials">
+            <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+            </a>
+            <a href="https://www.youtube.com/@rohan_bhatia0" aria-label="YouTube">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.8"/><polygon points="10,9 16,12 10,15" fill="currentColor"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer__links">
+          <div class="footer__col">
+            <h4>Courses</h4>
+            <a href="https://www.rohanstutoring.com/store/gamsat-comprehensive-course">Comprehensive Course</a>
+            <a href="https://www.rohanstutoring.com/store/p/rohans-gamsat-blueprint-the-full-package">Rohan's Blueprint</a>
+            <a href="https://www.rohanstutoring.com/store/p/advanced-mastery-series">Advanced Mastery Series</a>
+            <a href="https://www.rohanstutoring.com/store/p/s2-essay-marking">Essay Marking</a>
+          </div>
+          <div class="footer__col">
+            <h4>Free Resources</h4>
+            <a href="https://www.rohanstutoring.com/quote-generator">S2 Quote Generator</a>
+            <a href="https://www.rohanstutoring.com/s1-mock">S1 Mini Mock</a>
+            <a href="https://www.rohanstutoring.com/section-1-tracker">S1 Question Tracker</a>
+            <a href="https://www.rohanstutoring.com/blog">Blog</a>
+          </div>
+          <div class="footer__col">
+            <h4>Company</h4>
+            <a href="about.html">About Us</a>
+            <a href="https://www.rohanstutoring.com/contact-me">Contact</a>
+            <a href="https://www.rohanstutoring.com/book-your-gameplan">Book a Call</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <p>&copy; 2026 Rohan's Tutoring. All rights reserved.</p>
+        <p>Built for future doctors in Australia, the UK and Ireland.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>

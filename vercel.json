@@ -1,0 +1,89 @@
+{
+  "redirects": [
+    {
+      "source": "/store/gamsat-comprehensive-course",
+      "destination": "/courses/comprehensive.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/comprehensive",
+      "destination": "/courses/comprehensive.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/rohans-gamsat-blueprint-the-full-package",
+      "destination": "/courses/blueprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/advanced-mastery-series",
+      "destination": "/courses/advanced.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/the-expert-essay-collection",
+      "destination": "/courses/essay-collection.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/s2-essay-marking",
+      "destination": "/courses/essay-marking.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/s2course",
+      "destination": "/courses.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/section2-mastery",
+      "destination": "/courses/blueprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/gamsat-mastery-course",
+      "destination": "/courses/blueprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/store",
+      "destination": "/courses.html",
+      "permanent": true
+    },
+    {
+      "source": "/contact-me",
+      "destination": "/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog.html",
+      "permanent": true
+    },
+    {
+      "source": "/courses",
+      "destination": "/courses.html",
+      "permanent": true
+    },
+    {
+      "source": "/section-1-tracker",
+      "destination": "/index.html#resources",
+      "permanent": false
+    },
+    {
+      "source": "/book-your-gameplan",
+      "destination": "/contact.html",
+      "permanent": true
+    }
+  ]
+}

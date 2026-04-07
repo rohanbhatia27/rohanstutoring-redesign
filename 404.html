@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found | Rohan's GAMSAT</title>
+  <meta name="description" content="This page doesn't exist. Head back to Rohan's GAMSAT and find what you're looking for.">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Fonts: DM Serif Display (headlines) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* ---- 404-specific overrides ---- */
+    body {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    /* Force nav transparent baseline on dark bg */
+    .nav { background: transparent; }
+    .nav.scrolled {
+      background: rgba(8, 15, 26, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom-color: var(--border);
+    }
+
+    /* ---- 404 Layout ---- */
+    .not-found {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 120px 24px 80px;
+    }
+
+    /* Background orbs matching site style */
+    .not-found__bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .not-found__grain {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    .not-found__orb--1 {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(22,119,190,0.15) 0%, transparent 70%);
+      top: -150px; right: -150px;
+      border-radius: 50%;
+      filter: blur(80px);
+    }
+    .not-found__orb--2 {
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(16,191,122,0.08) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+      border-radius: 50%;
+      filter: blur(80px);
+    }
+
+    /* Large ghost 404 number in background */
+    .not-found__ghost {
+      position: absolute;
+      font-family: var(--font-serif);
+      font-size: clamp(180px, 30vw, 340px);
+      font-weight: 400;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(22,119,190,0.12);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Content */
+    .not-found__inner {
+      position: relative;
+      z-index: 2;
+      max-width: 540px;
+    }
+
+    .not-found__code {
+      font-family: var(--font-serif);
+      font-size: clamp(5rem, 15vw, 10rem);
+      font-weight: 400;
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 8px;
+
+      /* Blue glow on the number */
+      text-shadow:
+        0 0 80px rgba(22,119,190,0.5),
+        0 0 160px rgba(22,119,190,0.2);
+
+      /* Animated float */
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+
+    .not-found__label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 20px;
+    }
+
+    .not-found__headline {
+      font-family: var(--font-serif);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .not-found__headline em {
+      color: var(--blue-light);
+      font-style: italic;
+    }
+
+    .not-found__body {
+      font-size: 1rem;
+      color: var(--text-light);
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    /* CTA row */
+    .not-found__ctas {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 56px;
+    }
+
+    /* Quick links row */
+    .not-found__links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .not-found__link {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-light);
+      transition: color var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .not-found__link:hover { color: var(--blue-light); }
+
+    .not-found__link-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--border);
+      display: none;
+    }
+
+    .not-found__link:not(:last-child) .not-found__link-dot { display: block; }
+
+    /* Divider between CTA and quick links */
+    .not-found__divider {
+      width: 48px;
+      height: 1px;
+      background: var(--border);
+      margin: 0 auto 32px;
+    }
+
+    /* Footer on 404 is simplified */
+    .footer--minimal {
+      background: #050C16;
+      padding: 28px 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer--minimal .footer__bottom {
+      justify-content: center;
+    }
+    .footer--minimal .footer__bottom p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 480px) {
+      .not-found__ctas { flex-direction: column; align-items: center; }
+      .not-found__links { flex-direction: column; align-items: center; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <span class="nav__logo-r">R</span>ohan's GAMSAT
+      </a>
+      <ul class="nav__links">
+        <li><a href="courses.html">Courses</a></li>
+        <li><a href="index.html#resources">Free Resources</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+      <a href="https://www.rohanstutoring.com/book-your-gameplan" class="btn btn--nav">Book Free Trial</a>
+      <button class="nav__burger" aria-label="Menu" id="burger">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav__mobile" id="mobileMenu">
+      <a href="courses.html">Courses</a>
+      <a href="index.html#resources">Free Resources</a>
+      <a href="about.html">About</a>
+      <a href="https://www.rohanstutoring.com/book-your-gameplan">Book Free Trial</a>
+    </div>
+  </nav>
+
+  <!-- ============ 404 SECTION ============ -->
+  <main class="not-found" role="main">
+    <div class="not-found__bg">
+      <div class="not-found__grain"></div>
+      <div class="not-found__orb--1"></div>
+      <div class="not-found__orb--2"></div>
+    </div>
+
+    <!-- Ghost number — decorative, behind content -->
+    <div class="not-found__ghost" aria-hidden="true">404</div>
+
+    <div class="not-found__inner">
+      <div class="not-found__code" aria-label="Error 404">404</div>
+
+      <span class="not-found__label">Page not found</span>
+
+      <h1 class="not-found__headline">
+        Wrong turn.<br>
+        <em>Let's get you back on track.</em>
+      </h1>
+
+      <p class="not-found__body">
+        This page doesn't exist, or it may have moved. Either way, your GAMSAT prep doesn't have to stall here.
+      </p>
+
+      <div class="not-found__ctas">
+        <a href="index.html" class="btn btn--primary btn--lg">Back to Home</a>
+        <a href="courses.html" class="btn btn--ghost btn--lg">Browse Courses</a>
+      </div>
+
+      <div class="not-found__divider"></div>
+
+      <nav class="not-found__links" aria-label="Quick links">
+        <a href="courses/comprehensive.html" class="not-found__link">Live Course</a>
+        <a href="courses/blueprint.html" class="not-found__link">Rohan's Blueprint</a>
+        <a href="blog.html" class="not-found__link">Blog</a>
+        <a href="contact.html" class="not-found__link">Contact</a>
+      </nav>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER (minimal) ============ -->
+  <footer class="footer footer--minimal">
+    <div class="container">
+      <div class="footer__bottom">
+        <p>&copy; 2026 Rohan's Tutoring. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Nav scroll behaviour (inline — no dependency on main.js needed for a 404 page)
+    const nav = document.getElementById('nav');
+    const burger = document.getElementById('burger');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    burger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+  </script>
+
+</body>
+</html>
