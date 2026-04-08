@@ -175,6 +175,11 @@ strong { font-weight: 700; color: inherit; }
 .nav__logo-r {
   color: var(--blue-light);
 }
+.nav__logo-img {
+  height: 50px;
+  width: auto;
+  display: block;
+}
 .nav__links {
   display: flex;
   gap: 32px;
@@ -1272,6 +1277,12 @@ strong { font-weight: 700; color: inherit; }
   font-family: var(--font-serif);
   font-size: 1.25rem;
   color: var(--white);
+  display: block;
+  margin-bottom: 12px;
+}
+.footer__logo-img {
+  height: 60px;
+  width: auto;
   display: block;
   margin-bottom: 12px;
 }
