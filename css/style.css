@@ -1267,6 +1267,8 @@ strong { font-weight: 700; color: inherit; }
   border-radius: var(--radius-lg);
   padding: 32px 28px;
   transition: transform var(--transition), background var(--transition), border-color var(--transition);
+  display: flex;
+  flex-direction: column;
 }
 .proof__card:hover {
   transform: translateY(-4px);
@@ -1286,6 +1288,7 @@ strong { font-weight: 700; color: inherit; }
   line-height: 1.65;
   margin-bottom: 24px;
   font-style: italic;
+  flex: 1;
 }
 .proof__card-author {
   display: flex;
