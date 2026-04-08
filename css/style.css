@@ -1301,6 +1301,7 @@ strong { font-weight: 700; color: inherit; }
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--white);
+  white-space: nowrap;
 }
 .proof__card-tag {
   font-size: 0.75rem;
