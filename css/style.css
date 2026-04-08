@@ -665,78 +665,172 @@ strong { font-weight: 700; color: inherit; }
    SELECTOR
    ============================================ */
 .selector {
-  background: var(--off-white);
-  padding: 96px 0;
+  background: var(--navy);
+  padding: 100px 0 120px;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Background orbs */
+.selector__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.selector__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+.selector__orb--1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(22,119,190,0.18) 0%, transparent 70%);
+  top: -120px; left: -100px;
+}
+.selector__orb--2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(16,191,122,0.12) 0%, transparent 70%);
+  bottom: -80px; right: -60px;
+}
+
 .selector__header {
   text-align: center;
-  margin-bottom: 56px;
+  margin-bottom: 64px;
+  position: relative;
 }
-.selector__header h2 { color: var(--text); }
+.selector__header h2 {
+  color: var(--white);
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+}
 
 .selector__cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 20px;
+  position: relative;
 }
 
+/* ---- Base card ---- */
 .selector__card {
-  background: var(--white);
-  border: 1px solid #E5EAF0;
+  position: relative;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: var(--radius-lg);
-  padding: 40px 32px;
+  padding: 0 32px 40px;
+  overflow: hidden;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
-.selector__card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--blue);
-}
-.selector__card--featured {
-  background: var(--navy);
-  border-color: var(--blue);
-  position: relative;
-  top: -8px;
-  box-shadow: 0 20px 60px rgba(22,119,190,0.2);
-}
-.selector__card--featured h3,
-.selector__card--featured p { color: var(--text-light); }
-.selector__card--featured h3 { color: var(--white); }
-.selector__card--featured:hover { border-color: var(--blue-light); }
+.selector__card h3 { color: var(--white); margin-bottom: 12px; }
+.selector__card p  { color: var(--text-light); margin-bottom: 32px; font-size: 0.95rem; }
 
+/* Coloured top accent bar */
+.selector__card-accent {
+  height: 4px;
+  margin: 0 -32px 36px;
+  border-radius: 0;
+}
+
+/* ---- Per-colour variants ---- */
+/* Blue */
+.selector__card--blue .selector__card-accent {
+  background: linear-gradient(90deg, var(--blue), var(--blue-light));
+}
+.selector__card--blue .selector__card-icon { color: var(--blue-light); background: rgba(22,119,190,0.15); }
+.selector__card--blue .selector__card-tag  { color: var(--blue-light); background: rgba(22,119,190,0.15); }
+.selector__card--blue:hover {
+  border-color: rgba(22,119,190,0.5);
+  box-shadow: 0 8px 40px rgba(22,119,190,0.2);
+  transform: translateY(-6px);
+}
+
+/* Green (featured) */
+.selector__card--green .selector__card-accent {
+  background: linear-gradient(90deg, var(--green), #5CEFB0);
+}
+.selector__card--green .selector__card-icon { color: var(--green); background: rgba(16,191,122,0.15); }
+.selector__card--green .selector__card-tag  { color: var(--green); background: rgba(16,191,122,0.15); }
+.selector__card--green:hover {
+  border-color: rgba(16,191,122,0.5);
+  box-shadow: 0 8px 40px rgba(16,191,122,0.2);
+  transform: translateY(-6px);
+}
+
+/* Indigo */
+.selector__card--indigo .selector__card-accent {
+  background: linear-gradient(90deg, #7C6FE0, #A78BFA);
+}
+.selector__card--indigo .selector__card-icon { color: #A78BFA; background: rgba(124,111,224,0.15); }
+.selector__card--indigo .selector__card-tag  { color: #A78BFA; background: rgba(124,111,224,0.15); }
+.selector__card--indigo:hover {
+  border-color: rgba(124,111,224,0.5);
+  box-shadow: 0 8px 40px rgba(124,111,224,0.2);
+  transform: translateY(-6px);
+}
+
+/* ---- Featured card ---- */
+.selector__card--featured {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(16,191,122,0.35);
+  box-shadow: 0 0 0 1px rgba(16,191,122,0.15), 0 24px 60px rgba(16,191,122,0.15);
+  transform: translateY(-10px);
+}
+.selector__card--featured:hover {
+  transform: translateY(-16px);
+  box-shadow: 0 0 0 1px rgba(16,191,122,0.4), 0 32px 80px rgba(16,191,122,0.25);
+}
+
+/* "Most Popular" badge */
+.selector__card-badge {
+  position: absolute;
+  top: 20px; right: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--green);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+/* ---- Icon ---- */
 .selector__card-icon {
-  width: 52px; height: 52px;
-  background: rgba(22,119,190,0.1);
+  width: 56px; height: 56px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--blue);
   margin-bottom: 20px;
 }
-.selector__card--featured .selector__card-icon {
-  background: rgba(22,119,190,0.2);
-  color: var(--blue-light);
-}
 
+/* ---- Tag ---- */
 .selector__card-tag {
   display: inline-block;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--blue);
-  background: rgba(22,119,190,0.1);
   padding: 4px 10px;
   border-radius: 100px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
-.selector__card h3 { color: var(--text); margin-bottom: 12px; }
-.selector__card p { margin-bottom: 28px; font-size: 0.95rem; }
+
+/* ---- Green button variant ---- */
+.btn--green {
+  background: var(--green);
+  color: var(--navy);
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(16,191,122,0.3);
+}
+.btn--green:hover {
+  background: #0fda8a;
+  box-shadow: 0 8px 32px rgba(16,191,122,0.45);
+}
 
 @media (max-width: 860px) {
   .selector__cards { grid-template-columns: 1fr; }
-  .selector__card--featured { top: 0; }
+  .selector__card--featured { transform: none; }
+  .selector__card--featured:hover { transform: translateY(-6px); }
 }
 
 /* ============================================
