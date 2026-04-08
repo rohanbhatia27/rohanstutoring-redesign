@@ -1002,8 +1002,6 @@ strong { font-weight: 700; color: inherit; }
   transform: translateY(-14px);
   box-shadow: 0 32px 80px rgba(8,15,26,0.24), 0 0 0 1px rgba(22,119,190,0.35);
 }
-.course-tier--featured h3 { color: var(--white); }
-
 /* Most Popular badge */
 .course-tier__badge {
   position: absolute;
@@ -1060,6 +1058,7 @@ strong { font-weight: 700; color: inherit; }
   margin-bottom: 16px;
   line-height: 1.25;
 }
+.course-tier--featured h3 { color: var(--white); }
 .course-tier__pricing {
   display: flex;
   align-items: baseline;
@@ -1179,6 +1178,19 @@ strong { font-weight: 700; color: inherit; }
 }
 
 /* Guarantee */
+.course-tier__classes-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 2px;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  justify-content: center;
+  text-align: center;
+}
+.course-tier__classes-note svg { color: var(--blue-light); flex-shrink: 0; }
+
 .course-tier__guarantee {
   display: flex;
   align-items: center;
