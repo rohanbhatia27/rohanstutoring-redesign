@@ -1156,7 +1156,7 @@ strong { font-weight: 700; color: inherit; }
   font-size: 0.82rem;
   color: var(--text-muted);
   line-height: 1.5;
-  min-height: 68px;
+  height: 64px;
 }
 .course-tier--featured .course-tier__proof {
   background: rgba(255,255,255,0.07);
