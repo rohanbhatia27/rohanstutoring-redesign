@@ -1618,6 +1618,17 @@ strong { font-weight: 700; color: inherit; }
   padding-bottom: 24px;
 }
 .faq__answer p { font-size: 0.95rem; line-height: 1.75; }
+.faq__answer a {
+  color: var(--blue);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+  transition: color 180ms ease;
+}
+.faq__answer a:hover,
+.faq__answer a:focus-visible {
+  color: var(--navy);
+}
 
 /* ============================================
    BOOK / CTA
