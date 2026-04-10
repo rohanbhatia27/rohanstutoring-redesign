@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    /* How steps line draw */
-    gsap.fromTo('.how__step', {
+    /* How timeline items */
+    gsap.fromTo('.how__item', {
       x: -24,
       opacity: 0
     }, {
@@ -131,11 +131,38 @@ document.addEventListener('DOMContentLoaded', () => {
       stagger: 0.15,
       ease: 'power2.out',
       scrollTrigger: {
-        trigger: '.how__steps',
+        trigger: '.how__timeline',
         start: 'top 75%',
       }
     });
   }
+
+  /* ---- Student type selector tabs ---- */
+  const tabs = document.querySelectorAll('.selector__tab');
+  const panels = document.querySelectorAll('.selector__panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+
+      tabs.forEach(t => {
+        t.classList.remove('selector__tab--active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      panels.forEach(p => {
+        p.classList.remove('selector__panel--active');
+        p.hidden = true;
+      });
+
+      tab.classList.add('selector__tab--active');
+      tab.setAttribute('aria-selected', 'true');
+      const panel = document.getElementById('tab-' + target);
+      if (panel) {
+        panel.classList.add('selector__panel--active');
+        panel.hidden = false;
+      }
+    });
+  });
 
   /* ---- FAQ smooth open/close ---- */
   document.querySelectorAll('.faq__item').forEach(item => {
