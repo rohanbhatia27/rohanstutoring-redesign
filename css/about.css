@@ -11,12 +11,40 @@
   pointer-events: none;
 }
 .about-hero__inner {
-  max-width: 680px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
   position: relative;
   z-index: 1;
 }
-.about-hero__inner h1 { color: var(--white); margin: 16px 0 20px; }
-.about-hero__inner > p { color: var(--text-light); font-size: 1.1rem; max-width: 560px; }
+
+.about-hero__text h1 { color: var(--white); margin: 16px 0 20px; }
+.about-hero__text p  { color: var(--text-light); font-size: 1.1rem; max-width: 480px; }
+
+.about-hero__media {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.about-hero__screenshot {
+  width: 100%;
+  max-width: 560px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  display: block;
+}
+
+@media (max-width: 860px) {
+  .about-hero__inner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .about-hero__media { justify-content: flex-start; }
+  .about-hero__screenshot { max-width: 100%; }
+}
 
 /* ---- Founder Story ---- */
 .about-story {
