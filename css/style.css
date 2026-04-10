@@ -1279,13 +1279,44 @@ strong { font-weight: 700; color: inherit; }
 .proof__unis {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 24px;
+  gap: 16px 48px;
   justify-content: center;
+  align-items: center;
 }
-.proof__unis span {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 500;
+
+.uni-logo {
+  height: 30px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+  opacity: 0.5;
+  filter: grayscale(1);
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+/* UQ logo is square — give it slightly more height so it reads at the same visual weight */
+.uni-logo--sq {
+  height: 38px;
+  max-width: 38px;
+}
+
+.uni-logo:hover {
+  opacity: 0.85;
+  filter: grayscale(0);
+}
+
+@media (max-width: 600px) {
+  .proof__unis {
+    gap: 20px 32px;
+  }
+  .uni-logo {
+    height: 24px;
+    max-width: 120px;
+  }
+  .uni-logo--sq {
+    height: 30px;
+    max-width: 30px;
+  }
 }
 
 @media (max-width: 900px) {
