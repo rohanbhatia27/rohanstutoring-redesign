@@ -1777,7 +1777,7 @@ strong { font-weight: 700; color: inherit; }
   flex-direction: column;
   gap: 12px;
 }
-.footer__col h4 {
+.footer__col h3 {
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.1em;

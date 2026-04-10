@@ -92,6 +92,68 @@
   .about-story__inner { grid-template-columns: 1fr; }
 }
 
+/* ---- Outcomes Strip ---- */
+.outcomes {
+  padding: 96px 0;
+  background: var(--navy);
+}
+.outcomes__header {
+  text-align: center;
+  margin-bottom: 56px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.outcomes__header h2 { color: var(--white); margin-bottom: 12px; }
+.outcomes__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.outcomes__card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.outcomes__quote {
+  margin: 0;
+  flex: 1;
+}
+.outcomes__quote p {
+  font-size: 0.925rem;
+  line-height: 1.65;
+  color: var(--text-light);
+  font-style: italic;
+}
+.outcomes__score {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.outcomes__score-num {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--blue-light);
+  line-height: 1;
+}
+.outcomes__score-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 760px) {
+  .outcomes__grid { grid-template-columns: 1fr; }
+}
+
 /* ---- Team ---- */
 .team {
   padding: 96px 0;
@@ -142,7 +204,6 @@
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--blue);
-  text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 8px;
 }
@@ -174,7 +235,7 @@
   display: block;
   font-family: var(--font-serif);
   font-size: 2.5rem;
-  color: rgba(22,119,190,0.15);
+  color: var(--blue);
   margin-bottom: 8px;
   line-height: 1;
 }
