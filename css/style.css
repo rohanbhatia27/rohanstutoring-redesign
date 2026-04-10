@@ -258,6 +258,7 @@ strong { font-weight: 700; color: inherit; }
   opacity: 0.4;
 }
 .hero__orb {
+  display: none;
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
@@ -351,20 +352,11 @@ strong { font-weight: 700; color: inherit; }
   border-radius: 22px;
   color: var(--white);
   text-decoration: none;
-  background:
-    radial-gradient(circle at top right, rgba(16,191,122,0.22), transparent 34%),
-    linear-gradient(135deg, rgba(22,119,190,0.28), rgba(10,18,34,0.92));
+  background: rgba(22, 119, 190, 0.12);
   border: 1px solid rgba(114,176,243,0.32);
   box-shadow: 0 18px 48px rgba(4,10,20,0.38);
   overflow: hidden;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-}
-.hero__announcement::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent 42%);
-  pointer-events: none;
 }
 .hero__announcement:hover,
 .hero__announcement:focus-visible {
@@ -493,9 +485,7 @@ strong { font-weight: 700; color: inherit; }
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(13, 24, 39, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(8, 15, 26, 0.95);
   border: 1px solid rgba(22,119,190,0.22);
   border-radius: var(--radius-md);
   padding: 14px 18px;
@@ -883,6 +873,7 @@ strong { font-weight: 700; color: inherit; }
 
 /* Subtle centered radial glow behind content */
 .how__bg-glow {
+  display: none;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1684,6 +1675,7 @@ strong { font-weight: 700; color: inherit; }
   pointer-events: none;
 }
 .book__orb {
+  display: none;
   position: absolute;
   width: 800px; height: 800px;
   background: radial-gradient(circle, rgba(22,119,190,0.15) 0%, transparent 65%);
