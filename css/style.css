@@ -1,7 +1,7 @@
 /* ============================================
    ROHAN'S GAMSAT — Premium Redesign
    Design: Dark navy authority + electric blue
-   Type:   DM Serif Display (headlines) / DM Sans (body)
+   Type:   Playfair Display (headlines) / Figtree (body)
    ============================================ */
 
 /* ---- Custom Properties ---- */
@@ -14,15 +14,17 @@
   --blue-glow:  rgba(22, 119, 190, 0.25);
   --green:      #10BF7A;
   --green-glow: rgba(16, 191, 122, 0.2);
-  --white:      #FFFFFF;
-  --off-white:  #F4F7FB;
-  --text:       #0D1117;
-  --text-muted: #6B7280;
-  --text-light: #C9D5E4;
-  --border:     rgba(255,255,255,0.08);
+  --white:        #FFFFFF;
+  --off-white:    #F4F7FB;
+  --cream:        #F9F7F3;
+  --text:         #0D1117;
+  --text-muted:   #6B7280;
+  --text-light:   #C9D5E4;
+  --border:       rgba(255,255,255,0.08);
+  --border-light: rgba(0, 0, 0, 0.08);
 
-  --font-serif: 'DM Serif Display', Georgia, serif;
-  --font-sans:  'DM Sans', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans:  'Figtree', system-ui, sans-serif;
 
   --radius-sm:  6px;
   --radius-md:  12px;
@@ -58,7 +60,7 @@ ul { list-style: none; }
 }
 
 /* ---- Typography ---- */
-h1, h2 { font-family: var(--font-serif); line-height: 1.1; }
+h1, h2 { font-family: var(--font-serif); line-height: 1.05; letter-spacing: -0.01em; }
 h1 { font-size: clamp(2.6rem, 5.5vw, 6rem); font-weight: 400; }
 h2 { font-size: clamp(1.9rem, 3.5vw, 3.25rem); font-weight: 400; }
 h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; }
@@ -70,7 +72,7 @@ strong { font-weight: 700; color: inherit; }
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--blue);
   margin-bottom: 12px;
@@ -459,13 +461,13 @@ strong { font-weight: 700; color: inherit; }
 }
 .hero__stat-num {
   font-family: var(--font-serif);
-  font-size: 2.5rem;
+  font-size: 2.4rem;
   color: var(--white);
   line-height: 1;
 }
 .hero__stat-suffix {
   font-family: var(--font-serif);
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   color: var(--blue-light);
   line-height: 1;
 }
@@ -693,7 +695,7 @@ strong { font-weight: 700; color: inherit; }
    SELECTOR
    ============================================ */
 .selector {
-  background: var(--navy);
+  background: var(--cream);
   padding: 100px 0 120px;
   position: relative;
   overflow: hidden;
@@ -706,9 +708,7 @@ strong { font-weight: 700; color: inherit; }
   pointer-events: none;
 }
 .selector__orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
+  display: none;
 }
 .selector__orb--1 {
   width: 500px; height: 500px;
@@ -727,7 +727,7 @@ strong { font-weight: 700; color: inherit; }
   position: relative;
 }
 .selector__header h2 {
-  color: var(--white);
+  color: var(--text);
   font-size: clamp(2.2rem, 4vw, 3.5rem);
 }
 
@@ -741,15 +741,25 @@ strong { font-weight: 700; color: inherit; }
 /* ---- Base card ---- */
 .selector__card {
   position: relative;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--white);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   padding: 0 32px 40px;
   overflow: hidden;
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
-.selector__card h3 { color: var(--white); margin-bottom: 12px; }
-.selector__card p  { color: var(--text-light); margin-bottom: 32px; font-size: 0.95rem; }
+.selector__card h3 { color: var(--text); margin-bottom: 12px; }
+.selector__card p  { color: var(--text-muted); margin-bottom: 32px; font-size: 0.95rem; }
+
+/* Ghost buttons within selector cards — scoped so dark hero ghost buttons are unaffected */
+.selector__card .btn--ghost {
+  color: var(--navy);
+  border-color: rgba(8, 15, 26, 0.2);
+}
+.selector__card .btn--ghost:hover {
+  border-color: var(--navy);
+  background: rgba(8, 15, 26, 0.04);
+}
 
 /* Coloured top accent bar */
 .selector__card-accent {
@@ -797,7 +807,7 @@ strong { font-weight: 700; color: inherit; }
 
 /* ---- Featured card ---- */
 .selector__card--featured {
-  background: rgba(255,255,255,0.07);
+  background: var(--white);
   border-color: rgba(16,191,122,0.35);
   box-shadow: 0 0 0 1px rgba(16,191,122,0.15), 0 24px 60px rgba(16,191,122,0.15);
   transform: translateY(-10px);
@@ -1258,7 +1268,7 @@ strong { font-weight: 700; color: inherit; }
 .proof {
   position: relative;
   padding: 96px 0;
-  background: var(--navy);
+  background: var(--cream);
   overflow: hidden;
 }
 .proof__bg {
@@ -1270,7 +1280,7 @@ strong { font-weight: 700; color: inherit; }
   position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: 0.4;
+  opacity: 0.15;
 }
 .proof__header {
   text-align: center;
@@ -1278,7 +1288,7 @@ strong { font-weight: 700; color: inherit; }
   position: relative;
   z-index: 1;
 }
-.proof__header h2 { color: var(--white); }
+.proof__header h2 { color: var(--text); }
 
 .proof__grid {
   display: grid;
@@ -1290,8 +1300,8 @@ strong { font-weight: 700; color: inherit; }
 }
 
 .proof__card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
+  background: var(--white);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   padding: 32px 28px;
   transition: transform var(--transition), background var(--transition), border-color var(--transition);
@@ -1300,19 +1310,19 @@ strong { font-weight: 700; color: inherit; }
 }
 .proof__card:hover {
   transform: translateY(-4px);
-  background: rgba(255,255,255,0.07);
+  background: var(--off-white);
   border-color: rgba(22,119,190,0.3);
 }
 .proof__card-score {
   font-family: var(--font-serif);
   font-size: 3rem;
-  color: var(--blue-light);
+  color: var(--blue);
   margin-bottom: 16px;
   line-height: 1;
 }
 .proof__card-text {
   font-size: 0.9rem;
-  color: var(--text-light);
+  color: var(--text-muted);
   line-height: 1.65;
   margin-bottom: 24px;
   font-style: italic;
@@ -1321,19 +1331,19 @@ strong { font-weight: 700; color: inherit; }
   display: flex;
   flex-direction: column;
   gap: 4px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-light);
   padding-top: 16px;
   margin-top: auto;
 }
 .proof__card-name {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
 }
 .proof__card-tag {
   font-size: 0.75rem;
-  color: var(--blue-light);
+  color: var(--blue);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1347,7 +1357,7 @@ strong { font-weight: 700; color: inherit; }
   position: relative;
   z-index: 1;
   padding-top: 24px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-light);
 }
 .proof__uni-label {
   font-size: 0.8rem;
@@ -1364,7 +1374,7 @@ strong { font-weight: 700; color: inherit; }
 }
 .proof__unis span {
   font-size: 0.85rem;
-  color: var(--text-light);
+  color: var(--text-muted);
   font-weight: 500;
 }
 
