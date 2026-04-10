@@ -1289,20 +1289,12 @@ strong { font-weight: 700; color: inherit; }
   width: auto;
   max-width: 150px;
   object-fit: contain;
-  opacity: 0.5;
-  filter: grayscale(1);
-  transition: opacity var(--transition), filter var(--transition);
 }
 
 /* UQ logo is square — give it slightly more height so it reads at the same visual weight */
 .uni-logo--sq {
   height: 38px;
   max-width: 38px;
-}
-
-.uni-logo:hover {
-  opacity: 0.85;
-  filter: grayscale(0);
 }
 
 @media (max-width: 600px) {
