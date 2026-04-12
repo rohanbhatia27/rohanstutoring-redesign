@@ -76,6 +76,11 @@
       "permanent": true
     },
     {
+      "source": "/courses/mastery",
+      "destination": "/courses/mastery.html",
+      "permanent": true
+    },
+    {
       "source": "/section-1-tracker",
       "destination": "/index.html#resources",
       "permanent": false

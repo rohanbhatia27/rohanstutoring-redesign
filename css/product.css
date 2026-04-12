@@ -46,7 +46,7 @@
 /* ---- Product Hero ---- */
 .product-hero {
   position: relative;
-  padding: 140px 0 80px;
+  padding: calc(var(--header-height) + 24px) 0 80px;
   overflow: hidden;
 }
 .product-hero--dark { background: var(--navy); }
@@ -568,9 +568,33 @@
 .price-now { display: block; font-family: var(--font-serif); font-size: 2.25rem; color: var(--text); line-height: 1; }
 .price-cta { display: block; font-size: 0.85rem; font-weight: 700; color: var(--blue); margin-top: 4px; }
 
+/* Flagship premium variant */
+.flagship-card--premium { border-color: rgba(212, 175, 55, 0.3); }
+.flagship-card--premium:hover { border-color: #d4af37; }
+.flagship-card--premium .flagship-card__content h3 { color: var(--text); }
+.flagship-card__image--placeholder {
+  background: var(--navy-mid);
+  min-height: 280px;
+}
+/* Premium badge on courses index */
+.badge--premium {
+  background: rgba(212, 175, 55, 0.12);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
 @media (max-width: 860px) {
   .flagship-card { grid-template-columns: 1fr; }
   .flagship-card__content { padding: 32px; }
+  .flagship-card__image--placeholder { min-height: 200px; }
 }
 
 /* Course tile grid */
@@ -1137,5 +1161,78 @@
   text-align: center;
   margin-top: 2px;
   margin-bottom: 4px;
+}
+
+/* ---- Class Preview Section ---- */
+.class-preview {
+  padding: 96px 0;
+  background: var(--navy-mid);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.class-preview__header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+.class-preview__header h2 {
+  margin: 12px 0 16px;
+  color: #ffffff;
+}
+.class-preview__header p {
+  max-width: 600px;
+  margin: 0 auto;
+  color: var(--text-light);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+.class-preview__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+.class-preview__item {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.class-preview__img-wrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  aspect-ratio: 16 / 10;
+  background: var(--navy);
+}
+.class-preview__img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  display: block;
+}
+.class-preview__caption {
+  padding: 0 4px;
+}
+.class-preview__caption strong {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue-light);
+  margin-bottom: 8px;
+}
+.class-preview__caption p {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  line-height: 1.65;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .class-preview { padding: 72px 0; }
+  .class-preview__grid { grid-template-columns: 1fr; gap: 40px; }
+  .class-preview__header { margin-bottom: 40px; }
 }
 .cta-instalment--hero:hover { color: var(--white); text-decoration-color: var(--white); }

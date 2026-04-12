@@ -1,0 +1,132 @@
+/* ============================================
+   MASTERY PAGE — mastery.css
+   Styles specific to the GAMSAT Mastery Program page
+   ============================================ */
+
+/* ---- Hero image placeholder ---- */
+.mastery-hero-img-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--navy-mid);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.badge__dot--gold {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4af37;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ---- Comprehensive Foundation block ---- */
+.mastery-foundation {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 48px;
+  margin-bottom: 0;
+}
+
+.mastery-foundation__header {
+  margin-bottom: 28px;
+}
+
+.mastery-foundation__label {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.mastery-foundation__header h3 {
+  font-size: 1.4rem;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.mastery-foundation__header p {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  max-width: 540px;
+}
+
+.mastery-foundation__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 32px;
+  margin-bottom: 24px;
+}
+
+.mastery-foundation__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.mastery-foundation__check {
+  color: var(--green);
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.mastery-foundation__link {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.mastery-foundation__link:hover {
+  border-color: var(--blue);
+}
+
+/* ---- Plus divider ---- */
+.mastery-plus-divider {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 40px 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mastery-plus-divider::before,
+.mastery-plus-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ---- Premium value items ---- */
+.value-item--premium .value-item__num {
+  color: #d4af37;
+  border-color: rgba(212, 175, 55, 0.25);
+  background: rgba(212, 175, 55, 0.06);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .mastery-foundation {
+    padding: 28px 24px;
+  }
+
+  .mastery-foundation__grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

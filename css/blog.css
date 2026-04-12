@@ -6,7 +6,7 @@
 .blog-hero {
   position: relative;
   background: var(--navy);
-  padding: 160px 0 80px;
+  padding: calc(var(--header-height) + 24px) 0 80px;
   overflow: hidden;
 }
 .blog-hero__bg {
