@@ -89,6 +89,46 @@
       "source": "/book-your-gameplan",
       "destination": "/contact.html",
       "permanent": true
+    },
+    {
+      "source": "/store/p/gamsat-starter-pack",
+      "destination": "/courses/starter-pack.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/s1-rescue-sprint",
+      "destination": "/courses/s1-rescue-sprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/store/p/s2-rescue-sprint",
+      "destination": "/courses/s2-rescue-sprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/private-mentoring",
+      "destination": "/courses/private-mentoring.html",
+      "permanent": true
+    },
+    {
+      "source": "/courses/starter-pack",
+      "destination": "/courses/starter-pack.html",
+      "permanent": true
+    },
+    {
+      "source": "/courses/s1-rescue-sprint",
+      "destination": "/courses/s1-rescue-sprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/courses/s2-rescue-sprint",
+      "destination": "/courses/s2-rescue-sprint.html",
+      "permanent": true
+    },
+    {
+      "source": "/courses/private-mentoring",
+      "destination": "/courses/private-mentoring.html",
+      "permanent": true
     }
   ]
 }
