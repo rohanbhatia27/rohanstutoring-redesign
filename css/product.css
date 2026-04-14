@@ -939,6 +939,11 @@
 .course-tile__footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 16px; border-top: 1px solid #E5EAF0; }
 .course-tile__price { font-family: var(--font-serif); font-size: 1.5rem; color: var(--text); }
 .course-tile__cta { font-size: 0.85rem; font-weight: 700; color: var(--blue); }
+.course-tile__note { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; flex: 0; }
+
+/* ---- Featured tile (horizontal layout) ---- */
+.course-tile--featured { flex-direction: row; margin-bottom: 28px; }
+.course-tile--featured .course-tile__image { width: 300px; flex-shrink: 0; aspect-ratio: unset; min-height: 260px; }
 
 /* ---- Sold Out Tile ---- */
 .course-tile--soldout {
@@ -1380,6 +1385,8 @@
 
 @media (max-width: 760px) {
   .courses-grid, .courses-grid--3 { grid-template-columns: 1fr; }
+  .course-tile--featured { flex-direction: column; }
+  .course-tile--featured .course-tile__image { width: 100%; aspect-ratio: 16/9; min-height: unset; }
   .guarantee-strip__inner { flex-direction: column; padding: 32px 24px; text-align: center; }
 }
 
