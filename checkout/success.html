@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Payment Confirmed | Rohan's GAMSAT</title>
+  <meta name="description" content="Payment confirmation for Rohan's GAMSAT checkout.">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/checkout.css">
+</head>
+<body class="checkout-page">
+  <header class="checkout-header">
+    <a href="/" class="checkout-logo">Rohan's <span>GAMSAT</span></a>
+  </header>
+
+  <main class="checkout-main checkout-main--success">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h1 class="success-heading">Payment confirmed</h1>
+      <p class="success-message" id="success-message"></p>
+      <a href="/courses.html" class="success-back">← Back to courses</a>
+    </div>
+  </main>
+
+  <script src="../js/checkout.js"></script>
+  <script>
+    const slug = new URLSearchParams(window.location.search).get('product');
+    const message = window.CheckoutPage && typeof window.CheckoutPage.getSuccessMessage === 'function'
+      ? window.CheckoutPage.getSuccessMessage(slug)
+      : "We've received your payment. You'll receive an email shortly with everything you need to get started.";
+
+    document.getElementById('success-message').textContent = message;
+  </script>
+</body>
+</html>

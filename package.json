@@ -1,6 +1,9 @@
 {
   "name": "rohanstutoring-site",
   "version": "1.0.0",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
   "dependencies": {
     "stripe": "^17.0.0"
   }

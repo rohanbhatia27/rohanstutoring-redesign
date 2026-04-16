@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Checkout | Rohan's GAMSAT</title>
+  <meta name="description" content="Secure checkout for Rohan's GAMSAT courses and mentoring.">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/checkout.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="checkout-page">
+  <header class="checkout-header">
+    <a href="/" class="checkout-logo">Rohan's <span>GAMSAT</span></a>
+    <span class="checkout-secure">Secure checkout</span>
+  </header>
+
+  <main class="checkout-main">
+    <div id="checkout-not-found" class="checkout-not-found" hidden>
+      <p>Product not found. <a href="/courses.html">Back to courses →</a></p>
+    </div>
+
+    <div class="checkout-grid" id="checkout-grid" hidden>
+      <div class="checkout-left" id="checkout-summary"></div>
+
+      <div class="checkout-right">
+        <form id="checkout-form" novalidate>
+          <p class="checkout-section-label">Your details</p>
+
+          <div class="checkout-row">
+            <div class="checkout-field">
+              <label class="checkout-label" for="first-name">First name</label>
+              <input class="checkout-input" id="first-name" type="text" autocomplete="given-name" placeholder="Jane" required>
+            </div>
+            <div class="checkout-field">
+              <label class="checkout-label" for="last-name">Last name</label>
+              <input class="checkout-input" id="last-name" type="text" autocomplete="family-name" placeholder="Smith" required>
+            </div>
+          </div>
+
+          <div class="checkout-field">
+            <label class="checkout-label" for="email">Email address</label>
+            <input class="checkout-input" id="email" type="email" autocomplete="email" placeholder="jane@gmail.com" required>
+            <p class="checkout-gmail-note" id="gmail-note" hidden>Gmail preferred — content is shared via Google Drive</p>
+          </div>
+
+          <div class="checkout-field">
+            <label class="checkout-label" for="billing-address">Billing address</label>
+            <input class="checkout-input" id="billing-address" type="text" autocomplete="street-address" placeholder="123 Example St, Melbourne VIC 3000" required>
+          </div>
+
+          <p class="checkout-section-label" style="margin-top: 24px;">Payment</p>
+
+          <div class="checkout-card-wrap">
+            <div id="card-element"></div>
+          </div>
+
+          <div class="checkout-card-error" id="card-error" role="alert" hidden></div>
+
+          <button class="checkout-pay-btn" id="pay-btn" type="submit">
+            <span id="pay-btn-label">Pay →</span>
+          </button>
+
+          <a class="checkout-instalment-link" id="instalment-link" href="#" hidden></a>
+
+          <div class="checkout-security">
+            <span>SSL encrypted</span>
+            <span>Powered by Stripe</span>
+            <span>Secure payment</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/checkout.js"></script>
+</body>
+</html>
