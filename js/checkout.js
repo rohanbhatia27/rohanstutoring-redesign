@@ -1,5 +1,5 @@
 (function (global) {
-  const STRIPE_PK = 'pk_test_51N6LQ9H5JsZI731GbAXSMGUOhPw7AVQwtLD4D4r6a1dTIyRc4pSxKsscevxxxNYXWqhMK1Ps9Qq4Imdav1OISNE4001qCSnKYm';
+  const STRIPE_PK = 'pk_live_51N6LQ9H5JsZI731GV0KrV8IGOHBN1IvAieWXgM84ajBeB6plCanyRRWnff01XmrfD9j72p4CRQGhr455rgTIktYm00VmKdY03B';
   const MASTERY_INSTALMENT_URL = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
 
   const PRODUCTS = {
