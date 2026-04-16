@@ -24,7 +24,13 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { slug } = req.body;
+  const body = req.body && typeof req.body === 'object' ? req.body : null;
+
+  if (!body) {
+    return res.status(400).json({ error: 'Missing or invalid JSON body' });
+  }
+
+  const { slug } = body;
   const amount = AMOUNTS[slug];
 
   if (!amount) return res.status(400).json({ error: 'Invalid product slug: ' + slug });
