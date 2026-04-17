@@ -3,7 +3,7 @@
 
   <!-- Core pages -->
   <url>
-    <loc>https://www.rohanstutoring.com/</loc>
+    <loc>https://www.rohanstutoring.com</loc>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
   </url>
@@ -52,6 +52,63 @@
   <url>
     <loc>https://www.rohanstutoring.com/courses/essay-marking</loc>
     <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/courses/mastery</loc>
+    <priority>0.85</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/courses/private-mentoring</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/courses/s1-rescue-sprint</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/courses/s2-rescue-sprint</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/courses/starter-pack</loc>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Blog posts -->
+  <url>
+    <loc>https://www.rohanstutoring.com/blog/how-i-aced-section-1-gamsat</loc>
+    <priority>0.65</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/blog/ideation</loc>
+    <priority>0.65</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/blog/mastering-gamsat-s2-task-a-essay</loc>
+    <priority>0.65</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/blog/poetry-guide</loc>
+    <priority>0.65</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/blog/stop-falling-for-this-common-gamsat-section-1-trap</loc>
+    <priority>0.65</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/blog/the-biggest-s2-mistake</loc>
+    <priority>0.65</priority>
     <changefreq>monthly</changefreq>
   </url>
 
