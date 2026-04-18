@@ -1,83 +1,64 @@
 {
+  "cleanUrls": true,
   "redirects": [
     {
       "source": "/store/gamsat-comprehensive-course",
-      "destination": "/courses/comprehensive.html",
+      "destination": "/courses/comprehensive",
       "permanent": true
     },
     {
       "source": "/store/p/comprehensive",
-      "destination": "/courses/comprehensive.html",
+      "destination": "/courses/comprehensive",
       "permanent": true
     },
     {
       "source": "/store/p/rohans-gamsat-blueprint-the-full-package",
-      "destination": "/courses/blueprint.html",
+      "destination": "/courses/blueprint",
       "permanent": true
     },
     {
       "source": "/store/p/advanced-mastery-series",
-      "destination": "/courses/advanced.html",
+      "destination": "/courses/advanced",
       "permanent": true
     },
     {
       "source": "/store/p/the-expert-essay-collection",
-      "destination": "/courses/essay-collection.html",
+      "destination": "/courses/essay-collection",
       "permanent": true
     },
     {
       "source": "/store/p/s2-essay-marking",
-      "destination": "/courses/essay-marking.html",
+      "destination": "/courses/essay-marking",
       "permanent": true
     },
     {
       "source": "/store/p/s2course",
-      "destination": "/courses.html",
+      "destination": "/courses",
       "permanent": true
     },
     {
       "source": "/store/p/section2-mastery",
-      "destination": "/courses/blueprint.html",
+      "destination": "/courses/blueprint",
       "permanent": true
     },
     {
       "source": "/store/gamsat-mastery-course",
-      "destination": "/courses/blueprint.html",
+      "destination": "/courses/blueprint",
       "permanent": true
     },
     {
       "source": "/store",
-      "destination": "/courses.html",
+      "destination": "/courses",
       "permanent": true
     },
     {
       "source": "/contact-me",
-      "destination": "/contact.html",
+      "destination": "/contact",
       "permanent": true
     },
     {
-      "source": "/contact",
-      "destination": "/contact.html",
-      "permanent": true
-    },
-    {
-      "source": "/about",
-      "destination": "/about.html",
-      "permanent": true
-    },
-    {
-      "source": "/blog",
-      "destination": "/blog.html",
-      "permanent": true
-    },
-    {
-      "source": "/courses",
-      "destination": "/courses.html",
-      "permanent": true
-    },
-    {
-      "source": "/courses/mastery",
-      "destination": "/courses/mastery.html",
+      "source": "/private-mentoring",
+      "destination": "/courses/private-mentoring",
       "permanent": true
     },
     {
@@ -87,48 +68,128 @@
     },
     {
       "source": "/book-your-gameplan",
-      "destination": "/contact.html",
+      "destination": "/contact",
       "permanent": true
     },
     {
       "source": "/store/p/gamsat-starter-pack",
-      "destination": "/courses/starter-pack.html",
+      "destination": "/courses/starter-pack",
       "permanent": true
     },
     {
       "source": "/store/p/s1-rescue-sprint",
-      "destination": "/courses/s1-rescue-sprint.html",
+      "destination": "/courses/s1-rescue-sprint",
       "permanent": true
     },
     {
       "source": "/store/p/s2-rescue-sprint",
-      "destination": "/courses/s2-rescue-sprint.html",
+      "destination": "/courses/s2-rescue-sprint",
       "permanent": true
     },
     {
-      "source": "/private-mentoring",
-      "destination": "/courses/private-mentoring.html",
+      "source": "/about.html",
+      "destination": "/about",
       "permanent": true
     },
     {
-      "source": "/courses/starter-pack",
-      "destination": "/courses/starter-pack.html",
+      "source": "/contact.html",
+      "destination": "/contact",
       "permanent": true
     },
     {
-      "source": "/courses/s1-rescue-sprint",
-      "destination": "/courses/s1-rescue-sprint.html",
+      "source": "/courses.html",
+      "destination": "/courses",
       "permanent": true
     },
     {
-      "source": "/courses/s2-rescue-sprint",
-      "destination": "/courses/s2-rescue-sprint.html",
+      "source": "/blog.html",
+      "destination": "/blog",
       "permanent": true
     },
     {
-      "source": "/courses/private-mentoring",
-      "destination": "/courses/private-mentoring.html",
+      "source": "/courses/advanced.html",
+      "destination": "/courses/advanced",
       "permanent": true
+    },
+    {
+      "source": "/courses/blueprint.html",
+      "destination": "/courses/blueprint",
+      "permanent": true
+    },
+    {
+      "source": "/courses/comprehensive.html",
+      "destination": "/courses/comprehensive",
+      "permanent": true
+    },
+    {
+      "source": "/courses/essay-collection.html",
+      "destination": "/courses/essay-collection",
+      "permanent": true
+    },
+    {
+      "source": "/courses/essay-marking.html",
+      "destination": "/courses/essay-marking",
+      "permanent": true
+    },
+    {
+      "source": "/courses/mastery.html",
+      "destination": "/courses/mastery",
+      "permanent": true
+    },
+    {
+      "source": "/courses/private-mentoring.html",
+      "destination": "/courses/private-mentoring",
+      "permanent": true
+    },
+    {
+      "source": "/courses/s1-rescue-sprint.html",
+      "destination": "/courses/s1-rescue-sprint",
+      "permanent": true
+    },
+    {
+      "source": "/courses/s2-rescue-sprint.html",
+      "destination": "/courses/s2-rescue-sprint",
+      "permanent": true
+    },
+    {
+      "source": "/courses/starter-pack.html",
+      "destination": "/courses/starter-pack",
+      "permanent": true
+    },
+    {
+      "source": "/blog/how-i-aced-section-1-gamsat.html",
+      "destination": "/blog/how-i-aced-section-1-gamsat",
+      "permanent": true
+    },
+    {
+      "source": "/blog/ideation.html",
+      "destination": "/blog/ideation",
+      "permanent": true
+    },
+    {
+      "source": "/blog/mastering-gamsat-s2-task-a-essay.html",
+      "destination": "/blog/mastering-gamsat-s2-task-a-essay",
+      "permanent": true
+    },
+    {
+      "source": "/blog/poetry-guide.html",
+      "destination": "/blog/poetry-guide",
+      "permanent": true
+    },
+    {
+      "source": "/blog/stop-falling-for-this-common-gamsat-section-1-trap.html",
+      "destination": "/blog/stop-falling-for-this-common-gamsat-section-1-trap",
+      "permanent": true
+    },
+    {
+      "source": "/blog/the-biggest-s2-mistake.html",
+      "destination": "/blog/the-biggest-s2-mistake",
+      "permanent": true
+    },
+    {
+      "source": "/webinar-join",
+      "destination": "https://uni-sydney.zoom.us/j/2790583002?pwd=MXBhZXZQa0FOVzB2c25STk95RFF3Zz09",
+      "permanent": false
     }
   ]
 }

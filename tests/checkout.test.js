@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  EMAIL_PATTERN,
   PRODUCTS,
   fmtPrice,
   getProductFromSearch,
@@ -9,9 +10,13 @@ const {
   renderSummaryMarkup,
   getPayButtonLabel,
   getSuccessMessage,
+  buildSuccessUrl,
+  getSuccessState,
   getApiServerErrorMessage,
   parseApiResponse,
+  getCustomerPayload,
 } = require('../js/checkout.js');
+const createPaymentIntentHandler = require('../api/create-payment-intent.js');
 
 test('fmtPrice formats whole and decimal amounts', () => {
   assert.equal(fmtPrice(599), '599');
@@ -36,6 +41,30 @@ test('getInitialSelection defaults private mentoring to the 10-class pack', () =
   });
 });
 
+test('checkout product prices stay in sync with payment-intent amounts', () => {
+  const apiAmountsByPageSlug = {
+    blueprint: createPaymentIntentHandler.AMOUNTS.blueprint,
+    advanced: createPaymentIntentHandler.AMOUNTS.advanced,
+    'essay-collection': createPaymentIntentHandler.AMOUNTS['essay-collection'],
+    'essay-marking': createPaymentIntentHandler.AMOUNTS['essay-marking'],
+    'starter-pack': createPaymentIntentHandler.AMOUNTS['starter-pack'],
+    comprehensive: createPaymentIntentHandler.AMOUNTS.comprehensive,
+    mastery: createPaymentIntentHandler.AMOUNTS.mastery,
+    'private-mentoring-single': createPaymentIntentHandler.AMOUNTS['mentoring-single'],
+    'private-mentoring-pack': createPaymentIntentHandler.AMOUNTS['mentoring-pack'],
+  };
+
+  assert.equal(PRODUCTS.blueprint.price * 100, apiAmountsByPageSlug.blueprint);
+  assert.equal(PRODUCTS.advanced.price * 100, apiAmountsByPageSlug.advanced);
+  assert.equal(PRODUCTS['essay-collection'].price * 100, apiAmountsByPageSlug['essay-collection']);
+  assert.equal(PRODUCTS['essay-marking'].price * 100, apiAmountsByPageSlug['essay-marking']);
+  assert.equal(PRODUCTS['starter-pack'].price * 100, apiAmountsByPageSlug['starter-pack']);
+  assert.equal(PRODUCTS.comprehensive.price * 100, apiAmountsByPageSlug.comprehensive);
+  assert.equal(PRODUCTS.mastery.price * 100, apiAmountsByPageSlug.mastery);
+  assert.equal(PRODUCTS['private-mentoring'].packages[0].price * 100, apiAmountsByPageSlug['private-mentoring-single']);
+  assert.equal(PRODUCTS['private-mentoring'].packages[1].price * 100, apiAmountsByPageSlug['private-mentoring-pack']);
+});
+
 test('renderSummaryMarkup renders standard products with included features', () => {
   const markup = renderSummaryMarkup(PRODUCTS.blueprint, getInitialSelection('blueprint', PRODUCTS.blueprint));
 
@@ -49,6 +78,8 @@ test('renderSummaryMarkup renders mentoring selector with active default package
   const markup = renderSummaryMarkup(product, getInitialSelection('private-mentoring', product));
 
   assert.match(markup, /Choose your package/);
+  assert.match(markup, /type="radio"/);
+  assert.match(markup, /role="radiogroup"/);
   assert.match(markup, /pkg-option pkg-option--active/);
   assert.match(markup, /\$1,070 AUD/);
 });
@@ -63,6 +94,26 @@ test('getSuccessMessage returns the correct post-payment copy for each product t
   assert.match(getSuccessMessage('essay-marking'), /essays@rohanstutoring\.com/);
   assert.match(getSuccessMessage('private-mentoring'), /booking link/);
   assert.match(getSuccessMessage('mastery'), /everything you need to get started/);
+});
+
+test('buildSuccessUrl preserves product and payment-intent params for verification', () => {
+  const url = buildSuccessUrl(
+    { pageSlug: 'blueprint' },
+    'pi_secret_123',
+    'pi_123'
+  );
+
+  assert.equal(
+    url,
+    '/checkout/success.html?product=blueprint&payment_intent_client_secret=pi_secret_123&payment_intent=pi_123'
+  );
+});
+
+test('getSuccessState maps Stripe statuses to the right success-page copy', () => {
+  assert.equal(getSuccessState('succeeded', 'blueprint').heading, 'Payment confirmed');
+  assert.match(getSuccessState('succeeded', 'blueprint').message, /Google Drive/);
+  assert.equal(getSuccessState('processing', 'blueprint').heading, 'Payment processing');
+  assert.equal(getSuccessState('requires_payment_method', 'blueprint').heading, 'Payment not confirmed');
 });
 
 test('getApiServerErrorMessage explains when HTML is returned instead of JSON', () => {
@@ -92,4 +143,53 @@ test('parseApiResponse converts HTML error pages into a clear checkout-server me
 
   assert.equal(result.ok, false);
   assert.match(result.data.error, /Checkout API not found on this server/);
+});
+
+test('getCustomerPayload returns email and full name for API submission', () => {
+  const payload = getCustomerPayload({
+    billingDetails: {
+      email: 'jane@example.com',
+      name: 'Jane Smith',
+    },
+  });
+
+  assert.deepEqual(payload, {
+    email: 'jane@example.com',
+    customerName: 'Jane Smith',
+  });
+});
+
+test('EMAIL_PATTERN rejects obviously malformed addresses', () => {
+  assert.equal(EMAIL_PATTERN.test('jane@example.com'), true);
+  assert.equal(EMAIL_PATTERN.test('a@b.'), false);
+  assert.equal(EMAIL_PATTERN.test('.@a.com'), false);
+  assert.equal(EMAIL_PATTERN.test('not-an-email'), false);
+});
+
+test('payment intent handler origin allow-list covers production, preview, and local dev', () => {
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://preview-build.vercel.app'), true);
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://evil.example.com'), false);
+});
+
+test('payment intent handler validates customer details before Stripe call', () => {
+  assert.deepEqual(
+    createPaymentIntentHandler.normaliseCustomerDetails({
+      email: 'jane@example.com',
+      customerName: 'Jane Smith',
+    }),
+    {
+      email: 'jane@example.com',
+      customerName: 'Jane Smith',
+    }
+  );
+
+  assert.equal(
+    createPaymentIntentHandler.normaliseCustomerDetails({
+      email: 'not-an-email',
+      customerName: 'Jane Smith',
+    }).error,
+    'Please enter a valid email address.'
+  );
 });

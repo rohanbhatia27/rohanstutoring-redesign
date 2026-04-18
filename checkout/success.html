@@ -14,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/checkout.css">
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body class="checkout-page">
   <header class="checkout-header">
@@ -22,21 +23,13 @@
 
   <main class="checkout-main checkout-main--success">
     <div class="success-card">
-      <div class="success-icon">✓</div>
-      <h1 class="success-heading">Payment confirmed</h1>
+      <div class="success-icon" id="success-icon">…</div>
+      <h1 class="success-heading" id="success-heading">Checking payment</h1>
       <p class="success-message" id="success-message"></p>
-      <a href="/courses.html" class="success-back">← Back to courses</a>
+      <a href="/courses" class="success-back">← Back to courses</a>
     </div>
   </main>
 
   <script src="../js/checkout.js"></script>
-  <script>
-    const slug = new URLSearchParams(window.location.search).get('product');
-    const message = window.CheckoutPage && typeof window.CheckoutPage.getSuccessMessage === 'function'
-      ? window.CheckoutPage.getSuccessMessage(slug)
-      : "We've received your payment. You'll receive an email shortly with everything you need to get started.";
-
-    document.getElementById('success-message').textContent = message;
-  </script>
 </body>
 </html>

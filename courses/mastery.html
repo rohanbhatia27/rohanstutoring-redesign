@@ -9,6 +9,7 @@
   <meta property="og:description" content="Everything in the Comprehensive Course, plus private tutorials, unlimited essay marking, and a study roadmap built around you.">
   <meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/64503896d9df3114f57b664b/6e1d8d0c-5ff5-4965-8239-428a596a9291/182983_Bhatia_Rohan12638_Square_Background_RGB.jpg">
   <meta property="og:url" content="https://www.rohanstutoring.com/courses/mastery">
+  <link rel="canonical" href="https://www.rohanstutoring.com/courses/mastery">
   <meta property="og:type" content="product">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="GAMSAT Mastery Program | Rohan's GAMSAT">
@@ -108,19 +109,19 @@
     <div class="nav__inner">
       <a href="../index.html" class="nav__logo"><img src="../assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
       <ul class="nav__links">
-        <li><a href="../courses.html" style="color:var(--white)">Courses</a></li>
+        <li><a href="/courses" style="color:var(--white)">Courses</a></li>
         <li><a href="../index.html#resources">Free Resources</a></li>
-        <li><a href="../about.html">About</a></li>
-        <li><a href="../blog.html">Blog</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/blog">Blog</a></li>
       </ul>
       <a href="#apply" class="btn btn--nav">Enrol Now</a>
       <button class="nav__burger" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
     </div>
     <div class="nav__mobile" id="mobileMenu">
-      <a href="../courses.html">Courses</a>
+      <a href="/courses">Courses</a>
       <a href="../index.html#resources">Free Resources</a>
-      <a href="../about.html">About</a>
-      <a href="../blog.html">Blog</a>
+      <a href="/about">About</a>
+      <a href="/blog">Blog</a>
       <a href="#apply">Enrol Now</a>
     </div>
   </nav>
@@ -160,7 +161,7 @@
 
           <div class="product-hero__cta reveal reveal--delay-4">
             <a href="/checkout/?product=mastery" class="btn btn--primary btn--lg" id="apply">Enrol in the September Cohort →</a>
-            <a href="https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o" class="cta-instalment cta-instalment--hero">or pay $649 × 4 instalments</a>
+            <a href="#" class="cta-instalment cta-instalment--hero" data-mastery-instalment-link>or pay $649 × 4 instalments</a>
             <span class="product-hero__was">$2,249 AUD · Places kept intentionally small.</span>
             <div class="cta-trust">
               <span>Personalised roadmap before you start</span>
@@ -364,7 +365,7 @@
               <span class="value-summary__label">AUD · all inclusive</span>
             </div>
             <a href="/checkout/?product=mastery" class="btn btn--primary btn--lg">Enrol for September →</a>
-            <a href="https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o" class="cta-instalment">or pay $649 × 4 instalments</a>
+            <a href="#" class="cta-instalment" data-mastery-instalment-link>or pay $649 × 4 instalments</a>
             <p class="value-summary__note">Places are limited and enrolments are handled in order received.</p>
           </div>
         </div>
@@ -475,7 +476,7 @@
             </div>
           </div>
           <div class="disqualifier__redirect">
-            Not sure which fits? <a href="../contact.html">Book a free 20-minute call</a> and we'll tell you.
+            Not sure which fits? <a href="/webinar">Join the free Sunday webinar</a> and ask Rohan directly.
           </div>
         </div>
 
@@ -488,7 +489,7 @@
     <div class="container">
       <div class="product-faq__header reveal">
         <span class="label">Questions</span>
-        <h2>Everything you need to know before applying.</h2>
+        <h2>Everything you need to know before enrolling.</h2>
       </div>
       <div class="faq__list">
         <details class="faq__item reveal">
@@ -546,7 +547,7 @@
         </div>
         <div class="footer__links">
           <div class="footer__col"><h3>Courses</h3><a href="comprehensive.html">Comprehensive Course</a><a href="mastery.html">Mastery Program</a><a href="blueprint.html">Rohan's Blueprint</a><a href="advanced.html">Elite Excellence Course</a><a href="essay-marking.html">Essay Marking</a></div>
-          <div class="footer__col"><h4>Site</h4><a href="../about.html">About</a><a href="../blog.html">Blog</a><a href="../contact.html">Contact</a></div>
+          <div class="footer__col"><h4>Site</h4><a href="/about">About</a><a href="/blog">Blog</a><a href="/contact">Contact</a></div>
         </div>
       </div>
       <div class="footer__bottom">
@@ -557,5 +558,12 @@
 
   <script src="../js/main.js" defer></script>
   <script src="../js/product.js" defer></script>
+  <script>
+    const MASTERY_INSTALMENT_URL = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
+
+    document.querySelectorAll('[data-mastery-instalment-link]').forEach((link) => {
+      link.href = MASTERY_INSTALMENT_URL;
+    });
+  </script>
 </body>
 </html>
