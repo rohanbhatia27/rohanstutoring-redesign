@@ -103,6 +103,20 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
   }
 });
 
+test('legacy booking path and lead magnet follow-up both point to the webinar page', () => {
+  const config = JSON.parse(read('vercel.json'));
+  const bookingRedirect = config.redirects.find(({ source }) => source === '/book-your-gameplan');
+
+  assert.ok(bookingRedirect, 'Missing redirect for /book-your-gameplan');
+  assert.equal(bookingRedirect.destination, '/webinar');
+
+  const mockSignupPage = read('s1-mock.html');
+  assert.match(
+    mockSignupPage,
+    /redirect_url&quot;:&quot;https:\/\/www\.rohanstutoring\.com\/webinar&quot;/
+  );
+});
+
 test('public-page links no longer point at .html paths', () => {
   const files = [
     'index.html',

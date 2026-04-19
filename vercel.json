@@ -62,13 +62,8 @@
       "permanent": true
     },
     {
-      "source": "/section-1-tracker",
-      "destination": "/index.html#resources",
-      "permanent": false
-    },
-    {
       "source": "/book-your-gameplan",
-      "destination": "/contact",
+      "destination": "/webinar",
       "permanent": true
     },
     {
