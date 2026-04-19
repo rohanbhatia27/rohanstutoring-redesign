@@ -106,8 +106,15 @@
       <ul class="nav__links">
         <li><a href="#courses">Courses</a></li>
         <li class="nav__dropdown-wrap">
-          <a href="#resources" class="nav__dropdown-trigger">Free Resources <span class="nav__dropdown-caret">▾</span></a>
-          <div class="nav__dropdown">
+          <button
+            type="button"
+            class="nav__dropdown-trigger"
+            aria-expanded="false"
+            aria-controls="resourcesDropdown"
+          >
+            Free Resources <span class="nav__dropdown-caret">▾</span>
+          </button>
+          <div class="nav__dropdown" id="resourcesDropdown">
             <a href="https://www.rohanstutoring.com/#resources" class="nav__dropdown-item">
               <span class="nav__dropdown-item-title">S2 Slam System</span>
               <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>

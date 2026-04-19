@@ -301,8 +301,30 @@
       nav.classList.toggle('scrolled', window.scrollY > 20);
     }, { passive: true });
 
+    const setMobileMenuState = (isOpen) => {
+      burger.setAttribute('aria-expanded', String(isOpen));
+      burger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+      burger.setAttribute('aria-controls', mobileMenu.id);
+      mobileMenu.classList.toggle('open', isOpen);
+      mobileMenu.hidden = !isOpen;
+      mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+    };
+
+    setMobileMenuState(mobileMenu.classList.contains('open'));
+
     burger.addEventListener('click', () => {
-      mobileMenu.classList.toggle('open');
+      setMobileMenuState(!mobileMenu.classList.contains('open'));
+    });
+
+    mobileMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => setMobileMenuState(false));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && mobileMenu.classList.contains('open')) {
+        setMobileMenuState(false);
+        burger.focus();
+      }
     });
   </script>
 
