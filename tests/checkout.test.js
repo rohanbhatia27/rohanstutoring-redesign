@@ -14,9 +14,12 @@ const {
   getSuccessState,
   getApiServerErrorMessage,
   parseApiResponse,
+  fetchCheckoutConfig,
   getCustomerPayload,
 } = require('../js/checkout.js');
 const createPaymentIntentHandler = require('../api/create-payment-intent.js');
+const paymentIntentStatusHandler = require('../api/payment-intent-status.js');
+const publicConfigHandler = require('../api/public-config.js');
 
 test('fmtPrice formats whole and decimal amounts', () => {
   assert.equal(fmtPrice(599), '599');
@@ -96,16 +99,15 @@ test('getSuccessMessage returns the correct post-payment copy for each product t
   assert.match(getSuccessMessage('mastery'), /everything you need to get started/);
 });
 
-test('buildSuccessUrl preserves product and payment-intent params for verification', () => {
+test('buildSuccessUrl preserves product and payment-intent ID without leaking the client secret', () => {
   const url = buildSuccessUrl(
     { pageSlug: 'blueprint' },
-    'pi_secret_123',
     'pi_123'
   );
 
   assert.equal(
     url,
-    '/checkout/success.html?product=blueprint&payment_intent_client_secret=pi_secret_123&payment_intent=pi_123'
+    '/checkout/success?product=blueprint&payment_intent=pi_123'
   );
 });
 
@@ -133,6 +135,20 @@ test('parseApiResponse returns parsed JSON for valid API responses', async () =>
     ok: true,
     data: { clientSecret: 'pi_secret_123' },
   });
+});
+
+test('fetchCheckoutConfig returns the Stripe publishable key from the public config endpoint', async () => {
+  global.fetch = async () => ({
+    ok: true,
+    text: async () => '{"stripePublishableKey":"pk_test_123"}',
+  });
+
+  await assert.doesNotReject(async () => {
+    const config = await fetchCheckoutConfig();
+    assert.deepEqual(config, { stripePublishableKey: 'pk_test_123' });
+  });
+
+  delete global.fetch;
 });
 
 test('parseApiResponse converts HTML error pages into a clear checkout-server message', async () => {
@@ -192,4 +208,24 @@ test('payment intent handler validates customer details before Stripe call', () 
     }).error,
     'Please enter a valid email address.'
   );
+});
+
+test('payment intent status handler origin allow-list matches checkout endpoint', () => {
+  assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
+  assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://preview-build.vercel.app'), true);
+  assert.equal(paymentIntentStatusHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
+  assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://evil.example.com'), false);
+});
+
+test('payment intent status handler validates Stripe payment-intent IDs', () => {
+  assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId('pi_123'), true);
+  assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId('seti_123'), false);
+  assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId(''), false);
+});
+
+test('public config handler origin allow-list matches checkout endpoint', () => {
+  assert.equal(publicConfigHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
+  assert.equal(publicConfigHandler.isAllowedOrigin('https://preview-build.vercel.app'), true);
+  assert.equal(publicConfigHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
+  assert.equal(publicConfigHandler.isAllowedOrigin('https://evil.example.com'), false);
 });

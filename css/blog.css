@@ -2,32 +2,20 @@
    BLOG PAGE STYLES
    ============================================ */
 
-/* ---- Blog Hero ---- */
-.blog-hero {
-  position: relative;
+/* ---- Blog Header ---- */
+.blog-header {
   background: var(--navy);
-  padding: calc(var(--header-height) + 24px) 0 80px;
-  overflow: hidden;
+  padding: calc(var(--header-height) + 40px) 0 48px;
+  border-bottom: 1px solid var(--border);
 }
-.blog-hero__bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.blog-header__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
-.blog-hero__inner {
-  position: relative;
-  z-index: 1;
-  max-width: 700px;
-}
-.blog-hero__inner h1 {
+.blog-header__inner h1 {
   color: var(--white);
-  margin: 16px 0 20px;
-}
-.blog-hero__inner > p {
-  color: var(--text-light);
-  font-size: 1.1rem;
-  max-width: 520px;
-  margin-bottom: 36px;
+  margin: 0;
 }
 
 /* ---- Filter Tabs ---- */

@@ -291,42 +291,7 @@
     </div>
   </footer>
 
-  <script>
-    // Nav scroll behaviour (inline, no dependency on main.js needed for a 404 page)
-    const nav = document.getElementById('nav');
-    const burger = document.getElementById('burger');
-    const mobileMenu = document.getElementById('mobileMenu');
-
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 20);
-    }, { passive: true });
-
-    const setMobileMenuState = (isOpen) => {
-      burger.setAttribute('aria-expanded', String(isOpen));
-      burger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
-      burger.setAttribute('aria-controls', mobileMenu.id);
-      mobileMenu.classList.toggle('open', isOpen);
-      mobileMenu.hidden = !isOpen;
-      mobileMenu.setAttribute('aria-hidden', String(!isOpen));
-    };
-
-    setMobileMenuState(mobileMenu.classList.contains('open'));
-
-    burger.addEventListener('click', () => {
-      setMobileMenuState(!mobileMenu.classList.contains('open'));
-    });
-
-    mobileMenu.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => setMobileMenuState(false));
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && mobileMenu.classList.contains('open')) {
-        setMobileMenuState(false);
-        burger.focus();
-      }
-    });
-  </script>
+  <script src="js/main.js" defer></script>
 
 </body>
 </html>

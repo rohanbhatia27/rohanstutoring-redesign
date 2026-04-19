@@ -21,4 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  const masteryInstalmentUrl = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
+  document.querySelectorAll('[data-mastery-instalment-link]').forEach((link) => {
+    link.href = masteryInstalmentUrl;
+  });
 });

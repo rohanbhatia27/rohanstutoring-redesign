@@ -1,5 +1,32 @@
 {
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://formspree.io https://app.kit.com; img-src 'self' data: https://images.squarespace-cdn.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; script-src 'self' https://cdnjs.cloudflare.com https://js.stripe.com https://f.convertkit.com https://challenges.cloudflare.com; script-src-attr 'none'; connect-src 'self' https://api.stripe.com https://r.stripe.com https://m.stripe.network https://q.stripe.com https://formspree.io https://app.kit.com https://challenges.cloudflare.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com https://app.kit.com; upgrade-insecure-requests"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=()"
+        }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/store/gamsat-comprehensive-course",

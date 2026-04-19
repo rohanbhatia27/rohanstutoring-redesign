@@ -1,8 +1,7 @@
 (function (global) {
-  const STRIPE_PK = 'pk_live_51N6LQ9H5JsZI731GV0KrV8IGOHBN1IvAieWXgM84ajBeB6plCanyRRWnff01XmrfD9j72p4CRQGhr455rgTIktYm00VmKdY03B';
   const MASTERY_INSTALMENT_URL = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
-  // Publishable keys are intentionally public in Stripe's client-side integration.
+  let checkoutConfigPromise = null;
 
   const PRODUCTS = {
     blueprint: {
@@ -235,13 +234,12 @@
     return SUCCESS_MESSAGES[successType] || SUCCESS_MESSAGES.cohort;
   }
 
-  function buildSuccessUrl(selection, clientSecret, paymentIntentId) {
+  function buildSuccessUrl(selection, paymentIntentId) {
     const params = new URLSearchParams({ product: selection.pageSlug });
 
-    if (clientSecret) params.set('payment_intent_client_secret', clientSecret);
     if (paymentIntentId) params.set('payment_intent', paymentIntentId);
 
-    return `/checkout/success.html?${params.toString()}`;
+    return `/checkout/success?${params.toString()}`;
   }
 
   function getSuccessState(status, productSlug) {
@@ -286,6 +284,38 @@
         },
       };
     }
+  }
+
+  async function fetchPaymentIntentStatus(paymentIntentId) {
+    const response = await global.fetch(
+      `/api/payment-intent-status?payment_intent=${encodeURIComponent(paymentIntentId)}`
+    );
+    const result = await parseApiResponse(response);
+
+    if (!result.ok || !result.data.status) {
+      throw new Error(result.data.error || 'We could not verify this payment.');
+    }
+
+    return result.data.status;
+  }
+
+  async function fetchCheckoutConfig() {
+    const response = await global.fetch('/api/public-config');
+    const result = await parseApiResponse(response);
+
+    if (!result.ok || !result.data.stripePublishableKey) {
+      throw new Error(result.data.error || 'Checkout configuration is unavailable.');
+    }
+
+    return result.data;
+  }
+
+  function loadCheckoutConfig() {
+    if (!checkoutConfigPromise) {
+      checkoutConfigPromise = fetchCheckoutConfig();
+    }
+
+    return checkoutConfigPromise;
   }
 
   function renderSummaryMarkup(product, selection) {
@@ -482,7 +512,7 @@
     };
   }
 
-  function initCheckoutPage() {
+  async function initCheckoutPage() {
     const grid = qs('#checkout-grid');
     const notFound = qs('#checkout-not-found');
 
@@ -513,15 +543,26 @@
       setPayButtonReady(selection.price, false);
     }
 
-    if (!STRIPE_PK || STRIPE_PK.includes('REPLACE_ME')) {
-      showCardError('Stripe publishable key is not configured yet.');
+    if (typeof global.Stripe !== 'function') {
+      showCardError('Stripe.js failed to load. Please refresh and try again.');
+      return;
+    }
+
+    let stripePublishableKey = '';
+    try {
+      const config = await loadCheckoutConfig();
+      stripePublishableKey = String(config.stripePublishableKey || '').trim();
+    } catch (error) {
+      showCardError(error.message || 'Checkout configuration is unavailable.');
       const payButton = qs('#pay-btn');
       if (payButton) payButton.disabled = true;
       return;
     }
 
-    if (typeof global.Stripe !== 'function') {
-      showCardError('Stripe.js failed to load. Please refresh and try again.');
+    if (!stripePublishableKey || stripePublishableKey.includes('REPLACE_ME')) {
+      showCardError('Stripe publishable key is not configured yet.');
+      const payButton = qs('#pay-btn');
+      if (payButton) payButton.disabled = true;
       return;
     }
 
@@ -529,7 +570,7 @@
     let cardElement;
 
     try {
-      stripe = global.Stripe(STRIPE_PK);
+      stripe = global.Stripe(stripePublishableKey);
       const elements = stripe.elements();
       cardElement = elements.create('card', {
         style: {
@@ -609,7 +650,6 @@
         const paymentIntent = result.paymentIntent || null;
         window.location.href = buildSuccessUrl(
           selection,
-          paymentIntent?.client_secret || resultPayload.data.clientSecret,
           paymentIntent?.id
         );
       } catch (error) {
@@ -628,7 +668,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const productSlug = params.get('product');
-    const clientSecret = params.get('payment_intent_client_secret');
+    const paymentIntentId = params.get('payment_intent');
 
     function renderState(state) {
       iconEl.textContent = state.icon;
@@ -638,28 +678,20 @@
 
     renderState(SUCCESS_STATES.verifying);
 
-    if (!clientSecret || typeof global.Stripe !== 'function' || !STRIPE_PK) {
+    if (!paymentIntentId || typeof global.fetch !== 'function') {
       renderState(SUCCESS_STATES.failed);
       return;
     }
 
     try {
-      const stripe = global.Stripe(STRIPE_PK);
-      const { paymentIntent, error } = await stripe.retrievePaymentIntent(clientSecret);
-
-      if (error || !paymentIntent) {
-        renderState(SUCCESS_STATES.failed);
-        return;
-      }
-
-      renderState(getSuccessState(paymentIntent.status, productSlug));
+      const status = await fetchPaymentIntentStatus(paymentIntentId);
+      renderState(getSuccessState(status, productSlug));
     } catch (error) {
       renderState(SUCCESS_STATES.failed);
     }
   }
 
   const exported = {
-    STRIPE_PK,
     MASTERY_INSTALMENT_URL,
     EMAIL_PATTERN,
     PRODUCTS,
@@ -672,6 +704,9 @@
     getSuccessState,
     getApiServerErrorMessage,
     parseApiResponse,
+    fetchCheckoutConfig,
+    loadCheckoutConfig,
+    fetchPaymentIntentStatus,
     getCustomerPayload,
     renderSummaryMarkup,
     initCheckoutPage,
@@ -684,9 +719,9 @@
 
   if (typeof window !== 'undefined') {
     window.CheckoutPage = exported;
-    document.addEventListener('DOMContentLoaded', () => {
-      initCheckoutPage();
-      initSuccessPage();
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initCheckoutPage();
+      await initSuccessPage();
     });
   }
 })(typeof window !== 'undefined' ? window : globalThis);
