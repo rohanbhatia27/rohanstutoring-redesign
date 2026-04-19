@@ -22,13 +22,27 @@
   <!-- Fonts: Playfair Display (headlines) + Figtree (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Figtree:wght@400;600;700&display=swap"
+  >
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Figtree:wght@400;600;700&display=swap"
+    rel="stylesheet"
+    media="print"
+    onload="this.media='all'"
+  >
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+  </noscript>
 
-  <!-- GSAP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-
+  <script>
+    document.documentElement.classList.add('js');
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('motion-safe');
+    }
+  </script>
   <link rel="stylesheet" href="css/style.css">
 
   <!-- Schema markup -->
@@ -96,12 +110,13 @@
   </script>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- ============ NAV ============ -->
-  <nav class="nav" id="nav">
+  <nav class="nav" id="nav" aria-label="Primary">
     <div class="nav__inner">
       <a href="/" class="nav__logo">
-        <img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
+        <img src="assets/homepage/logo-home.png" alt="Rohan's GAMSAT" class="nav__logo-img" width="240" height="240" decoding="async">
       </a>
       <ul class="nav__links">
         <li><a href="#courses">Courses</a></li>
@@ -111,6 +126,7 @@
             class="nav__dropdown-trigger"
             aria-expanded="false"
             aria-controls="resourcesDropdown"
+            aria-haspopup="true"
           >
             Free Resources <span class="nav__dropdown-caret">▾</span>
           </button>
@@ -137,11 +153,11 @@
         <li><a href="/blog">Blog</a></li>
       </ul>
       <a href="/webinar" class="btn btn--nav">Join Free Webinar</a>
-      <button class="nav__burger" aria-label="Menu" id="burger">
+      <button class="nav__burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" id="burger">
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="nav__mobile" id="mobileMenu">
+    <div class="nav__mobile" id="mobileMenu" hidden aria-hidden="true">
       <a href="#courses">Courses</a>
       <a href="#resources">Free Resources</a>
       <a href="/about">About</a>
@@ -150,6 +166,7 @@
     </div>
   </nav>
 
+  <main id="main-content">
   <!-- ============ HERO ============ -->
   <section class="hero" id="hero">
 
@@ -163,81 +180,51 @@
 
     <!-- Photo: absolutely positioned, right half, top-aligned -->
     <div class="hero__photo-col" aria-hidden="true">
-      <img
-        src="assets/rohan-hero.png"
-        alt=""
-        class="hero__photo"
-      >
+      <picture>
+        <source media="(min-width: 861px)" srcset="assets/homepage/rohan-hero-home.png">
+        <img
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+          alt=""
+          class="hero__photo"
+          width="640"
+          height="640"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        >
+      </picture>
       <div class="hero__photo-fade"></div>
-    </div>
-
-    <!-- Floating credential card: bottom-right -->
-    <div class="hero__cred-card reveal reveal--delay-3">
-      <div class="hero__cred-avatar">RB</div>
-      <div class="hero__cred-info">
-        <strong>Rohan Bhatia</strong>
-        <span>MD Year 3, University of Sydney</span>
-        <span class="hero__cred-badge">Top 1% GAMSAT scorer</span>
-      </div>
     </div>
 
     <!-- Left-column content -->
     <div class="hero__inner">
       <div class="hero__content">
 
-        <a href="/courses/comprehensive" class="hero__announcement reveal">
-          <span class="hero__announcement-kicker">
-            <span class="hero__badge-dot"></span>
-            Enrolments now live
-          </span>
-          <strong class="hero__announcement-title">September 2026 Comprehensive Course is open.</strong>
-          <span class="hero__announcement-meta">Limited places. Enrol now <span aria-hidden="true">→</span></span>
+        <a href="/courses/comprehensive" class="hero__urgency reveal">
+          <span class="hero__urgency-dot" aria-hidden="true"></span>
+          <span class="hero__urgency-text">September 2026 enrolments now live</span>
         </a>
 
         <h1 class="hero__headline reveal reveal--delay-1">
-          From stuck<br>
-          <em>to medicine.</em>
+          Stop guessing. Start getting in.
         </h1>
 
         <p class="hero__sub reveal reveal--delay-2">
-          GAMSAT methods that have helped <strong>1,000+ future doctors</strong> across Australia, the UK and Ireland.
+          GAMSAT tutoring shaped by a top 1% scorer, trusted by 1,200+ future doctors across Australia, the UK, and Ireland.
         </p>
 
-        <div class="hero__ctas reveal reveal--delay-3">
-          <a href="#courses" class="btn btn--primary btn--lg">See the Courses</a>
-          <a href="/webinar" class="btn btn--ghost btn--lg">Join Sunday's Session</a>
+        <div class="hero__proof reveal reveal--delay-3" aria-label="Hero proof points">
+          <span class="hero__proof-item">1,200+ students coached</span>
+          <span class="hero__proof-separator" aria-hidden="true"></span>
+          <span class="hero__proof-item">Top 1% scorer</span>
         </div>
 
-        <!-- Stat strip -->
-        <div class="hero__stats reveal reveal--delay-4">
-          <div class="hero__stat">
-            <div class="hero__stat-row">
-              <span class="hero__stat-num" data-count="1200">0</span><span class="hero__stat-suffix">+</span>
-            </div>
-            <span class="hero__stat-label">Students Coached</span>
-          </div>
-          <div class="hero__stat-divider"></div>
-          <div class="hero__stat">
-            <div class="hero__stat-row">
-              <span class="hero__stat-num" data-count="1">0</span><span class="hero__stat-suffix">%</span>
-            </div>
-            <span class="hero__stat-label">Top Percentile Score</span>
-          </div>
-          <div class="hero__stat-divider"></div>
-          <div class="hero__stat">
-            <div class="hero__stat-row">
-              <span class="hero__stat-num" data-count="8">0</span><span class="hero__stat-suffix">yrs</span>
-            </div>
-            <span class="hero__stat-label">Teaching Experience</span>
-          </div>
+        <div class="hero__ctas reveal reveal--delay-4">
+          <a href="#courses" class="btn btn--primary btn--lg">See the Courses</a>
+          <a href="/webinar" class="btn btn--ghost btn--lg">Join This Week's Free GAMSAT Webinar</a>
         </div>
 
       </div>
-    </div>
-
-    <div class="hero__scroll">
-      <span>Scroll</span>
-      <div class="hero__scroll-line"></div>
     </div>
 
   </section>
@@ -255,14 +242,14 @@
       </div>
 
       <div class="selector__tabs reveal" role="tablist" aria-label="Student type">
-        <button class="selector__tab selector__tab--active" role="tab" aria-selected="true" aria-controls="tab-first-timer" data-tab="first-timer">First-timer</button>
-        <button class="selector__tab" role="tab" aria-selected="false" aria-controls="tab-resitter" data-tab="resitter">Resitter</button>
-        <button class="selector__tab" role="tab" aria-selected="false" aria-controls="tab-veteran" data-tab="veteran">Veteran</button>
+        <button class="selector__tab selector__tab--active" id="tab-first-timer-trigger" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-first-timer" data-tab="first-timer">First-timer</button>
+        <button class="selector__tab" id="tab-resitter-trigger" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-resitter" data-tab="resitter">Resitter</button>
+        <button class="selector__tab" id="tab-veteran-trigger" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-veteran" data-tab="veteran">Veteran</button>
       </div>
 
       <div class="selector__panels">
 
-        <div class="selector__panel selector__panel--blue selector__panel--active" id="tab-first-timer" role="tabpanel">
+        <div class="selector__panel selector__panel--blue selector__panel--active" id="tab-first-timer" role="tabpanel" aria-labelledby="tab-first-timer-trigger" aria-hidden="false">
           <div class="selector__panel-left">
             <span class="selector__panel-label">First-timer</span>
             <h3>New to the GAMSAT?</h3>
@@ -273,7 +260,7 @@
           </div>
         </div>
 
-        <div class="selector__panel selector__panel--green" id="tab-resitter" role="tabpanel" hidden>
+        <div class="selector__panel selector__panel--green" id="tab-resitter" role="tabpanel" aria-labelledby="tab-resitter-trigger" aria-hidden="true" hidden>
           <div class="selector__panel-left">
             <span class="selector__panel-label">Resitter</span>
             <h3>Sat it but still stuck?</h3>
@@ -284,7 +271,7 @@
           </div>
         </div>
 
-        <div class="selector__panel selector__panel--indigo" id="tab-veteran" role="tabpanel" hidden>
+        <div class="selector__panel selector__panel--indigo" id="tab-veteran" role="tabpanel" aria-labelledby="tab-veteran-trigger" aria-hidden="true" hidden>
           <div class="selector__panel-left">
             <span class="selector__panel-label">Veteran</span>
             <h3>Plateaued on the same score?</h3>
@@ -459,58 +446,57 @@
       <div class="proof__header reveal">
         <span class="label">Results</span>
         <h2>1,200+ students.<br><em>Real scores. Real acceptances.</em></h2>
+        <p class="proof__lede">The outcome is not more information. It is a clearer way to think under pressure, repeated until scores start moving.</p>
       </div>
 
-      <div class="proof__grid">
-
-        <div class="proof__card reveal">
-          <div class="proof__card-score">75</div>
-          <p class="proof__card-text">"Got a 75 and a DMD offer from USyd. I'd tried every other resource. The way Rohan teaches S2 is just different."</p>
-          <div class="proof__card-author">
-            <span class="proof__card-name">Anika, DMD — USyd</span>
-            <span class="proof__card-tag">Section 2</span>
+      <div class="proof__feature">
+        <article class="proof__highlight reveal">
+          <span class="proof__eyebrow">Featured turnaround</span>
+          <div class="proof__highlight-score">81</div>
+          <p class="proof__highlight-quote">“Scored 81 in S2. I'd been sitting it for two years. Having a framework I could actually use in the room made all the difference.”</p>
+          <div class="proof__highlight-meta">
+            <span class="proof__highlight-name">Tom, MD Student</span>
+            <span class="proof__highlight-tag">Section 2</span>
           </div>
-        </div>
+        </article>
 
-        <div class="proof__card reveal reveal--delay-1">
-          <div class="proof__card-score">81</div>
-          <p class="proof__card-text">"Scored 81 in S2. I'd been sitting it for two years. Having a framework I could actually use in the room made all the difference."</p>
-          <div class="proof__card-author">
-            <span class="proof__card-name">Tom, MD Student</span>
-            <span class="proof__card-tag">Section 2</span>
-          </div>
-        </div>
+        <div class="proof__list reveal reveal--delay-1">
+          <article class="proof__item">
+            <div class="proof__item-score">75</div>
+            <div class="proof__item-body">
+              <p>“Got a 75 and a DMD offer from USyd. I'd tried every other resource. The way Rohan teaches S2 is just different.”</p>
+              <span>Anika, DMD — USyd</span>
+            </div>
+          </article>
 
-        <div class="proof__card reveal reveal--delay-2">
-          <div class="proof__card-score">+8</div>
-          <p class="proof__card-text">"Went from 62 to 70. Spent a year going nowhere before finding Rohan. Wish I'd started here first."</p>
-          <div class="proof__card-author">
-            <span class="proof__card-name">Sarah, Medicine</span>
-            <span class="proof__card-tag">Full GAMSAT</span>
-          </div>
-        </div>
+          <article class="proof__item">
+            <div class="proof__item-score">+8</div>
+            <div class="proof__item-body">
+              <p>“Went from 62 to 70. Spent a year going nowhere before finding Rohan. Wish I'd started here first.”</p>
+              <span>Sarah, Medicine</span>
+            </div>
+          </article>
 
-        <div class="proof__card reveal reveal--delay-3">
-          <div class="proof__card-score">✓</div>
-          <p class="proof__card-text">"Dentistry at USyd. Rohan showed me how to actually read S1 passages — not just guess at the answers. That was the turning point."</p>
-          <div class="proof__card-author">
-            <span class="proof__card-name">Lachlan, Dentistry — USyd</span>
-            <span class="proof__card-tag">Section 1</span>
-          </div>
+          <article class="proof__item">
+            <div class="proof__item-score">S1</div>
+            <div class="proof__item-body">
+              <p>“Rohan showed me how to actually read S1 passages, not just guess at the answers. That was the turning point.”</p>
+              <span>Lachlan, Dentistry — USyd</span>
+            </div>
+          </article>
         </div>
-
       </div>
 
       <div class="proof__uni-strip reveal">
         <span class="proof__uni-label">Students accepted into</span>
         <div class="proof__unis">
-          <img src="assets/logos/the-university-of-sydney-3-logo-svg-vector.svg" alt="University of Sydney" class="uni-logo">
-          <img src="assets/logos/the-university-of-melbourne-logo-png-transparent.png" alt="University of Melbourne" class="uni-logo">
-          <img src="assets/logos/UQ-300x300.png" alt="UQ" class="uni-logo uni-logo--sq">
-          <img src="assets/logos/notre-dame.png" alt="Notre Dame" class="uni-logo">
-          <img src="assets/logos/Deakin_University_Logo_2017.svg.png" alt="Deakin" class="uni-logo">
-          <img src="assets/logos/uwa-university-perth-logo-svg-vector.svg" alt="University of Western Australia" class="uni-logo">
-          <img src="assets/logos/Flinders_University_Logo_Horizontal_RGB_Master.png" alt="Flinders University" class="uni-logo">
+          <img src="assets/logos/the-university-of-sydney-3-logo-svg-vector.svg" alt="University of Sydney" class="uni-logo" width="291" height="101" loading="lazy" decoding="async">
+          <img src="assets/homepage/melbourne-logo-home.png" alt="University of Melbourne" class="uni-logo" width="180" height="180" loading="lazy" decoding="async">
+          <img src="assets/logos/UQ-300x300.png" alt="UQ" class="uni-logo uni-logo--sq" width="300" height="300" loading="lazy" decoding="async">
+          <img src="assets/homepage/notre-dame-logo-home.png" alt="Notre Dame" class="uni-logo" width="320" height="92" loading="lazy" decoding="async">
+          <img src="assets/homepage/deakin-logo-home.png" alt="Deakin" class="uni-logo" width="180" height="180" loading="lazy" decoding="async">
+          <img src="assets/logos/uwa-university-perth-logo-svg-vector.svg" alt="University of Western Australia" class="uni-logo" width="924" height="304" loading="lazy" decoding="async">
+          <img src="assets/homepage/flinders-logo-home.png" alt="Flinders University" class="uni-logo" width="420" height="123" loading="lazy" decoding="async">
         </div>
       </div>
     </div>
@@ -535,7 +521,7 @@
             <a href="https://www.rohanstutoring.com/#resources" class="btn btn--primary btn--lg">Get the System Free</a>
           </div>
           <div class="slam__preview" aria-hidden="true">
-            <img src="assets/free-resources/s2-slam-system-cover.png" alt="" class="slam__image">
+            <img src="assets/homepage/s2-slam-system-cover-home.png" alt="" class="slam__image" width="495" height="700" loading="lazy" decoding="async">
           </div>
         </div>
 
@@ -616,7 +602,7 @@
     </div>
     <div class="container">
       <div class="book__inner reveal">
-        <span class="label" style="color: var(--blue-light)">Free every Sunday</span>
+        <span class="label book__label">Free every Sunday</span>
         <h2>Join the free<br><em>Sunday strategy session.</em></h2>
         <p>Every Sunday at 7pm AEST. Ask questions, get a real plan, and see exactly how Rohan teaches — before you spend a cent.</p>
         <a href="/webinar" class="btn btn--white btn--lg">Register for Sunday's Session →</a>
@@ -624,13 +610,14 @@
       </div>
     </div>
   </section>
+  </main>
 
   <!-- ============ FOOTER ============ -->
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/logo.png" alt="Rohan's GAMSAT" class="footer__logo-img">
+          <img src="assets/homepage/logo-home.png" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">
