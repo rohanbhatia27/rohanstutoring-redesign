@@ -1,7 +1,6 @@
 (function (global) {
   const MASTERY_INSTALMENT_URL = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
-  // Replace with your live Tally form URL once the form is created at tally.so
-  const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/REPLACE_ME';
+  const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/zxQdMR';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
   let checkoutConfigPromise = null;
 
@@ -684,21 +683,37 @@
     });
   }
 
+  function getSuccessActionMarkup(productSlug) {
+    const product = PRODUCTS[productSlug];
+    if (!product) return null;
+
+    if (product.successType === 'essay-marking') {
+      return `
+        <a href="${TALLY_ESSAY_FORM_URL}" class="success-tally-btn">Upload Your Essay Now &rarr;</a>
+        <p class="success-fallback">Alternatively, email your essay directly to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a></p>
+      `;
+    }
+
+    if (product.successType === 'essay-pack-10') {
+      return `
+        <p class="success-email-label">Email your essays to:</p>
+        <a href="mailto:essays@rohanstutoring.com" class="success-email-address">essays@rohanstutoring.com</a>
+        <p class="success-email-note">Include your name in the subject line. Your pack covers 10 essays.</p>
+      `;
+    }
+
+    return null;
+  }
+
   function renderSuccessAction(productSlug) {
     const actionEl = qs('#success-action');
     if (!actionEl) return;
 
-    const product = PRODUCTS[productSlug];
-    if (!product) return;
+    const markup = getSuccessActionMarkup(productSlug);
+    if (!markup) return;
 
-    if (product.successType === 'essay-pack-10') {
-      actionEl.innerHTML = `
-        <p class="success-email-label">Send your essays to:</p>
-        <a href="mailto:essays@rohanstutoring.com" class="success-email-address">essays@rohanstutoring.com</a>
-        <p class="success-email-note">Include your name in the subject line. Your pack covers 10 essays.</p>
-      `;
-      actionEl.hidden = false;
-    }
+    actionEl.innerHTML = markup;
+    actionEl.hidden = false;
   }
 
   async function initSuccessPage() {
@@ -746,6 +761,7 @@
 
   const exported = {
     MASTERY_INSTALMENT_URL,
+    TALLY_ESSAY_FORM_URL,
     EMAIL_PATTERN,
     PRODUCTS,
     fmtPrice,
@@ -762,6 +778,8 @@
     fetchPaymentIntentStatus,
     getCustomerPayload,
     renderSummaryMarkup,
+    getSuccessActionMarkup,
+    renderSuccessAction,
     initCheckoutPage,
     initSuccessPage,
   };

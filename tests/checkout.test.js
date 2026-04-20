@@ -10,6 +10,7 @@ const {
   renderSummaryMarkup,
   getPayButtonLabel,
   getSuccessMessage,
+  getSuccessActionMarkup,
   buildSuccessUrl,
   getSuccessState,
   getApiServerErrorMessage,
@@ -94,9 +95,31 @@ test('getPayButtonLabel reflects current amount', () => {
 
 test('getSuccessMessage returns the correct post-payment copy for each product type', () => {
   assert.match(getSuccessMessage('blueprint'), /Google Drive/);
-  assert.match(getSuccessMessage('essay-marking'), /essays@rohanstutoring\.com/);
+  assert.match(getSuccessMessage('essay-marking'), /upload your essay/);
   assert.match(getSuccessMessage('private-mentoring'), /booking link/);
   assert.match(getSuccessMessage('mastery'), /everything you need to get started/);
+});
+
+test('getSuccessActionMarkup renders essay-marking Tally CTA with fallback email', () => {
+  const markup = getSuccessActionMarkup('essay-marking');
+  assert.ok(markup, 'should return markup for essay-marking');
+  assert.match(markup, /success-tally-btn/);
+  assert.match(markup, /tally\.so/);
+  assert.match(markup, /essays@rohanstutoring\.com/);
+  assert.match(markup, /success-fallback/);
+});
+
+test('getSuccessActionMarkup renders essay-pack-10 email instructions', () => {
+  const markup = getSuccessActionMarkup('essay-pack-10');
+  assert.ok(markup, 'should return markup for essay-pack-10');
+  assert.match(markup, /essays@rohanstutoring\.com/);
+  assert.match(markup, /10 essays/);
+});
+
+test('getSuccessActionMarkup returns null for non-essay products', () => {
+  assert.equal(getSuccessActionMarkup('blueprint'), null);
+  assert.equal(getSuccessActionMarkup('mastery'), null);
+  assert.equal(getSuccessActionMarkup('nonexistent'), null);
 });
 
 test('buildSuccessUrl preserves product and payment-intent ID without leaking the client secret', () => {

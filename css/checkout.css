@@ -417,6 +417,70 @@
   color: var(--text-muted);
 }
 
+/* Essay expectation banner (shown above pay button for essay-marking only) */
+.checkout-essay-banner {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(91, 164, 224, 0.07);
+  border: 1px solid rgba(91, 164, 224, 0.22);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.checkout-essay-banner__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.checkout-essay-banner p {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--blue-light);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Success page: Tally primary CTA */
+.success-tally-btn {
+  display: block;
+  background: var(--blue);
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  padding: 16px 24px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+.success-tally-btn:hover {
+  background: #1a8ce0;
+  box-shadow: 0 8px 32px var(--blue-glow);
+}
+
+/* Success page: fallback email line */
+.success-fallback {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.success-fallback a {
+  color: var(--blue-light);
+  text-decoration: none;
+}
+
+.success-fallback a:hover {
+  text-decoration: underline;
+}
+
 /* Error state: product not found */
 .checkout-not-found {
   text-align: center;
