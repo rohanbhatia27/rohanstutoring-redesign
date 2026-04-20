@@ -1,5 +1,7 @@
 (function (global) {
   const MASTERY_INSTALMENT_URL = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
+  // Replace with your live Tally form URL once the form is created at tally.so
+  const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/REPLACE_ME';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
   let checkoutConfigPromise = null;
 
@@ -73,6 +75,20 @@
       isDigital: false,
       instalment: null,
       successType: 'essay-marking',
+    },
+    'essay-pack-10': {
+      name: 'S2 Essay Marking — 10-Essay Pack',
+      tagline: '10 essays · Submit over time · Top 1% scorer feedback',
+      price: 249,
+      features: [
+        '10 x in-depth essay markings',
+        'Ideas, structure and language corrections',
+        'Exemplars and evidence suggestions',
+        'Submit essays over time via email',
+      ],
+      isDigital: false,
+      instalment: null,
+      successType: 'essay-pack-10',
     },
     comprehensive: {
       name: 'Comprehensive Course',
@@ -166,7 +182,8 @@
 
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
-    'essay-marking': "We've received your payment. Send your essay to essays@rohanstutoring.com and you'll receive detailed feedback within 3 days.",
+    'essay-marking': "Payment confirmed. Use the button below to upload your essay — it takes about 30 seconds.",
+    'essay-pack-10': 'Your 10-essay pack is confirmed. Email your essays whenever you are ready using the address below.',
     mentoring: "We've received your payment. Check your email for a booking link to schedule your first session.",
     cohort: "We've received your payment. You'll receive an email shortly with everything you need to get started.",
   };
@@ -476,6 +493,13 @@
     if (note) note.hidden = false;
   }
 
+  function maybeShowEssayBanner(productSlug) {
+    if (productSlug !== 'essay-marking') return;
+
+    const banner = qs('#essay-banner');
+    if (banner) banner.hidden = false;
+  }
+
   function validateForm() {
     const firstNameInput = qs('#first-name');
     const lastNameInput = qs('#last-name');
@@ -535,6 +559,7 @@
     renderSummary(product, selection);
     maybeShowGmailNote(product);
     attachInstalmentLink(product);
+    maybeShowEssayBanner(productSlug);
 
     if (product.hasPkgSelector) {
       setupPackageSelector(product, selection);
@@ -659,6 +684,23 @@
     });
   }
 
+  function renderSuccessAction(productSlug) {
+    const actionEl = qs('#success-action');
+    if (!actionEl) return;
+
+    const product = PRODUCTS[productSlug];
+    if (!product) return;
+
+    if (product.successType === 'essay-pack-10') {
+      actionEl.innerHTML = `
+        <p class="success-email-label">Send your essays to:</p>
+        <a href="mailto:essays@rohanstutoring.com" class="success-email-address">essays@rohanstutoring.com</a>
+        <p class="success-email-note">Include your name in the subject line. Your pack covers 10 essays.</p>
+      `;
+      actionEl.hidden = false;
+    }
+  }
+
   async function initSuccessPage() {
     const messageEl = qs('#success-message');
     const headingEl = qs('#success-heading');
@@ -678,6 +720,16 @@
 
     renderState(SUCCESS_STATES.verifying);
 
+    // Stripe Payment Link redirects don't include a payment_intent param —
+    // trust that Stripe's hosted checkout already confirmed payment.
+    const isPaymentLinkProduct = productSlug === 'essay-pack-10';
+
+    if (!paymentIntentId && isPaymentLinkProduct) {
+      renderState(getSuccessState('succeeded', productSlug));
+      renderSuccessAction(productSlug);
+      return;
+    }
+
     if (!paymentIntentId || typeof global.fetch !== 'function') {
       renderState(SUCCESS_STATES.failed);
       return;
@@ -686,6 +738,7 @@
     try {
       const status = await fetchPaymentIntentStatus(paymentIntentId);
       renderState(getSuccessState(status, productSlug));
+      if (status === 'succeeded') renderSuccessAction(productSlug);
     } catch (error) {
       renderState(SUCCESS_STATES.failed);
     }

@@ -472,6 +472,48 @@
   margin-bottom: 32px;
 }
 
+/* Success page: email submission action box */
+.success-action {
+  margin-bottom: 32px;
+}
+
+.success-email-label {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.success-email-address {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--blue-light);
+  text-decoration: none;
+  background: rgba(91, 164, 224, 0.08);
+  border: 1px solid rgba(91, 164, 224, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  margin-bottom: 10px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.success-email-address:hover {
+  background: rgba(91, 164, 224, 0.14);
+  border-color: rgba(91, 164, 224, 0.4);
+}
+
+.success-email-note {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 .success-back {
   font-family: var(--font-sans);
   font-size: 0.875rem;
