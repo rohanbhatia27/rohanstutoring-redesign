@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Your GAMSAT Path | Rohan's GAMSAT</title>
+  <meta name="description" content="Seven questions, two minutes. Get a personalised 12-week GAMSAT study plan and the course recommendation that actually fits your situation.">
+  <meta property="og:title" content="Find Your GAMSAT Path | Rohan's Tutoring">
+  <meta property="og:description" content="Seven questions, two minutes. Get a personalised 12-week GAMSAT study plan built around where you are and where you're going.">
+  <meta property="og:image" content="https://www.rohanstutoring.com/assets/rohan/rohan-square-background.webp">
+  <meta property="og:url" content="https://www.rohanstutoring.com/quiz">
+  <link rel="canonical" href="https://www.rohanstutoring.com/quiz">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/quiz.css">
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
+      <ul class="nav__links">
+        <li><a href="/courses">Courses</a></li>
+        <li><a href="/courses/essay-marking">Essay Marking</a></li>
+        <li><a href="index.html#resources">Free Resources</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/blog">Blog</a></li>
+      </ul>
+      <a href="/webinar" class="btn btn--nav">Join Free Webinar</a>
+      <button class="nav__burger" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
+    </div>
+    <div class="nav__mobile" id="mobileMenu">
+      <a href="/courses">Courses</a>
+      <a href="/courses/essay-marking">Essay Marking</a>
+      <a href="index.html#resources">Free Resources</a>
+      <a href="/about">About</a>
+      <a href="/blog">Blog</a>
+      <a href="/webinar">Join Free Webinar</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="quiz-hero">
+    <div class="quiz-hero__bg">
+      <div class="hero__grain"></div>
+      <div class="hero__orb hero__orb--1"></div>
+      <div class="hero__orb hero__orb--2"></div>
+    </div>
+    <div class="container">
+      <div class="quiz-hero__inner">
+        <span class="label reveal">Free Diagnostic</span>
+        <h1 class="reveal reveal--delay-1">Find the GAMSAT path that<br><em>actually fits.</em></h1>
+        <p class="reveal reveal--delay-2">Seven questions. Two minutes. You get a 12-week study plan personalised to where you are, what you're aiming for, and how much time you've actually got.</p>
+        <button id="quizStart" class="btn btn--primary reveal reveal--delay-3">Start the quiz</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ CONTAINER -->
+  <section class="quiz-section" id="quizSection" hidden>
+    <div class="container">
+      <div class="quiz">
+        <div class="quiz__progress">
+          <div class="quiz__progress-bar" id="quizProgressBar"></div>
+          <div class="quiz__progress-label" id="quizProgressLabel">Question 1 of 7</div>
+        </div>
+        <div class="quiz__card" id="quizCard">
+          <!-- Rendered by quiz.js -->
+        </div>
+        <div class="quiz__nav">
+          <button class="quiz__back" id="quizBack" hidden>← Back</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT CONTAINER -->
+  <section class="quiz-result" id="quizResult" hidden>
+    <div class="container">
+      <div class="result">
+        <div class="result__header">
+          <span class="label" id="resultLabel">Your path</span>
+          <h2 id="resultName"></h2>
+          <p id="resultTeaser"></p>
+        </div>
+
+        <div class="result__locked" id="resultLocked">
+          <div class="result__locked-preview">
+            <!-- Blurred preview of unlocked content -->
+          </div>
+          <form class="result__gate" id="resultForm" action="https://formspree.io/f/xyklpvlp" method="POST">
+            <h3>Unlock your full 12-week plan.</h3>
+            <p>Enter your name and email and we'll reveal the full breakdown, plus send you a copy for reference.</p>
+            <div class="form-row">
+              <label>
+                <span>First name</span>
+                <input type="text" name="firstName" required autocomplete="given-name">
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" name="email" required autocomplete="email">
+              </label>
+            </div>
+            <input type="hidden" name="outcome" id="outcomeField">
+            <input type="hidden" name="_subject" id="subjectField">
+            <div class="cf-turnstile" data-sitekey="REPLACE_WITH_TURNSTILE_SITE_KEY"></div>
+            <button type="submit" class="btn btn--primary" id="resultSubmit">
+              <span class="form-submit__text">Unlock my plan</span>
+              <span class="form-submit__loading" style="display:none">Unlocking...</span>
+            </button>
+            <p class="result__gate-privacy">We never share your email. Just study plans, occasional tips, and the Sunday webinar invite.</p>
+            <div class="result__gate-error" id="resultError" style="display:none">
+              <span class="form-error__text">Something went wrong. Try again or email hello@rohanstutoring.com.</span>
+            </div>
+          </form>
+        </div>
+
+        <div class="result__unlocked" id="resultUnlocked" hidden>
+          <div class="result__plan" id="resultPlan"></div>
+          <div class="result__ctas">
+            <a class="btn btn--primary" id="resultPrimaryCta">Primary</a>
+            <a class="btn btn--secondary" id="resultSecondaryCta">Secondary</a>
+          </div>
+          <button class="result__retake" id="quizRetake">Retake the quiz</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <span class="footer__logo"><span class="nav__logo-r">R</span>ohan's GAMSAT</span>
+          <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
+          <div class="footer__socials">
+            <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+            <a href="https://www.youtube.com/@rohan_bhatia0" aria-label="YouTube"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.8"/><polygon points="10,9 16,12 10,15" fill="currentColor"/></svg></a>
+          </div>
+        </div>
+        <div class="footer__links">
+          <div class="footer__col">
+            <h3>Courses</h3>
+            <a href="/courses/comprehensive">Comprehensive Course</a>
+            <a href="/courses/blueprint">Rohan's Blueprint</a>
+            <a href="/courses/advanced">Elite Excellence Course</a>
+            <a href="/courses/essay-collection">Expert Essay Collection</a>
+            <a href="/courses/starter-pack">Essentials Playbook</a>
+            <a href="/courses/essay-marking">Essay Marking</a>
+          </div>
+          <div class="footer__col">
+            <h3>Free Resources</h3>
+            <a href="https://www.rohanstutoring.com/quote-generator">S2 Quote Generator</a>
+            <a href="https://www.rohanstutoring.com/s1-mock">S1 Mini Mock</a>
+            <a href="https://www.rohanstutoring.com/section-1-tracker">S1 Question Tracker</a>
+            <a href="/blog">Blog</a>
+          </div>
+          <div class="footer__col">
+            <h3>Company</h3>
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
+            <a href="/webinar">Join Webinar</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Rohan's Tutoring. All rights reserved.</p>
+        <p>Built for future doctors in Australia, the UK and Ireland.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/quiz.js" defer></script>
+</body>
+</html>
