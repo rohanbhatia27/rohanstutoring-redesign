@@ -51,6 +51,7 @@ test('checkout product prices stay in sync with payment-intent amounts', () => {
     advanced: createPaymentIntentHandler.AMOUNTS.advanced,
     'essay-collection': createPaymentIntentHandler.AMOUNTS['essay-collection'],
     'essay-marking': createPaymentIntentHandler.AMOUNTS['essay-marking'],
+    'essay-pack-10': createPaymentIntentHandler.AMOUNTS['essay-pack-10'],
     'starter-pack': createPaymentIntentHandler.AMOUNTS['starter-pack'],
     comprehensive: createPaymentIntentHandler.AMOUNTS.comprehensive,
     mastery: createPaymentIntentHandler.AMOUNTS.mastery,
@@ -62,6 +63,7 @@ test('checkout product prices stay in sync with payment-intent amounts', () => {
   assert.equal(PRODUCTS.advanced.price * 100, apiAmountsByPageSlug.advanced);
   assert.equal(PRODUCTS['essay-collection'].price * 100, apiAmountsByPageSlug['essay-collection']);
   assert.equal(PRODUCTS['essay-marking'].price * 100, apiAmountsByPageSlug['essay-marking']);
+  assert.equal(PRODUCTS['essay-pack-10'].price * 100, apiAmountsByPageSlug['essay-pack-10']);
   assert.equal(PRODUCTS['starter-pack'].price * 100, apiAmountsByPageSlug['starter-pack']);
   assert.equal(PRODUCTS.comprehensive.price * 100, apiAmountsByPageSlug.comprehensive);
   assert.equal(PRODUCTS.mastery.price * 100, apiAmountsByPageSlug.mastery);
@@ -86,6 +88,14 @@ test('renderSummaryMarkup renders mentoring selector with active default package
   assert.match(markup, /role="radiogroup"/);
   assert.match(markup, /pkg-option pkg-option--active/);
   assert.match(markup, /\$1,070 AUD/);
+});
+
+test('renderSummaryMarkup renders essay-marking upsell copy and checkout upsell container', () => {
+  const markup = renderSummaryMarkup(PRODUCTS['essay-marking'], getInitialSelection('essay-marking', PRODUCTS['essay-marking']));
+
+  assert.match(markup, /Save \$100\.90/);
+  assert.match(markup, /10 essays for \$249/);
+  assert.match(markup, /id="checkout-upsell"/);
 });
 
 test('getPayButtonLabel reflects current amount', () => {

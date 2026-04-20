@@ -165,6 +165,17 @@ strong { font-weight: 700; color: inherit; }
   box-shadow: var(--shadow-md);
 }
 .btn--white:hover { box-shadow: var(--shadow-lg); }
+.btn--gold {
+  background: linear-gradient(135deg, var(--premium-gold) 0%, var(--premium-gold-deep) 100%);
+  color: var(--premium-ink);
+  border-color: transparent;
+  box-shadow: 0 6px 22px rgba(184, 146, 42, 0.28);
+}
+.btn--gold:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--premium-gold) 90%, white) 0%, var(--premium-gold) 100%);
+  color: var(--premium-ink);
+  box-shadow: 0 10px 32px rgba(184, 146, 42, 0.34);
+}
 .btn--nav {
   background: var(--blue);
   color: var(--white);

@@ -40,6 +40,12 @@ test('fulfillment helper maps product slugs to server-side fulfillment plans', (
     fulfillmentLabel: 'Send essay submission instructions',
   });
 
+  assert.deepEqual(fulfillPaymentIntent.getFulfillmentPlan('essay-pack-10'), {
+    productSlug: 'essay-pack-10',
+    deliveryType: 'essay-submission',
+    fulfillmentLabel: 'Send essay pack submission instructions',
+  });
+
   assert.deepEqual(fulfillPaymentIntent.getFulfillmentPlan('private-mentoring'), {
     productSlug: 'private-mentoring',
     deliveryType: 'booking-link',

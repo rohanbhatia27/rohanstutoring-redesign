@@ -7,6 +7,7 @@ const AMOUNTS = {
   'essay-collection': 7900,
   'starter-pack': 9700,
   'essay-marking': 3499,
+  'essay-pack-10': 24900,
   comprehensive: 154900,
   mastery: 224900,
   's1-rescue-sprint': 34700,

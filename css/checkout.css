@@ -443,6 +443,52 @@
   margin: 0;
 }
 
+/* Essay upsell card */
+.checkout-upsell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(91, 164, 224, 0.08);
+  border: 1px solid rgba(91, 164, 224, 0.22);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.checkout-upsell__eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--blue-light);
+}
+
+.checkout-upsell__link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.checkout-upsell__link strong {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.checkout-upsell__link span {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--blue-light);
+}
+
+.checkout-upsell__link:hover strong,
+.checkout-upsell__link:hover span {
+  color: var(--white);
+}
+
 /* Success page: Tally primary CTA */
 .success-tally-btn {
   display: block;

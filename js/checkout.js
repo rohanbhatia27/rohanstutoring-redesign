@@ -217,6 +217,26 @@
     return `Pay $${fmtPrice(price)} AUD →`;
   }
 
+  function buildEssayUpsellMarkup(includeContainerId = true) {
+    const content = `
+      <p class="checkout-upsell__eyebrow">Best value</p>
+      <a class="checkout-upsell__link" href="/checkout/?product=essay-pack-10">
+        <strong>10 essays for $249</strong>
+        <span>Save $100.90</span>
+      </a>
+    `;
+
+    if (!includeContainerId) {
+      return content;
+    }
+
+    return `
+      <div class="checkout-upsell" id="checkout-upsell">
+        ${content}
+      </div>
+    `;
+  }
+
   function getProductFromSearch(search) {
     const params = new URLSearchParams(search || '');
     const slug = params.get('product');
@@ -386,6 +406,7 @@
         <span>Total due today</span>
         <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
       </div>
+      ${product.successType === 'essay-marking' ? buildEssayUpsellMarkup() : ''}
     `;
   }
 
@@ -438,6 +459,11 @@
     if (!container) return;
 
     container.innerHTML = renderSummaryMarkup(product, selection);
+
+    const summaryUpsell = container.querySelector('#checkout-upsell');
+    if (summaryUpsell) {
+      summaryUpsell.id = 'checkout-upsell-summary';
+    }
   }
 
   function syncSelectionUI(selection) {
@@ -497,6 +523,12 @@
 
     const banner = qs('#essay-banner');
     if (banner) banner.hidden = false;
+
+    const upsell = qs('#checkout-upsell-slot');
+    if (upsell) {
+      upsell.innerHTML = buildEssayUpsellMarkup(false);
+      upsell.hidden = false;
+    }
   }
 
   function validateForm() {
@@ -735,16 +767,6 @@
 
     renderState(SUCCESS_STATES.verifying);
 
-    // Stripe Payment Link redirects don't include a payment_intent param —
-    // trust that Stripe's hosted checkout already confirmed payment.
-    const isPaymentLinkProduct = productSlug === 'essay-pack-10';
-
-    if (!paymentIntentId && isPaymentLinkProduct) {
-      renderState(getSuccessState('succeeded', productSlug));
-      renderSuccessAction(productSlug);
-      return;
-    }
-
     if (!paymentIntentId || typeof global.fetch !== 'function') {
       renderState(SUCCESS_STATES.failed);
       return;
@@ -778,6 +800,7 @@
     fetchPaymentIntentStatus,
     getCustomerPayload,
     renderSummaryMarkup,
+    buildEssayUpsellMarkup,
     getSuccessActionMarkup,
     renderSuccessAction,
     initCheckoutPage,

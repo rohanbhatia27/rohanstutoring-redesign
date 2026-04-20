@@ -24,6 +24,11 @@ const FULFILLMENT_PLANS = {
     deliveryType: 'essay-submission',
     fulfillmentLabel: 'Send essay submission instructions',
   },
+  'essay-pack-10': {
+    productSlug: 'essay-pack-10',
+    deliveryType: 'essay-submission',
+    fulfillmentLabel: 'Send essay pack submission instructions',
+  },
   comprehensive: {
     productSlug: 'comprehensive',
     deliveryType: 'cohort-onboarding',
