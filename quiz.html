@@ -69,14 +69,14 @@
     <div class="container">
       <div class="quiz">
         <div class="quiz__progress">
-          <div class="quiz__progress-bar" id="quizProgressBar"></div>
+          <div class="quiz__progress-bar" id="quizProgressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
           <div class="quiz__progress-label" id="quizProgressLabel">Question 1 of 7</div>
         </div>
         <div class="quiz__card" id="quizCard">
           <!-- Rendered by quiz.js -->
         </div>
         <div class="quiz__nav">
-          <button class="quiz__back" id="quizBack" hidden>← Back</button>
+          <button class="quiz__back" id="quizBack" aria-label="Back" hidden>← Back</button>
         </div>
       </div>
     </div>
@@ -93,8 +93,8 @@
         </div>
 
         <div class="result__locked" id="resultLocked">
-          <div class="result__locked-preview">
-            <!-- Blurred preview of unlocked content -->
+          <div class="result__locked-preview" id="resultLockedPreview">
+            <!-- Decorative blurred background shown behind the email gate form -->
           </div>
           <form class="result__gate" id="resultForm" action="https://formspree.io/f/xyklpvlp" method="POST">
             <h3>Unlock your full 12-week plan.</h3>
@@ -114,10 +114,10 @@
             <div class="cf-turnstile" data-sitekey="REPLACE_WITH_TURNSTILE_SITE_KEY"></div>
             <button type="submit" class="btn btn--primary" id="resultSubmit">
               <span class="form-submit__text">Unlock my plan</span>
-              <span class="form-submit__loading" style="display:none">Unlocking...</span>
+              <span class="form-submit__loading" hidden>Unlocking...</span>
             </button>
             <p class="result__gate-privacy">We never share your email. Just study plans, occasional tips, and the Sunday webinar invite.</p>
-            <div class="result__gate-error" id="resultError" style="display:none">
+            <div class="result__gate-error" id="resultError" hidden>
               <span class="form-error__text">Something went wrong. Try again or email hello@rohanstutoring.com.</span>
             </div>
           </form>
@@ -126,8 +126,8 @@
         <div class="result__unlocked" id="resultUnlocked" hidden>
           <div class="result__plan" id="resultPlan"></div>
           <div class="result__ctas">
-            <a class="btn btn--primary" id="resultPrimaryCta">Primary</a>
-            <a class="btn btn--secondary" id="resultSecondaryCta">Secondary</a>
+            <a class="btn btn--primary" id="resultPrimaryCta" href="#">Primary</a>
+            <a class="btn btn--secondary" id="resultSecondaryCta" href="#">Secondary</a>
           </div>
           <button class="result__retake" id="quizRetake">Retake the quiz</button>
         </div>
