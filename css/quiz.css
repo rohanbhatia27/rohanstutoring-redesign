@@ -20,7 +20,10 @@
 /* QUIZ */
 .quiz-section { padding: 80px 0; background: var(--navy); }
 .quiz { max-width: 680px; margin: 0 auto; }
-.quiz__progress { margin-bottom: 32px; }
+.quiz__progress {
+  margin-top: 20px;
+  margin-bottom: 32px;
+}
 .quiz__progress-bar {
   height: 4px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; overflow: hidden; position: relative;
 }
@@ -129,6 +132,7 @@
 @media (max-width: 640px) {
   .quiz-hero { padding: 100px 0 60px; }
   .quiz-section, .quiz-result { padding: 48px 0; }
+  .quiz__progress { margin-top: 12px; }
   .quiz__card, .result__gate, .result__unlocked { padding: 28px 20px; }
   .result__gate { margin-top: -140px; }
   .result__gate .form-row { grid-template-columns: 1fr; }
