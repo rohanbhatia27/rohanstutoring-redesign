@@ -1988,6 +1988,7 @@ img[loading="lazy"] {
 
 /* Homepage quiz CTA band */
 .homepage-quiz-cta { padding: 72px 0; background: var(--navy); color: var(--white); }
+.homepage-quiz-cta .label { color: var(--blue-light); }
 .homepage-quiz-cta__inner {
   display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
 }
