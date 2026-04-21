@@ -139,8 +139,7 @@
 /* REDUCED MOTION */
 @media (prefers-reduced-motion: reduce) {
   .quiz__progress-bar::after,
-  .quiz__answer,
-  .courses-quiz-nudge__link {
+  .quiz__answer {
     transition: none;
   }
 }

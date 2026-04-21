@@ -20,3 +20,9 @@
   .courses-quiz-nudge__link { flex-wrap: wrap; }
   .courses-quiz-nudge__cta { width: 100%; text-align: left; margin-top: 4px; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .courses-quiz-nudge__link {
+    transition: none;
+  }
+}
