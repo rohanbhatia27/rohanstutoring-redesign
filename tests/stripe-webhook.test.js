@@ -153,6 +153,37 @@ test('fulfillment helper skips duplicate webhook deliveries once already fulfill
   assert.equal(updateCalled, false);
 });
 
+test('fulfillment helper skips stale webhook replays when Stripe already shows fulfillment', async () => {
+  let updateCalled = false;
+
+  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_789',
+      metadata: {
+        product_slug: 'blueprint',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        retrieve: async () => ({
+          id: 'pi_789',
+          metadata: {
+            product_slug: 'blueprint',
+            base_slug: 'blueprint',
+            fulfillment_status: 'fulfilled',
+          },
+        }),
+        update: async () => {
+          updateCalled = true;
+        },
+      },
+    },
+  });
+
+  assert.equal(result.alreadyFulfilled, true);
+  assert.equal(updateCalled, false);
+});
+
 test('stripe webhook rejects requests without a signature header', async () => {
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
 

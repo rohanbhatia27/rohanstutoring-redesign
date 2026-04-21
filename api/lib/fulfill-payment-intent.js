@@ -100,8 +100,12 @@ async function fulfillPaymentIntent(options) {
     throw new Error('Missing Stripe client.');
   }
 
-  const metadata = paymentIntent.metadata && typeof paymentIntent.metadata === 'object'
-    ? paymentIntent.metadata
+  const currentPaymentIntent = stripeClient.paymentIntents.retrieve
+    ? await stripeClient.paymentIntents.retrieve(paymentIntent.id)
+    : paymentIntent;
+
+  const metadata = currentPaymentIntent.metadata && typeof currentPaymentIntent.metadata === 'object'
+    ? currentPaymentIntent.metadata
     : {};
   const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
   const upsellSlug = String(metadata.upsell_slug || '').trim();
