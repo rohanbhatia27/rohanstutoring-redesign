@@ -91,6 +91,15 @@ console.log('[quiz] loaded, questions:', QUESTIONS.length);
 
 const CALENDLY = 'https://calendly.com/rohansgamsat/gamsat-strategy-consultation';
 
+const PRODUCT_IMAGES = {
+  MASTERY_CALL: { src: 'assets/rohan/rohan-mentoring-3637.webp', alt: 'Mastery mentoring program' },
+  COMPREHENSIVE: { src: 'assets/courses/comprehensive-course-card.webp', alt: 'Comprehensive course' },
+  ELITE_EXCELLENCE: { src: 'assets/courses/advanced-course-card.webp', alt: 'Elite Excellence course' },
+  BLUEPRINT: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Blueprint course' },
+  ESSAY_ACCELERATOR: { src: 'assets/courses/essay-collection-cover.webp', alt: 'Expert Essay Collection' },
+  START_HERE: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Essentials Playbook' },
+};
+
 const OUTCOMES = {
   MASTERY_CALL: {
     id: 'MASTERY_CALL',
@@ -431,6 +440,11 @@ function showResult(outcome) {
   el.resultSecondaryCta.textContent = outcome.secondaryCta.label;
   el.resultSecondaryCta.href = outcome.secondaryCta.url;
   el.resultPlan.innerHTML = outcome.planHtml;
+
+  const productImg = PRODUCT_IMAGES[outcome.id];
+  if (productImg && document.getElementById('resultProduct')) {
+    document.getElementById('resultProduct').innerHTML = `<img src="${productImg.src}" alt="${productImg.alt}">`;
+  }
 
   if (state.unlocked) unlockResult();
 
