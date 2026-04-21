@@ -1985,3 +1985,17 @@ img[loading="lazy"] {
   .footer__links { grid-template-columns: 1fr; }
   .footer__bottom { flex-direction: column; text-align: center; }
 }
+
+/* Homepage quiz CTA band */
+.homepage-quiz-cta { padding: 72px 0; background: var(--navy); color: var(--white); }
+.homepage-quiz-cta__inner {
+  display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
+}
+.homepage-quiz-cta__text h2 {
+  font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 12px 0 12px; line-height: 1.2;
+}
+.homepage-quiz-cta__text p { margin: 0; opacity: 0.85; line-height: 1.6; max-width: 520px; }
+@media (max-width: 720px) {
+  .homepage-quiz-cta__inner { grid-template-columns: 1fr; text-align: center; }
+  .homepage-quiz-cta__inner .btn { justify-self: center; }
+}
