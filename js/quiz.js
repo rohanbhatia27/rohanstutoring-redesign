@@ -1,5 +1,5 @@
 /* ============================================
-   QUIZ — quiz.js
+   QUIZ: quiz.js
    Path finder state machine + routing + submission
    ============================================ */
 
@@ -80,7 +80,7 @@ const QUESTIONS = [
 
 const STORAGE_KEY = 'rt_quiz_v1';
 
-// Analytics helper — no-op until GA is installed
+// Analytics helper: no-op until GA is installed
 const track = (event, params = {}) => {
   if (typeof window.gtag === 'function') {
     window.gtag('event', event, params);
