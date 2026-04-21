@@ -11,7 +11,7 @@
   color: var(--white);
   overflow: hidden;
 }
-.quiz-hero__bg { position: absolute; inset: 0; }
+.quiz-hero__bg { position: absolute; inset: 0; pointer-events: none; }
 .quiz-hero__inner { max-width: 760px; margin: 0 auto; text-align: center; }
 .quiz-hero__inner h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); line-height: 1.1; margin: 16px 0 20px; }
 .quiz-hero__inner h1 em { color: var(--blue); font-style: italic; }
