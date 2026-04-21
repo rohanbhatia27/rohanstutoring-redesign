@@ -20,7 +20,13 @@ async function publicConfigHandler(req, res) {
     return res.status(500).json({ error: 'Missing STRIPE_PUBLISHABLE_KEY environment variable' });
   }
 
-  return res.status(200).json({ stripePublishableKey: publishableKey });
+  const amountsCents = createPaymentIntentHandler.AMOUNTS || {};
+  const amounts = {};
+  for (const [key, value] of Object.entries(amountsCents)) {
+    amounts[key] = value / 100;
+  }
+
+  return res.status(200).json({ stripePublishableKey: publishableKey, amounts });
 }
 
 publicConfigHandler.isAllowedOrigin = isAllowedOrigin;

@@ -4,6 +4,9 @@
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
   let checkoutConfigPromise = null;
 
+  // SYNC REQUIRED: These hardcoded prices are fallbacks/display hints.
+  // The actual single source of truth is `AMOUNTS` in `api/create-payment-intent.js`.
+  // At runtime, `checkout.js` fetches `/api/public-config` and overwrites these prices dynamically.
   const PRODUCTS = {
     blueprint: {
       name: "Rohan's Blueprint",
@@ -971,6 +974,33 @@
   if (typeof window !== 'undefined') {
     window.CheckoutPage = exported;
     document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const config = await loadCheckoutConfig();
+        if (config && config.amounts) {
+          for (const [slug, amount] of Object.entries(config.amounts)) {
+            if (PRODUCTS[slug]) {
+              PRODUCTS[slug].price = amount;
+            } else {
+              for (const product of Object.values(PRODUCTS)) {
+                if (product.hasPkgSelector && product.packages) {
+                  const pkg = product.packages.find(p => p.slug === slug);
+                  if (pkg) {
+                    pkg.price = amount;
+                    pkg.priceDisplay = '$' + fmtPrice(amount);
+                  }
+                }
+              }
+            }
+          }
+          for (const bump of Object.values(ORDER_BUMPS)) {
+            if (config.amounts[bump.slug] !== undefined) {
+              bump.price = config.amounts[bump.slug];
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch dynamic prices, falling back to hardcoded defaults.');
+      }
       await initCheckoutPage();
       await initSuccessPage();
     });
