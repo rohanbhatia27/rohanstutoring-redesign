@@ -36,6 +36,12 @@ The skill should be suitable for:
 - product sales pages
 - application pages
 
+The skill should also adapt its objection strategy to the offer's threshold of action:
+
+- low-threshold actions such as free PDFs, lead magnets, and low-friction opt-ins should use minimal, stealthy objection handling
+- mid-threshold actions such as webinar registration or consultation booking may need light explicit reassurance
+- high-threshold actions such as applications, premium services, and high-ticket offers should use more explicit objection handling, stronger specificity, and a clear articulation of the cost of inaction
+
 The skill should not force a standalone HTML-only workflow. It should adapt implementation to the host project's stack, code patterns, and existing visual system.
 
 ## Non-Goals
@@ -127,6 +133,8 @@ Before writing, the skill should evaluate the page or brief across these dimensi
   Does the CTA tell the visitor what they get and how they get it?
 - `Objection coverage`
   Are the three biggest likely objections handled early?
+- `Threshold fit`
+  Is the level of objection handling appropriate for the action being asked of the visitor?
 - `Social proof relevance`
   Is proof specific, credible, and near high-anxiety decision moments?
 - `Focus`
@@ -146,6 +154,8 @@ The skill should enforce these rules:
 - no feature sprawl before the visitor understands outcome, proof, and next step
 - no extra sections added just because they are common on landing pages
 - no brand expression that competes with the conversion goal
+- no heavy objection handling on low-threshold lead magnet pages when that extra explanation would create friction
+- no generic objections on high-ticket pages when the real doubts are segment-specific and situational
 - no implementation before the brief or audit and user approval
 
 ## Output Requirements
@@ -186,6 +196,12 @@ After approval, the skill should produce:
 - early social proof block
 - any additional sections only if they materially improve conversion
 
+The copy step should adjust objection handling by offer type:
+
+- for lead magnets and other low-threshold offers, default to stealth objection handling baked into the subheadline, CTA support copy, or a small trust line near the CTA
+- for higher-ticket offers, explicitly surface the most relevant objections early when doing so reduces uncertainty rather than adding noise
+- for premium and high-ticket services, include the cost of inaction when that contrast helps the visitor understand the price of staying stuck
+
 ### Build Output
 
 After copy is approved or the user asks to proceed, the skill should implement the page:
@@ -212,10 +228,11 @@ The shared framework should distill the following principles:
 1. Above the fold has one job: stop attention, promise the outcome, prove it, and direct the next step.
 2. The hero image is not decoration. It should show the result, the asset, the mechanism, or social proof.
 3. The CTA should say what the person receives and how they receive it.
-4. Under the fold should immediately neutralize the three biggest objections.
+4. Under the fold should neutralize the biggest objections, but the visibility and intensity of objection handling should match the threshold of action.
 5. Social proof should appear early and be specific.
 6. Sparse pages usually outperform busy ones when the offer is clear and traffic is reasonably matched.
 7. Brand expression is allowed only if it supports comprehension, trust, and focus.
+8. High-ticket pages should address the cost of doing nothing when that contrast sharpens urgency without becoming manipulative.
 
 ## Reference Content Plan
 
@@ -225,9 +242,11 @@ Include:
 
 - distilled philosophy
 - page anatomy
+- threshold-of-action guidance for low-, mid-, and high-friction offers
 - decision rules for when to stay minimal versus add depth
 - proof hierarchy
 - objection-handling logic
+- cost-of-inaction guidance for high-ticket pages
 - mobile integrity checks
 
 ### `references/templates.md`
@@ -238,6 +257,9 @@ Include:
 - subheadline formulas
 - CTA formulas
 - objection bullet formulas
+- stealth trust-line formulas for low-threshold pages
+- segment-specific objection prompt formulas for high-ticket pages
+- cost-of-inaction formulas for premium offers
 - trust-line formulas
 - social-proof block formulas
 - section-order templates for the main landing-page types
@@ -255,10 +277,17 @@ Include short worked examples for:
 Each example should show:
 
 - what the visitor wants
+- what threshold of action the ask represents
 - what the page leads with
 - what proof appears in the hero
 - what objections get handled first
 - what the CTA promises
+
+The examples should demonstrate that objection handling changes by offer:
+
+- a free lead magnet should use stealth reassurance rather than heavy visible objection blocks
+- a webinar or booking page can use light explicit reassurance
+- a high-ticket application or service page should surface segment-specific doubts and may need a cost-of-inaction contrast
 
 ## Research Inputs
 
@@ -300,11 +329,19 @@ Use the established Claude skill frontmatter format in `~/.claude/skills/`, incl
   One canonical framework with two runtime-specific skill packages.
 - `Skill name?`
   `hormozi-landing-pages`
+- `How should objections work on low-threshold offers?`
+  Use stealth reassurance rather than heavy visible objection handling.
+- `How should objections work on high-ticket offers?`
+  Prompt for segment-specific, situational doubts rather than generic objections.
+- `Should the framework include the cost of inaction?`
+  Yes, for high-ticket scenarios where staying the same is part of the sale.
 
 ## Risks
 
 - The skill could become too generic if the Hormozi philosophy is softened into broad CRO advice.
 - The skill could become too rigid if it refuses all brand expression.
+- The skill could overuse objection handling on low-friction offers and accidentally add doubt.
+- The skill could use generic objections on high-ticket pages and miss the real situational friction.
 - The skill could be annoying if it over-expands the diagnosis step.
 - The skill could produce bad implementations if it defaults to standalone templates instead of reading project context first.
 
@@ -315,6 +352,9 @@ Use the established Claude skill frontmatter format in `~/.claude/skills/`, incl
 - Make project inspection mandatory before implementation.
 - Keep templates as helpers rather than mandatory outputs.
 - Enforce sparse default sectioning and strong proof requirements.
+- Make threshold-of-action analysis mandatory before deciding how explicit objection handling should be.
+- Require segment-specific objection prompts for premium and high-ticket pages.
+- Reserve cost-of-inaction framing for higher-ticket offers where it clarifies stakes rather than inflating pressure.
 
 ## Success Criteria
 
