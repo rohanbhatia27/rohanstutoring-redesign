@@ -11,6 +11,7 @@ const INDEXABLE_PAGES = [
   { file: 'contact.html', canonical: 'https://www.rohanstutoring.com/contact' },
   { file: 'courses.html', canonical: 'https://www.rohanstutoring.com/courses' },
   { file: 'blog.html', canonical: 'https://www.rohanstutoring.com/blog' },
+  { file: 's2-slam-system.html', canonical: 'https://www.rohanstutoring.com/s2-slam-system' },
   { file: 'courses/advanced.html', canonical: 'https://www.rohanstutoring.com/courses/advanced' },
   { file: 'courses/blueprint.html', canonical: 'https://www.rohanstutoring.com/courses/blueprint' },
   { file: 'courses/comprehensive.html', canonical: 'https://www.rohanstutoring.com/courses/comprehensive' },
@@ -80,6 +81,7 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
     '/contact.html -> /contact',
     '/courses.html -> /courses',
     '/blog.html -> /blog',
+    '/s2-slam-system.html -> /s2-slam-system',
     '/courses/advanced.html -> /courses/advanced',
     '/courses/blueprint.html -> /courses/blueprint',
     '/courses/comprehensive.html -> /courses/comprehensive',
@@ -115,6 +117,32 @@ test('legacy booking path and lead magnet follow-up both point to the webinar pa
     mockSignupPage,
     /redirect_url&quot;:&quot;https:\/\/www\.rohanstutoring\.com\/webinar&quot;/
   );
+});
+
+test('S2 Slam lead magnet CTAs point to the dedicated signup page instead of looping back to resources', () => {
+  const files = [
+    'index.html',
+    'blog.html',
+    'blog/ideation.html',
+    'blog/mastering-gamsat-s2-task-a-essay.html',
+    'blog/poetry-guide.html',
+    'blog/stop-falling-for-this-common-gamsat-section-1-trap.html',
+    'blog/the-biggest-s2-mistake.html',
+  ];
+
+  for (const file of files) {
+    const html = read(file);
+    assert.match(
+      html,
+      /href="https:\/\/www\.rohanstutoring\.com\/s2-slam-system"/,
+      `Expected S2 Slam CTA to point at the dedicated signup page in ${file}`
+    );
+    assert.doesNotMatch(
+      html,
+      /href="https:\/\/www\.rohanstutoring\.com\/#resources"/,
+      `Expected S2 Slam CTA to stop looping back to resources in ${file}`
+    );
+  }
 });
 
 test('public-page links no longer point at .html paths', () => {

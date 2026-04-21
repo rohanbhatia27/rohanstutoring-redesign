@@ -129,6 +129,11 @@
       "permanent": true
     },
     {
+      "source": "/s2-slam-system.html",
+      "destination": "/s2-slam-system",
+      "permanent": true
+    },
+    {
       "source": "/courses/advanced.html",
       "destination": "/courses/advanced",
       "permanent": true
