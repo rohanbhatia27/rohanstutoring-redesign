@@ -496,13 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLoading = submitBtn?.querySelector('.form-submit__loading');
   const errorBox = document.getElementById('resultError');
   const errorText = errorBox?.querySelector('.form-error__text');
-  const captcha = form.querySelector('.cf-turnstile');
-
-  const resetCaptcha = () => {
-    if (!captcha || !captcha.id || !window.turnstile || typeof window.turnstile.reset !== 'function') return;
-    window.turnstile.reset(`#${captcha.id}`);
-  };
-
   const showError = (msg) => {
     if (errorText) errorText.textContent = msg;
     errorBox.style.display = 'flex';
@@ -527,11 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
         track('quiz_email_captured', { outcome: state.outcomeId });
         unlockResult();
       } else {
-        resetCaptcha();
         showError('Something went wrong. Try again or email hello@rohanstutoring.com.');
       }
     } catch (err) {
-      resetCaptcha();
       showError('Something went wrong. Try again or email hello@rohanstutoring.com.');
     } finally {
       btnText.style.display = 'inline';
