@@ -179,6 +179,65 @@
     },
   };
 
+  const ORDER_BUMPS = {
+    blueprint: {
+      slug: 'essay-pack-10',
+      title: 'Add the 10-essay pack',
+      description: '10 x essay markings · Top 1% scorer feedback',
+      price: 249,
+      badge: 'Best value',
+    },
+    comprehensive: {
+      slug: 'mentoring-single',
+      title: 'Add one 1:1 strategy class',
+      description: 'Private strategy session with a top tutor before classes begin',
+      price: 119,
+      badge: 'Optional add-on',
+    },
+    advanced: {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+    'starter-pack': {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+    's1-rescue-sprint': {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+    's2-rescue-sprint': {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+    'essay-marking': {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+    'private-mentoring': {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+  };
+
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
     'essay-marking': "Payment confirmed. Use the button below to upload your essay — it takes about 30 seconds.",
@@ -217,22 +276,39 @@
     return `Pay $${fmtPrice(price)} AUD →`;
   }
 
-  function buildEssayUpsellMarkup(includeContainerId = true) {
-    const content = `
-      <p class="checkout-upsell__eyebrow">Best value</p>
-      <a class="checkout-upsell__link" href="/checkout/?product=essay-pack-10">
-        <strong>10 essays for $249</strong>
-        <span>Save $100.90</span>
-      </a>
-    `;
+  function getOrderBumpConfig(pageSlug) {
+    const bump = ORDER_BUMPS[pageSlug];
+    if (!bump) return null;
 
-    if (!includeContainerId) {
-      return content;
-    }
+    return { ...bump };
+  }
+
+  function updateSelectionPrice(selection) {
+    const upsellPrice = selection.upsellSelected && selection.upsell ? selection.upsell.price : 0;
+    selection.price = selection.basePrice + upsellPrice;
+    return selection.price;
+  }
+
+  function buildOrderBumpMarkup(orderBump, selection) {
+    if (!orderBump) return '';
 
     return `
-      <div class="checkout-upsell" id="checkout-upsell">
-        ${content}
+      <div class="checkout-upsell checkout-upsell--order-bump${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
+        <label class="checkout-upsell__toggle" for="order-bump-toggle">
+          <input
+            class="checkout-upsell__input"
+            id="order-bump-toggle"
+            type="checkbox"
+            ${selection.upsellSelected ? 'checked' : ''}
+          >
+          <span class="checkout-upsell__control" aria-hidden="true"></span>
+          <span class="checkout-upsell__body">
+            <span class="checkout-upsell__eyebrow">${orderBump.badge}</span>
+            <strong>${orderBump.title}</strong>
+            <span>${orderBump.description}</span>
+          </span>
+          <span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}</span>
+        </label>
       </div>
     `;
   }
@@ -244,24 +320,37 @@
   }
 
   function getInitialSelection(pageSlug, product) {
+    const orderBump = getOrderBumpConfig(pageSlug);
+
     if (product && product.hasPkgSelector) {
       const defaultIndex = 1;
       const selectedPackage = product.packages[defaultIndex];
-
-      return {
+      const selection = {
         pageSlug,
         apiSlug: selectedPackage.slug,
+        basePrice: selectedPackage.price,
         price: selectedPackage.price,
         packageIndex: defaultIndex,
+        upsell: orderBump,
+        upsellSelected: false,
       };
+
+      updateSelectionPrice(selection);
+      return selection;
     }
 
-    return {
+    const selection = {
       pageSlug,
       apiSlug: pageSlug,
+      basePrice: product.price,
       price: product.price,
       packageIndex: null,
+      upsell: orderBump,
+      upsellSelected: false,
     };
+
+    updateSelectionPrice(selection);
+    return selection;
   }
 
   function getSuccessMessage(productSlug) {
@@ -406,7 +495,6 @@
         <span>Total due today</span>
         <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
       </div>
-      ${product.successType === 'essay-marking' ? buildEssayUpsellMarkup() : ''}
     `;
   }
 
@@ -468,8 +556,16 @@
 
   function syncSelectionUI(selection) {
     const totalEl = qs('#summary-total');
+    const orderBumpCard = qs('#checkout-order-bump');
+    const orderBumpInput = qs('#order-bump-toggle');
 
     if (totalEl) totalEl.textContent = `$${fmtPrice(selection.price)} AUD`;
+    if (orderBumpCard) {
+      orderBumpCard.classList.toggle('checkout-upsell--selected', Boolean(selection.upsellSelected));
+    }
+    if (orderBumpInput) {
+      orderBumpInput.checked = Boolean(selection.upsellSelected);
+    }
 
     document.querySelectorAll('.pkg-option').forEach((option, index) => {
       option.classList.toggle('pkg-option--active', index === selection.packageIndex);
@@ -493,11 +589,46 @@
 
       const nextPackage = product.packages[packageIndex];
       selection.apiSlug = nextPackage.slug;
-      selection.price = nextPackage.price;
+      selection.basePrice = nextPackage.price;
       selection.packageIndex = packageIndex;
+      updateSelectionPrice(selection);
 
       syncSelectionUI(selection);
+      setPayButtonReady(selection.price, true);
     });
+  }
+
+  function setupOrderBump(selection) {
+    if (!selection.upsell) return;
+
+    const input = qs('#order-bump-toggle');
+    if (!input) return;
+
+    input.addEventListener('change', () => {
+      selection.upsellSelected = input.checked;
+      updateSelectionPrice(selection);
+      syncSelectionUI(selection);
+      setPayButtonReady(selection.price, true);
+    });
+  }
+
+  function renderOrderBump(productSlug, selection) {
+    const container = qs('#checkout-upsell-slot');
+    if (!container) return;
+
+    const orderBump = selection.upsell || getOrderBumpConfig(productSlug);
+    if (!orderBump) {
+      container.hidden = true;
+      container.innerHTML = '';
+      return;
+    }
+
+    selection.upsell = orderBump;
+    updateSelectionPrice(selection);
+    container.innerHTML = buildOrderBumpMarkup(orderBump, selection);
+    container.hidden = false;
+    setupOrderBump(selection);
+    syncSelectionUI(selection);
   }
 
   function attachInstalmentLink(product) {
@@ -523,12 +654,6 @@
 
     const banner = qs('#essay-banner');
     if (banner) banner.hidden = false;
-
-    const upsell = qs('#checkout-upsell-slot');
-    if (upsell) {
-      upsell.innerHTML = buildEssayUpsellMarkup(false);
-      upsell.hidden = false;
-    }
   }
 
   function validateForm() {
@@ -567,6 +692,37 @@
     };
   }
 
+  function buildCheckoutPayload(selection, validation) {
+    const payload = {
+      slug: selection.apiSlug,
+      primaryProduct: {
+        pageSlug: selection.pageSlug,
+        slug: selection.apiSlug,
+        price: selection.basePrice,
+      },
+      totalAmount: selection.price,
+      customerName: validation.billingDetails.name,
+      email: validation.billingDetails.email,
+      upsell: null,
+      upsellSlug: null,
+      upsellPrice: null,
+      upsellSelected: false,
+    };
+
+    if (selection.upsell && selection.upsellSelected) {
+      payload.upsell = {
+        slug: selection.upsell.slug,
+        price: selection.upsell.price,
+        title: selection.upsell.title,
+      };
+      payload.upsellSlug = selection.upsell.slug;
+      payload.upsellPrice = selection.upsell.price;
+      payload.upsellSelected = true;
+    }
+
+    return payload;
+  }
+
   async function initCheckoutPage() {
     const grid = qs('#checkout-grid');
     const notFound = qs('#checkout-not-found');
@@ -591,6 +747,7 @@
     maybeShowGmailNote(product);
     attachInstalmentLink(product);
     maybeShowEssayBanner(productSlug);
+    renderOrderBump(productSlug, selection);
 
     if (product.hasPkgSelector) {
       setupPackageSelector(product, selection);
@@ -677,10 +834,7 @@
         const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            slug: selection.apiSlug,
-            ...getCustomerPayload(validation),
-          }),
+          body: JSON.stringify(buildCheckoutPayload(selection, validation)),
         });
 
         const resultPayload = await parseApiResponse(response);
@@ -790,6 +944,8 @@
     getPayButtonLabel,
     getProductFromSearch,
     getInitialSelection,
+    getOrderBumpConfig,
+    updateSelectionPrice,
     getSuccessMessage,
     buildSuccessUrl,
     getSuccessState,
@@ -799,8 +955,9 @@
     loadCheckoutConfig,
     fetchPaymentIntentStatus,
     getCustomerPayload,
+    buildCheckoutPayload,
     renderSummaryMarkup,
-    buildEssayUpsellMarkup,
+    buildOrderBumpMarkup,
     getSuccessActionMarkup,
     renderSuccessAction,
     initCheckoutPage,

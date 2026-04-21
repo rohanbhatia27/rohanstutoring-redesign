@@ -16,8 +16,22 @@ const AMOUNTS = {
   'mentoring-pack': 107000,
 };
 
+const ALLOWED_UPSELLS = {
+  blueprint: new Set(['essay-pack-10']),
+  advanced: new Set(['essay-collection']),
+  'starter-pack': new Set(['essay-collection']),
+  'essay-marking': new Set(['essay-collection']),
+  comprehensive: new Set(['mentoring-single']),
+  's1-rescue-sprint': new Set(['essay-collection']),
+  's2-rescue-sprint': new Set(['essay-collection']),
+  'private-mentoring': new Set(['essay-collection']),
+  'mentoring-single': new Set(['essay-collection']),
+  'mentoring-pack': new Set(['essay-collection']),
+};
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
+let stripeFactory = (secretKey) => Stripe(secretKey);
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
@@ -32,6 +46,59 @@ function isAllowedOrigin(origin) {
 
 function isValidEmail(email) {
   return EMAIL_PATTERN.test(String(email || '').trim());
+}
+
+function normaliseSlug(value) {
+  return String(value || '').trim();
+}
+
+function normaliseUpsellSlug(body) {
+  return normaliseSlug(body.upsellSlug || body.upsell_slug || body.addOnSlug);
+}
+
+function isAllowedUpsellCombination(baseSlug, upsellSlug) {
+  const allowedUpsells = ALLOWED_UPSELLS[baseSlug];
+
+  return !!allowedUpsells && allowedUpsells.has(upsellSlug);
+}
+
+function resolveCheckoutPurchase(body) {
+  const baseSlug = normaliseSlug(body.slug);
+  const upsellSlug = normaliseUpsellSlug(body);
+  const baseAmount = AMOUNTS[baseSlug];
+
+  if (!baseAmount) {
+    return { error: 'Invalid product slug: ' + baseSlug };
+  }
+
+  if (!upsellSlug) {
+    return {
+      amount: baseAmount,
+      baseAmount,
+      baseSlug,
+      upsellAmount: 0,
+      upsellSlug: '',
+    };
+  }
+
+  const upsellAmount = AMOUNTS[upsellSlug];
+  if (!upsellAmount) {
+    return { error: 'Invalid upsell slug: ' + upsellSlug };
+  }
+
+  if (baseSlug === upsellSlug || !isAllowedUpsellCombination(baseSlug, upsellSlug)) {
+    return {
+      error: `Invalid upsell combination: ${baseSlug} + ${upsellSlug}`,
+    };
+  }
+
+  return {
+    amount: baseAmount + upsellAmount,
+    baseAmount,
+    baseSlug,
+    upsellAmount,
+    upsellSlug,
+  };
 }
 
 function normaliseCustomerDetails(body) {
@@ -67,10 +134,10 @@ async function createPaymentIntentHandler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid JSON body' });
   }
 
-  const { slug } = body;
-  const amount = AMOUNTS[slug];
-
-  if (!amount) return res.status(400).json({ error: 'Invalid product slug: ' + slug });
+  const purchase = resolveCheckoutPurchase(body);
+  if (purchase.error) {
+    return res.status(400).json({ error: purchase.error });
+  }
 
   const customer = normaliseCustomerDetails(body);
   if (customer.error) {
@@ -82,17 +149,26 @@ async function createPaymentIntentHandler(req, res) {
   }
 
   try {
-    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    const stripe = stripeFactory(process.env.STRIPE_SECRET_KEY);
+    const metadata = {
+      product_slug: purchase.baseSlug,
+      base_slug: purchase.baseSlug,
+      customer_email: customer.email,
+      customer_name: customer.customerName,
+    };
+
+    if (purchase.upsellSlug) {
+      metadata.upsell_slug = purchase.upsellSlug;
+    }
+
     const intent = await stripe.paymentIntents.create({
-      amount,
+      amount: purchase.amount,
       currency: 'aud',
       receipt_email: customer.email,
-      description: `Rohan's GAMSAT - ${slug}`,
-      metadata: {
-        product_slug: slug,
-        customer_email: customer.email,
-        customer_name: customer.customerName,
-      },
+      description: purchase.upsellSlug
+        ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
+        : `Rohan's GAMSAT - ${purchase.baseSlug}`,
+      metadata,
     });
     res.status(200).json({ clientSecret: intent.client_secret });
   } catch (err) {
@@ -102,9 +178,19 @@ async function createPaymentIntentHandler(req, res) {
 }
 
 createPaymentIntentHandler.AMOUNTS = AMOUNTS;
+createPaymentIntentHandler.ALLOWED_UPSELLS = ALLOWED_UPSELLS;
 createPaymentIntentHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 createPaymentIntentHandler.isAllowedOrigin = isAllowedOrigin;
 createPaymentIntentHandler.isValidEmail = isValidEmail;
 createPaymentIntentHandler.normaliseCustomerDetails = normaliseCustomerDetails;
+createPaymentIntentHandler.isAllowedUpsellCombination = isAllowedUpsellCombination;
+createPaymentIntentHandler.normaliseUpsellSlug = normaliseUpsellSlug;
+createPaymentIntentHandler.resolveCheckoutPurchase = resolveCheckoutPurchase;
+createPaymentIntentHandler.__setStripeFactory = (value) => {
+  stripeFactory = value;
+};
+createPaymentIntentHandler.__resetForTests = () => {
+  stripeFactory = (secretKey) => Stripe(secretKey);
+};
 
 module.exports = createPaymentIntentHandler;

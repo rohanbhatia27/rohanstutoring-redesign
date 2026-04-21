@@ -51,6 +51,13 @@ test('fulfillment helper maps product slugs to server-side fulfillment plans', (
     deliveryType: 'booking-link',
     fulfillmentLabel: 'Send mentoring booking link',
   });
+
+  assert.deepEqual(fulfillPaymentIntent.getFulfillmentPlan('comprehensive', 'mentoring-single'), {
+    productSlug: 'comprehensive',
+    upsellSlug: 'private-mentoring',
+    deliveryType: 'cohort-onboarding+booking-link',
+    fulfillmentLabel: 'Send cohort onboarding email + Send mentoring booking link',
+  });
 });
 
 test('fulfillment helper records fulfillment on the PaymentIntent metadata', async () => {
@@ -58,7 +65,7 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
   const paymentIntent = {
     id: 'pi_123',
     metadata: {
-      product_slug: 'blueprint',
+      base_slug: 'blueprint',
       customer_email: 'jane@example.com',
     },
   };
@@ -83,6 +90,43 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
   assert.equal(updates[0].payload.metadata.fulfilled_at, '2026-04-19T12:00:00.000Z');
   assert.equal(updates[0].payload.metadata.fulfillment_delivery_type, 'digital-access');
   assert.equal(updates[0].payload.metadata.fulfillment_label, 'Send Google Drive access');
+  assert.equal(updates[0].payload.metadata.base_slug, 'blueprint');
+  assert.equal(updates[0].payload.metadata.fulfillment_product_slugs, 'blueprint');
+});
+
+test('fulfillment helper records combined purchase metadata without breaking base fulfillment', async () => {
+  const updates = [];
+  const paymentIntent = {
+    id: 'pi_456',
+    metadata: {
+      base_slug: 'comprehensive',
+      upsell_slug: 'mentoring-single',
+      customer_email: 'jane@example.com',
+    },
+  };
+
+  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent,
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+    now: () => '2026-04-19T12:00:00.000Z',
+  });
+
+  assert.equal(result.alreadyFulfilled, false);
+  assert.equal(result.plan.upsellSlug, 'private-mentoring');
+  assert.equal(updates.length, 1);
+  assert.equal(updates[0].payload.metadata.fulfillment_delivery_type, 'cohort-onboarding+booking-link');
+  assert.equal(
+    updates[0].payload.metadata.fulfillment_label,
+    'Send cohort onboarding email + Send mentoring booking link'
+  );
+  assert.equal(updates[0].payload.metadata.fulfillment_product_slugs, 'comprehensive,private-mentoring');
 });
 
 test('fulfillment helper skips duplicate webhook deliveries once already fulfilled', async () => {

@@ -7,7 +7,9 @@ const {
   fmtPrice,
   getProductFromSearch,
   getInitialSelection,
+  getOrderBumpConfig,
   renderSummaryMarkup,
+  buildOrderBumpMarkup,
   getPayButtonLabel,
   getSuccessMessage,
   getSuccessActionMarkup,
@@ -17,10 +19,26 @@ const {
   parseApiResponse,
   fetchCheckoutConfig,
   getCustomerPayload,
+  buildCheckoutPayload,
 } = require('../js/checkout.js');
 const createPaymentIntentHandler = require('../api/create-payment-intent.js');
 const paymentIntentStatusHandler = require('../api/payment-intent-status.js');
 const publicConfigHandler = require('../api/public-config.js');
+
+function createJsonResponseRecorder() {
+  return {
+    statusCode: 200,
+    body: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      return this;
+    },
+  };
+}
 
 test('fmtPrice formats whole and decimal amounts', () => {
   assert.equal(fmtPrice(599), '599');
@@ -34,15 +52,52 @@ test('getProductFromSearch resolves a valid product slug', () => {
   assert.equal(product.name, PRODUCTS.advanced.name);
 });
 
-test('getInitialSelection defaults private mentoring to the 10-class pack', () => {
+test('getInitialSelection defaults private mentoring to the 10-class pack and essay collection bump', () => {
   const selection = getInitialSelection('private-mentoring', PRODUCTS['private-mentoring']);
 
   assert.deepEqual(selection, {
     pageSlug: 'private-mentoring',
     apiSlug: 'mentoring-pack',
+    basePrice: 1070,
     price: 1070,
     packageIndex: 1,
+    upsell: {
+      slug: 'essay-collection',
+      title: 'Add the Essay Collection',
+      description: '25 essays scored 80+ · Immediate access',
+      price: 79,
+      badge: 'Optional add-on',
+    },
+    upsellSelected: false,
   });
+});
+
+test('getOrderBumpConfig returns the configured order bump per product', () => {
+  assert.deepEqual(getOrderBumpConfig('blueprint'), {
+    slug: 'essay-pack-10',
+    title: 'Add the 10-essay pack',
+    description: '10 x essay markings · Top 1% scorer feedback',
+    price: 249,
+    badge: 'Best value',
+  });
+
+  assert.deepEqual(getOrderBumpConfig('comprehensive'), {
+    slug: 'mentoring-single',
+    title: 'Add one 1:1 strategy class',
+    description: 'Private strategy session with a top tutor before classes begin',
+    price: 119,
+    badge: 'Optional add-on',
+  });
+
+  assert.deepEqual(getOrderBumpConfig('advanced'), {
+    slug: 'essay-collection',
+    title: 'Add the Essay Collection',
+    description: '25 essays scored 80+ · Immediate access',
+    price: 79,
+    badge: 'Optional add-on',
+  });
+
+  assert.equal(getOrderBumpConfig('mastery'), null);
 });
 
 test('checkout product prices stay in sync with payment-intent amounts', () => {
@@ -90,12 +145,21 @@ test('renderSummaryMarkup renders mentoring selector with active default package
   assert.match(markup, /\$1,070 AUD/);
 });
 
-test('renderSummaryMarkup renders essay-marking upsell copy and checkout upsell container', () => {
+test('renderSummaryMarkup keeps essay-marking summary focused on the core order', () => {
   const markup = renderSummaryMarkup(PRODUCTS['essay-marking'], getInitialSelection('essay-marking', PRODUCTS['essay-marking']));
 
-  assert.match(markup, /Save \$100\.90/);
-  assert.match(markup, /10 essays for \$249/);
-  assert.match(markup, /id="checkout-upsell"/);
+  assert.doesNotMatch(markup, /checkout-upsell/);
+  assert.match(markup, /Total due today/);
+});
+
+test('buildOrderBumpMarkup renders an unchecked opt-in card', () => {
+  const markup = buildOrderBumpMarkup(getOrderBumpConfig('advanced'), getInitialSelection('advanced', PRODUCTS.advanced));
+
+  assert.match(markup, /type="checkbox"/);
+  assert.match(markup, /id="order-bump-toggle"/);
+  assert.match(markup, /Add the Essay Collection/);
+  assert.match(markup, /\+\$79/);
+  assert.doesNotMatch(markup, /checked/);
 });
 
 test('getPayButtonLabel reflects current amount', () => {
@@ -208,6 +272,40 @@ test('getCustomerPayload returns email and full name for API submission', () => 
   });
 });
 
+test('buildCheckoutPayload includes the primary slug and optional upsell fields', () => {
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  selection.upsellSelected = true;
+  selection.basePrice = 1549;
+  selection.price = 1668;
+
+  const payload = buildCheckoutPayload(selection, {
+    billingDetails: {
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+    },
+  });
+
+  assert.deepEqual(payload, {
+    slug: 'comprehensive',
+    primaryProduct: {
+      pageSlug: 'comprehensive',
+      slug: 'comprehensive',
+      price: 1549,
+    },
+    totalAmount: 1668,
+    customerName: 'Jane Smith',
+    email: 'jane@example.com',
+    upsell: {
+      slug: 'mentoring-single',
+      price: 119,
+      title: 'Add one 1:1 strategy class',
+    },
+    upsellSlug: 'mentoring-single',
+    upsellPrice: 119,
+    upsellSelected: true,
+  });
+});
+
 test('EMAIL_PATTERN rejects obviously malformed addresses', () => {
   assert.equal(EMAIL_PATTERN.test('jane@example.com'), true);
   assert.equal(EMAIL_PATTERN.test('a@b.'), false);
@@ -241,6 +339,77 @@ test('payment intent handler validates customer details before Stripe call', () 
     }).error,
     'Please enter a valid email address.'
   );
+});
+
+test('payment intent handler resolves allowed checkout combinations and rejects invalid pairs', () => {
+  assert.deepEqual(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'blueprint',
+      upsellSlug: 'essay-pack-10',
+    }),
+    {
+      amount: 84800,
+      baseAmount: 59900,
+      baseSlug: 'blueprint',
+      upsellAmount: 24900,
+      upsellSlug: 'essay-pack-10',
+    }
+  );
+
+  assert.equal(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'blueprint',
+      upsellSlug: 'essay-collection',
+    }).error,
+    'Invalid upsell combination: blueprint + essay-collection'
+  );
+});
+
+test('payment intent handler creates combined PaymentIntents with base and upsell metadata', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  const createPayloads = [];
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      create: async (payload) => {
+        createPayloads.push(payload);
+        return { client_secret: 'pi_secret_123' };
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: {
+        origin: 'https://rohanstutoring.com',
+      },
+      body: {
+        slug: 'comprehensive',
+        upsellSlug: 'mentoring-single',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createPaymentIntentHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { clientSecret: 'pi_secret_123' });
+    assert.equal(createPayloads.length, 1);
+    assert.equal(createPayloads[0].amount, 166800);
+    assert.equal(createPayloads[0].description, "Rohan's GAMSAT - comprehensive + mentoring-single");
+    assert.deepEqual(createPayloads[0].metadata, {
+      product_slug: 'comprehensive',
+      base_slug: 'comprehensive',
+      upsell_slug: 'mentoring-single',
+      customer_email: 'jane@example.com',
+      customer_name: 'Jane Smith',
+    });
+  } finally {
+    createPaymentIntentHandler.__resetForTests();
+  }
 });
 
 test('payment intent status handler origin allow-list matches checkout endpoint', () => {

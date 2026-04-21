@@ -456,16 +456,83 @@
   margin: 0;
 }
 
-/* Essay upsell card */
+/* Order bump card */
 .checkout-upsell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.checkout-upsell--order-bump {
   background: rgba(91, 164, 224, 0.08);
   border: 1px solid rgba(91, 164, 224, 0.22);
   border-radius: var(--radius-sm);
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.checkout-upsell--selected {
+  background: rgba(91, 164, 224, 0.14);
+  border-color: rgba(91, 164, 224, 0.42);
+  box-shadow: 0 0 0 1px rgba(91, 164, 224, 0.18);
+}
+
+.checkout-upsell__toggle {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 12px;
+  align-items: start;
   padding: 12px 14px;
-  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.checkout-upsell__toggle:focus-within {
+  box-shadow: inset 0 0 0 1px rgba(91, 164, 224, 0.32);
+}
+
+.checkout-upsell__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.checkout-upsell__control {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(91, 164, 224, 0.45);
+  background: rgba(7, 17, 31, 0.68);
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+
+.checkout-upsell__control::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 4px;
+  background: transparent;
+  transition: background var(--transition);
+}
+
+.checkout-upsell__input:focus-visible + .checkout-upsell__control {
+  box-shadow: 0 0 0 3px rgba(91, 164, 224, 0.18);
+}
+
+.checkout-upsell--selected .checkout-upsell__control {
+  border-color: var(--blue);
+  background: rgba(22, 119, 190, 0.2);
+}
+
+.checkout-upsell--selected .checkout-upsell__control::after {
+  background: var(--blue);
+}
+
+.checkout-upsell__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .checkout-upsell__eyebrow {
@@ -477,29 +544,28 @@
   color: var(--blue-light);
 }
 
-.checkout-upsell__link {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-decoration: none;
-}
-
-.checkout-upsell__link strong {
+.checkout-upsell__body strong {
   font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-light);
+  line-height: 1.4;
 }
 
-.checkout-upsell__link span {
+.checkout-upsell__body span {
   font-family: var(--font-sans);
   font-size: 0.82rem;
   color: var(--blue-light);
+  line-height: 1.45;
 }
 
-.checkout-upsell__link:hover strong,
-.checkout-upsell__link:hover span {
-  color: var(--white);
+.checkout-upsell__price {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-light);
+  white-space: nowrap;
+  align-self: center;
 }
 
 /* Success page: Tally primary CTA */

@@ -17,7 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- Mobile burger ---- */
   const burger = document.getElementById('burger');
   const mobileMenu = document.getElementById('mobileMenu');
+  const mobileResourceWrap = document.querySelector('.nav__mobile-group');
+  const mobileResourceTrigger = mobileResourceWrap?.querySelector('.nav__mobile-trigger');
+  const mobileResourceMenu = mobileResourceWrap?.querySelector('.nav__mobile-submenu');
+
   if (burger && mobileMenu) {
+    const setMobileResourcesState = (isOpen) => {
+      if (!mobileResourceWrap || !mobileResourceTrigger || !mobileResourceMenu) return;
+      mobileResourceWrap.classList.toggle('is-open', isOpen);
+      mobileResourceTrigger.setAttribute('aria-expanded', String(isOpen));
+      mobileResourceMenu.classList.toggle('open', isOpen);
+      mobileResourceMenu.hidden = !isOpen;
+      mobileResourceMenu.setAttribute('aria-hidden', String(!isOpen));
+    };
+
     const setMobileMenuState = (isOpen) => {
       burger.setAttribute('aria-expanded', String(isOpen));
       burger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
@@ -26,13 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileMenu.classList.toggle('open', isOpen);
       mobileMenu.hidden = !isOpen;
       mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+      setMobileResourcesState(false);
     };
 
     setMobileMenuState(mobileMenu.classList.contains('open'));
+    setMobileResourcesState(false);
 
     burger.addEventListener('click', () => {
       setMobileMenuState(!mobileMenu.classList.contains('open'));
     });
+
+    if (mobileResourceTrigger && mobileResourceMenu) {
+      mobileResourceTrigger.addEventListener('click', () => {
+        setMobileResourcesState(!mobileResourceWrap.classList.contains('is-open'));
+      });
+    }
 
     mobileMenu.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => setMobileMenuState(false));
@@ -40,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && mobileMenu.classList.contains('open')) {
+        setMobileResourcesState(false);
         setMobileMenuState(false);
         burger.focus();
       }

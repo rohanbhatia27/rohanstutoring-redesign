@@ -58,7 +58,29 @@
       <ul class="nav__links">
         <li><a href="/courses" style="color:var(--white)">Courses</a></li>
         <li><a href="/courses/essay-marking">Essay Marking</a></li>
-        <li><a href="../index.html#resources">Free Resources</a></li>
+        <li class="nav__dropdown-wrap">
+          <button type="button" class="nav__dropdown-trigger" aria-expanded="false" aria-controls="resourcesDropdown" aria-haspopup="true">
+            Free Resources <span class="nav__dropdown-caret">▾</span>
+          </button>
+          <div class="nav__dropdown" id="resourcesDropdown">
+            <a href="/s2-slam-system" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">S2 Slam System</span>
+              <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
+            </a>
+            <a href="/quote-generator" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">S2 Quote Generator</span>
+              <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
+            </a>
+            <a href="/s1-mock" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">S1 Mini Mock</span>
+              <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
+            </a>
+            <a href="/section-1-tracker" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
+              <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
+            </a>
+          </div>
+        </li>
         <li><a href="/about">About</a></li>
         <li><a href="/blog">Blog</a></li>
       </ul>
@@ -68,6 +90,29 @@
     <div class="nav__mobile" id="mobileMenu">
       <a href="/courses">Courses</a>
       <a href="/courses/essay-marking">Essay Marking</a>
+      <div class="nav__mobile-group">
+        <button type="button" class="nav__mobile-trigger" aria-expanded="false" aria-controls="mobileResourcesMenu">
+          Free Resources <span class="nav__mobile-trigger-caret">▾</span>
+        </button>
+        <div class="nav__mobile-submenu" id="mobileResourcesMenu" hidden aria-hidden="true">
+          <a href="/s2-slam-system" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">S2 Slam System</span>
+            <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
+          </a>
+          <a href="/quote-generator" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">S2 Quote Generator</span>
+            <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
+          </a>
+          <a href="/s1-mock" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">S1 Mini Mock</span>
+            <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
+          </a>
+          <a href="/section-1-tracker" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
+            <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
+          </a>
+        </div>
+      </div>
       <a href="#purchase">Submit an Essay</a>
     </div>
   </nav>
@@ -106,7 +151,7 @@
             <a href="/checkout/?product=essay-marking" class="btn btn--primary btn--lg">Submit Your Essay for $34.99 AUD</a>
             <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg">Buy 10 Essays for $249.00 AUD</a>
             <span class="product-hero__secondary-link">Save $100.90 vs 10 single essays</span>
-            <span class="product-hero__was">After purchase, send to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a></span>
+            <span class="product-hero__was">After purchase, send to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a>. You can also add the Expert Essay Collection at checkout for 25 scored 80+ examples.</span>
           </div>
         </div>
 

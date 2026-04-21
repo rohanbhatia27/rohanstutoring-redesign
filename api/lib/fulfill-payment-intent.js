@@ -66,8 +66,25 @@ const FULFILLMENT_PLANS = {
   },
 };
 
-function getFulfillmentPlan(productSlug) {
-  return FULFILLMENT_PLANS[String(productSlug || '').trim()] || null;
+function getFulfillmentPlan(productSlug, upsellSlug) {
+  const basePlan = FULFILLMENT_PLANS[String(productSlug || '').trim()] || null;
+  const normalizedUpsellSlug = String(upsellSlug || '').trim();
+
+  if (!basePlan || !normalizedUpsellSlug) {
+    return basePlan;
+  }
+
+  const upsellPlan = FULFILLMENT_PLANS[normalizedUpsellSlug] || null;
+  if (!upsellPlan) {
+    return basePlan;
+  }
+
+  return {
+    productSlug: basePlan.productSlug,
+    upsellSlug: upsellPlan.productSlug,
+    deliveryType: `${basePlan.deliveryType}+${upsellPlan.deliveryType}`,
+    fulfillmentLabel: `${basePlan.fulfillmentLabel} + ${upsellPlan.fulfillmentLabel}`,
+  };
 }
 
 async function fulfillPaymentIntent(options) {
@@ -86,27 +103,37 @@ async function fulfillPaymentIntent(options) {
   const metadata = paymentIntent.metadata && typeof paymentIntent.metadata === 'object'
     ? paymentIntent.metadata
     : {};
+  const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
+  const upsellSlug = String(metadata.upsell_slug || '').trim();
 
   if (metadata.fulfillment_status === 'fulfilled') {
     return {
       alreadyFulfilled: true,
-      plan: getFulfillmentPlan(metadata.product_slug),
+      plan: getFulfillmentPlan(baseSlug, upsellSlug),
     };
   }
 
-  const plan = getFulfillmentPlan(metadata.product_slug);
+  const plan = getFulfillmentPlan(baseSlug, upsellSlug);
   if (!plan) {
-    throw new Error(`Unsupported fulfillment product slug: ${metadata.product_slug || 'unknown'}`);
+    throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
   }
+
+  const fulfillmentProductSlugs = plan.upsellSlug
+    ? `${plan.productSlug},${plan.upsellSlug}`
+    : plan.productSlug;
 
   await stripeClient.paymentIntents.update(paymentIntent.id, {
     metadata: {
       ...metadata,
+      product_slug: baseSlug,
+      base_slug: baseSlug,
+      ...(upsellSlug ? { upsell_slug: upsellSlug } : {}),
       fulfillment_status: 'fulfilled',
       fulfilled_at: now(),
       fulfillment_source: 'stripe-webhook',
       fulfillment_delivery_type: plan.deliveryType,
       fulfillment_label: plan.fulfillmentLabel,
+      fulfillment_product_slugs: fulfillmentProductSlugs,
     },
   });
 

@@ -372,6 +372,7 @@ strong { font-weight: 700; color: inherit; }
 }
 .nav__burger:focus-visible,
 .nav__dropdown-trigger:focus-visible,
+.nav__mobile-trigger:focus-visible,
 .nav__mobile a:focus-visible,
 .nav__dropdown-item:focus-visible {
   outline: 2px solid rgba(149, 204, 255, 0.9);
@@ -393,6 +394,64 @@ strong { font-weight: 700; color: inherit; }
   padding: 8px 24px 24px;
   border-top: 1px solid var(--border);
 }
+.nav__mobile-group {
+  display: flex;
+  flex-direction: column;
+}
+.nav__mobile-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  color: var(--text-dark-soft);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.nav__mobile-trigger:hover {
+  color: var(--white);
+}
+.nav__mobile-trigger-caret {
+  font-size: 0.7rem;
+  opacity: 0.72;
+  transition: transform 0.2s ease;
+}
+.nav__mobile-group.is-open .nav__mobile-trigger-caret {
+  transform: rotate(180deg);
+}
+.nav__mobile-submenu {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 0 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.nav__mobile-submenu.open {
+  display: flex;
+}
+.nav__mobile-submenu .nav__dropdown-item {
+  padding: 10px 0;
+  border-radius: 0;
+}
+.nav__mobile-submenu .nav__dropdown-item + .nav__dropdown-item {
+  border-top: 1px solid var(--border);
+}
+.nav__mobile-submenu .nav__dropdown-item:hover {
+  background: transparent;
+}
+.nav__mobile-submenu .nav__dropdown-item-title {
+  font-size: 0.95rem;
+}
+.nav__mobile-submenu .nav__dropdown-item-desc {
+  font-size: 0.8rem;
+}
 .nav__mobile a {
   color: var(--text-dark-soft);
   padding: 14px 0;
@@ -401,7 +460,8 @@ strong { font-weight: 700; color: inherit; }
   border-bottom: 1px solid var(--border);
   transition: color var(--transition);
 }
-.nav__mobile a:last-child { border-bottom: none; padding-bottom: 0; }
+.nav__mobile > a:last-child { border-bottom: none; padding-bottom: 0; }
+.nav__mobile-submenu .nav__dropdown-item:last-child { padding-bottom: 0; }
 .nav__mobile.open { display: flex; }
 
 @media (max-width: 860px) {
