@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Figtree:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/s2-slam-system.css">
   <script src="js/main.js" defer></script>
@@ -28,76 +28,11 @@
 </head>
 <body>
 
-  <nav class="nav" id="nav">
-    <div class="nav__inner">
-      <a href="/" class="nav__logo">
-        <img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
-      </a>
-      <ul class="nav__links">
-        <li><a href="/courses">Courses</a></li>
-        <li><a href="/courses/essay-marking">Essay Marking</a></li>
-        <li class="nav__dropdown-wrap">
-          <button type="button" class="nav__dropdown-trigger" aria-expanded="false" aria-controls="resourcesDropdown" aria-haspopup="true">
-            Free Resources <span class="nav__dropdown-caret">▾</span>
-          </button>
-          <div class="nav__dropdown" id="resourcesDropdown">
-            <a href="/s2-slam-system" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">S2 Slam System</span>
-              <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
-            </a>
-            <a href="/quote-generator" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">S2 Quote Generator</span>
-              <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
-            </a>
-            <a href="/s1-mock" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">S1 Mini Mock</span>
-              <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
-            </a>
-            <a href="/section-1-tracker" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
-              <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
-            </a>
-          </div>
-        </li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/blog">Blog</a></li>
-      </ul>
-      <a href="#get-system" class="btn btn--nav">Get the System Free</a>
-      <button class="nav__burger" aria-label="Menu" id="burger">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-    <div class="nav__mobile" id="mobileMenu">
-      <a href="/courses">Courses</a>
-      <a href="/courses/essay-marking">Essay Marking</a>
-      <div class="nav__mobile-group">
-        <button type="button" class="nav__mobile-trigger" aria-expanded="false" aria-controls="mobileResourcesMenu">
-          Free Resources <span class="nav__mobile-trigger-caret">▾</span>
-        </button>
-        <div class="nav__mobile-submenu" id="mobileResourcesMenu" hidden aria-hidden="true">
-          <a href="/s2-slam-system" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">S2 Slam System</span>
-            <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
-          </a>
-          <a href="/quote-generator" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">S2 Quote Generator</span>
-            <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
-          </a>
-          <a href="/s1-mock" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">S1 Mini Mock</span>
-            <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
-          </a>
-          <a href="/section-1-tracker" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
-            <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
-          </a>
-        </div>
-      </div>
-      <a href="/about">About</a>
-      <a href="/blog">Blog</a>
-      <a href="#get-system">Get the System Free</a>
-    </div>
-  </nav>
+  <header class="slam-logo-bar">
+    <a href="/" class="slam-logo-bar__link">
+      <img src="assets/logo.png" alt="Rohan's GAMSAT" class="slam-logo-bar__img">
+    </a>
+  </header>
 
   <section class="slam-page-hero" id="get-system">
     <div class="slam-page-hero__bg">
@@ -112,15 +47,6 @@
         </h1>
 
         <p class="slam-page-sub reveal reveal--delay-2">The S2 Slam System is the free framework that turns a blank prompt into a structured Section 2 essay. No ten minutes of staring at the page.</p>
-
-        <div class="slam-page-mockup reveal reveal--delay-3">
-          <div class="slam-page-mockup__glow"></div>
-          <div class="slam-page-mockup__stack">
-            <img class="slam-page-mockup__img slam-page-mockup__img--left" src="assets/free-resources/s2-slam-system-cover.png" alt="" aria-hidden="true" loading="eager">
-            <img class="slam-page-mockup__img slam-page-mockup__img--center" src="assets/free-resources/s2-slam-system-cover.png" alt="The S2 Slam System framework" loading="eager">
-            <img class="slam-page-mockup__img slam-page-mockup__img--right" src="assets/free-resources/s2-slam-system-cover.png" alt="" aria-hidden="true" loading="eager">
-          </div>
-        </div>
 
         <form
           class="slam-lead-form reveal reveal--delay-2"
@@ -182,6 +108,15 @@
             Something went wrong. Please try again, or head to <a href="/webinar">the webinar page</a> directly.
           </div>
         </form>
+
+        <div class="slam-page-mockup reveal reveal--delay-3">
+          <div class="slam-page-mockup__glow"></div>
+          <div class="slam-page-mockup__stack">
+            <img class="slam-page-mockup__img slam-page-mockup__img--left" src="assets/free-resources/s2-slam-system-cover.png" alt="" aria-hidden="true" loading="eager">
+            <img class="slam-page-mockup__img slam-page-mockup__img--center" src="assets/free-resources/s2-slam-system-cover.png" alt="The S2 Slam System framework" loading="eager">
+            <img class="slam-page-mockup__img slam-page-mockup__img--right" src="assets/free-resources/s2-slam-system-cover.png" alt="" aria-hidden="true" loading="eager">
+          </div>
+        </div>
       </div>
     </div>
   </section>

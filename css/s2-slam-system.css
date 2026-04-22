@@ -2,6 +2,24 @@
    S2 Slam System — Page Styles
    ============================================ */
 
+.slam-logo-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 12px 24px;
+}
+
+.slam-logo-bar__link {
+  display: block;
+}
+
+.slam-logo-bar__img {
+  height: 90px;
+  width: auto;
+  display: block;
+}
+
 .slam-page-hero {
   position: relative;
   background:
@@ -9,7 +27,7 @@
     radial-gradient(circle at 82% 18%, rgba(22, 119, 190, 0.28), transparent 42%),
     linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
   overflow: hidden;
-  padding-top: var(--header-height);
+  padding-top: 114px;
 }
 
 .slam-page-hero__bg {
@@ -598,4 +616,11 @@
   .slam-proof-strip p {
     font-size: 0.95rem;
   }
+}
+
+/* Hero reveal: show immediately — no nav means no scroll offset quirks */
+.slam-page-hero .reveal {
+  opacity: 1;
+  transform: none;
+  transition: none;
 }

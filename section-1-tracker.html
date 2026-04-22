@@ -17,159 +17,89 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/s1-mock.css">
   <link rel="stylesheet" href="css/tracker.css">
   <script src="https://f.convertkit.com/ckjs/ck.5.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
 <body>
 
-  <!-- NAV -->
-  <nav class="nav" id="nav">
-    <div class="nav__inner">
-      <a href="/" class="nav__logo">
-        <img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
-      </a>
-      <ul class="nav__links">
-        <li><a href="/courses">Courses</a></li>
-        <li><a href="/courses/essay-marking">Essay Marking</a></li>
-        <li class="nav__dropdown-wrap">
-          <button type="button" class="nav__dropdown-trigger" aria-expanded="false" aria-controls="resourcesDropdown" aria-haspopup="true">
-            Free Resources <span class="nav__dropdown-caret">▾</span>
-          </button>
-          <div class="nav__dropdown" id="resourcesDropdown">
-            <a href="/s2-slam-system" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">S2 Slam System</span>
-              <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
-            </a>
-            <a href="/quote-generator" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">S2 Quote Generator</span>
-              <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
-            </a>
-            <a href="/s1-mock" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">S1 Mini Mock</span>
-              <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
-            </a>
-            <a href="/section-1-tracker" class="nav__dropdown-item">
-              <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
-              <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
-            </a>
-          </div>
-        </li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/blog">Blog</a></li>
-      </ul>
-      <a href="#get-tracker" class="btn btn--nav">Get Free Tracker</a>
-      <button class="nav__burger" aria-label="Menu" id="burger">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-    <div class="nav__mobile" id="mobileMenu">
-      <a href="/courses">Courses</a>
-      <a href="/courses/essay-marking">Essay Marking</a>
-      <div class="nav__mobile-group">
-        <button type="button" class="nav__mobile-trigger" aria-expanded="false" aria-controls="mobileResourcesMenu">
-          Free Resources <span class="nav__mobile-trigger-caret">▾</span>
-        </button>
-        <div class="nav__mobile-submenu" id="mobileResourcesMenu" hidden aria-hidden="true">
-          <a href="/s2-slam-system" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">S2 Slam System</span>
-            <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
-          </a>
-          <a href="/quote-generator" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">S2 Quote Generator</span>
-            <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
-          </a>
-          <a href="/s1-mock" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">S1 Mini Mock</span>
-            <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
-          </a>
-          <a href="/section-1-tracker" class="nav__dropdown-item">
-            <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
-            <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
-          </a>
-        </div>
-      </div>
-      <a href="/about">About</a>
-      <a href="/blog">Blog</a>
-      <a href="#get-tracker">Get Free Tracker</a>
-    </div>
-  </nav>
+  <!-- HEADER: logo only -->
+  <header class="lp-logo-bar">
+    <a href="/" class="lp-logo-bar__link">
+      <img src="assets/logo.png" alt="Rohan's GAMSAT" class="lp-logo-bar__img">
+    </a>
+  </header>
 
   <!-- HERO -->
-  <section class="tracker-hero" id="get-tracker">
-    <div class="tracker-hero__bg">
+  <section class="mock-hero" id="get-tracker">
+    <div class="mock-hero__bg">
       <div class="hero__grain"></div>
-      <div class="hero__orb hero__orb--1"></div>
-      <div class="hero__orb hero__orb--2"></div>
+      <div class="mock-orb mock-orb--1"></div>
+      <div class="mock-orb mock-orb--2"></div>
     </div>
+
     <div class="container">
-      <div class="tracker-hero__inner">
+      <div class="mock-hero__inner">
 
-        <!-- LEFT: Copy -->
-        <div class="tracker-hero__copy">
-          <span class="tracker-badge reveal">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            Free Resource &mdash; No Credit Card
-          </span>
-          <h1 class="reveal reveal--delay-1">
-            Stop guessing.<br>
-            <em>Track the exact S1 question types</em> that are costing you points.
-          </h1>
-          <p class="reveal reveal--delay-2">The GAMSAT S1 Tracker used by <strong style="color:var(--white)">200+ students</strong> to pinpoint weak spots and make their study radically more efficient. Plug in your question bank attempts and know exactly where to focus next.</p>
-          <div class="tracker-proof-strip reveal reveal--delay-3">
-            <span class="tracker-proof-strip__stat">
-              <strong>200+</strong> students using it
-            </span>
-            <span class="tracker-proof-strip__divider"></span>
-            <span class="tracker-proof-strip__stat">
-              <strong>Free</strong> instant access
-            </span>
-            <span class="tracker-proof-strip__divider"></span>
-            <span class="tracker-proof-strip__stat">
-              <strong>Works</strong> with any question bank
-            </span>
-          </div>
-        </div>
+        <h1 class="mock-hero__headline reveal reveal--delay-1">
+          Track your S1 weak spots.<span class="mock-hero__headline-accent">Fix them faster.</span>
+        </h1>
 
-        <!-- RIGHT: Form Card -->
-        <div class="tracker-form-card reveal reveal--delay-2">
-          <h2 class="tracker-form-card__heading">Get the Tracker &mdash; Free</h2>
-          <p class="tracker-form-card__sub">Enter your details and get instant access to your copy.</p>
+        <p class="mock-hero__sub reveal reveal--delay-2">The GAMSAT S1 Tracker used by 200+ students to pinpoint weak question types and study more efficiently. Works with any question bank.</p>
+
+        <div class="mock-inline-form reveal reveal--delay-2" id="register">
           <form
             action="https://app.kit.com/forms/8683298/subscriptions"
-            class="seva-form formkit-form tracker-form"
+            class="seva-form formkit-form"
             method="post"
             data-sv-form="8683298"
-            data-uid="tracker-form-1"
             novalidate
           >
-            <input
-              type="text"
-              name="fields[first_name]"
-              placeholder="First name"
-              autocomplete="given-name"
-            >
-            <input
-              type="email"
-              name="email_address"
-              placeholder="Email address"
-              required
-              autocomplete="email"
-            >
-            <button type="submit" class="tracker-form__submit">
-              Unlock My Tracker Now
-            </button>
-            <p class="tracker-form__privacy">No spam. Unsubscribe any time.</p>
+            <div data-style="clean">
+              <div class="formkit-fields">
+                <div class="formkit-field">
+                  <input class="formkit-input" type="text" name="fields[first_name]" placeholder="First Name" aria-label="First Name" autocomplete="given-name">
+                </div>
+                <div class="formkit-field">
+                  <input class="formkit-input" type="email" name="email_address" placeholder="Email Address" aria-label="Email Address" required autocomplete="email">
+                </div>
+                <button type="submit" class="formkit-submit formkit-submit">
+                  <span>Get The Tracker Now!</span>
+                </button>
+              </div>
+            </div>
           </form>
         </div>
 
-      </div>
+        <ul class="mock-lead-trust reveal reveal--delay-2">
+          <li>
+            <span class="mock-lead-trust__stars" aria-hidden="true">★★★★★</span>
+            <span><strong>5.0</strong> from GAMSAT students</span>
+          </li>
+          <li class="mock-lead-trust__sep" aria-hidden="true"></li>
+          <li>
+            <span class="mock-lead-trust__tick" aria-hidden="true">✓</span>
+            <span>Used by <strong>200+ students</strong></span>
+          </li>
+          <li class="mock-lead-trust__sep" aria-hidden="true"></li>
+          <li>
+            <span class="mock-lead-trust__tick" aria-hidden="true">✓</span>
+            <span>Access your copy in under <strong>60 seconds</strong></span>
+          </li>
+        </ul>
 
-      <!-- Tracker product preview -->
-      <div class="tracker-hero__preview reveal">
-        <img src="assets/tracker-preview.png" alt="GAMSAT S1 Tracker showing Major Skill Type and Text Type breakdown tables with performance charts" loading="lazy">
+        <p class="mock-lead-privacy">No spam. After signup, we'll point you to the free webinar so you know exactly what to do next.</p>
+
+        <div class="mock-page-mockup reveal reveal--delay-3">
+          <div class="mock-page-mockup__glow"></div>
+          <div class="mock-page-mockup__stack">
+            <img class="mock-page-mockup__img mock-page-mockup__img--feature" src="assets/tracker-preview.png" alt="GAMSAT S1 Tracker spreadsheet" loading="eager">
+          </div>
+        </div>
+
       </div>
     </div>
   </section>

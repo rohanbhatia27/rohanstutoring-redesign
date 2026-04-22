@@ -8,11 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---- Nav: transparent → solid on scroll ---- */
   const nav = document.getElementById('nav');
-  const onScroll = () => {
-    nav.classList.toggle('scrolled', window.scrollY > 40);
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  if (nav) {
+    const onScroll = () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
 
   /* ---- Mobile burger ---- */
   const burger = document.getElementById('burger');
