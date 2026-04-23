@@ -186,6 +186,59 @@ strong { font-weight: 700; color: inherit; }
 .btn--nav:hover { background: var(--blue-hover); transform: none; }
 .btn--lg { padding: 16px 36px; font-size: 1.05rem; }
 
+.floating-quiz-cta {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 130;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 280px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(91, 164, 224, 0.22);
+  background: rgba(8, 15, 26, 0.94);
+  color: var(--white);
+  box-shadow: 0 18px 44px rgba(8, 15, 26, 0.28);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.floating-quiz-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 52px rgba(8, 15, 26, 0.34);
+  border-color: rgba(91, 164, 224, 0.34);
+}
+.floating-quiz-cta:focus-visible {
+  outline: 2px solid rgba(149, 204, 255, 0.9);
+  outline-offset: 4px;
+}
+.floating-quiz-cta__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue-light);
+}
+.floating-quiz-cta__body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+}
+.floating-quiz-cta__title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--white);
+}
+.floating-quiz-cta__arrow {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  color: var(--blue-light);
+}
+
 /* ---- Scroll reveal ---- */
 .reveal {
   opacity: 1;
@@ -202,11 +255,26 @@ strong { font-weight: 700; color: inherit; }
     opacity: 1;
     transform: none;
   }
+
+  .floating-quiz-cta {
+    animation: floating-quiz-cta-enter 0.5s ease-out;
+  }
 }
 .reveal--delay-1 { transition-delay: 0.1s; }
 .reveal--delay-2 { transition-delay: 0.2s; }
 .reveal--delay-3 { transition-delay: 0.3s; }
 .reveal--delay-4 { transition-delay: 0.4s; }
+
+@keyframes floating-quiz-cta-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* ============================================
    NAV
@@ -472,6 +540,30 @@ strong { font-weight: 700; color: inherit; }
   .nav.scrolled { backdrop-filter: none; }
 }
 
+@media (max-width: 640px) {
+  body.has-floating-quiz-cta {
+    padding-bottom: 96px;
+  }
+  .floating-quiz-cta {
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    max-width: none;
+    padding: 14px 18px;
+    border-radius: 999px;
+  }
+  .floating-quiz-cta__eyebrow {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+  .floating-quiz-cta__body {
+    gap: 12px;
+  }
+  .floating-quiz-cta__title {
+    font-size: 0.92rem;
+  }
+}
+
 /* ============================================
    HERO
    ============================================ */
@@ -554,6 +646,36 @@ strong { font-weight: 700; color: inherit; }
   clip-path: inset(0);
 }
 
+.hero__photo-col::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  right: 9%;
+  width: 54%;
+  height: 50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(145, 190, 255, 0.96) 0%, rgba(97, 151, 255, 0.68) 26%, rgba(43, 101, 214, 0.3) 50%, rgba(8, 15, 26, 0) 76%);
+  filter: blur(54px);
+  opacity: 1;
+  z-index: 0;
+}
+
+.hero__photo-col::after {
+  content: '';
+  position: absolute;
+  top: 21%;
+  right: 17%;
+  width: 34%;
+  height: 32%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(203, 227, 255, 0.7) 0%, rgba(113, 171, 255, 0.45) 34%, rgba(8, 15, 26, 0) 72%);
+  filter: blur(26px);
+  opacity: 0.9;
+  z-index: 0;
+}
+
 .hero__photo {
   position: absolute;
   top: 0;
@@ -563,10 +685,15 @@ strong { font-weight: 700; color: inherit; }
   max-width: none;
   object-fit: contain;
   object-position: top right;
-  mix-blend-mode: screen;
-  filter: brightness(0.96) contrast(1);
-  opacity: 0.72;
+  mix-blend-mode: normal;
+  filter:
+    brightness(1.03)
+    contrast(1.16)
+    saturate(1.04)
+    drop-shadow(0 20px 56px rgba(38, 108, 229, 0.18));
+  opacity: 1;
   background: var(--navy);
+  z-index: 1;
 }
 
 /* Gradient sits INSIDE the column, fades left edge into navy */
@@ -576,10 +703,11 @@ strong { font-weight: 700; color: inherit; }
   z-index: 2;
   background: linear-gradient(
     to right,
-    rgba(8, 15, 26, 0.92) 0%,
-    rgba(8, 15, 26, 0.7) 28%,
-    rgba(8, 15, 26, 0.2) 56%,
-    transparent 80%
+    rgba(8, 15, 26, 0.96) 0%,
+    rgba(8, 15, 26, 0.74) 16%,
+    rgba(8, 15, 26, 0.14) 34%,
+    rgba(8, 15, 26, 0.02) 46%,
+    transparent 60%
   );
 }
 

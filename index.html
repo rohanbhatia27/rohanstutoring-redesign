@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Analytics 4 — replace G-H1KDZ561ZE with your Measurement ID -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-H1KDZ561ZE');
+  </script>
   <title>Rohan's GAMSAT | Stop Guessing. Start Getting In.</title>
   <meta name="description" content="GAMSAT tutoring by a top 1% scorer and current USyd medical student. Proven methods that have helped 1,000+ future doctors across Australia, the UK and Ireland.">
   <meta property="og:title" content="Rohan's GAMSAT | Stop Guessing. Start Getting In.">
@@ -198,9 +206,9 @@
     <!-- Photo: absolutely positioned, right half, top-aligned -->
     <div class="hero__photo-col" aria-hidden="true">
       <picture>
-        <source media="(min-width: 861px)" srcset="assets/homepage/rohan-hero-home.png">
+        <source media="(min-width: 861px)" srcset="assets/homepage/rohan-hero-home.png?v=2">
         <img
-          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+          src="assets/homepage/rohan-hero-home.png?v=2"
           alt=""
           class="hero__photo"
           width="640"
@@ -237,8 +245,8 @@
         </div>
 
         <div class="hero__ctas reveal reveal--delay-4">
-          <a href="#courses" class="btn btn--primary btn--lg">See the Courses</a>
-          <a href="/webinar" class="btn btn--ghost btn--lg">Join This Week's Free GAMSAT Webinar</a>
+          <a href="/quiz?source=home-hero" class="btn btn--primary btn--lg" data-quiz-source="home-hero">Take the 2-minute study plan quiz</a>
+          <a href="#courses" class="btn btn--ghost btn--lg">See the Courses</a>
         </div>
 
       </div>
@@ -449,7 +457,7 @@
 
       <div class="courses__footer reveal">
         <p>Not sure which fits your situation?</p>
-        <a href="/webinar" class="btn btn--outline">Join the free Sunday webinar →</a>
+        <a href="/quiz?source=home-courses-footer" class="btn btn--outline" data-quiz-source="home-courses-footer">Get your study plan first →</a>
       </div>
     </div>
   </section>
@@ -459,11 +467,11 @@
     <div class="container">
       <div class="homepage-quiz-cta__inner">
         <div class="homepage-quiz-cta__text">
-          <span class="label">Not sure which course?</span>
-          <h2>Find the GAMSAT path that actually fits.</h2>
-          <p>Seven questions, two minutes. Get a personalised 12-week study plan and the course recommendation for your situation.</p>
+          <span class="label">Primary Recommendation Path</span>
+          <h2>Get the study plan before you compare the offers.</h2>
+          <p>Seven questions, two minutes, and you get the course recommendation and 12-week study plan that match your score gap, timeline, and time available.</p>
         </div>
-        <a href="/quiz" class="btn btn--primary">Take the quiz →</a>
+        <a href="/quiz?source=home-quiz-band" class="btn btn--primary" data-quiz-source="home-quiz-band">Get my study plan →</a>
       </div>
     </div>
   </section>

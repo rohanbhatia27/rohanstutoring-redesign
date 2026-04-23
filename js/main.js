@@ -5,6 +5,11 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const track = (event, params = {}) => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', event, params);
+    }
+  };
 
   /* ---- Nav: transparent → solid on scroll ---- */
   const nav = document.getElementById('nav');
@@ -237,5 +242,84 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
+  });
+
+  /* ---- Shared quiz entry tracking ---- */
+  document.querySelectorAll('[data-quiz-source]').forEach((link) => {
+    link.addEventListener('click', () => {
+      track('quiz_entry_clicked', {
+        source: link.dataset.quizSource,
+      });
+    });
+  });
+
+  /* ---- Persistent floating quiz CTA ---- */
+  const pathname = window.location.pathname;
+  const shouldHideFloatingQuizCta = [
+    /^\/quiz(?:\.html)?$/,
+    /^\/checkout(?:\/|$)/,
+    /^\/webinar(?:\/|\.html$|$)/,
+  ].some((pattern) => pattern.test(pathname));
+
+  if (!shouldHideFloatingQuizCta) {
+    const floatingCta = document.createElement('a');
+    floatingCta.className = 'floating-quiz-cta';
+    floatingCta.href = '/quiz?source=floating-cta';
+    floatingCta.dataset.quizSource = 'floating-cta';
+    floatingCta.setAttribute('aria-label', 'Take the study plan quiz');
+    floatingCta.innerHTML = `
+      <span class="floating-quiz-cta__eyebrow">Study Plan Quiz</span>
+      <span class="floating-quiz-cta__body">
+        <span class="floating-quiz-cta__title">Get your 2-minute study plan</span>
+        <span class="floating-quiz-cta__arrow" aria-hidden="true">→</span>
+      </span>
+    `;
+    floatingCta.addEventListener('click', () => {
+      track('quiz_entry_clicked', { source: 'floating-cta' });
+    });
+    document.body.appendChild(floatingCta);
+    document.body.classList.add('has-floating-quiz-cta');
+  }
+
+  /* ---- Analytics: Buy Now click (begin_checkout) ---- */
+  const GA4_PRODUCTS = {
+    blueprint:         { name: "Rohan's Blueprint",                  price: 599 },
+    advanced:          { name: 'GAMSAT Advanced Series',             price: 299 },
+    'essay-collection':{ name: 'Expert Essay Collection',            price: 79 },
+    'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
+    'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
+    'essay-pack-10':   { name: 'S2 Essay Marking — 10-Essay Pack',   price: 249 },
+    comprehensive:     { name: 'Comprehensive Course',               price: 1549 },
+    mastery:           { name: 'Mastery Program',                    price: 2249 },
+    'private-mentoring':{ name: 'Private Mentoring',                 price: null },
+  };
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    const href = link.getAttribute('href') || '';
+    if (!href.includes('/checkout')) return;
+    const params = new URLSearchParams(href.split('?')[1] || '');
+    const slug = params.get('product');
+    const product = GA4_PRODUCTS[slug];
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', 'begin_checkout', {
+      currency: 'AUD',
+      value: product ? product.price : undefined,
+      items: [{
+        item_id: slug || 'unknown',
+        item_name: product ? product.name : slug || 'unknown',
+        price: product ? product.price : undefined,
+        quantity: 1,
+      }],
+    });
+  });
+
+  /* ---- Analytics: ConvertKit newsletter signup ---- */
+  document.addEventListener('submit', (e) => {
+    const form = e.target.closest('.formkit-form');
+    if (!form) return;
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', 'newsletter_signup', { method: 'convertkit' });
   });
 });

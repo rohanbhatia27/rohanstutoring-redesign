@@ -932,7 +932,23 @@
     try {
       const status = await fetchPaymentIntentStatus(paymentIntentId);
       renderState(getSuccessState(status, productSlug));
-      if (status === 'succeeded') renderSuccessAction(productSlug);
+      if (status === 'succeeded') {
+        renderSuccessAction(productSlug);
+        const p = PRODUCTS[productSlug];
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'purchase', {
+            transaction_id: paymentIntentId,
+            currency: 'AUD',
+            value: p ? p.price : undefined,
+            items: [{
+              item_id: productSlug,
+              item_name: p ? p.name : productSlug,
+              price: p ? p.price : undefined,
+              quantity: 1,
+            }],
+          });
+        }
+      }
     } catch (error) {
       renderState(SUCCESS_STATES.failed);
     }
@@ -1003,6 +1019,14 @@
       }
       await initCheckoutPage();
       await initSuccessPage();
+
+      // Essay upload click → fires when user clicks the Tally upload button
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.success-tally-btn')) return;
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'essay_upload_started');
+        }
+      });
     });
   }
 })(typeof window !== 'undefined' ? window : globalThis);

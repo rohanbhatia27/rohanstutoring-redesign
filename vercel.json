@@ -217,6 +217,11 @@
       "source": "/webinar-join",
       "destination": "https://uni-sydney.zoom.us/j/2790583002?pwd=MXBhZXZQa0FOVzB2c25STk95RFF3Zz09",
       "permanent": false
+    },
+    {
+      "source": "/webinar-thanks",
+      "destination": "/webinar/thanks",
+      "permanent": true
     }
   ]
 }

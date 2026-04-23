@@ -2,27 +2,89 @@
 /* This file exists so courses.html has a clean separate link */
 /* All course index styles are defined in css/product.css */
 
-.courses-quiz-nudge { padding: 24px 0; background: var(--off-white, #F4F7FB); }
-.courses-quiz-nudge__link {
-  display: flex; align-items: center; gap: 20px;
-  padding: 20px 28px; background: var(--white); border-radius: 12px;
-  text-decoration: none; color: var(--navy);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s, box-shadow 0.15s;
+.courses-quiz-spotlight {
+  padding: 28px 0 36px;
+  background:
+    radial-gradient(circle at top right, rgba(22, 119, 190, 0.08), transparent 32%),
+    var(--off-white, #F4F7FB);
 }
-.courses-quiz-nudge__link:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
-.courses-quiz-nudge__icon { color: var(--blue); flex-shrink: 0; }
-.courses-quiz-nudge__text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.courses-quiz-nudge__text strong { font-weight: 700; }
-.courses-quiz-nudge__text span { font-size: 0.9rem; color: var(--text-muted); }
-.courses-quiz-nudge__cta { color: var(--blue); font-weight: 600; flex-shrink: 0; }
+.courses-quiz-spotlight__card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
+  gap: 32px;
+  padding: 36px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(8, 15, 26, 0.98), rgba(13, 24, 39, 0.94));
+  color: var(--white);
+  box-shadow: 0 18px 44px rgba(8, 15, 26, 0.16);
+}
+.courses-quiz-spotlight__copy .label { color: var(--blue-light); }
+.courses-quiz-spotlight__copy h2 {
+  color: var(--white);
+  margin-bottom: 16px;
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  line-height: 1.02;
+}
+.courses-quiz-spotlight__copy p {
+  max-width: 56ch;
+  color: rgba(255, 255, 255, 0.82);
+}
+.courses-quiz-spotlight__points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.courses-quiz-spotlight__points span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.courses-quiz-spotlight__actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.courses-quiz-spotlight__actions .btn { width: 100%; }
+.courses-quiz-spotlight__actions p {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+@media (max-width: 860px) {
+  .courses-quiz-spotlight__card {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+  }
+}
 @media (max-width: 640px) {
-  .courses-quiz-nudge__link { flex-wrap: wrap; }
-  .courses-quiz-nudge__cta { width: 100%; text-align: left; margin-top: 4px; }
+  .courses-quiz-spotlight {
+    padding: 20px 0 28px;
+  }
+  .courses-quiz-spotlight__card {
+    gap: 24px;
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+  .courses-quiz-spotlight__actions {
+    padding: 18px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .courses-quiz-nudge__link {
+  .courses-quiz-spotlight__card {
     transition: none;
   }
 }

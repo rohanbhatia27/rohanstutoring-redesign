@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Success
         form.reset();
         resetCaptcha();
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'contact_form_submit');
+        }
         success.style.display = 'flex';
         success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else if (response.status === 403 || response.status === 422 || response.status === 429) {
