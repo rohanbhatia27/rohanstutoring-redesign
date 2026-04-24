@@ -23,8 +23,38 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://www.rohanstutoring.com/webinar</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
     <loc>https://www.rohanstutoring.com/contact</loc>
     <priority>0.6</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/quiz</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/quote-generator</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/s1-mock</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/s2-slam-system</loc>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/section-1-tracker</loc>
+    <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
 

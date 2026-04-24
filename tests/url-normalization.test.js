@@ -234,3 +234,23 @@ test('public-page links no longer point at .html paths', () => {
     );
   }
 });
+
+test('sitemap includes all confirmed indexable public pages', () => {
+  const sitemap = read('sitemap.xml');
+  const expectedUrls = [
+    'https://www.rohanstutoring.com/quiz',
+    'https://www.rohanstutoring.com/quote-generator',
+    'https://www.rohanstutoring.com/s1-mock',
+    'https://www.rohanstutoring.com/s2-slam-system',
+    'https://www.rohanstutoring.com/section-1-tracker',
+    'https://www.rohanstutoring.com/webinar',
+  ];
+
+  for (const url of expectedUrls) {
+    assert.match(sitemap, new RegExp(`<loc>${url.replaceAll('/', '\\/')}<\\/loc>`));
+  }
+});
+
+test('figtree preview page is removed from the public site', () => {
+  assert.equal(fs.existsSync(path.join(ROOT, 'figtree-preview.html')), false);
+});
