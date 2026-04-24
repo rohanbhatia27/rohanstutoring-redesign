@@ -9,6 +9,7 @@ Files over 500 KB to review before final performance pass:
 - `assets/courses/advanced-course-card.webp`
 - `assets/courses/blueprint-course-card.webp`
 - `assets/courses/comprehensive-course-card.webp`
+- `assets/homepage/rohan-hero-new.png`
 - `assets/s1-mock-cover.pdf`
 - `assets/temp.pdf`, if retained
 
