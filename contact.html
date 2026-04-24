@@ -5,12 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Google Analytics 4 — replace G-H1KDZ561ZE with your Measurement ID -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-H1KDZ561ZE');
-  </script>
+  <script src="/js/analytics.js" defer></script>
   <title>Contact | Rohan's GAMSAT</title>
   <meta name="description" content="Get in touch with Rohan's GAMSAT tutoring team. Book a free strategy call or send an enquiry about courses, private tutoring, or essay marking.">
   <meta property="og:title" content="Contact | Rohan's GAMSAT">
@@ -130,7 +125,7 @@
             <!--
               FORM SETUP:
               - This form uses Formspree for submission.
-              - Enable CAPTCHA in the Formspree dashboard and choose Cloudflare Turnstile.
+              - Use Formspree's built-in spam protection/CAPTCHA settings in the dashboard.
               - Add a Formspree notification plugin so submissions alert the inbox or team chat you monitor.
               - Add Formspree routing rules to tag spam when the honeypot is filled or spam keywords appear.
               - Replace "mvzvldzo" only if the Formspree form ID changes.
@@ -205,15 +200,6 @@
               <input type="hidden" name="source" value="contact-form">
               <input type="hidden" name="page" value="contact">
               <input type="hidden" name="subject" value="New contact enquiry from rohanstutoring.com">
-
-              <div class="form-captcha">
-                <div
-                  id="contactTurnstile"
-                  class="cf-turnstile"
-                  data-theme="light"
-                  data-sitekey="REPLACE_WITH_TURNSTILE_SITE_KEY"
-                ></div>
-              </div>
 
               <button type="submit" class="btn btn--primary btn--lg form-submit" id="submitBtn">
                 <span class="form-submit__text">Send Enquiry</span>
@@ -410,6 +396,5 @@
 
   <script src="js/main.js" defer></script>
   <script src="js/contact.js" defer></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </body>
 </html>

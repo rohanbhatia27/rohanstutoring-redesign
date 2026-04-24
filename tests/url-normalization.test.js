@@ -134,7 +134,7 @@ test('S2 Slam lead magnet CTAs point to the dedicated signup page instead of loo
     const html = read(file);
     assert.match(
       html,
-      /href="https:\/\/www\.rohanstutoring\.com\/s2-slam-system"/,
+      /href="(?:https:\/\/www\.rohanstutoring\.com)?\/s2-slam-system"/,
       `Expected S2 Slam CTA to point at the dedicated signup page in ${file}`
     );
     assert.doesNotMatch(
@@ -143,6 +143,61 @@ test('S2 Slam lead magnet CTAs point to the dedicated signup page instead of loo
       `Expected S2 Slam CTA to stop looping back to resources in ${file}`
     );
   }
+});
+
+test('public forms do not ship placeholder Turnstile site keys', () => {
+  const files = ['contact.html', 'courses/private-mentoring.html'];
+
+  for (const file of files) {
+    const html = read(file);
+    assert.doesNotMatch(html, /REPLACE_WITH_TURNSTILE_SITE_KEY/, `Placeholder Turnstile key found in ${file}`);
+  }
+});
+
+test('GA pages use external bootstrap script instead of inline GA code', () => {
+  const htmlFiles = fs.readdirSync(ROOT, { recursive: true })
+    .filter((file) => String(file).endsWith('.html'));
+
+  for (const file of htmlFiles) {
+    const html = read(file);
+    if (html.includes('googletagmanager.com/gtag/js')) {
+      assert.match(
+        html,
+        /<script src="\/js\/analytics\.js" defer><\/script>/,
+        `Missing analytics bootstrap in ${file}`
+      );
+      assert.doesNotMatch(
+        html,
+        /function gtag\(\)\{dataLayer\.push\(arguments\);\}/,
+        `Inline GA bootstrap remains in ${file}`
+      );
+    }
+  }
+});
+
+test('local stylesheet links resolve on disk', () => {
+  const htmlFiles = fs.readdirSync(ROOT, { recursive: true })
+    .filter((file) => String(file).endsWith('.html'));
+
+  for (const file of htmlFiles) {
+    const html = read(file);
+    const hrefs = Array.from(html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)).map((match) => match[1]);
+
+    for (const href of hrefs) {
+      if (/^https?:\/\//.test(href)) continue;
+      const resolved = path.resolve(path.dirname(path.join(ROOT, file)), href);
+      assert.ok(fs.existsSync(resolved), `Missing stylesheet ${href} referenced by ${file}`);
+    }
+  }
+});
+
+test('CSP allows GA script and collection endpoints without unsafe inline scripts', () => {
+  const config = JSON.parse(read('vercel.json'));
+  const csp = config.headers[0].headers.find((header) => header.key === 'Content-Security-Policy').value;
+
+  assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
+  assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/);
+  assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
 });
 
 test('public-page links no longer point at .html paths', () => {

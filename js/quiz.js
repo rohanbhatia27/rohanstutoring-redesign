@@ -353,6 +353,31 @@ function resetState() {
   saveState();
 }
 
+function isValidOutcomeId(outcomeId) {
+  return Boolean(outcomeId && OUTCOMES[outcomeId]);
+}
+
+function isValidQuestionIndex(index) {
+  return Number.isInteger(index) && index >= 0 && index < QUESTIONS.length;
+}
+
+function sanitizeState() {
+  if (!isValidQuestionIndex(state.index)) {
+    resetState();
+    return;
+  }
+
+  if (state.completed && !isValidOutcomeId(state.outcomeId)) {
+    resetState();
+    return;
+  }
+
+  const validQuestionKeys = new Set(QUESTIONS.map((question) => question.key));
+  for (const key of Object.keys(state.answers)) {
+    if (!validQuestionKeys.has(key)) delete state.answers[key];
+  }
+}
+
 // Elements
 const el = {
   start: document.getElementById('quizStart'),
@@ -378,8 +403,10 @@ const el = {
 function renderQuestion() {
   const q = QUESTIONS[state.index];
   const total = QUESTIONS.length;
-  const pct = Math.round((state.index / total) * 100);
+  const pct = Math.round(((state.index + 1) / total) * 100);
   el.progressBar.style.setProperty('--progress', pct + '%');
+  el.progressBar.setAttribute('aria-valuenow', String(pct));
+  el.progressBar.setAttribute('aria-valuetext', `Question ${state.index + 1} of ${total}`);
   el.progressLabel.textContent = `Question ${state.index + 1} of ${total}`;
   el.back.hidden = state.index === 0;
 
@@ -429,6 +456,14 @@ function finishQuiz() {
 }
 
 function showResult(outcome) {
+  if (!outcome) {
+    resetState();
+    el.result.hidden = true;
+    el.hero.style.display = '';
+    el.quizSection.hidden = true;
+    return;
+  }
+
   el.quizSection.hidden = true;
   el.result.hidden = false;
   el.resultName.textContent = outcome.name;
@@ -469,8 +504,10 @@ function startQuiz() {
 function retakeQuiz() {
   resetState();
   el.result.hidden = true;
-  el.hero.style.display = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  el.hero.style.display = 'none';
+  el.quizSection.hidden = false;
+  renderQuestion();
+  el.quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Keyboard shortcuts
@@ -488,6 +525,7 @@ document.addEventListener('keydown', (e) => {
 // Wire up
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
+  sanitizeState();
   if (el.start) el.start.addEventListener('click', startQuiz);
   if (el.back) el.back.addEventListener('click', goBack);
   if (el.retake) el.retake.addEventListener('click', retakeQuiz);
@@ -510,18 +548,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLoading = submitBtn?.querySelector('.form-submit__loading');
   const errorBox = document.getElementById('resultError');
   const errorText = errorBox?.querySelector('.form-error__text');
+  const setSubmitLoading = (isLoading) => {
+    if (btnText) btnText.hidden = isLoading;
+    if (btnLoading) btnLoading.hidden = !isLoading;
+    if (submitBtn) submitBtn.disabled = isLoading;
+  };
   const showError = (msg) => {
     if (errorText) errorText.textContent = msg;
-    errorBox.style.display = 'flex';
+    if (errorBox) errorBox.hidden = false;
+  };
+  const hideError = () => {
+    if (errorBox) errorBox.hidden = true;
   };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (submitBtn.disabled) return;
-    btnText.style.display = 'none';
-    btnLoading.style.display = 'inline';
-    submitBtn.disabled = true;
-    errorBox.style.display = 'none';
+    setSubmitLoading(true);
+    hideError();
 
     const data = new FormData(form);
     try {
@@ -539,9 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       showError('Something went wrong. Try again or email hello@rohanstutoring.com.');
     } finally {
-      btnText.style.display = 'inline';
-      btnLoading.style.display = 'none';
-      submitBtn.disabled = false;
+      setSubmitLoading(false);
     }
   });
 });
