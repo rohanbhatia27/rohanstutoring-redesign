@@ -255,19 +255,37 @@ document.addEventListener('DOMContentLoaded', () => {
     return prompts;
   }
 
+  let copyFeedbackTimeout;
+
+  function setCopyFeedback(label, className) {
+    window.clearTimeout(copyFeedbackTimeout);
+    els.copy.classList.remove('qg-btn--copied', 'qg-btn--error');
+    els.copy.classList.add(className);
+    els.copy.textContent = label;
+
+    copyFeedbackTimeout = window.setTimeout(() => {
+      els.copy.classList.remove(className);
+      els.copy.textContent = 'Copy';
+    }, 1500);
+  }
+
   function copyOutput() {
     const quotes = els.out.querySelectorAll('.qg-quote__text');
     if (!quotes.length) return;
 
     const text = Array.from(quotes).map((quote, index) => `${index + 1}. ${quote.textContent}`).join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-      els.copy.classList.add('qg-btn--copied');
-      els.copy.textContent = 'Copied!';
-      setTimeout(() => {
-        els.copy.classList.remove('qg-btn--copied');
-        els.copy.textContent = 'Copy';
-      }, 1500);
-    });
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+      setCopyFeedback('Copy failed', 'qg-btn--error');
+      return;
+    }
+
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopyFeedback('Copied!', 'qg-btn--copied');
+      })
+      .catch(() => {
+        setCopyFeedback('Copy failed', 'qg-btn--error');
+      });
   }
 
   els.gen.addEventListener('click', generate);

@@ -299,6 +299,11 @@
   color: var(--white) !important;
   border-color: var(--green) !important;
 }
+.qg-btn--error {
+  background: #DC2626 !important;
+  color: var(--white) !important;
+  border-color: #DC2626 !important;
+}
 
 /* HOW TO USE */
 .qg-howto {
