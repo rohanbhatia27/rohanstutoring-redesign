@@ -688,7 +688,6 @@ strong { font-weight: 700; color: inherit; }
     saturate(1.04)
     drop-shadow(0 20px 56px rgba(38, 108, 229, 0.18));
   opacity: 1;
-  background: var(--navy);
   z-index: 1;
 }
 
@@ -1420,6 +1419,16 @@ strong { font-weight: 700; color: inherit; }
   background: color-mix(in srgb, var(--premium-gold) 84%, white);
   color: var(--navy);
   box-shadow: 0 8px 28px color-mix(in srgb, var(--premium-gold) 30%, transparent);
+}
+
+/* Pricing transparency note */
+.courses__pricing-note {
+  text-align: center;
+  color: var(--text);
+  font-size: 0.95rem;
+  max-width: 560px;
+  margin: 16px auto 0;
+  line-height: 1.6;
 }
 
 /* Footer */
@@ -2173,6 +2182,7 @@ img[loading="lazy"] {
 /* Homepage quiz CTA band */
 .homepage-quiz-cta { padding: 72px 0; background: var(--navy); color: var(--white); }
 .homepage-quiz-cta .label { color: var(--blue-light); }
+.label--start-here { font-size: 0.9rem; letter-spacing: 0.12em; color: var(--blue-light); }
 .homepage-quiz-cta__inner {
   display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
 }
