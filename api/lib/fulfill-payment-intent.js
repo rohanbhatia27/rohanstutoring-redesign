@@ -110,7 +110,8 @@ async function fulfillPaymentIntent(options) {
   const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
   const upsellSlug = String(metadata.upsell_slug || '').trim();
 
-  if (metadata.fulfillment_status === 'fulfilled') {
+  const finalFulfillmentStatuses = new Set(['fulfilled', 'manual_fulfillment_pending']);
+  if (finalFulfillmentStatuses.has(metadata.fulfillment_status)) {
     return {
       alreadyFulfilled: true,
       plan: getFulfillmentPlan(baseSlug, upsellSlug),
@@ -132,8 +133,9 @@ async function fulfillPaymentIntent(options) {
       product_slug: baseSlug,
       base_slug: baseSlug,
       ...(upsellSlug ? { upsell_slug: upsellSlug } : {}),
-      fulfillment_status: 'fulfilled',
-      fulfilled_at: now(),
+      fulfillment_status: 'manual_fulfillment_pending',
+      manual_fulfillment_required: 'true',
+      fulfillment_requested_at: now(),
       fulfillment_source: 'stripe-webhook',
       fulfillment_delivery_type: plan.deliveryType,
       fulfillment_label: plan.fulfillmentLabel,

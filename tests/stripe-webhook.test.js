@@ -87,8 +87,10 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
   assert.equal(result.alreadyFulfilled, false);
   assert.equal(updates.length, 1);
   assert.equal(updates[0].id, 'pi_123');
-  assert.equal(updates[0].payload.metadata.fulfillment_status, 'fulfilled');
-  assert.equal(updates[0].payload.metadata.fulfilled_at, '2026-04-19T12:00:00.000Z');
+  assert.equal(updates[0].payload.metadata.fulfillment_status, 'manual_fulfillment_pending');
+  assert.equal(updates[0].payload.metadata.manual_fulfillment_required, 'true');
+  assert.equal(updates[0].payload.metadata.fulfillment_requested_at, '2026-04-19T12:00:00.000Z');
+  assert.equal(updates[0].payload.metadata.fulfillment_source, 'stripe-webhook');
   assert.equal(updates[0].payload.metadata.fulfillment_delivery_type, 'digital-access');
   assert.equal(updates[0].payload.metadata.fulfillment_label, 'Send Google Drive access');
   assert.equal(updates[0].payload.metadata.base_slug, 'blueprint');
@@ -130,59 +132,67 @@ test('fulfillment helper records combined purchase metadata without breaking bas
   assert.equal(updates[0].payload.metadata.fulfillment_product_slugs, 'comprehensive,private-mentoring');
 });
 
-test('fulfillment helper skips duplicate webhook deliveries once already fulfilled', async () => {
-  let updateCalled = false;
+test('fulfillment helper skips duplicate webhook deliveries once fulfillment is final', async (t) => {
+  for (const status of ['fulfilled', 'manual_fulfillment_pending']) {
+    await t.test(`skips duplicate ${status} status`, async () => {
+      let updateCalled = false;
 
-  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
-    paymentIntent: {
-      id: 'pi_123',
-      metadata: {
-        product_slug: 'blueprint',
-        fulfillment_status: 'fulfilled',
-      },
-    },
-    stripeClient: {
-      paymentIntents: {
-        update: async () => {
-          updateCalled = true;
+      const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+        paymentIntent: {
+          id: 'pi_123',
+          metadata: {
+            product_slug: 'blueprint',
+            fulfillment_status: status,
+          },
         },
-      },
-    },
-  });
+        stripeClient: {
+          paymentIntents: {
+            update: async () => {
+              updateCalled = true;
+            },
+          },
+        },
+      });
 
-  assert.equal(result.alreadyFulfilled, true);
-  assert.equal(updateCalled, false);
+      assert.equal(result.alreadyFulfilled, true);
+      assert.equal(updateCalled, false);
+    });
+  }
 });
 
-test('fulfillment helper skips stale webhook replays when Stripe already shows fulfillment', async () => {
-  let updateCalled = false;
+test('fulfillment helper skips stale webhook replays when Stripe already shows final fulfillment', async (t) => {
+  for (const status of ['fulfilled', 'manual_fulfillment_pending']) {
+    await t.test(`skips stale replay for ${status} status`, async () => {
+      let updateCalled = false;
 
-  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
-    paymentIntent: {
-      id: 'pi_789',
-      metadata: {
-        product_slug: 'blueprint',
-      },
-    },
-    stripeClient: {
-      paymentIntents: {
-        retrieve: async () => ({
+      const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+        paymentIntent: {
           id: 'pi_789',
           metadata: {
             product_slug: 'blueprint',
-            base_slug: 'blueprint',
-            fulfillment_status: 'fulfilled',
           },
-        }),
-        update: async () => {
-          updateCalled = true;
         },
-      },
-    },
-  });
+        stripeClient: {
+          paymentIntents: {
+            retrieve: async () => ({
+              id: 'pi_789',
+              metadata: {
+                product_slug: 'blueprint',
+                base_slug: 'blueprint',
+                fulfillment_status: status,
+              },
+            }),
+            update: async () => {
+              updateCalled = true;
+            },
+          },
+        },
+      });
 
-  assert.equal(result.alreadyFulfilled, true);
-  assert.equal(updateCalled, false);
+      assert.equal(result.alreadyFulfilled, true);
+      assert.equal(updateCalled, false);
+    });
+  }
 });
 
 test('stripe webhook rejects requests without a signature header', async () => {
