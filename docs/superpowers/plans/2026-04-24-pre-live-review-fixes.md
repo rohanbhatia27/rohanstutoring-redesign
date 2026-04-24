@@ -819,7 +819,7 @@ git -C /Users/rohanbhatia/Desktop/rohanstutoring-redesign/site commit -m "chore:
 - Modify: `api/payment-intent-status.js`
 - Modify: `tests/checkout.test.js`
 
-- [ ] **Step 1: Extend payment status response safely**
+- [x] **Step 1: Extend payment status response safely**
 
 In `api/payment-intent-status.js`, return only safe metadata:
 
@@ -834,7 +834,7 @@ return res.status(200).json({
 });
 ```
 
-- [ ] **Step 2: Add status endpoint test**
+- [x] **Step 2: Add status endpoint test**
 
 In `tests/checkout.test.js`, add a test that stubs Stripe retrieve and asserts:
 
@@ -848,7 +848,7 @@ assert.deepEqual(res.body, {
 });
 ```
 
-- [ ] **Step 3: Update checkout success fetch handling**
+- [x] **Step 3: Update checkout success fetch handling**
 
 Change `fetchPaymentIntentStatus` to return the response object:
 
@@ -872,7 +872,7 @@ const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
 renderState(getSuccessState(status, successProductSlug));
 ```
 
-- [ ] **Step 4: Include upsell analytics item**
+- [x] **Step 4: Include upsell analytics item**
 
 When `status === 'succeeded'`, build GA items with base and upsell:
 
@@ -884,7 +884,7 @@ if (upsellSlug) {
 }
 ```
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run:
 
@@ -910,7 +910,7 @@ git -C /Users/rohanbhatia/Desktop/rohanstutoring-redesign/site commit -m "fix: p
 - Modify, delete, or redirect: `figtree-preview.html`
 - Modify if redirect chosen: `vercel.json`
 
-- [ ] **Step 1: Add sitemap coverage tests for confirmed indexable pages**
+- [x] **Step 1: Add sitemap coverage tests for confirmed indexable pages**
 
 After Rohan confirms indexable pages, add:
 
@@ -934,7 +934,7 @@ test('sitemap includes all confirmed indexable public pages', () => {
 
 Remove any URLs from `expectedUrls` that Rohan confirms are not launch-indexable.
 
-- [ ] **Step 2: Add preview noindex/redirect test**
+- [x] **Step 2: Add preview noindex/redirect test**
 
 If keeping the file, require noindex:
 
@@ -947,7 +947,7 @@ test('figtree preview is not indexable', () => {
 
 If redirecting, add a `vercel.json` assertion for `/figtree-preview`.
 
-- [ ] **Step 3: Update sitemap and preview route**
+- [x] **Step 3: Update sitemap and preview route**
 
 Add confirmed sitemap entries with clean URLs. For `figtree-preview.html`, apply the confirmed choice:
 
@@ -955,7 +955,7 @@ Add confirmed sitemap entries with clean URLs. For `figtree-preview.html`, apply
 - Add `<meta name="robots" content="noindex, nofollow">` if it must stay available.
 - Add a redirect in `vercel.json` if it needs to point somewhere else.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run:
 
@@ -979,7 +979,7 @@ git -C /Users/rohanbhatia/Desktop/rohanstutoring-redesign/site commit -m "fix: a
 - Modify: `blog.html`
 - Modify: `js/blog.js`
 
-- [ ] **Step 1: Add ARIA state to initial buttons**
+- [x] **Step 1: Add ARIA state to initial buttons**
 
 Change filters to:
 
@@ -990,7 +990,7 @@ Change filters to:
 <button class="blog-filter" data-filter="strategy" aria-pressed="false">Strategy</button>
 ```
 
-- [ ] **Step 2: Update JS selected state**
+- [x] **Step 2: Update JS selected state**
 
 Replace:
 
@@ -1009,7 +1009,7 @@ filters.forEach((filterButton) => {
 });
 ```
 
-- [ ] **Step 3: Verify manually and commit**
+- [x] **Step 3: Verify manually and commit**
 
 Run local server and click each filter. Confirm `aria-pressed` moves with the visible active state.
 

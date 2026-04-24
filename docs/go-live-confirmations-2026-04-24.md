@@ -10,8 +10,8 @@
 ## Routes And SEO
 
 - [ ] S2 Slam CTAs: use absolute `https://www.rohanstutoring.com/s2-slam-system` links, or allow root-relative `/s2-slam-system` and update the test.
-- [ ] Sitemap: confirm whether `/quiz`, `/quote-generator`, `/s1-mock`, `/s2-slam-system`, `/section-1-tracker`, and `/webinar` are launch-indexable.
-- [ ] `figtree-preview.html`: delete, noindex, or redirect.
+- [x] Sitemap: `/quiz`, `/quote-generator`, `/s1-mock`, `/s2-slam-system`, `/section-1-tracker`, and `/webinar` are launch-indexable.
+- [x] `figtree-preview.html`: delete before launch.
 - [ ] `assets/temp.pdf`: keep and name intentionally, or remove before launch.
 
 ## Business Claims
