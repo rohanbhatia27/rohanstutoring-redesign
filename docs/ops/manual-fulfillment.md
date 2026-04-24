@@ -24,5 +24,6 @@ When Stripe webhook metadata shows `fulfillment_status=manual_fulfillment_pendin
 After delivery, update the PaymentIntent metadata in Stripe:
 
 - `fulfillment_status=fulfilled`
+- `manual_fulfillment_required=false`
 - `fulfilled_at=<ISO timestamp>`
 - `fulfilled_by=<operator name or email>`
