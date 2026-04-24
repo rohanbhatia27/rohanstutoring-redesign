@@ -16,9 +16,9 @@
 
 ## Business Claims
 
-- [ ] `courses.html`: September 2026 enrolments.
-- [ ] `courses/comprehensive.html`: 26 May 2026 start date and early-bird details.
-- [ ] `courses/comprehensive.html`: first-8-spots claim.
+- [x] `courses.html`: September 2026 enrolments confirmed.
+- [x] `courses/comprehensive.html`: 26 May 2026 start date confirmed; early bird offer applies to the next 5 enrolments.
+- [x] `courses/comprehensive.html`: first-8-spots claim replaced with next-5-enrolments claim.
 - [ ] `courses.html`: sold-out/March 2027 waitlist copy.
-- [ ] `webinar.html`: Sunday 7pm AEST timing.
-- [ ] `index.html`: proof/count claims such as `1,200+`.
+- [x] `webinar.html`: Sunday 7pm AEST timing confirmed.
+- [x] `index.html`: proof/count claims updated to `1,300+`.

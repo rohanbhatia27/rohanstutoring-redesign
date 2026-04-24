@@ -77,7 +77,7 @@ Create `docs/go-live-confirmations-2026-04-24.md` with this checklist:
 - [ ] `courses/comprehensive.html`: first-8-spots claim.
 - [ ] `courses.html`: sold-out/March 2027 waitlist copy.
 - [ ] `webinar.html`: Sunday 7pm AEST timing.
-- [ ] `index.html`: proof/count claims such as `1,200+`.
+- [ ] `index.html`: proof/count claims such as `1,300+`.
 ```
 
 - [x] **Step 2: Pause implementation points that need confirmation**
@@ -1164,7 +1164,7 @@ courses/comprehensive.html: 26 May 2026 start date and early-bird details
 courses/comprehensive.html: first-8-spots claim
 courses.html: sold-out/March 2027 waitlist copy
 webinar.html: Sunday 7pm AEST timing
-index.html: proof/count claims such as 1,200+
+index.html: proof/count claims such as 1,300+
 ```
 
 - [ ] **Step 2: Verify no placeholders remain**
@@ -1173,7 +1173,7 @@ Run:
 
 ```bash
 cd /Users/rohanbhatia/Desktop/rohanstutoring-redesign/site
-rg -n "REPLACE_WITH|coming shortly|Video arriving shortly|early-bird|first 8|March 2027|September 2026|1,200\\+" .
+rg -n "REPLACE_WITH|coming shortly|Video arriving shortly|early-bird|first 8|March 2027|September 2026|1,300\\+" .
 ```
 
 Expected: each result is either confirmed launch copy or an intentional non-production note documented in the confirmation file.

@@ -81,7 +81,7 @@ Replace the current paragraph around lines 212-214 with:
 
 ```html
 <p class="hero__sub reveal reveal--delay-2">
-  GAMSAT tutoring shaped by a top 1% scorer, trusted by 1,200+ future doctors across Australia, the UK, and Ireland.
+  GAMSAT tutoring shaped by a top 1% scorer, trusted by 1,300+ future doctors across Australia, the UK, and Ireland.
 </p>
 ```
 
@@ -102,7 +102,7 @@ Replace the current `hero__stats` block around lines 221-243 with:
 
 ```html
 <div class="hero__proof reveal reveal--delay-3" aria-label="Hero proof points">
-  <span class="hero__proof-item">1,200+ students coached</span>
+  <span class="hero__proof-item">1,300+ students coached</span>
   <span class="hero__proof-separator" aria-hidden="true"></span>
   <span class="hero__proof-item">Top 1% scorer</span>
 </div>
@@ -450,7 +450,7 @@ Desktop:
 - The urgency line reads as a slim notice, not a card
 - The headline is the clear focal point
 - The support line and proof row sit in one calm reading flow
-- The proof row contains only "1,200+ students coached" and "Top 1% scorer"
+- The proof row contains only "1,300+ students coached" and "Top 1% scorer"
 - The webinar CTA is visibly secondary to "See the Courses"
 - Rohan's image stays atmospheric, not dominant
 

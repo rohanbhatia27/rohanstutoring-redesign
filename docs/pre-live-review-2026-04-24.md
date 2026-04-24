@@ -102,7 +102,7 @@ No code fixes were made in this pass. Existing user changes remain untouched in:
    - `courses/comprehensive.html:237`: first-8-spots claim
    - `courses.html:258`: sold-out/March 2027 waitlist copy
    - `webinar.html:123`: Sunday 7pm AEST timing
-   - `index.html:238`: proof/count claims such as `1,200+`
+   - `index.html:238`: proof/count claims such as `1,300+`
 
 ## Low Priority Polish
 
