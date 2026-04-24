@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { EventEmitter } = require('node:events');
 
 const fulfillPaymentIntent = require('../api/lib/fulfill-payment-intent.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
@@ -257,5 +258,153 @@ test('stripe webhook fulfills payment_intent.succeeded events and acknowledges r
   assert.equal(constructedEvents[0].secret, 'whsec_test');
   assert.deepEqual(fulfilledPaymentIntentIds, ['pi_456']);
 
+  stripeWebhookHandler.__resetForTests();
+});
+
+test('stripe webhook accepts an untouched Buffer payload for signature verification', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  const seenPayloads = [];
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent(payload) {
+        seenPayloads.push(Buffer.isBuffer(payload) ? payload.toString('utf8') : String(payload));
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_123',
+              metadata: {
+                product_slug: 'blueprint',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => ({ alreadyFulfilled: false }));
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: Buffer.from('{"id":"evt_123","object":"event"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(seenPayloads, ['{"id":"evt_123","object":"event"}']);
+  stripeWebhookHandler.__resetForTests();
+});
+
+test('stripe webhook reads production request streams before touching body helpers', async (t) => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  t.after(() => {
+    stripeWebhookHandler.__resetForTests();
+  });
+
+  const seenPayloads = [];
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent(payload) {
+        seenPayloads.push(Buffer.isBuffer(payload) ? payload.toString('utf8') : String(payload));
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_123',
+              metadata: {
+                product_slug: 'blueprint',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => ({ alreadyFulfilled: false }));
+
+  let bodyGetterAccessed = false;
+  const req = new EventEmitter();
+  req.method = 'POST';
+  req.headers = {
+    'stripe-signature': 't=123,v1=abc',
+  };
+  Object.defineProperty(req, 'body', {
+    get() {
+      bodyGetterAccessed = true;
+      throw new Error('body helper should not be accessed before raw stream');
+    },
+  });
+
+  process.nextTick(() => {
+    req.emit('data', Buffer.from('{"id":"evt_123","object":"event"}'));
+    req.emit('end');
+  });
+
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(bodyGetterAccessed, false);
+  assert.deepEqual(seenPayloads, ['{"id":"evt_123","object":"event"}']);
+});
+
+test('stripe webhook rejects parsed object bodies because signature verification requires raw bytes', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  let constructEventCalled = false;
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        constructEventCalled = true;
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_123',
+              metadata: {},
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: {
+      id: 'evt_123',
+      object: 'event',
+    },
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 400);
+  assert.deepEqual(res.body, { error: 'Invalid Stripe webhook.' });
+  assert.equal(constructEventCalled, false);
   stripeWebhookHandler.__resetForTests();
 });

@@ -25,37 +25,39 @@ function getWebhookSecret() {
 }
 
 async function readRawBody(req) {
-  if (Buffer.isBuffer(req.body)) {
-    return req.body;
-  }
-
-  if (typeof req.body === 'string') {
-    return Buffer.from(req.body);
-  }
-
   if (Buffer.isBuffer(req.rawBody)) {
     return req.rawBody;
   }
 
   if (typeof req.rawBody === 'string') {
-    return Buffer.from(req.rawBody);
+    return Buffer.from(req.rawBody, 'utf8');
   }
 
-  if (!req || typeof req.on !== 'function') {
-    return Buffer.from(JSON.stringify(req.body || {}));
-  }
+  if (req && typeof req.on === 'function') {
+    const chunks = [];
 
-  const chunks = [];
-
-  await new Promise((resolve, reject) => {
-    req.on('data', (chunk) => {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    await new Promise((resolve, reject) => {
+      req.on('data', (chunk) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
+      req.on('end', resolve);
+      req.on('error', reject);
     });
-    req.on('end', resolve);
-    req.on('error', reject);
-  });
 
-  return Buffer.concat(chunks);
+    if (chunks.length > 0) {
+      return Buffer.concat(chunks);
+    }
+  }
+
+  if (Buffer.isBuffer(req.body)) {
+    return req.body;
+  }
+
+  if (typeof req.body === 'string') {
+    return Buffer.from(req.body, 'utf8');
+  }
+
+  throw new Error('Raw Stripe webhook body unavailable.');
 }
 
 async function stripeWebhookHandler(req, res) {
