@@ -39,8 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
   filters.forEach(btn => {
     btn.addEventListener('click', () => {
       // Update active state
-      filters.forEach(f => f.classList.remove('active'));
+      filters.forEach(f => {
+        f.classList.remove('active');
+        f.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
 
       const filter = btn.dataset.filter;
 
