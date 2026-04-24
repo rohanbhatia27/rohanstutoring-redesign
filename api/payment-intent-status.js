@@ -3,6 +3,7 @@ const createPaymentIntentHandler = require('./create-payment-intent.js');
 
 const PUBLIC_ERROR_MESSAGE = 'We could not verify this payment.';
 const PAYMENT_INTENT_ID_PATTERN = /^pi_[A-Za-z0-9]+$/;
+let stripeFactory = (secretKey) => Stripe(secretKey);
 
 function isAllowedOrigin(origin) {
   return createPaymentIntentHandler.isAllowedOrigin(origin);
@@ -33,14 +34,22 @@ async function paymentIntentStatusHandler(req, res) {
   }
 
   try {
-    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    const stripe = stripeFactory(process.env.STRIPE_SECRET_KEY);
     const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (!intent || !intent.status) {
       return res.status(404).json({ error: PUBLIC_ERROR_MESSAGE });
     }
 
-    return res.status(200).json({ status: intent.status });
+    const metadata = intent.metadata || {};
+
+    return res.status(200).json({
+      status: intent.status,
+      metadata: {
+        base_slug: metadata.base_slug || metadata.product_slug || '',
+        upsell_slug: metadata.upsell_slug || '',
+      },
+    });
   } catch (error) {
     console.error('Stripe error:', error.message);
     return res.status(500).json({ error: PUBLIC_ERROR_MESSAGE });
@@ -50,5 +59,11 @@ async function paymentIntentStatusHandler(req, res) {
 paymentIntentStatusHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 paymentIntentStatusHandler.isAllowedOrigin = isAllowedOrigin;
 paymentIntentStatusHandler.isValidPaymentIntentId = isValidPaymentIntentId;
+paymentIntentStatusHandler.__setStripeFactory = (value) => {
+  stripeFactory = value;
+};
+paymentIntentStatusHandler.__resetForTests = () => {
+  stripeFactory = (secretKey) => Stripe(secretKey);
+};
 
 module.exports = paymentIntentStatusHandler;

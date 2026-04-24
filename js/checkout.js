@@ -385,6 +385,32 @@
     return SUCCESS_STATES.failed;
   }
 
+  function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug) {
+    const baseProduct = PRODUCTS[baseSlug] || PRODUCTS[fallbackBaseSlug];
+    const upsellProduct = PRODUCTS[upsellSlug] || Object.values(ORDER_BUMPS).find((bump) => bump.slug === upsellSlug);
+    const items = [];
+
+    if (baseProduct) {
+      items.push({
+        item_id: baseSlug || fallbackBaseSlug,
+        item_name: baseProduct.name || baseProduct.title || baseSlug || fallbackBaseSlug,
+        price: baseProduct.price,
+        quantity: 1,
+      });
+    }
+
+    if (upsellSlug && upsellProduct) {
+      items.push({
+        item_id: upsellSlug,
+        item_name: upsellProduct.name || upsellProduct.title || upsellSlug,
+        price: upsellProduct.price,
+        quantity: 1,
+      });
+    }
+
+    return items;
+  }
+
   function getApiServerErrorMessage(responseText) {
     const trimmed = (responseText || '').trim();
     const isHtml = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html') || trimmed.startsWith('<');
@@ -424,7 +450,7 @@
       throw new Error(result.data.error || 'We could not verify this payment.');
     }
 
-    return result.data.status;
+    return result.data;
   }
 
   async function fetchCheckoutConfig() {
@@ -930,22 +956,24 @@
     }
 
     try {
-      const status = await fetchPaymentIntentStatus(paymentIntentId);
-      renderState(getSuccessState(status, productSlug));
+      const statusPayload = await fetchPaymentIntentStatus(paymentIntentId);
+      const status = statusPayload.status;
+      const metadata = statusPayload.metadata || {};
+      const successProductSlug = metadata.base_slug || metadata.product_slug || productSlug;
+      const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
+      const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
+
+      renderState(getSuccessState(status, successMessageProductSlug));
       if (status === 'succeeded') {
-        renderSuccessAction(productSlug);
-        const p = PRODUCTS[productSlug];
+        renderSuccessAction(successMessageProductSlug);
         if (typeof window.gtag === 'function') {
+          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
+
           window.gtag('event', 'purchase', {
             transaction_id: paymentIntentId,
             currency: 'AUD',
-            value: p ? p.price : undefined,
-            items: [{
-              item_id: productSlug,
-              item_name: p ? p.name : productSlug,
-              price: p ? p.price : undefined,
-              quantity: 1,
-            }],
+            value: items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined,
+            items,
           });
         }
       }
@@ -968,6 +996,7 @@
     getSuccessMessage,
     buildSuccessUrl,
     getSuccessState,
+    buildPurchaseItems,
     getApiServerErrorMessage,
     parseApiResponse,
     fetchCheckoutConfig,

@@ -15,9 +15,11 @@ const {
   getSuccessActionMarkup,
   buildSuccessUrl,
   getSuccessState,
+  buildPurchaseItems,
   getApiServerErrorMessage,
   parseApiResponse,
   fetchCheckoutConfig,
+  fetchPaymentIntentStatus,
   getCustomerPayload,
   buildCheckoutPayload,
 } = require('../js/checkout.js');
@@ -215,6 +217,23 @@ test('getSuccessState maps Stripe statuses to the right success-page copy', () =
   assert.equal(getSuccessState('requires_payment_method', 'blueprint').heading, 'Payment not confirmed');
 });
 
+test('buildPurchaseItems includes base and upsell products when checkout metadata has both', () => {
+  assert.deepEqual(buildPurchaseItems('blueprint', 'essay-pack-10'), [
+    {
+      item_id: 'blueprint',
+      item_name: "Rohan's Blueprint",
+      price: 599,
+      quantity: 1,
+    },
+    {
+      item_id: 'essay-pack-10',
+      item_name: 'S2 Essay Marking — 10-Essay Pack',
+      price: 249,
+      quantity: 1,
+    },
+  ]);
+});
+
 test('getApiServerErrorMessage explains when HTML is returned instead of JSON', () => {
   const message = getApiServerErrorMessage('<!DOCTYPE html><html><body>404</body></html>');
 
@@ -246,6 +265,27 @@ test('fetchCheckoutConfig returns the Stripe publishable key from the public con
   });
 
   delete global.fetch;
+});
+
+test('fetchPaymentIntentStatus returns the parsed status payload', async () => {
+  global.fetch = async () => ({
+    ok: true,
+    text: async () => '{"status":"succeeded","metadata":{"base_slug":"blueprint","upsell_slug":"essay-pack-10"}}',
+  });
+
+  try {
+    const payload = await fetchPaymentIntentStatus('pi_123');
+
+    assert.deepEqual(payload, {
+      status: 'succeeded',
+      metadata: {
+        base_slug: 'blueprint',
+        upsell_slug: 'essay-pack-10',
+      },
+    });
+  } finally {
+    delete global.fetch;
+  }
 });
 
 test('parseApiResponse converts HTML error pages into a clear checkout-server message', async () => {
@@ -423,6 +463,54 @@ test('payment intent status handler validates Stripe payment-intent IDs', () => 
   assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId('pi_123'), true);
   assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId('seti_123'), false);
   assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId(''), false);
+});
+
+test('payment intent status handler returns status with safe checkout metadata', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  paymentIntentStatusHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      retrieve: async (paymentIntentId) => {
+        assert.equal(paymentIntentId, 'pi_123');
+        return {
+          status: 'succeeded',
+          metadata: {
+            product_slug: 'blueprint',
+            base_slug: 'blueprint',
+            upsell_slug: 'essay-pack-10',
+            customer_email: 'jane@example.com',
+            customer_name: 'Jane Smith',
+          },
+        };
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'GET',
+      headers: {
+        origin: 'https://rohanstutoring.com',
+      },
+      query: {
+        payment_intent: 'pi_123',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await paymentIntentStatusHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      status: 'succeeded',
+      metadata: {
+        base_slug: 'blueprint',
+        upsell_slug: 'essay-pack-10',
+      },
+    });
+  } finally {
+    paymentIntentStatusHandler.__resetForTests();
+  }
 });
 
 test('public config handler origin allow-list matches checkout endpoint', () => {
