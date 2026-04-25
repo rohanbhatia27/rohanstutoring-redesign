@@ -165,7 +165,7 @@ const OUTCOMES = {
   },
   ELITE_EXCELLENCE: {
     id: 'ELITE_EXCELLENCE',
-    name: 'The Elite Excellence Path',
+    name: "The Resitter's Path",
     teaser: "You're already in the top bracket. The leap from 65 to the top 5% isn't more content, it's sharper strategy, cleaner S2 writing, and eliminating the last handful of costly patterns. You need a course built for where you already are, not a rerun of the basics.",
     planHtml: `
       <p>At 65+, most general GAMSAT courses waste your time. You already know the content. What separates 65 from the top 5% is the compounding of small strategy wins across all three sections, plus an S2 that stops scoring in the 70s and starts scoring in the 80s. The Elite Excellence Course is built for exactly this leap. Here's the 12-week structure that bridges the gap.</p>
@@ -196,7 +196,7 @@ const OUTCOMES = {
   },
   BLUEPRINT: {
     id: 'BLUEPRINT',
-    name: 'The Blueprint Path',
+    name: 'The Flexible Path',
     teaser: "You're self-directed, you've got reasonable time, and you want a complete system without live-class constraints. Blueprint is 80 hours of structured content you can run at your own pace, and it's the most popular course for a reason.",
     planHtml: `
       <p>Most students do not need live classes. They need clear content, a realistic schedule, and the discipline to actually follow it. That's what Blueprint is built for, 80 hours covering S1 and S2 mastery, advanced strategy, and the Expert Essay Collection, with lifetime access so your pace is your pace. Here's the structure to plug it into.</p>
@@ -258,7 +258,7 @@ const OUTCOMES = {
   },
   START_HERE: {
     id: 'START_HERE',
-    name: 'The Start Here Path',
+    name: "The Beginner's Path",
     teaser: "You're early. That's actually the best possible position to be in, as long as you don't waste it. What you need right now isn't a big course, it's a 30-day kickstart that turns 'I'll study soon' into 'I'm studying'.",
     planHtml: `
       <p>The biggest predictor of GAMSAT success is not IQ, not background, not raw hours. It's momentum in the first month. The Essentials Playbook is built to get you from zero to consistent study in 30 days, including your first essay marked. Here's how the next 12 weeks should unfold for someone in your position.</p>
