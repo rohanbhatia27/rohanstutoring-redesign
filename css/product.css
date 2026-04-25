@@ -61,7 +61,7 @@
   display: grid;
   grid-template-columns: 1fr 480px;
   gap: 64px;
-  align-items: center;
+  align-items: flex-start;
 }
 .product-hero__badges {
   display: flex;
@@ -133,7 +133,7 @@
 .product-hero__cta { display: flex; flex-direction: column; gap: 10px; }
 .product-hero__was {
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--white);
   text-align: center;
 }
 .product-hero__secondary-link {
@@ -1788,3 +1788,55 @@
   .class-preview__header { margin-bottom: 40px; }
 }
 .cta-instalment--hero:hover { color: var(--white); text-decoration-color: var(--white); }
+
+/* ---- Hero Feature Cards (guarantee + onboarding call) ---- */
+.hero-feature-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.hero-feature-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(16,191,122,0.07);
+  border: 1px solid rgba(16,191,122,0.22);
+  border-radius: var(--radius-md);
+  padding: 13px 14px;
+}
+.hero-feature-card__icon-wrap {
+  color: var(--green);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.hero-feature-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hero-feature-card__text strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.3;
+}
+.hero-feature-card__text span {
+  font-size: 0.75rem;
+  color: rgba(201,213,228,0.7);
+  line-height: 1.5;
+}
+@media (max-width: 520px) {
+  .hero-feature-cards { grid-template-columns: 1fr; }
+}
+
+/* ---- Proof percentile label ---- */
+.product-proof__percentile {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--green);
+  opacity: 0.9;
+  margin-bottom: 14px;
+}

@@ -150,22 +150,23 @@
     </div>
   </section>
 
-  <section class="courses-quiz-spotlight">
+  <section class="courses-quiz-spotlight" aria-labelledby="courses-quiz-spotlight-title">
     <div class="container">
       <div class="courses-quiz-spotlight__card">
         <div class="courses-quiz-spotlight__copy">
-          <span class="label">Start Here If You're Unsure</span>
-          <h2>Take the study plan quiz before you compare six different offers.</h2>
-          <p>Seven questions. Two minutes. We will point you toward the right course, support level, and 12-week plan for your timeline, score gap, and study capacity.</p>
+          <span class="label">Study Plan Quiz</span>
+          <h2 id="courses-quiz-spotlight-title">Not sure which course fits? Start with a 2-minute study plan.</h2>
+          <p>Answer seven quick questions and get a tailored recommendation for the right course, support level, and 12-week direction based on your timeline, score gap, and weekly study capacity.</p>
           <div class="courses-quiz-spotlight__points" aria-label="Quiz benefits">
-            <span>Personalised study plan</span>
-            <span>Course recommendation</span>
-            <span>Faster route to the right fit</span>
+            <span>7 quick questions</span>
+            <span>Best-fit course recommendation</span>
+            <span>12-week direction</span>
           </div>
         </div>
         <div class="courses-quiz-spotlight__actions">
-          <a href="/quiz?source=courses-spotlight" class="btn btn--primary btn--lg" data-quiz-source="courses-spotlight">Get my study plan</a>
-          <p>Already know what you want? Scroll down and browse every course manually.</p>
+          <p class="courses-quiz-spotlight__eyebrow">Low-friction guidance before you browse</p>
+          <a href="/quiz?source=courses-spotlight" class="btn btn--primary btn--lg" data-quiz-source="courses-spotlight">Take the 2-minute quiz</a>
+          <p>Prefer to compare everything yourself first? The full course lineup is right below.</p>
         </div>
       </div>
     </div>
@@ -344,16 +345,17 @@
           </div>
         </a>
 
-        <a href="/quiz?source=courses-grid-cta" class="course-tile reveal reveal--delay-2" data-quiz-source="courses-grid-cta">
+        <a href="/quiz?source=courses-grid-cta" class="course-tile course-tile--quiz reveal reveal--delay-2" data-quiz-source="courses-grid-cta">
           <div class="course-tile__body course-tile__body--solo course-tile__body--cta">
+            <span class="course-tile__tag course-tile__tag--quiz">Study Plan Quiz</span>
             <div class="course-tile__icon">
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.5 2.5 0 115 0c0 1.5-2.5 2-2.5 3.5M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <h3>Not sure where to start?</h3>
-            <p>Take the 2-minute study plan quiz and get the course recommendation that actually fits your situation.</p>
+            <h3>Need the quickest shortlist?</h3>
+            <p>Use the quiz to narrow your best next step before you commit to a full course, essay support, or a lighter starter option.</p>
             <div class="course-tile__footer">
-              <span class="course-tile__price" style="color:var(--green)">Free</span>
-              <span class="course-tile__cta">Take Quiz →</span>
+              <span class="course-tile__price course-tile__price--quiz">2 minutes</span>
+              <span class="course-tile__cta">Start quiz →</span>
             </div>
           </div>
         </a>

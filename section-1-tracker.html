@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="css/tracker.css">
   <script src="https://f.convertkit.com/ckjs/ck.5.js" defer></script>
   <script src="js/main.js" defer></script>
+  <script src="js/tracker.js" defer></script>
 </head>
 <body>
 
@@ -151,7 +152,12 @@
 
       <div class="tracker-features__layout">
         <div class="tracker-features__visual reveal">
-          <img src="assets/tracker-preview.png" alt="GAMSAT S1 Tracker spreadsheet preview showing question type breakdown and performance charts" loading="lazy">
+          <button class="tracker-preview" type="button" data-tracker-preview-open aria-haspopup="dialog" aria-label="Open a larger view of the tracker spreadsheet">
+            <span class="tracker-preview__canvas">
+              <img src="assets/tracker-preview.png" alt="GAMSAT S1 Tracker spreadsheet preview showing question type breakdown and performance charts" loading="lazy">
+            </span>
+            <span class="tracker-preview__hint" aria-hidden="true">Tap to inspect</span>
+          </button>
         </div>
 
         <div class="tracker-features__list">
@@ -204,6 +210,17 @@
       </div>
     </div>
   </section>
+
+  <dialog class="tracker-preview-modal" data-tracker-preview-modal aria-label="Large tracker spreadsheet preview">
+    <div class="tracker-preview-modal__frame">
+      <button class="tracker-preview-modal__close" type="button" data-tracker-preview-close aria-label="Close preview">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <div class="tracker-preview-modal__scroller" tabindex="0">
+        <img src="assets/tracker-preview.png" alt="Large GAMSAT S1 Tracker spreadsheet preview">
+      </div>
+    </div>
+  </dialog>
 
   <!-- HOW IT WORKS -->
   <section class="tracker-section tracker-section--mid">

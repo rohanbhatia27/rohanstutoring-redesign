@@ -245,12 +245,65 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ---- Shared quiz entry tracking ---- */
-  document.querySelectorAll('[data-quiz-source]').forEach((link) => {
-    link.addEventListener('click', () => {
-      track('quiz_entry_clicked', {
-        source: link.dataset.quizSource,
-      });
-    });
+  const QUIZ_ENTRY_CONTEXT = {
+    'home-courses-footer': {
+      journey: 'homepage_comparison',
+      cta_surface: 'comparison_footer',
+    },
+    'home-quiz-band': {
+      journey: 'homepage_comparison',
+      cta_surface: 'comparison_quiz_band',
+    },
+    'courses-spotlight': {
+      journey: 'courses_overview',
+      cta_surface: 'overview_spotlight',
+    },
+    'courses-grid-cta': {
+      journey: 'courses_overview',
+      cta_surface: 'overview_grid_tile',
+    },
+  };
+
+  const syncQuizSourceParam = (link) => {
+    const source = link.dataset.quizSource;
+    const href = link.getAttribute('href');
+    if (!source || !href) return;
+
+    const url = new URL(href, window.location.origin);
+    const isQuizPath = /^\/quiz(?:\.html)?$/.test(url.pathname);
+    if (!isQuizPath || url.searchParams.get('source') === source) return;
+
+    url.searchParams.set('source', source);
+    link.setAttribute('href', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const getQuizEntryParams = (link) => {
+    const source = link.dataset.quizSource;
+    const params = { source };
+    const contextualParams = QUIZ_ENTRY_CONTEXT[source];
+
+    if (contextualParams) {
+      Object.assign(params, contextualParams);
+    }
+
+    if (params.journey === 'homepage_comparison') {
+      const activeComparisonTab = document.querySelector('.selector__tab[aria-selected="true"]');
+      const activeStudentType = activeComparisonTab?.dataset.tab;
+      if (activeStudentType) {
+        params.active_student_type = activeStudentType;
+      }
+    }
+
+    return params;
+  };
+
+  document.querySelectorAll('[data-quiz-source]').forEach(syncQuizSourceParam);
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[data-quiz-source]');
+    if (!link) return;
+
+    track('quiz_entry_clicked', getQuizEntryParams(link));
   });
 
   /* ---- Persistent floating quiz CTA ---- */
@@ -259,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /^\/quiz(?:\.html)?$/,
     /^\/checkout(?:\/|$)/,
     /^\/webinar(?:\/|\.html$|$)/,
+    /^\/section-1-tracker(?:\.html)?$/,
   ].some((pattern) => pattern.test(pathname));
 
   if (!shouldHideFloatingQuizCta) {
@@ -270,13 +324,10 @@ document.addEventListener('DOMContentLoaded', () => {
     floatingCta.innerHTML = `
       <span class="floating-quiz-cta__eyebrow">Study Plan Quiz</span>
       <span class="floating-quiz-cta__body">
-        <span class="floating-quiz-cta__title">Get your 2-minute study plan</span>
+        <span class="floating-quiz-cta__title">Take two minutes to get your free study plan</span>
         <span class="floating-quiz-cta__arrow" aria-hidden="true">→</span>
       </span>
     `;
-    floatingCta.addEventListener('click', () => {
-      track('quiz_entry_clicked', { source: 'floating-cta' });
-    });
     document.body.appendChild(floatingCta);
     document.body.classList.add('has-floating-quiz-cta');
   }

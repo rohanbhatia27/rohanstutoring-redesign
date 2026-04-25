@@ -1438,10 +1438,15 @@ strong { font-weight: 700; color: inherit; }
   align-items: center;
   gap: 14px;
   text-align: center;
+  max-width: 42rem;
+  margin: 36px auto 0;
+  padding-top: 28px;
+  border-top: 1px solid var(--border-light);
 }
 .courses__footer p {
   margin-bottom: 0;
   color: var(--text-muted);
+  max-width: 38rem;
 }
 
 @media (max-width: 960px) {
