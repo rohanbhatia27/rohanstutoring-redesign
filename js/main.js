@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     floatingCta.innerHTML = `
       <span class="floating-quiz-cta__eyebrow">Study Plan Quiz</span>
       <span class="floating-quiz-cta__body">
-        <span class="floating-quiz-cta__title">Take two minutes to get your free study plan</span>
+        <span class="floating-quiz-cta__title">Take 2 minute quiz to get your free study plan</span>
         <span class="floating-quiz-cta__arrow" aria-hidden="true">→</span>
       </span>
     `;
