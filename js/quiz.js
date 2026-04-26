@@ -104,9 +104,9 @@ const OUTCOMES = {
   MASTERY_CALL: {
     id: 'MASTERY_CALL',
     name: 'The Mastery Path',
-    teaser: "You've sat this before. You know what doesn't work. You're not short on motivation or time, you're short on a system built around you. The path forward isn't another course, it's one-to-one coaching with accountability baked in.",
+    teaser: "You've sat this before. You know what doesn't work. The problem is not effort or time. Nobody has looked at your specific score profile and rebuilt your prep around what's actually leaking points. That's what one-to-one coaching is for.",
     planHtml: `
-      <p>When you've already sat the GAMSAT more than once and you're still chasing a serious jump, the bottleneck almost never is content. It's diagnosis. You need someone who can look at your specific score profile, the way you think, the way you write, and build the next 12 weeks around your actual gaps. That's what Mastery is for. What follows is the structure we'd work through together, so you can see exactly what the next three months look like.</p>
+      <p>After multiple attempts, the bottleneck is rarely content. It's that no one has looked at your specific score profile and rebuilt your prep around the actual gaps. Mastery is one-to-one coaching built around you. Below is the structure we'd work through together over 12 weeks.</p>
       <h3>Phase 1: Weeks 1 to 4: Diagnose and rebuild foundations</h3>
       <p class="plan-phase-focus">Weekly focus: one diagnostic mock, targeted weakness work, two essays marked.</p>
       <ol>
@@ -135,9 +135,9 @@ const OUTCOMES = {
   COMPREHENSIVE: {
     id: 'COMPREHENSIVE',
     name: 'The Comprehensive Path',
-    teaser: "You've got the runway, you've got the hours, and you've got a real gap to close. What you need isn't more free resources, it's a full system with live teaching, essay feedback, and someone driving the bus for the next five months.",
+    teaser: "You've got the time and the hours. The gap is real but closeable. Free resources won't close it. You need live teaching, regular essay feedback, and a structure that keeps you honest across five months.",
     planHtml: `
-      <p>A 5+ point jump is absolutely doable, but only if the structure is right. Most students trying this self-study underestimate how much their own blind spots cost them. The Comprehensive Course exists because that's the exact gap it's built to close. Here's how your next 12 weeks should look, whether you take the course or not.</p>
+      <p>A 5+ point jump is realistic, but not through self-study alone. Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this exact gap. Here's how your next 12 weeks should look.</p>
       <h3>Phase 1: Weeks 1 to 4: Build the foundations, section by section</h3>
       <p class="plan-phase-focus">Weekly focus: systematic S1 and S3 study, weekly essay, one diagnostic mock.</p>
       <ol>
@@ -166,9 +166,9 @@ const OUTCOMES = {
   ELITE_EXCELLENCE: {
     id: 'ELITE_EXCELLENCE',
     name: "The Resitter's Path",
-    teaser: "You're already in the top bracket. The leap from 65 to the top 5% isn't more content, it's sharper strategy, cleaner S2 writing, and eliminating the last handful of costly patterns. You need a course built for where you already are, not a rerun of the basics.",
+    teaser: "You're already scoring 65+. More content won't move you from here. The gap to the top 5% is sharper strategy, better S2 writing, and a handful of costly habits that most courses won't touch. This one does.",
     planHtml: `
-      <p>At 65+, most general GAMSAT courses waste your time. You already know the content. What separates 65 from the top 5% is the compounding of small strategy wins across all three sections, plus an S2 that stops scoring in the 70s and starts scoring in the 80s. The Elite Excellence Course is built for exactly this leap. Here's the 12-week structure that bridges the gap.</p>
+      <p>At 65+, most GAMSAT courses are teaching you things you already know. The gap between 65 and the top 5% is not more content. It's marginal strategy gains across all three sections, and an S2 scoring in the 80s rather than the high 70s. The Elite Excellence Course is built for that. Here is the 12-week structure.</p>
       <h3>Phase 1: Weeks 1 to 4: Autopsy your ceiling</h3>
       <p class="plan-phase-focus">Weekly focus: one full mock, granular error analysis, 1 advanced essay per week.</p>
       <ol>
@@ -197,9 +197,9 @@ const OUTCOMES = {
   BLUEPRINT: {
     id: 'BLUEPRINT',
     name: 'The Flexible Path',
-    teaser: "You're self-directed, you've got reasonable time, and you want a complete system without live-class constraints. Blueprint is 80 hours of structured content you can run at your own pace, and it's the most popular course for a reason.",
+    teaser: "You study well on your own and you've got the time. Blueprint is 80 hours covering S1 mastery, S2 strategy, and the Expert Essay Collection, all at your own pace with lifetime access. No live sessions, no fixed schedule.",
     planHtml: `
-      <p>Most students do not need live classes. They need clear content, a realistic schedule, and the discipline to actually follow it. That's what Blueprint is built for, 80 hours covering S1 and S2 mastery, advanced strategy, and the Expert Essay Collection, with lifetime access so your pace is your pace. Here's the structure to plug it into.</p>
+      <p>Most students don't need live classes. They need complete content, a realistic schedule, and the discipline to follow it. Blueprint is 80 hours covering S1 and S2 mastery, advanced strategy, and the Expert Essay Collection, with lifetime access. Here is how to structure your prep around it.</p>
       <h3>Phase 1: Weeks 1 to 4: Content first, context second</h3>
       <p class="plan-phase-focus">Weekly focus: work through S1 and S2 foundations modules, one essay per week.</p>
       <ol>
@@ -228,9 +228,9 @@ const OUTCOMES = {
   ESSAY_ACCELERATOR: {
     id: 'ESSAY_ACCELERATOR',
     name: 'The Essay Accelerator',
-    teaser: "S1 and S3 are not your problem. Your writing is. And S2 is the single most fixable section in the GAMSAT once you see what a top-scoring essay actually looks like from the inside.",
+    teaser: "S1 and S3 aren't your problem. Your writing is. S2 is the most fixable section in the GAMSAT, but only once you've actually studied what a top-scoring essay looks like from the inside.",
     planHtml: `
-      <p>S2 has the steepest score curve in the GAMSAT. Most students never see 25 essays that actually scored above 80, broken down with commentary on structure, language, and thinking. The Expert Essay Collection fixes that gap for $79. Here's how to use it alongside your existing study.</p>
+      <p>S2 has the steepest scoring curve in the GAMSAT. Most students never read an essay that actually scored above 80, let alone study one with commentary on why it worked. The Expert Essay Collection is 25 of them for $79. Here is how to build your prep around it.</p>
       <h3>Phase 1: Weeks 1 to 4: Re-learn what good looks like</h3>
       <p class="plan-phase-focus">Weekly focus: study 3 to 4 essays from the Collection, write 1 essay.</p>
       <ol>
@@ -259,9 +259,9 @@ const OUTCOMES = {
   START_HERE: {
     id: 'START_HERE',
     name: "The Beginner's Path",
-    teaser: "You're early. That's actually the best possible position to be in, as long as you don't waste it. What you need right now isn't a big course, it's a 30-day kickstart that turns 'I'll study soon' into 'I'm studying'.",
+    teaser: "You're early. That's the best position to be in, as long as you use it. You don't need a full course yet. You need 30 days of real study, a first essay submitted, and a habit that carries you through.",
     planHtml: `
-      <p>The biggest predictor of GAMSAT success is not IQ, not background, not raw hours. It's momentum in the first month. The Essentials Playbook is built to get you from zero to consistent study in 30 days, including your first essay marked. Here's how the next 12 weeks should unfold for someone in your position.</p>
+      <p>The biggest predictor of early GAMSAT success is not IQ or background. It's momentum in the first month. The Essentials Playbook gets you from zero to consistent study in 30 days, including your first essay marked. Here is how the next 12 weeks should look from where you are now.</p>
       <h3>Phase 1: Weeks 1 to 4: Build the habit, not the knowledge</h3>
       <p class="plan-phase-focus">Weekly focus: follow the Playbook's 30-day plan exactly, no improvisation.</p>
       <ol>
