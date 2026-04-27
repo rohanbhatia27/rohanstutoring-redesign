@@ -2031,7 +2031,8 @@ img[loading="lazy"] {
 .faq__answer {
   padding-bottom: 24px;
 }
-.faq__answer p { font-size: 0.95rem; line-height: 1.75; color: var(--text); }
+.faq__answer p { font-size: 0.95rem; line-height: 1.75; color: var(--text); margin-bottom: 1rem; }
+.faq__answer p:last-child { margin-bottom: 0; }
 .faq__answer a {
   color: var(--blue);
   font-weight: 600;

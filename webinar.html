@@ -311,5 +311,30 @@
   </footer>
 
   <script src="js/main.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var form = document.querySelector('.webinar-kit-form');
+      if (!form) return;
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        var btn = form.querySelector('[data-element="submit"]');
+        if (btn) btn.disabled = true;
+
+        fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form)
+        })
+        .then(function() {
+          window.location.href = '/webinar/thanks';
+        })
+        .catch(function() {
+          window.location.href = '/webinar/thanks';
+        });
+      }, true);
+    });
+  </script>
 </body>
 </html>

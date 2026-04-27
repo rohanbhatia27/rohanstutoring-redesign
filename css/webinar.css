@@ -196,6 +196,12 @@
   margin-top: 8px;
   position: relative;
 }
+/* Kit success message */
+.webinar-kit-form [data-element="response"],
+.webinar-kit-form .formkit-alert-success {
+  color: #fff;
+}
+
 /* Kit spinner (keep functional) */
 .formkit-spinner {
   display: flex;
