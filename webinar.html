@@ -312,7 +312,7 @@
 
   <script src="js/main.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    (function() {
       var form = document.querySelector('.webinar-kit-form');
       if (!form) return;
 
@@ -334,7 +334,7 @@
           window.location.href = '/webinar/thanks';
         });
       }, true);
-    });
+    })();
   </script>
 </body>
 </html>
