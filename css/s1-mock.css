@@ -261,6 +261,10 @@
   margin: 0 !important;
 }
 
+.mock-inline-form [data-style="clean"] {
+  padding: 0 !important;
+}
+
 .mock-inline-form .formkit-alert {
   background: rgba(255,255,255,0.06) !important;
   border-color: rgba(255,255,255,0.12) !important;

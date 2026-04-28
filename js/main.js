@@ -3,7 +3,28 @@
    Lightweight interactions + utility JS
    ============================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+const FLOATING_QUIZ_CTA_HIDDEN_PATHS = [
+  /^\/quiz(?:\.html)?$/,
+  /^\/checkout(?:\/|$)/,
+  /^\/webinar(?:\/|\.html$|$)/,
+  /^\/section-1-tracker(?:\.html)?$/,
+  /^\/courses\/(?:advanced|blueprint|comprehensive|essay-collection|essay-marking|mastery|private-mentoring|s1-rescue-sprint|s2-rescue-sprint|starter-pack)(?:\.html)?$/,
+];
+
+function shouldHideFloatingQuizCtaForPath(pathname = '') {
+  const normalizedPathname = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return FLOATING_QUIZ_CTA_HIDDEN_PATHS.some((pattern) => pattern.test(normalizedPathname));
+}
+
+function shouldTrackNewsletterSignup(form) {
+  if (!form) return false;
+  if (typeof form.checkValidity === 'function') {
+    return form.checkValidity();
+  }
+  return true;
+}
+
+function initMain() {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const track = (event, params = {}) => {
     if (typeof window.gtag === 'function') {
@@ -307,13 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ---- Persistent floating quiz CTA ---- */
-  const pathname = window.location.pathname;
-  const shouldHideFloatingQuizCta = [
-    /^\/quiz(?:\.html)?$/,
-    /^\/checkout(?:\/|$)/,
-    /^\/webinar(?:\/|\.html$|$)/,
-    /^\/section-1-tracker(?:\.html)?$/,
-  ].some((pattern) => pattern.test(pathname));
+  const shouldHideFloatingQuizCta = shouldHideFloatingQuizCtaForPath(window.location.pathname);
 
   if (!shouldHideFloatingQuizCta) {
     const floatingCta = document.createElement('a');
@@ -369,7 +384,18 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- Analytics: ConvertKit newsletter signup ---- */
   document.addEventListener('submit', (e) => {
     const form = e.target.closest('.formkit-form');
-    if (!form) return;
+    if (!shouldTrackNewsletterSignup(form)) return;
     track('newsletter_signup', { method: 'convertkit' });
   }, { capture: true });
-});
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', initMain);
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    shouldHideFloatingQuizCtaForPath,
+    shouldTrackNewsletterSignup,
+  };
+}

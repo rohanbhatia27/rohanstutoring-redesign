@@ -199,13 +199,30 @@
     <!-- Photo: absolutely positioned, right half, top-aligned -->
     <div class="hero__photo-col" aria-hidden="true">
       <picture>
-        <source media="(min-width: 861px)" srcset="assets/homepage/rohan-hero-new.png">
+        <source
+          media="(max-width: 860px)"
+          srcset="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA="
+        >
+        <source
+          type="image/avif"
+          media="(min-width: 861px)"
+          srcset="assets/homepage/rohan-hero-720.avif 720w, assets/homepage/rohan-hero-1080.avif 1080w"
+          sizes="(max-width: 960px) 48vw, 52vw"
+        >
+        <source
+          type="image/webp"
+          media="(min-width: 861px)"
+          srcset="assets/homepage/rohan-hero-720.webp 720w, assets/homepage/rohan-hero-1080.webp 1080w"
+          sizes="(max-width: 960px) 48vw, 52vw"
+        >
         <img
-          src="assets/homepage/rohan-hero-new.png"
+          src="assets/homepage/rohan-hero-1080.png"
+          srcset="assets/homepage/rohan-hero-720.png 720w, assets/homepage/rohan-hero-1080.png 1080w"
+          sizes="(max-width: 960px) 48vw, 52vw"
           alt=""
           class="hero__photo"
-          width="640"
-          height="640"
+          width="1080"
+          height="1080"
           loading="eager"
           decoding="async"
           fetchpriority="high"

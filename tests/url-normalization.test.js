@@ -115,7 +115,13 @@ test('legacy booking path and lead magnet follow-up both point to the webinar pa
   const mockSignupPage = read('s1-mock.html');
   assert.match(
     mockSignupPage,
-    /redirect_url&quot;:&quot;https:\/\/www\.rohanstutoring\.com\/webinar&quot;/
+    /action="https:\/\/app\.kit\.com\/forms\/8717603\/subscriptions"/,
+    'S1 mock should keep the live Kit signup endpoint'
+  );
+  assert.match(
+    mockSignupPage,
+    /free webinar/i,
+    'S1 mock should still point post-signup follow-up toward the webinar'
   );
 });
 

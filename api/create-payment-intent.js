@@ -16,6 +16,11 @@ const AMOUNTS = {
   'mentoring-pack': 107000,
 };
 
+const UNAVAILABLE_PRODUCTS = new Set([
+  's1-rescue-sprint',
+  's2-rescue-sprint',
+]);
+
 const ALLOWED_UPSELLS = {
   blueprint: new Set(['essay-pack-10']),
   advanced: new Set(['essay-collection']),
@@ -69,6 +74,10 @@ function resolveCheckoutPurchase(body) {
 
   if (!baseAmount) {
     return { error: 'Invalid product slug: ' + baseSlug };
+  }
+
+  if (UNAVAILABLE_PRODUCTS.has(baseSlug)) {
+    return { error: 'This product is currently unavailable.' };
   }
 
   if (!upsellSlug) {
@@ -178,6 +187,7 @@ async function createPaymentIntentHandler(req, res) {
 }
 
 createPaymentIntentHandler.AMOUNTS = AMOUNTS;
+createPaymentIntentHandler.UNAVAILABLE_PRODUCTS = UNAVAILABLE_PRODUCTS;
 createPaymentIntentHandler.ALLOWED_UPSELLS = ALLOWED_UPSELLS;
 createPaymentIntentHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 createPaymentIntentHandler.isAllowedOrigin = isAllowedOrigin;

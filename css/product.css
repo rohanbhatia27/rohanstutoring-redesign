@@ -157,6 +157,8 @@
 }
 .product-hero__card img {
   width: 100%;
+  height: auto;
+  aspect-ratio: auto var(--product-hero-media-ratio, 16 / 10);
   display: block;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }

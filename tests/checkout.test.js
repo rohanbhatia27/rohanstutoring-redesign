@@ -15,6 +15,7 @@ const {
   getSuccessActionMarkup,
   buildSuccessUrl,
   getSuccessState,
+  isProductAvailable,
   buildPurchaseItems,
   getApiServerErrorMessage,
   parseApiResponse,
@@ -210,6 +211,18 @@ test('buildSuccessUrl preserves product and payment-intent ID without leaking th
   );
 });
 
+test('buildSuccessUrl preserves mentoring package slug for success-page analytics fallback', () => {
+  const url = buildSuccessUrl(
+    { pageSlug: 'private-mentoring', apiSlug: 'mentoring-single' },
+    'pi_123'
+  );
+
+  assert.equal(
+    url,
+    '/checkout/success?product=private-mentoring&payment_intent=pi_123&package=mentoring-single'
+  );
+});
+
 test('getSuccessState maps Stripe statuses to the right success-page copy', () => {
   assert.equal(getSuccessState('succeeded', 'blueprint').heading, 'Payment confirmed');
   assert.match(getSuccessState('succeeded', 'blueprint').message, /Google Drive/);
@@ -229,6 +242,34 @@ test('buildPurchaseItems includes base and upsell products when checkout metadat
       item_id: 'essay-pack-10',
       item_name: 'S2 Essay Marking — 10-Essay Pack',
       price: 249,
+      quantity: 1,
+    },
+  ]);
+});
+
+test('buildPurchaseItems maps mentoring package slugs to the matching package definition', () => {
+  assert.deepEqual(buildPurchaseItems('mentoring-pack', 'essay-collection', 'private-mentoring'), [
+    {
+      item_id: 'mentoring-pack',
+      item_name: '10-class pack',
+      price: 1070,
+      quantity: 1,
+    },
+    {
+      item_id: 'essay-collection',
+      item_name: 'Expert Essay Collection',
+      price: 79,
+      quantity: 1,
+    },
+  ]);
+});
+
+test('buildPurchaseItems falls back to the default mentoring package when success metadata omits the package slug', () => {
+  assert.deepEqual(buildPurchaseItems('', '', 'private-mentoring'), [
+    {
+      item_id: 'private-mentoring',
+      item_name: '10-class pack',
+      price: 1070,
       quantity: 1,
     },
   ]);
@@ -403,6 +444,56 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
     }).error,
     'Invalid upsell combination: blueprint + essay-collection'
   );
+
+  assert.equal(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 's1-rescue-sprint',
+    }).error,
+    'This product is currently unavailable.'
+  );
+});
+
+test('isProductAvailable flags sold-out sprint slugs as unavailable', () => {
+  assert.equal(isProductAvailable('s1-rescue-sprint'), false);
+  assert.equal(isProductAvailable('s2-rescue-sprint'), false);
+  assert.equal(isProductAvailable('blueprint'), true);
+});
+
+test('payment intent handler rejects unavailable sprint products before creating a PaymentIntent', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  let createCalled = false;
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      create: async () => {
+        createCalled = true;
+        return { client_secret: 'pi_secret_should_not_exist' };
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: {
+        origin: 'https://rohanstutoring.com',
+      },
+      body: {
+        slug: 's2-rescue-sprint',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createPaymentIntentHandler(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { error: 'This product is currently unavailable.' });
+    assert.equal(createCalled, false);
+  } finally {
+    createPaymentIntentHandler.__resetForTests();
+  }
 });
 
 test('payment intent handler creates combined PaymentIntents with base and upsell metadata', async () => {

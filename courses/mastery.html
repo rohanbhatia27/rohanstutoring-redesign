@@ -210,7 +210,7 @@
 
           <div class="product-hero__cta reveal reveal--delay-4">
             <a href="/checkout/?product=mastery" class="btn btn--primary btn--lg" id="apply">Enrol in the September Cohort →</a>
-            <a href="#" class="cta-instalment cta-instalment--hero" data-mastery-instalment-link>or pay $649 × 4 instalments</a>
+            <a href="https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o" class="cta-instalment cta-instalment--hero" data-mastery-instalment-link>or pay $649 × 4 instalments</a>
             <span class="product-hero__was">$2,249 AUD · Places kept intentionally small.</span>
             <div class="cta-trust">
               <span>Personalised roadmap before you start</span>
@@ -221,8 +221,28 @@
         </div>
 
         <div class="product-hero__card reveal reveal--delay-2">
-          <!-- Image placeholder: fill this in -->
-          <div class="mastery-hero-img-placeholder" aria-hidden="true"></div>
+          <figure class="mastery-hero-media">
+            <picture>
+              <source
+                srcset="
+                  ../assets/rohan/rohan-mentoring-3637.webp 643w,
+                  ../assets/rohan/rohan-mentoring-1989.webp 1636w
+                "
+                sizes="(max-width: 1024px) min(100vw - 48px, 560px), 480px"
+                type="image/webp"
+              >
+              <img
+                src="../assets/rohan/rohan-mentoring-3637.webp"
+                alt="Rohan during a private mentoring session"
+                width="643"
+                height="745"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+              >
+            </picture>
+            <figcaption class="mastery-hero-media__caption">5 private tutorials. Monthly 1:1 check-ins. Support that stays personal.</figcaption>
+          </figure>
           <div class="product-hero__card-details">
             <div class="detail-row"><span>Cohort</span><strong>September 2026</strong></div>
             <div class="detail-row"><span>Live Classes</span><strong>24 sessions (S1 + S2)</strong></div>
@@ -414,7 +434,7 @@
               <span class="value-summary__label">AUD · all inclusive</span>
             </div>
             <a href="/checkout/?product=mastery" class="btn btn--primary btn--lg">Enrol for September →</a>
-            <a href="#" class="cta-instalment" data-mastery-instalment-link>or pay $649 × 4 instalments</a>
+            <a href="https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o" class="cta-instalment" data-mastery-instalment-link>or pay $649 × 4 instalments</a>
             <p class="value-summary__note">Places are limited and enrolments are handled in order received.</p>
           </div>
         </div>
@@ -606,6 +626,7 @@
   </footer>
 
   <script src="../js/main.js" defer></script>
+  <script src="../js/storefront-config.js" defer></script>
   <script src="../js/product.js" defer></script>
 </body>
 </html>

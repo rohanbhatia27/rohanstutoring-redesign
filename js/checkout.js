@@ -1,7 +1,25 @@
 (function (global) {
-  const MASTERY_INSTALMENT_URL = 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o';
+  function loadStorefrontConfig() {
+    if (global.StorefrontConfig) return global.StorefrontConfig;
+    if (typeof module !== 'undefined' && module.exports) {
+      try {
+        return require('./storefront-config.js');
+      } catch (error) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  const STOREFRONT_CONFIG = loadStorefrontConfig();
+  const INSTALMENT_LINKS = STOREFRONT_CONFIG?.instalmentLinks || {};
+  const MASTERY_INSTALMENT_URL = INSTALMENT_LINKS.mastery ? INSTALMENT_LINKS.mastery.url : '';
   const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/zxQdMR';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
+  const UNAVAILABLE_PRODUCT_SLUGS = new Set([
+    's1-rescue-sprint',
+    's2-rescue-sprint',
+  ]);
   let checkoutConfigPromise = null;
 
   // SYNC REQUIRED: These hardcoded prices are fallbacks/display hints.
@@ -104,10 +122,7 @@
         '100% refund guarantee',
       ],
       isDigital: false,
-      instalment: {
-        label: 'or pay $449 × 4 instalments →',
-        url: 'https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m',
-      },
+      instalment: INSTALMENT_LINKS.comprehensive || null,
       successType: 'cohort',
     },
     mastery: {
@@ -122,10 +137,7 @@
         'Personalised study roadmap',
       ],
       isDigital: false,
-      instalment: {
-        label: 'or pay $649 × 4 instalments →',
-        url: MASTERY_INSTALMENT_URL,
-      },
+      instalment: INSTALMENT_LINKS.mastery || null,
       successType: 'cohort',
     },
     's1-rescue-sprint': {
@@ -366,6 +378,9 @@
     const params = new URLSearchParams({ product: selection.pageSlug });
 
     if (paymentIntentId) params.set('payment_intent', paymentIntentId);
+    if (selection.apiSlug && selection.apiSlug !== selection.pageSlug) {
+      params.set('package', selection.apiSlug);
+    }
 
     return `/checkout/success?${params.toString()}`;
   }
@@ -385,15 +400,46 @@
     return SUCCESS_STATES.failed;
   }
 
+  function isProductAvailable(productSlug) {
+    return !UNAVAILABLE_PRODUCT_SLUGS.has(String(productSlug || '').trim());
+  }
+
+  function findPackageBySlug(slug) {
+    if (!slug) return null;
+
+    for (const product of Object.values(PRODUCTS)) {
+      if (!product || !product.packages) continue;
+
+      const pkg = product.packages.find((candidate) => candidate.slug === slug);
+      if (pkg) return pkg;
+    }
+
+    return null;
+  }
+
+  function getDefaultProductVariant(productSlug) {
+    const product = PRODUCTS[productSlug];
+    if (!product) return null;
+
+    if (!product.packages || !product.packages.length) {
+      return product;
+    }
+
+    const selection = getInitialSelection(productSlug, product);
+    return product.packages[selection.packageIndex] || product.packages[0] || product;
+  }
+
   function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug) {
-    const baseProduct = PRODUCTS[baseSlug] || PRODUCTS[fallbackBaseSlug];
-    const upsellProduct = PRODUCTS[upsellSlug] || Object.values(ORDER_BUMPS).find((bump) => bump.slug === upsellSlug);
+    const baseProduct = PRODUCTS[baseSlug] || findPackageBySlug(baseSlug) || getDefaultProductVariant(fallbackBaseSlug);
+    const upsellProduct = PRODUCTS[upsellSlug]
+      || findPackageBySlug(upsellSlug)
+      || Object.values(ORDER_BUMPS).find((bump) => bump.slug === upsellSlug);
     const items = [];
 
     if (baseProduct) {
       items.push({
         item_id: baseSlug || fallbackBaseSlug,
-        item_name: baseProduct.name || baseProduct.title || baseSlug || fallbackBaseSlug,
+        item_name: baseProduct.name || baseProduct.label || baseProduct.title || baseSlug || fallbackBaseSlug,
         price: baseProduct.price,
         quantity: 1,
       });
@@ -767,6 +813,12 @@
       return;
     }
 
+    if (!isProductAvailable(productSlug)) {
+      notFound.innerHTML = '<p>This product is currently unavailable. <a href="/contact">Join the waitlist →</a></p>';
+      notFound.hidden = false;
+      return;
+    }
+
     const selection = getInitialSelection(productSlug, product);
 
     grid.hidden = false;
@@ -959,7 +1011,7 @@
       const statusPayload = await fetchPaymentIntentStatus(paymentIntentId);
       const status = statusPayload.status;
       const metadata = statusPayload.metadata || {};
-      const successProductSlug = metadata.base_slug || metadata.product_slug || productSlug;
+      const successProductSlug = metadata.base_slug || metadata.product_slug || params.get('package') || productSlug;
       const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
       const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
 
@@ -983,6 +1035,7 @@
   }
 
   const exported = {
+    STOREFRONT_CONFIG,
     MASTERY_INSTALMENT_URL,
     TALLY_ESSAY_FORM_URL,
     EMAIL_PATTERN,
@@ -996,6 +1049,7 @@
     getSuccessMessage,
     buildSuccessUrl,
     getSuccessState,
+    isProductAvailable,
     buildPurchaseItems,
     getApiServerErrorMessage,
     parseApiResponse,
