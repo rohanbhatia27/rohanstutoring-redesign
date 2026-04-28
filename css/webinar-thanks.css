@@ -113,8 +113,56 @@
   font-size: 0.96rem;
 }
 
-.wt-zoom-btn {
+.wt-access-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 720px;
   margin-top: 32px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 22px 24px;
+  border: 1px solid rgba(91, 164, 224, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%),
+    rgba(13, 24, 39, 0.88);
+  box-shadow: var(--shadow-lg);
+  text-align: left;
+}
+
+.wt-access-card__icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(22, 119, 190, 0.16);
+  color: var(--blue-light);
+}
+
+.wt-access-card__body {
+  display: grid;
+  gap: 6px;
+}
+
+.wt-access-card__body strong {
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.wt-access-card__body p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.wt-access-card__body a {
+  color: var(--blue-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .wt-trust-row {
@@ -277,6 +325,11 @@
     min-height: 220px;
     padding: 32px 20px;
     border-radius: 20px;
+  }
+
+  .wt-access-card {
+    padding: 20px;
+    gap: 14px;
   }
 
   .wt-trust-row {

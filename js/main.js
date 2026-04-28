@@ -370,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('submit', (e) => {
     const form = e.target.closest('.formkit-form');
     if (!form) return;
-    if (typeof window.gtag !== 'function') return;
-    window.gtag('event', 'newsletter_signup', { method: 'convertkit' });
-  });
+    track('newsletter_signup', { method: 'convertkit' });
+  }, { capture: true });
 });

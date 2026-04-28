@@ -148,13 +148,13 @@
                 <div data-element="fields" data-stacked="false" class="seva-fields formkit-fields webinar-fields">
                   <div class="webinar-field-group">
                     <label for="wf-name">First name</label>
-                    <input id="wf-name" class="formkit-input webinar-input" name="fields[first_name]" placeholder="Your first name" type="text" required>
+                    <input id="wf-name" class="formkit-input webinar-input" name="fields[first_name]" placeholder="Your first name" type="text" required autocomplete="given-name">
                   </div>
                   <div class="webinar-field-group">
                     <label for="wf-email">Email address</label>
-                    <input id="wf-email" class="formkit-input webinar-input" name="email_address" aria-label="Email Address" placeholder="you@example.com" required type="email">
+                    <input id="wf-email" class="formkit-input webinar-input" name="email_address" aria-label="Email Address" placeholder="you@example.com" required type="email" autocomplete="email">
                   </div>
-                  <button data-element="submit" class="btn btn--primary btn--lg webinar-submit">
+                  <button type="submit" data-element="submit" class="btn btn--primary btn--lg webinar-submit">
                     <div class="formkit-spinner"><div></div><div></div><div></div></div>
                     <span>Reserve My Spot Free</span>
                   </button>
@@ -227,7 +227,7 @@
     <div class="container">
       <div class="webinar-about__inner reveal">
         <div class="webinar-about__text">
-          <img src="assets/rohan-hero.png" alt="Rohan Bhatia" class="webinar-about__photo">
+          <img src="assets/rohan-hero.png" alt="Rohan Bhatia" class="webinar-about__photo" width="756" height="756" loading="lazy" decoding="async">
           <span class="label">Who runs it</span>
           <h2>Rohan Bhatia</h2>
           <p>Top 1% GAMSAT scorer. MD Year 3 at University of Sydney. Over 8 years teaching GAMSAT, with 1,300+ students across Australia, the UK and Ireland. Rohan built these sessions because 1-on-1 calls don't scale, but the right 60 minutes can change how you approach the entire exam.</p>
@@ -310,28 +310,6 @@
   </footer>
 
   <script src="js/main.js" defer></script>
-  <script>
-    document.addEventListener('submit', function(e) {
-      var form = e.target.closest('.webinar-kit-form, [data-sv-form="9341394"]');
-      if (!form) return;
-
-      e.preventDefault();
-      e.stopImmediatePropagation();
-
-      var btn = form.querySelector('[data-element="submit"]');
-      if (btn) btn.disabled = true;
-
-      fetch('https://app.kit.com/forms/9341394/subscriptions', {
-        method: 'POST',
-        body: new FormData(form)
-      })
-      .then(function() {
-        window.location.href = '/webinar/thanks';
-      })
-      .catch(function() {
-        window.location.href = '/webinar/thanks';
-      });
-    }, true);
-  </script>
+  <script src="js/webinar.js" defer></script>
 </body>
 </html>

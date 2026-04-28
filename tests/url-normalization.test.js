@@ -175,6 +175,79 @@ test('GA pages use external bootstrap script instead of inline GA code', () => {
   }
 });
 
+test('webinar funnel pages do not ship inline executable scripts', () => {
+  const webinarPage = read('webinar.html');
+  const webinarThanksPage = read('webinar/thanks.html');
+
+  assert.match(
+    webinarPage,
+    /<script src="js\/webinar\.js" defer><\/script>/,
+    'Missing webinar enhancement script'
+  );
+  assert.doesNotMatch(
+    webinarPage,
+    /<script>(?!\s*<\/script>)/,
+    'webinar.html should not include inline executable scripts'
+  );
+  assert.doesNotMatch(
+    webinarThanksPage,
+    /<script>(?!\s*<\/script>)/,
+    'webinar/thanks.html should not include inline executable scripts'
+  );
+});
+
+test('webinar submit tracking remains compatible with shared analytics hooks', () => {
+  const webinarPage = read('webinar.html');
+  const mainScript = read('js/main.js');
+  const webinarScript = read('js/webinar.js');
+
+  assert.match(
+    webinarPage,
+    /class="[^"]*\bformkit-form\b[^"]*\bwebinar-kit-form\b[^"]*"/,
+    'webinar form should keep the shared FormKit class for analytics tracking'
+  );
+  assert.match(
+    mainScript,
+    /document\.addEventListener\('submit',[\s\S]*newsletter_signup[\s\S]*capture:\s*true[\s\S]*\}\);/,
+    'main.js should track FormKit submits in the capture phase'
+  );
+  assert.doesNotMatch(
+    webinarScript,
+    /stopImmediatePropagation|preventDefault/,
+    'webinar enhancement should not block shared submit tracking'
+  );
+});
+
+test('webinar thank-you assets do not expose the Zoom join url publicly', () => {
+  const webinarThanksPage = read('webinar/thanks.html');
+  const config = JSON.parse(read('vercel.json'));
+  const webinarJoinRedirect = config.redirects.find(({ source }) => source === '/webinar-join');
+
+  assert.doesNotMatch(
+    webinarThanksPage,
+    /https:\/\/uni-sydney\.zoom\.us/,
+    'webinar/thanks.html should not expose the Zoom meeting url'
+  );
+  assert.ok(webinarJoinRedirect, 'Missing redirect for /webinar-join');
+  assert.equal(
+    webinarJoinRedirect.destination,
+    '/webinar/thanks',
+    '/webinar-join should no longer redirect straight to Zoom'
+  );
+});
+
+test('webinar form fields and below-fold speaker image keep the low-friction performance attrs', () => {
+  const webinarPage = read('webinar.html');
+
+  assert.match(webinarPage, /autocomplete="given-name"/);
+  assert.match(webinarPage, /autocomplete="email"/);
+  assert.match(
+    webinarPage,
+    /<img src="assets\/rohan-hero\.png" alt="Rohan Bhatia" class="webinar-about__photo" width="756" height="756" loading="lazy" decoding="async">/,
+    'webinar speaker image should include intrinsic dimensions and lazy-loading attrs'
+  );
+});
+
 test('local stylesheet links resolve on disk', () => {
   const htmlFiles = fs.readdirSync(ROOT, { recursive: true })
     .filter((file) => String(file).endsWith('.html'));
