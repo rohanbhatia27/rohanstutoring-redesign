@@ -8,6 +8,8 @@ const FLOATING_QUIZ_CTA_HIDDEN_PATHS = [
   /^\/checkout(?:\/|$)/,
   /^\/webinar(?:\/|\.html$|$)/,
   /^\/section-1-tracker(?:\.html)?$/,
+  /^\/uk-gamsat(?:\.html)?$/,
+  /^\/ireland-gamsat(?:\.html)?$/,
   /^\/courses\/(?:advanced|blueprint|comprehensive|essay-collection|essay-marking|mastery|private-mentoring|s1-rescue-sprint|s2-rescue-sprint|starter-pack)(?:\.html)?$/,
 ];
 

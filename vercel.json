@@ -134,6 +134,16 @@
       "permanent": true
     },
     {
+      "source": "/uk-gamsat.html",
+      "destination": "/uk-gamsat",
+      "permanent": true
+    },
+    {
+      "source": "/ireland-gamsat.html",
+      "destination": "/ireland-gamsat",
+      "permanent": true
+    },
+    {
       "source": "/courses/advanced.html",
       "destination": "/courses/advanced",
       "permanent": true
