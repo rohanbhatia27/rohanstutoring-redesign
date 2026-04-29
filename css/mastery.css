@@ -17,6 +17,12 @@
   background: linear-gradient(180deg, rgba(7, 23, 48, 0.2), rgba(7, 23, 48, 0.6));
 }
 
+.mastery-hero-media--artwork img {
+  aspect-ratio: 16 / 9;
+  object-position: center;
+  background: #c2aea0;
+}
+
 .mastery-hero-media::after {
   content: '';
   position: absolute;
@@ -24,6 +30,10 @@
   height: 38%;
   background: linear-gradient(180deg, rgba(8, 18, 36, 0) 0%, rgba(8, 18, 36, 0.82) 100%);
   pointer-events: none;
+}
+
+.mastery-hero-media--artwork::after {
+  display: none;
 }
 
 .mastery-hero-media__caption {
@@ -148,6 +158,10 @@
 @media (max-width: 768px) {
   .mastery-hero-media img {
     aspect-ratio: 4 / 4.7;
+  }
+
+  .mastery-hero-media--artwork img {
+    aspect-ratio: 16 / 9;
   }
 
   .mastery-hero-media__caption {

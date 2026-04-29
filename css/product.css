@@ -1119,7 +1119,8 @@
 .flagship-card--premium { border-color: rgba(212, 175, 55, 0.3); }
 .flagship-card--premium:hover { border-color: #d4af37; }
 .flagship-card--premium .flagship-card__content h3 { color: var(--text); }
-.flagship-card__image--placeholder {
+.flagship-card__image--placeholder,
+.flagship-card__image--featured {
   background: var(--navy-mid);
   min-height: 280px;
 }
@@ -1141,7 +1142,8 @@
 @media (max-width: 860px) {
   .flagship-card { grid-template-columns: 1fr; }
   .flagship-card__content { padding: 32px; }
-  .flagship-card__image--placeholder { min-height: 200px; }
+  .flagship-card__image--placeholder,
+  .flagship-card__image--featured { min-height: 200px; }
 }
 
 /* Course tile grid */

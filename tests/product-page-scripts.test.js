@@ -32,7 +32,7 @@ test('product hero media keeps eager LCP hints and a shared aspect-ratio fallbac
     ['courses/essay-collection.html', 'Expert Essay Collection'],
     ['courses/s1-rescue-sprint.html', 'Section 1 Rescue Sprint'],
     ['courses/s2-rescue-sprint.html', 'S2 Rescue Sprint'],
-    ['courses/mastery.html', 'Rohan during a private mentoring session'],
+    ['courses/mastery.html', 'GAMSAT Mastery Program promotional artwork'],
   ];
 
   assert.match(
@@ -51,6 +51,13 @@ test('product hero media keeps eager LCP hints and a shared aspect-ratio fallbac
     assert.match(heroImgTag[0], /\bloading="eager"/, `${file} hero image should stay eager`);
     assert.match(heroImgTag[0], /\bfetchpriority="high"/, `${file} hero image should advertise high fetch priority`);
   }
+});
+
+test('mastery hero uses the dedicated mastery artwork asset', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
+  const heroImgTag = html.match(/<img\b[^>]*src="\.\.\/assets\/courses\/mastery-course-card\.png"[^>]*>/);
+
+  assert.ok(heroImgTag, 'expected mastery hero image to use the dedicated course artwork');
 });
 
 test('checkout instalment links use shared storefront config', () => {
