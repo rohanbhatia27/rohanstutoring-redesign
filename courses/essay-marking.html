@@ -398,7 +398,7 @@ border-radius: 100px;
         <li><a href="/about">About</a></li>
         <li><a href="/blog">Blog</a></li>
       </ul>
-      <a href="#purchase" class="btn btn--nav">Submit an Essay</a>
+      <a href="/checkout/?product=essay-marking" class="btn btn--nav">Submit an Essay</a>
       <button class="nav__burger" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
     </div>
     <div class="nav__mobile" id="mobileMenu">
@@ -427,7 +427,7 @@ border-radius: 100px;
           </a>
         </div>
       </div>
-      <a href="#purchase">Submit an Essay</a>
+      <a href="/checkout/?product=essay-marking">Submit an Essay</a>
     </div>
   </nav>
 
@@ -467,7 +467,6 @@ border-radius: 100px;
             <a href="/checkout/?product=essay-marking" class="btn btn--primary btn--lg">Submit Your Essay for $34.99 AUD</a>
             <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg">Buy 10 Essays for $249.00 AUD</a>
             <span class="product-hero__secondary-link">Save $100.90 vs 10 single essays</span>
-            <span class="product-hero__was">After purchase, send to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a>. You can also add the Expert Essay Collection at checkout for 25 scored 80+ examples.</span>
           </div>
         </div>
 
@@ -475,7 +474,7 @@ border-radius: 100px;
           <div class="product-hero__card-details product-hero__card-details--solo">
             <div class="detail-row"><span>💰 Price</span><strong>$34.99 AUD</strong></div>
             <div class="detail-row"><span>⏱️ Turnaround</span><strong>3 days (5 during peak)</strong></div>
-            <div class="detail-row"><span>📧 Submit via</span><strong><a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a></strong></div>
+
             <div class="detail-row"><span>✍️ Covers</span><strong>Ideas · Structure · Language</strong></div>
             <div class="detail-row"><span>📊 Includes</span><strong>Exemplars + evidence suggestions</strong></div>
           </div>
@@ -491,29 +490,34 @@ border-radius: 100px;
         <span class="label">How It Works</span>
         <h2>Three steps. One piece of feedback<br>that changes things.</h2>
       </div>
-      <div class="how__steps">
-        <div class="how__step reveal">
-          <div class="how__step-num">01</div>
-          <div class="how__step-body">
-            <h3>Purchase and receive confirmation</h3>
-            <p>Complete your purchase through the checkout. You'll receive a confirmation email with the submission address and instructions.</p>
+
+      <ol class="how__timeline" aria-label="How it works">
+
+        <li class="how__item reveal">
+          <div class="how__item-num" aria-hidden="true">01</div>
+          <div class="how__item-body">
+            <h3>Upload your essay at checkout</h3>
+            <p>Upload your essay directly when you pay. No separate step needed — your submission is received the moment your order is placed.</p>
           </div>
-        </div>
-        <div class="how__step reveal reveal--delay-1">
-          <div class="how__step-num">02</div>
-          <div class="how__step-body">
-            <h3>Email your essay</h3>
-            <p>Send your essay to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a> with your name in the subject line. Include the original quote/prompt if you have it.</p>
+        </li>
+
+        <li class="how__item reveal reveal--delay-1">
+          <div class="how__item-num" aria-hidden="true">02</div>
+          <div class="how__item-body">
+            <h3>Include your prompt if you have one</h3>
+            <p>There's a notes field at checkout. Add the original quote or prompt you wrote to so the feedback is framed against what the exam was actually asking.</p>
           </div>
-        </div>
-        <div class="how__step reveal reveal--delay-2">
-          <div class="how__step-num">03</div>
-          <div class="how__step-body">
+        </li>
+
+        <li class="how__item reveal reveal--delay-2">
+          <div class="how__item-num" aria-hidden="true">03</div>
+          <div class="how__item-body">
             <h3>Receive detailed feedback within 3 days</h3>
             <p>You'll get line-level corrections on your ideas, structure and language, specific evidence suggestions, and exemplars showing what a top-scoring response looks like on that type of prompt.</p>
           </div>
-        </div>
-      </div>
+        </li>
+
+      </ol>
     </div>
   </section>
 
@@ -577,7 +581,6 @@ border-radius: 100px;
         <p>Choose one essay for $34.99 or the 10-pack for $249.00. Save $100.90 when you batch your feedback and stop repeating mistakes you don't know you're making.</p>
         <a href="/checkout/?product=essay-marking" class="btn btn--white btn--lg">Submit Your Essay — $34.99 →</a>
         <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg">Buy 10 Essays — $249.00</a>
-        <p class="product-final-cta__note">After purchase, email to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a></p>
       </div>
     </div>
   </section>
