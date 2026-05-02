@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <meta name="robots" content="noindex">
   <title>Payment Confirmed | Rohan's GAMSAT</title>
   <meta name="description" content="Payment confirmation for Rohan's GAMSAT checkout.">
@@ -20,7 +21,9 @@
 </head>
 <body class="checkout-page checkout-page--success">
   <header class="checkout-header">
-    <a href="/" class="checkout-logo">Rohan's <span>GAMSAT</span></a>
+    <a href="/" class="checkout-logo">
+      <img src="../assets/logo.webp" alt="Rohan's GAMSAT" class="checkout-logo__img">
+    </a>
   </header>
 
   <main class="checkout-main checkout-main--success">

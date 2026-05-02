@@ -55,9 +55,11 @@ test('product hero media keeps eager LCP hints and a shared aspect-ratio fallbac
 
 test('mastery hero uses the dedicated mastery artwork asset', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
-  const heroImgTag = html.match(/<img\b[^>]*src="\.\.\/assets\/courses\/mastery-course-card\.png"[^>]*>/);
+  const heroImgTag = html.match(/<img\b[^>]*src="\.\.\/assets\/courses\/mastery-course-card\.webp"[^>]*>/);
 
   assert.ok(heroImgTag, 'expected mastery hero image to use the dedicated course artwork');
+  assert.match(heroImgTag[0], /\bwidth="960"/);
+  assert.match(heroImgTag[0], /\bheight="540"/);
 });
 
 test('checkout instalment links use shared storefront config', () => {

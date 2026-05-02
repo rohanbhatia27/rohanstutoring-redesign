@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>S2 Essay Marking | $34.99 | 3-Day Turnaround | Rohan's GAMSAT</title>
   <meta name="description" content="Submit one S2 essay. Get in-depth corrections on ideas, structure and language from a top 1% scorer. 3-day turnaround. $34.99.">
   <meta property="og:title" content="GAMSAT S2 Essay Marking: The Feedback That Actually Changes Scores">
@@ -25,7 +26,318 @@
   <!-- Fonts: Figtree -->
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/product.css">
+  <style>
+.sticky-bar {
+position: fixed;
+top: 0; left: 0; right: 0;
+z-index: 200;
+background: var(--navy-mid);
+border-bottom: 1px solid var(--border);
+padding: 12px 24px;
+transform: translateY(-100%);
+transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+backdrop-filter: blur(16px);
+}
+.sticky-bar.visible { transform: translateY(0); }
+.sticky-bar__inner {
+max-width: 1200px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 16px;
+}
+.sticky-bar__title {
+font-size: 0.9rem;
+font-weight: 600;
+color: var(--white);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.sticky-bar__right {
+display: flex;
+align-items: center;
+gap: 16px;
+flex-shrink: 0;
+}
+.sticky-bar__price {
+font-size: 0.95rem;
+color: var(--text-light);
+}
+.sticky-bar__price strong { color: var(--white); }
+.product-hero {
+position: relative;
+padding: calc(var(--header-height) + 24px) 0 80px;
+overflow: hidden;
+}
+.product-hero--dark { background: var(--navy); }
+.product-hero__bg {
+position: absolute;
+inset: 0;
+pointer-events: none;
+}
+.product-hero__inner {
+position: relative;
+z-index: 2;
+display: grid;
+grid-template-columns: 1fr 480px;
+gap: 64px;
+align-items: flex-start;
+}
+.product-hero__badges {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+margin-bottom: 20px;
+}
+.badge {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+font-size: 0.75rem;
+font-weight: 700;
+letter-spacing: 0.06em;
+padding: 5px 12px;
+border-radius: 100px;
+}
+.badge--live { background: rgba(239,68,68,0.15); color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
+.badge--sale { background: rgba(245,197,24,0.15); color: #FCD34D; border: 1px solid rgba(245,197,24,0.3); }
+.badge--green { background: rgba(16,191,122,0.15); color: var(--green); border: 1px solid rgba(16,191,122,0.3); }
+.badge--soldout { background: rgba(107,114,128,0.1); color: #9CA3AF; border: 1px solid rgba(107,114,128,0.25); }
+.product-hero h1 {
+color: var(--white);
+margin-bottom: 20px;
+font-size: clamp(2.5rem, 5vw, 4.5rem);
+}
+.product-hero__sub {
+color: var(--text-light);
+font-size: 1.1rem;
+max-width: 520px;
+margin-bottom: 28px;
+line-height: 1.7;
+}
+.product-hero__proof {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+margin-bottom: 36px;
+}
+.proof-pill {
+background: rgba(255,255,255,0.06);
+border: 1px solid var(--border);
+color: var(--text-light);
+padding: 6px 14px;
+border-radius: 100px;
+font-size: 0.82rem;
+font-weight: 500;
+}
+.proof-pill strong { color: var(--green); }
+.product-hero__checklist {
+display: flex;
+flex-direction: column;
+gap: 8px;
+margin-bottom: 36px;
+}
+.product-hero__checklist span {
+font-size: 0.9rem;
+color: var(--text-light);
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.product-hero__cta { display: flex; flex-direction: column; gap: 10px; }
+.product-hero__was {
+font-size: 0.82rem;
+color: var(--white);
+text-align: center;
+}
+.product-hero__secondary-link {
+align-self: center;
+font-size: 0.92rem;
+font-weight: 600;
+color: var(--blue-light);
+text-decoration: none;
+transition: color var(--transition), transform var(--transition);
+}
+.product-hero__secondary-link:hover {
+color: var(--white);
+transform: translateY(-1px);
+}
+.product-hero__card {
+background: var(--navy-light);
+border: 1px solid var(--border);
+border-radius: var(--radius-xl);
+overflow: hidden;
+}
+.product-hero__card img {
+width: 100%;
+height: auto;
+aspect-ratio: auto var(--product-hero-media-ratio, 16 / 10);
+display: block;
+border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+.product-hero__card-details {
+padding: 24px;
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+.product-hero__card-details--solo {
+border-radius: var(--radius-xl);
+padding: 32px;
+gap: 16px;
+}
+.detail-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 16px;
+padding-bottom: 12px;
+border-bottom: 1px solid var(--border);
+}
+.detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+.detail-row span { font-size: 0.85rem; color: var(--text-muted); }
+.detail-row strong { font-size: 0.875rem; color: var(--white); text-align: right; }
+.bundle-card {
+padding: 28px;
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+.bundle-card__eyebrow {
+font-size: 0.7rem;
+font-weight: 600;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(--blue);
+margin: 0;
+}
+.bundle-items {
+display: flex;
+flex-direction: column;
+gap: 0;
+}
+.bundle-item {
+display: grid;
+grid-template-columns: 32px 1fr auto;
+align-items: center;
+gap: 12px;
+padding: 14px 0;
+border-bottom: 1px solid var(--border);
+}
+.bundle-item:last-child { border-bottom: none; }
+.bundle-item__icon { font-size: 1.25rem; text-align: center; }
+.bundle-item__body { display: flex; flex-direction: column; gap: 2px; }
+.bundle-item__body strong { font-size: 0.82rem; color: var(--white); font-weight: 600; line-height: 1.3; }
+.bundle-item__body span { font-size: 0.73rem; color: #9CA3AF; line-height: 1.4; }
+.bundle-item__value {
+font-size: 0.8rem;
+font-weight: 600;
+color: var(--text-muted);
+white-space: nowrap;
+}
+.bundle-card__pricing {
+background: rgba(255,255,255,0.04);
+border: 1px solid var(--border);
+border-radius: var(--radius-lg);
+padding: 16px 18px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.bundle-card__price-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.bundle-card__total-label { font-size: 0.8rem; color: var(--text-muted); }
+.bundle-card__total-was {
+font-size: 0.85rem;
+color: var(--text-muted);
+text-decoration: line-through;
+}
+.bundle-card__price-row--main { margin-top: 2px; }
+.bundle-card__your-price { font-size: 0.9rem; color: var(--white); font-weight: 600; }
+.bundle-card__price {
+font-size: 1.75rem;
+font-weight: 700;
+color: var(--white);
+line-height: 1;
+}
+.bundle-card__price small { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+.bundle-card__guarantee {
+font-size: 0.75rem;
+color: var(--text-muted);
+text-align: center;
+margin: 0;
+}
+.product-hero__team {
+display: flex;
+align-items: flex-start;
+}
+.team__grid--hero {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+width: 100%;
+}
+.team__grid--hero .team__card {
+background: var(--navy-light);
+border: 1px solid var(--border);
+border-radius: var(--radius-lg);
+overflow: hidden;
+transition: transform var(--transition), box-shadow var(--transition);
+}
+.team__grid--hero .team__card:hover {
+transform: translateY(-4px);
+box-shadow: var(--shadow-md);
+}
+.team__grid--hero .team__card-img {
+aspect-ratio: 1;
+overflow: hidden;
+}
+.team__grid--hero .team__card-img img {
+width: 100%; height: 100%;
+object-fit: cover;
+object-position: top center;
+transition: transform 0.5s ease;
+}
+.team__grid--hero .team__card:hover .team__card-img img { transform: scale(1.03); }
+.team__grid--hero .team__card-info {
+padding: 18px;
+}
+.team__grid--hero .team__card-info h3 { color: var(--white); margin-bottom: 4px; font-size: 1rem; }
+.team__grid--hero .team__card-role {
+display: block;
+font-size: 0.75rem;
+font-weight: 700;
+color: var(--blue-light);
+letter-spacing: 0.05em;
+margin-bottom: 6px;
+}
+.team__grid--hero .team__card-info p { font-size: 0.8rem; color: var(--text-muted); }
+.team__grid--hero .team__card-tags {
+display: flex;
+gap: 5px;
+flex-wrap: wrap;
+margin-top: 8px;
+}
+.team__grid--hero .team__card-tags span {
+font-size: 0.68rem;
+font-weight: 600;
+background: rgba(100,160,255,0.12);
+color: var(--blue-light);
+padding: 2px 9px;
+border-radius: 100px;
+}
+@media (max-width: 960px) {
+.product-hero__inner { grid-template-columns: 1fr; }
+.product-hero__card { max-width: 480px; }
+.product-hero__team { width: 100%; max-width: 560px; }
+}
+  </style>
+  <link rel="preload" as="style" href="../css/product.css"><link rel="stylesheet" href="../css/product.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="../css/product.css"></noscript>
 
   <!-- Schema markup -->
   <script type="application/ld+json">
@@ -56,7 +368,7 @@
 
   <nav class="nav" id="nav">
     <div class="nav__inner">
-      <a href="/" class="nav__logo"><img src="../assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
+      <a href="/" class="nav__logo"><img src="../assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
       <ul class="nav__links">
         <li><a href="/courses" style="color:var(--white)">Courses</a></li>
         <li><a href="/courses/essay-marking">Essay Marking</a></li>
@@ -119,6 +431,8 @@
     </div>
   </nav>
 
+  <main id="main-content">
+
   <div class="sticky-bar" id="stickyBar">
     <div class="sticky-bar__inner">
       <span class="sticky-bar__title">S2 Essay Marking: 1 Essay</span>
@@ -135,12 +449,12 @@
     <div class="container">
       <div class="product-hero__inner">
         <div class="product-hero__content">
-          <div class="product-hero__badges reveal">
+          <div class="product-hero__badges reveal visible">
             <span class="badge badge--green">3-Day Turnaround</span>
             <span class="badge badge--live">From $34.99</span>
           </div>
-          <h1 class="reveal reveal--delay-1">Stop guessing<br>what's holding<br><em>your score back.</em></h1>
-          <p class="product-hero__sub reveal reveal--delay-2">Generic feedback like "develop your argument" tells you nothing useful. You'll receive line-level corrections on ideas, structure and language, specific enough to change how you write in the exam.</p>
+          <h1 class="reveal reveal--delay-1 visible">Stop guessing<br>what's holding<br><em>your score back.</em></h1>
+          <p class="product-hero__sub reveal reveal--delay-2 visible">Generic feedback like "develop your argument" tells you nothing useful. You'll receive line-level corrections on ideas, structure and language, specific enough to change how you write in the exam.</p>
 
           <div class="product-hero__checklist reveal reveal--delay-3">
             <span>✓ In-depth corrections: ideas, structure, language</span>
@@ -268,10 +582,13 @@
     </div>
   </section>
 
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
-        <div class="footer__brand"><img src="../assets/logo.png" alt="Rohan's GAMSAT" class="footer__logo-img"><p>Expert GAMSAT preparation by medical students, for future doctors.</p></div>
+        <div class="footer__brand"><img src="../assets/logo.webp" alt="Rohan's GAMSAT" class="footer__logo-img"><p>Expert GAMSAT preparation by medical students, for future doctors.</p></div>
         <div class="footer__links">
           <div class="footer__col"><h3>Courses</h3><a href="/courses/comprehensive">Comprehensive Course</a><a href="/courses/blueprint">Rohan's Blueprint</a><a href="/courses/advanced">Elite Excellence Course</a><a href="/courses/essay-marking">Essay Marking</a></div>
           <div class="footer__col"><h4>Site</h4><a href="/about">About</a><a href="/blog">Blog</a><a href="/contact">Contact</a></div>

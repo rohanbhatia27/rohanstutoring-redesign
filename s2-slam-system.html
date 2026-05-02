@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>Free S2 Slam System | GAMSAT Essay Framework | Rohan's GAMSAT</title>
   <meta name="description" content="Learn how to write a GAMSAT essay in under 5 minutes. Get the free S2 Slam System, Rohan's Section 2 essay framework used by 1,300+ future doctors.">
   <meta property="og:title" content="Free S2 Slam System | Rohan's GAMSAT">
@@ -22,7 +23,9 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/s2-slam-system.css">
   <script src="js/main.js" defer></script>
@@ -32,7 +35,7 @@
 
   <header class="slam-logo-bar">
     <a href="/" class="slam-logo-bar__link">
-      <img src="assets/logo.png" alt="Rohan's GAMSAT" class="slam-logo-bar__img">
+      <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="slam-logo-bar__img">
     </a>
   </header>
 
@@ -114,9 +117,15 @@
         <div class="slam-page-mockup reveal reveal--delay-3">
           <div class="slam-page-mockup__glow"></div>
           <div class="slam-page-mockup__stack">
-            <img class="slam-page-mockup__img slam-page-mockup__img--left" src="assets/free-resources/s2-slam-system-cover.png" alt="" aria-hidden="true" width="990" height="1400" loading="eager" decoding="async" fetchpriority="low">
+            <picture class="slam-page-mockup__picture slam-page-mockup__picture--left" aria-hidden="true">
+              <source media="(min-width: 721px)" srcset="assets/free-resources/s2-slam-system-cover.png">
+              <img class="slam-page-mockup__img slam-page-mockup__img--left" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" alt="" width="990" height="1400" loading="lazy" decoding="async">
+            </picture>
             <img class="slam-page-mockup__img slam-page-mockup__img--center" src="assets/free-resources/s2-slam-system-cover.png" alt="The S2 Slam System framework" width="990" height="1400" loading="eager" decoding="async" fetchpriority="high">
-            <img class="slam-page-mockup__img slam-page-mockup__img--right" src="assets/free-resources/s2-slam-system-cover.png" alt="" aria-hidden="true" width="990" height="1400" loading="eager" decoding="async" fetchpriority="low">
+            <picture class="slam-page-mockup__picture slam-page-mockup__picture--right" aria-hidden="true">
+              <source media="(min-width: 721px)" srcset="assets/free-resources/s2-slam-system-cover.png">
+              <img class="slam-page-mockup__img slam-page-mockup__img--right" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" alt="" width="990" height="1400" loading="lazy" decoding="async">
+            </picture>
           </div>
         </div>
       </div>
@@ -183,11 +192,14 @@
     </div>
   </section>
 
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/logo.png" alt="Rohan's GAMSAT" class="footer__logo-img">
+          <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="footer__logo-img">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">

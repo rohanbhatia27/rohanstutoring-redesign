@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>Free GAMSAT Section 1 Tracker | Rohan's GAMSAT</title>
   <meta name="description" content="Get instant access to the GAMSAT S1 Tracker used by 1,300+ students. Pinpoint your weak question types and make your study more efficient in minutes. Free download.">
   <meta property="og:title" content="Free GAMSAT Section 1 Tracker | Rohan's GAMSAT">
@@ -19,7 +20,9 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/s1-mock.css">
   <link rel="stylesheet" href="css/tracker.css">
@@ -32,7 +35,7 @@
   <!-- HEADER: logo only -->
   <header class="lp-logo-bar">
     <a href="/" class="lp-logo-bar__link">
-      <img src="assets/logo.png" alt="Rohan's GAMSAT" class="lp-logo-bar__img">
+      <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="lp-logo-bar__img">
     </a>
   </header>
 
@@ -381,11 +384,14 @@
     </div>
   </section>
 
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/logo.png" alt="Rohan's GAMSAT" class="footer__logo-img">
+          <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="footer__logo-img">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">

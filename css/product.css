@@ -1412,7 +1412,7 @@
 }
 .cta-trust span {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--text-dark-muted);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1792,6 +1792,36 @@
   .class-preview__header { margin-bottom: 40px; }
 }
 .cta-instalment--hero:hover { color: var(--white); text-decoration-color: var(--white); }
+
+@media (max-width: 760px) {
+  .cta-instalment,
+  .cta-instalment--hero,
+  .soldout-notify {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .cta-instalment,
+  .cta-instalment--hero,
+  .soldout-notify,
+  .footer__col a,
+  .footer__socials a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .cta-instalment,
+  .cta-instalment--hero {
+    justify-content: center;
+  }
+
+  .footer__col a,
+  .footer__socials a {
+    min-height: 44px;
+    padding: 8px 0;
+  }
+}
 
 /* ---- Hero Feature Cards (guarantee + onboarding call) ---- */
 .hero-feature-cards {

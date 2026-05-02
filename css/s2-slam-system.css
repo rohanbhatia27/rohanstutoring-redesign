@@ -140,9 +140,14 @@
   gap: 0;
 }
 
-.slam-page-mockup__img {
+.slam-page-mockup__picture {
   display: block;
   width: 46%;
+}
+
+.slam-page-mockup__img {
+  display: block;
+  width: 100%;
   height: auto;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -567,6 +572,8 @@
   }
 
   /* On mobile, stack mockups are cramped — hide side copies, show one center, straightened */
+  .slam-page-mockup__picture--left,
+  .slam-page-mockup__picture--right,
   .slam-page-mockup__img--left,
   .slam-page-mockup__img--right {
     display: none;
@@ -615,6 +622,14 @@
 
   .slam-proof-strip p {
     font-size: 0.95rem;
+  }
+
+  .footer__col a,
+  .footer__socials a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 0;
   }
 }
 

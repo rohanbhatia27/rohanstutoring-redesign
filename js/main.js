@@ -3,19 +3,101 @@
    Lightweight interactions + utility JS
    ============================================ */
 
+const FLOATING_QUIZ_CTA_ALLOWED_PATHS = [
+  /^\/$/,
+  /^\/about(?:\.html)?$/,
+  /^\/uk-gamsat(?:\.html)?$/,
+  /^\/ireland-gamsat(?:\.html)?$/,
+  /^\/404(?:\.html)?$/,
+];
+
 const FLOATING_QUIZ_CTA_HIDDEN_PATHS = [
   /^\/quiz(?:\.html)?$/,
   /^\/checkout(?:\/|$)/,
   /^\/webinar(?:\/|\.html$|$)/,
+  /^\/contact(?:\.html)?$/,
+  /^\/blog(?:\/|\.html$|$)/,
+  /^\/courses(?:\/?$|\.html$)/,
+  /^\/quote-generator(?:\.html)?$/,
+  /^\/s1-mock(?:\.html)?$/,
+  /^\/s2-slam-system(?:\.html)?$/,
+  /^\/lead-magnets?(?:\/|\.html$|$)/,
+  /^\/mocks?(?:\/|\.html$|$)/,
   /^\/section-1-tracker(?:\.html)?$/,
-  /^\/uk-gamsat(?:\.html)?$/,
-  /^\/ireland-gamsat(?:\.html)?$/,
   /^\/courses\/(?:advanced|blueprint|comprehensive|essay-collection|essay-marking|mastery|private-mentoring|s1-rescue-sprint|s2-rescue-sprint|starter-pack)(?:\.html)?$/,
 ];
 
-function shouldHideFloatingQuizCtaForPath(pathname = '') {
+const FLOATING_QUIZ_CTA_DISMISS_KEY = 'floating-quiz-cta:dismissed';
+const FLOATING_QUIZ_CTA_REVEAL_FALLBACK = 480;
+const FLOATING_QUIZ_CTA_MOBILE_BREAKPOINT = 640;
+
+function normalizePathname(pathname = '') {
   const normalizedPathname = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return normalizedPathname || '/';
+}
+
+function shouldHideFloatingQuizCtaForPath(pathname = '') {
+  const normalizedPathname = normalizePathname(pathname);
+  const isAllowedPath = FLOATING_QUIZ_CTA_ALLOWED_PATHS.some((pattern) => pattern.test(normalizedPathname));
+  if (!isAllowedPath) {
+    return true;
+  }
+
   return FLOATING_QUIZ_CTA_HIDDEN_PATHS.some((pattern) => pattern.test(normalizedPathname));
+}
+
+function isFloatingQuizCtaAllowedForPage({
+  pathname = '',
+  bodyDataset = {},
+  bodyClassList,
+} = {}) {
+  const optOutValue = String(bodyDataset.floatingQuizCta || '').toLowerCase();
+  const isOptedOutByDataset = ['off', 'false', '0'].includes(optOutValue);
+  const isOptedOutByClass = typeof bodyClassList?.contains === 'function'
+    ? bodyClassList.contains('floating-quiz-cta-off')
+    : false;
+
+  if (isOptedOutByDataset || isOptedOutByClass) {
+    return false;
+  }
+
+  return !shouldHideFloatingQuizCtaForPath(pathname);
+}
+
+function getFloatingQuizCtaRevealThreshold({
+  heroQuizCtaBottom = 0,
+  viewportHeight = 0,
+} = {}) {
+  if (heroQuizCtaBottom > 0) {
+    return heroQuizCtaBottom;
+  }
+
+  const fallbackThreshold = Math.round(Math.max(FLOATING_QUIZ_CTA_REVEAL_FALLBACK, viewportHeight * 0.6));
+  return fallbackThreshold;
+}
+
+function getFloatingQuizCtaDismissed(storage) {
+  if (!storage) return false;
+
+  try {
+    return storage.getItem(FLOATING_QUIZ_CTA_DISMISS_KEY) === 'true';
+  } catch (error) {
+    return false;
+  }
+}
+
+function setFloatingQuizCtaDismissed(storage) {
+  if (!storage) return;
+
+  try {
+    storage.setItem(FLOATING_QUIZ_CTA_DISMISS_KEY, 'true');
+  } catch (error) {
+    // Ignore storage failures so the CTA still works in restrictive browsers.
+  }
+}
+
+function isFloatingQuizCtaMobileViewport(viewportWidth = 0) {
+  return viewportWidth > 0 && viewportWidth <= FLOATING_QUIZ_CTA_MOBILE_BREAKPOINT;
 }
 
 function shouldTrackNewsletterSignup(form) {
@@ -36,6 +118,7 @@ function initMain() {
 
   /* ---- Nav: transparent → solid on scroll ---- */
   const nav = document.getElementById('nav');
+  let syncFloatingQuizCtaVisibility = () => {};
   if (nav) {
     const onScroll = () => {
       nav.classList.toggle('scrolled', window.scrollY > 40);
@@ -51,7 +134,15 @@ function initMain() {
   const mobileResourceTrigger = mobileResourceWrap?.querySelector('.nav__mobile-trigger');
   const mobileResourceMenu = mobileResourceWrap?.querySelector('.nav__mobile-submenu');
 
-  if (burger && mobileMenu) {
+  if (burger && mobileMenu && nav) {
+    const mobileMenuBackdrop = document.createElement('button');
+    mobileMenuBackdrop.type = 'button';
+    mobileMenuBackdrop.className = 'nav__mobile-backdrop';
+    mobileMenuBackdrop.hidden = true;
+    mobileMenuBackdrop.setAttribute('aria-hidden', 'true');
+    mobileMenuBackdrop.tabIndex = -1;
+    nav.appendChild(mobileMenuBackdrop);
+
     const setMobileResourcesState = (isOpen) => {
       if (!mobileResourceWrap || !mobileResourceTrigger || !mobileResourceMenu) return;
       mobileResourceWrap.classList.toggle('is-open', isOpen);
@@ -69,7 +160,10 @@ function initMain() {
       mobileMenu.classList.toggle('open', isOpen);
       mobileMenu.hidden = !isOpen;
       mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+      mobileMenuBackdrop.classList.toggle('open', isOpen);
+      mobileMenuBackdrop.hidden = !isOpen;
       setMobileResourcesState(false);
+      syncFloatingQuizCtaVisibility();
     };
 
     setMobileMenuState(mobileMenu.classList.contains('open'));
@@ -85,8 +179,19 @@ function initMain() {
       });
     }
 
+    mobileMenuBackdrop.addEventListener('click', () => {
+      setMobileMenuState(false);
+      burger.focus();
+    });
+
     mobileMenu.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => setMobileMenuState(false));
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      if (mobileMenu.classList.contains('open') && !nav.contains(event.target)) {
+        setMobileMenuState(false);
+      }
     });
 
     document.addEventListener('keydown', (event) => {
@@ -329,24 +434,75 @@ function initMain() {
     track('quiz_entry_clicked', getQuizEntryParams(link));
   });
 
-  /* ---- Persistent floating quiz CTA ---- */
-  const shouldHideFloatingQuizCta = shouldHideFloatingQuizCtaForPath(window.location.pathname);
+  /* ---- Contextual mobile floating quiz CTA ---- */
+  const shouldRenderFloatingQuizCta = isFloatingQuizCtaAllowedForPage({
+    pathname: window.location.pathname,
+    bodyDataset: document.body?.dataset,
+    bodyClassList: document.body?.classList,
+  });
 
-  if (!shouldHideFloatingQuizCta) {
-    const floatingCta = document.createElement('a');
+  if (shouldRenderFloatingQuizCta) {
+    const floatingCta = document.createElement('div');
+    const floatingCtaStorage = typeof window.sessionStorage !== 'undefined' ? window.sessionStorage : null;
+    const mobileViewportQuery = window.matchMedia(`(max-width: ${FLOATING_QUIZ_CTA_MOBILE_BREAKPOINT}px)`);
+    const heroQuizCta = document.querySelector('[data-quiz-source="home-hero"], [data-quiz-source$="hero-primary"]');
+    let isDismissed = getFloatingQuizCtaDismissed(floatingCtaStorage);
+
+    const getHeroQuizCtaBottom = () => {
+      if (!heroQuizCta) return 0;
+      const rect = heroQuizCta.getBoundingClientRect();
+      return Math.max(0, window.scrollY + rect.bottom);
+    };
+
     floatingCta.className = 'floating-quiz-cta';
-    floatingCta.href = '/quiz?source=floating-cta';
-    floatingCta.dataset.quizSource = 'floating-cta';
-    floatingCta.setAttribute('aria-label', 'Take the study plan quiz');
+    floatingCta.hidden = true;
+    floatingCta.setAttribute('aria-hidden', 'true');
     floatingCta.innerHTML = `
-      <span class="floating-quiz-cta__eyebrow">Study Plan Quiz</span>
-      <span class="floating-quiz-cta__body">
-        <span class="floating-quiz-cta__title">Take 2 minute quiz to get your free study plan</span>
-        <span class="floating-quiz-cta__arrow" aria-hidden="true">→</span>
-      </span>
+      <button type="button" class="floating-quiz-cta__dismiss" aria-label="Dismiss study plan quiz prompt">×</button>
+      <a href="/quiz?source=floating-cta" class="floating-quiz-cta__link" data-quiz-source="floating-cta" aria-label="Take the study plan quiz">
+        <span class="floating-quiz-cta__eyebrow">Study Plan Quiz</span>
+        <span class="floating-quiz-cta__body">
+          <span class="floating-quiz-cta__title">Get your free study plan</span>
+          <span class="floating-quiz-cta__arrow" aria-hidden="true">→</span>
+        </span>
+      </a>
     `;
+
+    const dismissButton = floatingCta.querySelector('.floating-quiz-cta__dismiss');
+    dismissButton?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      isDismissed = true;
+      setFloatingQuizCtaDismissed(floatingCtaStorage);
+      syncFloatingQuizCtaVisibility();
+    });
+
+    syncFloatingQuizCtaVisibility = () => {
+      const revealThreshold = getFloatingQuizCtaRevealThreshold({
+        heroQuizCtaBottom: getHeroQuizCtaBottom(),
+        viewportHeight: window.innerHeight,
+      });
+      const isMobileViewport = mobileViewportQuery.matches || isFloatingQuizCtaMobileViewport(window.innerWidth);
+      const shouldShowFloatingQuizCta = isMobileViewport
+        && !document.body.classList.contains('menu-open')
+        && !isDismissed
+        && window.scrollY >= revealThreshold;
+
+      floatingCta.hidden = !shouldShowFloatingQuizCta;
+      floatingCta.setAttribute('aria-hidden', String(!shouldShowFloatingQuizCta));
+      document.body.classList.toggle('has-floating-quiz-cta', shouldShowFloatingQuizCta);
+    };
+
     document.body.appendChild(floatingCta);
-    document.body.classList.add('has-floating-quiz-cta');
+    window.addEventListener('scroll', syncFloatingQuizCtaVisibility, { passive: true });
+    window.addEventListener('resize', syncFloatingQuizCtaVisibility);
+    if (typeof mobileViewportQuery.addEventListener === 'function') {
+      mobileViewportQuery.addEventListener('change', syncFloatingQuizCtaVisibility);
+    } else if (typeof mobileViewportQuery.addListener === 'function') {
+      mobileViewportQuery.addListener(syncFloatingQuizCtaVisibility);
+    }
+
+    syncFloatingQuizCtaVisibility();
   }
 
   /* ---- Analytics: Buy Now click (begin_checkout) ---- */
@@ -397,6 +553,8 @@ if (typeof document !== 'undefined') {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    getFloatingQuizCtaRevealThreshold,
+    isFloatingQuizCtaAllowedForPage,
     shouldHideFloatingQuizCtaForPath,
     shouldTrackNewsletterSignup,
   };

@@ -80,10 +80,13 @@ const QUESTIONS = [
 
 const STORAGE_KEY = 'rt_quiz_v1';
 
-// Analytics helper: no-op until GA is installed
+// Analytics helper — fires GA and PostHog in parallel
 const track = (event, params = {}) => {
   if (typeof window.gtag === 'function') {
     window.gtag('event', event, params);
+  }
+  if (typeof window.posthog !== 'undefined') {
+    window.posthog.capture(event, params);
   }
 };
 
@@ -331,6 +334,28 @@ const state = {
   unlocked: false,
 };
 
+function setQuizView(activeView) {
+  el.quizSection.classList.toggle('quiz-section--active', activeView === 'quiz');
+  el.result.classList.toggle('quiz-result--active', activeView === 'result');
+}
+
+function getScrollTopFor(target) {
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--header-height')
+  ) || 0;
+  const extraOffset = window.innerWidth <= 640 ? 12 : 24;
+  const targetTop = target.getBoundingClientRect().top + window.scrollY;
+  return Math.max(targetTop - headerHeight - extraOffset, 0);
+}
+
+function scrollToBlock(target) {
+  if (!target) return;
+  window.scrollTo({
+    top: getScrollTopFor(target),
+    behavior: 'smooth',
+  });
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -461,11 +486,13 @@ function showResult(outcome) {
     el.result.hidden = true;
     el.hero.style.display = '';
     el.quizSection.hidden = true;
+    setQuizView(null);
     return;
   }
 
   el.quizSection.hidden = true;
   el.result.hidden = false;
+  setQuizView('result');
   el.resultName.textContent = outcome.name;
   el.resultTeaser.textContent = outcome.teaser;
   el.outcomeField.value = outcome.id;
@@ -483,7 +510,7 @@ function showResult(outcome) {
 
   if (state.unlocked) unlockResult();
 
-  el.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollToBlock(el.result);
 }
 
 function unlockResult() {
@@ -497,8 +524,10 @@ function startQuiz() {
   track('quiz_started');
   el.hero.style.display = 'none';
   el.quizSection.hidden = false;
+  el.result.hidden = true;
+  setQuizView('quiz');
   renderQuestion();
-  el.quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollToBlock(el.quizSection);
 }
 
 function retakeQuiz() {
@@ -506,8 +535,9 @@ function retakeQuiz() {
   el.result.hidden = true;
   el.hero.style.display = 'none';
   el.quizSection.hidden = false;
+  setQuizView('quiz');
   renderQuestion();
-  el.quizSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollToBlock(el.quizSection);
 }
 
 // Keyboard shortcuts
@@ -536,6 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     showResult(OUTCOMES[state.outcomeId]);
   } else if (Object.keys(state.answers).length > 0) {
     startQuiz();
+  } else {
+    setQuizView(null);
   }
 });
 

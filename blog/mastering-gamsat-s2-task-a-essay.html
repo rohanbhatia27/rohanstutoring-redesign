@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>GAMSAT S2 | Mastering The Task A Essay | Rohan's GAMSAT</title>
   <meta name="description" content="A step-by-step guide on how to smash the GAMSAT S2 Task A Essay: what examiners actually reward and why. The Dinner Party method explained.">
   <meta property="og:title" content="GAMSAT S2 | Mastering The Task A Essay | Rohan's GAMSAT">
@@ -19,7 +20,9 @@
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/blog.css">
   <link rel="stylesheet" href="../css/post.css">
@@ -32,7 +35,7 @@
   <nav class="nav" id="nav">
     <div class="nav__inner">
       <a href="../index.html" class="nav__logo">
-        <img src="../assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
+        <img src="../assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img">
       </a>
       <ul class="nav__links">
         <li><a href="../index.html#courses">Courses</a></li>
@@ -96,6 +99,8 @@
       <a href="/about">About</a>
     </div>
   </nav>
+
+  <main id="main-content">
 
   <!-- POST HERO -->
   <section class="post-hero">
@@ -238,11 +243,14 @@
   </section>
 
   <!-- FOOTER -->
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <span class="footer__logo"><span class="nav__logo-r">R</span>ohan's GAMSAT</span>
+          <img src="../assets/logo.webp" alt="Rohan's GAMSAT" class="footer__logo-img">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">

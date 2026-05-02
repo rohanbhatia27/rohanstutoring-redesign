@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.gtag === 'function') {
           window.gtag('event', 'contact_form_submit');
         }
+        if (typeof window.posthog !== 'undefined') {
+          window.posthog.capture('contact_form_submitted');
+        }
         success.style.display = 'flex';
         success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else if (response.status === 403 || response.status === 422 || response.status === 429) {

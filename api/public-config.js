@@ -26,7 +26,10 @@ async function publicConfigHandler(req, res) {
     amounts[key] = value / 100;
   }
 
-  return res.status(200).json({ stripePublishableKey: publishableKey, amounts });
+  const posthogPublicKey = String(process.env.POSTHOG_PUBLIC_KEY || '').trim();
+  const posthogHost = String(process.env.POSTHOG_HOST || '').trim();
+
+  return res.status(200).json({ stripePublishableKey: publishableKey, amounts, posthogPublicKey, posthogHost });
 }
 
 publicConfigHandler.isAllowedOrigin = isAllowedOrigin;

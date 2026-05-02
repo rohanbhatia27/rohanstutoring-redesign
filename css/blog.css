@@ -289,6 +289,19 @@
 }
 
 @media (max-width: 760px) {
+  .blog-filter {
+    min-height: 44px;
+    padding: 11px 18px;
+  }
+
+  .footer__col a,
+  .footer__socials a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 8px 0;
+  }
+
   .blog-cta__inner {
     flex-direction: column;
     padding: 40px 32px;

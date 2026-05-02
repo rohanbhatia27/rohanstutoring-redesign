@@ -684,6 +684,13 @@
       updateSelectionPrice(selection);
       syncSelectionUI(selection);
       setPayButtonReady(selection.price, true);
+      if (typeof window.posthog !== 'undefined') {
+        window.posthog.capture('checkout_order_bump_toggled', {
+          product: selection.pageSlug,
+          upsell_slug: selection.upsell ? selection.upsell.slug : null,
+          selected: selection.upsellSelected,
+        });
+      }
     });
   }
 
@@ -911,6 +918,15 @@
 
       setLoading(true, selection.price);
 
+      if (typeof window.posthog !== 'undefined') {
+        window.posthog.capture('checkout_payment_submitted', {
+          product: selection.pageSlug,
+          total: selection.price,
+          upsell_selected: selection.upsellSelected,
+          upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
+        });
+      }
+
       try {
         const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
@@ -1028,6 +1044,16 @@
             items,
           });
         }
+        if (typeof window.posthog !== 'undefined') {
+          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
+          window.posthog.capture('checkout_completed', {
+            transaction_id: paymentIntentId,
+            currency: 'AUD',
+            value: items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined,
+            product: successMessageProductSlug,
+            upsell_slug: upsellSlug || null,
+          });
+        }
       }
     } catch (error) {
       renderState(SUCCESS_STATES.failed);
@@ -1108,6 +1134,9 @@
         if (!e.target.closest('.success-tally-btn')) return;
         if (typeof window.gtag === 'function') {
           window.gtag('event', 'essay_upload_started');
+        }
+        if (typeof window.posthog !== 'undefined') {
+          window.posthog.capture('essay_upload_started');
         }
       });
     });

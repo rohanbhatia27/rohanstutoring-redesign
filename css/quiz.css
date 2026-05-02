@@ -18,7 +18,11 @@
 .quiz-hero__inner p { font-size: 1.125rem; line-height: 1.6; opacity: 0.85; margin: 0 0 32px; }
 
 /* QUIZ */
-.quiz-section { padding: 80px 0; background: var(--navy); }
+.quiz-section {
+  padding: 80px 0;
+  background: var(--navy);
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
 .quiz { max-width: 680px; margin: 0 auto; }
 .quiz__progress {
   margin-top: 20px;
@@ -65,7 +69,11 @@
 .quiz__back:hover { color: var(--navy); }
 
 /* RESULT */
-.quiz-result { padding: 160px 0 80px; background: var(--navy); }
+.quiz-result {
+  padding: 160px 0 80px;
+  background: var(--navy);
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
 .result { max-width: 780px; margin: 0 auto; }
 .result__header { text-align: center; margin-bottom: 28px; padding-top: 0; }
 .result__header h2 { font-size: clamp(1.75rem, 3.4vw, 2.5rem); margin: 10px 0 14px; color: var(--white); }
@@ -128,19 +136,39 @@
 @media (max-width: 640px) {
   .quiz-hero { padding: 100px 0 60px; }
   .quiz-section, .quiz-result { padding: 48px 0; }
-  .quiz__progress { margin-top: 12px; }
+  .quiz-section.quiz-section--active,
+  .quiz-result.quiz-result--active {
+    padding-top: calc(var(--header-height) + 20px);
+  }
+  .quiz__progress {
+    margin-top: 0;
+    margin-bottom: 18px;
+  }
   .quiz__card, .result__gate, .result__unlocked { padding: 28px 20px; }
   .result__gate .form-row { grid-template-columns: 1fr; }
-  .quiz__question { font-size: 1.25rem; }
-  .quiz__answer { padding: 16px 18px; }
+  .quiz__question {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+  }
+  .quiz__answers { gap: 10px; }
+  .quiz__answer { padding: 15px 16px; }
+  .quiz__answer-key { margin-right: 12px; }
+  .quiz__nav { margin-top: 18px; }
+  .result__ctas { gap: 12px; }
+  .result__ctas .btn,
+  .result__retake { width: 100%; }
 }
 
 /* FOCUS VISIBLE */
 .quiz__answer:focus-visible,
 .result__gate input:focus-visible,
-.result__gate button:focus-visible {
-  outline: 2px solid var(--electric);
-  outline-offset: 2px;
+.result__gate button:focus-visible,
+.result__ctas .btn:focus-visible,
+.result__retake:focus-visible,
+#quizStart:focus-visible {
+  outline: 2px solid var(--blue-light);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(22, 119, 190, 0.28);
 }
 
 /* REDUCED MOTION */

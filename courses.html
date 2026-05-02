@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>Courses | Rohan's GAMSAT</title>
   <meta name="description" content="GAMSAT courses for every stage, from first-time sitters to students targeting the top 1%. Live coaching, self-paced study, essay marking and more.">
   <meta property="og:title" content="GAMSAT Courses | Rohan's Tutoring">
@@ -23,9 +24,9 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/product.css">
   <link rel="stylesheet" href="css/courses.css">
@@ -34,7 +35,7 @@
 
   <nav class="nav" id="nav">
     <div class="nav__inner">
-      <a href="index.html" class="nav__logo"><img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
+      <a href="index.html" class="nav__logo"><img src="assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
       <ul class="nav__links">
         <li><a href="/courses" aria-current="page">Courses</a></li>
         <li><a href="/courses/private-mentoring">Private Mentoring</a></li>
@@ -99,6 +100,8 @@
     </div>
   </nav>
 
+  <main id="main-content">
+
   <!-- HERO -->
   <section class="courses-hero">
     <div class="courses-hero__bg">
@@ -120,7 +123,7 @@
         <div class="courses-hero__right reveal reveal--delay-2">
           <a href="/courses/comprehensive" class="hero-promo-card">
             <div class="hero-promo-card__image">
-              <img src="/assets/courses/comprehensive-course-card.webp" alt="GAMSAT Live Comprehensive Course" loading="lazy">
+              <img src="/assets/courses/comprehensive-course-card.webp" alt="GAMSAT Live Comprehensive Course" width="960" height="540" loading="eager" decoding="async" fetchpriority="high">
             </div>
             <div class="hero-promo-card__body">
               <div class="hero-promo-card__badges">
@@ -181,7 +184,7 @@
 
       <a href="/courses/mastery" class="flagship-card flagship-card--premium reveal">
         <div class="flagship-card__image flagship-card__image--featured">
-          <img src="/assets/courses/mastery-course-card.png" alt="GAMSAT Mastery Program" width="1672" height="941" loading="lazy" decoding="async">
+          <img src="/assets/courses/mastery-course-card.webp" alt="GAMSAT Mastery Program" width="960" height="540" loading="lazy" decoding="async">
           <div class="flagship-card__overlay"></div>
         </div>
         <div class="flagship-card__content">
@@ -219,7 +222,7 @@
 
         <a href="/courses/blueprint" class="course-tile reveal">
           <div class="course-tile__image">
-            <img src="/assets/courses/blueprint-course-card.webp" alt="Rohan's GAMSAT Blueprint" loading="lazy">
+            <img src="/assets/courses/blueprint-course-card.webp" alt="Rohan's GAMSAT Blueprint" width="960" height="624" loading="lazy" decoding="async">
           </div>
           <div class="course-tile__body">
             <span class="course-tile__tag">Most Popular</span>
@@ -234,7 +237,7 @@
 
         <a href="/courses/advanced" class="course-tile reveal reveal--delay-1">
           <div class="course-tile__image">
-            <img src="/assets/courses/advanced-course-card.webp" alt="GAMSAT Elite Excellence Course" loading="lazy">
+            <img src="/assets/courses/advanced-course-card.webp" alt="GAMSAT Elite Excellence Course" width="960" height="960" loading="lazy" decoding="async">
           </div>
           <div class="course-tile__body">
             <span class="course-tile__tag course-tile__tag--advanced">70+ Score</span>
@@ -256,7 +259,7 @@
 
           <div class="course-tile course-tile--soldout">
             <div class="course-tile__image">
-              <img src="/assets/courses/comprehensive-course-card.webp" alt="S1 Comprehensive Classes" loading="lazy">
+              <img src="/assets/courses/comprehensive-course-card.webp" alt="S1 Comprehensive Classes" width="960" height="540" loading="lazy" decoding="async">
             </div>
             <div class="course-tile__body">
               <span class="soldout-badge">Sold Out</span>
@@ -271,7 +274,7 @@
 
           <div class="course-tile course-tile--soldout">
             <div class="course-tile__image">
-              <img src="/assets/courses/comprehensive-course-card.webp" alt="S2 Comprehensive Classes" loading="lazy">
+              <img src="/assets/courses/comprehensive-course-card.webp" alt="S2 Comprehensive Classes" width="960" height="540" loading="lazy" decoding="async">
             </div>
             <div class="course-tile__body">
               <span class="soldout-badge">Sold Out</span>
@@ -378,11 +381,14 @@
   </section>
 
   <!-- FOOTER -->
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/homepage/logo-home.png" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
+          <img src="assets/homepage/logo-home.webp" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>

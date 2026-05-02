@@ -31,6 +31,8 @@
 }
 
 .checkout-logo {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-sans);
   font-size: 1.1rem;
   font-weight: 800;
@@ -39,8 +41,10 @@
   letter-spacing: 0;
 }
 
-.checkout-logo span {
-  color: var(--blue-light);
+.checkout-logo__img {
+  display: block;
+  width: auto;
+  height: 38px;
 }
 
 .checkout-secure {
@@ -412,6 +416,16 @@
 
 .checkout-instalment-link:hover {
   color: var(--white);
+}
+
+@media (max-width: 760px) {
+  .checkout-instalment-link {
+    display: flex;
+    min-height: 44px;
+    padding: 11px 0;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* Security row */

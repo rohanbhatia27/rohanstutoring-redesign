@@ -2,11 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  getFloatingQuizCtaRevealThreshold,
+  isFloatingQuizCtaAllowedForPage,
   shouldHideFloatingQuizCtaForPath,
   shouldTrackNewsletterSignup,
 } = require('../js/main.js');
 
-test('floating quiz CTA stays hidden on existing excluded routes', () => {
+test('floating quiz CTA stays hidden on excluded routes and intent-heavy pages', () => {
   const hiddenPaths = [
     '/quiz',
     '/quiz.html',
@@ -19,6 +21,16 @@ test('floating quiz CTA stays hidden on existing excluded routes', () => {
     '/section-1-tracker',
     '/section-1-tracker.html',
     '/section-1-tracker/',
+    '/contact',
+    '/contact.html',
+    '/blog',
+    '/blog.html',
+    '/blog/some-post',
+    '/courses',
+    '/courses.html',
+    '/mocks',
+    '/quote-generator',
+    '/lead-magnets',
   ];
 
   for (const pathname of hiddenPaths) {
@@ -55,15 +67,8 @@ test('floating quiz CTA stays hidden on paid course product pages', () => {
   }
 });
 
-test('floating quiz CTA still shows on non-product pages', () => {
-  const visiblePaths = [
-    '/',
-    '/about',
-    '/blog',
-    '/courses',
-    '/courses.html',
-    '/contact',
-  ];
+test('floating quiz CTA is only eligible on a small allowlist of discovery pages', () => {
+  const visiblePaths = ['/', '/about', '/about.html', '/uk-gamsat', '/ireland-gamsat', '/404'];
 
   for (const pathname of visiblePaths) {
     assert.equal(
@@ -72,6 +77,61 @@ test('floating quiz CTA still shows on non-product pages', () => {
       `Expected floating quiz CTA to remain visible on ${pathname}`
     );
   }
+});
+
+test('floating quiz CTA page-level hook can disable an otherwise eligible page', () => {
+  assert.equal(
+    isFloatingQuizCtaAllowedForPage({
+      pathname: '/',
+      bodyDataset: { floatingQuizCta: 'off' },
+    }),
+    false
+  );
+
+  assert.equal(
+    isFloatingQuizCtaAllowedForPage({
+      pathname: '/about',
+      bodyDataset: {},
+      bodyClassList: { contains: () => false },
+    }),
+    true
+  );
+
+  assert.equal(
+    isFloatingQuizCtaAllowedForPage({
+      pathname: '/about',
+      bodyDataset: {},
+      bodyClassList: { contains: (className) => className === 'floating-quiz-cta-off' },
+    }),
+    false
+  );
+});
+
+test('floating quiz CTA reveal threshold waits for hero CTA when present', () => {
+  assert.equal(
+    getFloatingQuizCtaRevealThreshold({
+      heroQuizCtaBottom: 640,
+      viewportHeight: 800,
+    }),
+    640
+  );
+});
+
+test('floating quiz CTA reveal threshold falls back to a conservative viewport threshold', () => {
+  assert.equal(
+    getFloatingQuizCtaRevealThreshold({
+      heroQuizCtaBottom: 0,
+      viewportHeight: 900,
+    }),
+    540
+  );
+
+  assert.equal(
+    getFloatingQuizCtaRevealThreshold({
+      viewportHeight: 0,
+    }),
+    480
+  );
 });
 
 test('newsletter signup analytics skip invalid form submissions', () => {

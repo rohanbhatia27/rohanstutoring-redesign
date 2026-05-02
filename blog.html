@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>Blog | Rohan's GAMSAT</title>
   <meta name="description" content="Free GAMSAT guides, strategies and insights from a top 1% scorer and current USyd medical student. Section 1, Section 2, and beyond.">
   <meta property="og:title" content="GAMSAT Blog | Rohan's Tutoring">
@@ -23,9 +24,9 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/blog.css">
 </head>
@@ -35,7 +36,7 @@
   <nav class="nav" id="nav">
     <div class="nav__inner">
       <a href="index.html" class="nav__logo">
-        <img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
+        <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img">
       </a>
       <ul class="nav__links">
         <li><a href="index.html#courses">Courses</a></li>
@@ -102,6 +103,8 @@
       <a href="/blog" aria-current="page">Blog</a>
     </div>
   </nav>
+
+  <main id="main-content">
 
   <!-- BLOG HEADER -->
   <section class="blog-header">
@@ -274,11 +277,14 @@
   </section>
 
   <!-- FOOTER -->
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/homepage/logo-home.png" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
+          <img src="assets/homepage/logo-home.webp" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">

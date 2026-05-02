@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>Free Sunday GAMSAT Strategy Session | Rohan's GAMSAT</title>
   <meta name="description" content="Join Rohan's free weekly Sunday session at 7pm AEST. Find out what's actually holding back your S1 and S2 score — and what to do about it. Register free.">
   <meta property="og:title" content="Free Sunday GAMSAT Strategy Session | Rohan's GAMSAT">
@@ -22,7 +23,9 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/webinar.css">
 </head>
@@ -32,7 +35,7 @@
   <nav class="nav" id="nav">
     <div class="nav__inner">
       <a href="/" class="nav__logo">
-        <img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
+        <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img">
       </a>
       <ul class="nav__links">
         <li><a href="/courses">Courses</a></li>
@@ -99,6 +102,8 @@
       <a href="#register">Register Free</a>
     </div>
   </nav>
+
+  <main id="main-content">
 
   <!-- HERO -->
   <section class="webinar-hero">
@@ -263,11 +268,14 @@
   </section>
 
   <!-- FOOTER -->
+
+  </main>
+
   <footer class="footer">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/logo.png" alt="Rohan's GAMSAT" class="footer__logo-img">
+          <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="footer__logo-img">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">

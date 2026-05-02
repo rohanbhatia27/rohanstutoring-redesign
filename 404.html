@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
   <title>Page Not Found | Rohan's GAMSAT</title>
   <meta name="description" content="This page doesn't exist. Head back to Rohan's GAMSAT and find what you're looking for.">
   <meta name="robots" content="noindex, nofollow">
@@ -12,7 +13,9 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
 
   <link rel="stylesheet" href="css/style.css">
 
@@ -222,7 +225,7 @@
   <nav class="nav" id="nav">
     <div class="nav__inner">
       <a href="index.html" class="nav__logo">
-        <img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img">
+        <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img">
       </a>
       <ul class="nav__links">
         <li><a href="/courses">Courses</a></li>
