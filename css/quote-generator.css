@@ -33,7 +33,7 @@
   letter-spacing: 2px;
 }
 .qg-hero h1 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(2.4rem, 5vw, 3.8rem);
   line-height: 1.1;
   margin: 16px 0 18px;
@@ -89,7 +89,7 @@
   margin-bottom: 28px;
 }
 .qg-card__head h2 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.75rem;
   color: var(--navy);
   margin: 0 0 6px;
@@ -203,7 +203,7 @@
   content: "\201C";
   position: absolute;
   top: -20px; left: 24px;
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 7rem;
   line-height: 1;
   color: var(--blue-light);
@@ -227,7 +227,7 @@
   margin-top: 4px;
 }
 .qg-quote__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-style: italic;
   color: var(--blue);
   font-size: 0.9rem;
@@ -237,7 +237,7 @@
   display: block;
 }
 .qg-quote__text {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.35rem;
   line-height: 1.5;
   color: var(--navy);
@@ -320,7 +320,7 @@
   padding: 24px;
 }
 .qg-howto__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2rem;
   font-style: italic;
   color: var(--blue);
@@ -328,7 +328,7 @@
   margin-bottom: 10px;
 }
 .qg-howto__item h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.2rem;
   color: var(--navy);
   margin: 0 0 6px;

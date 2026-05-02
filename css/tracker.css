@@ -53,7 +53,7 @@
 }
 
 .tracker-hero__copy h1 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(2.2rem, 4vw, 3.5rem);
   font-weight: 700;
   color: var(--white);
@@ -108,7 +108,7 @@
 }
 
 .tracker-form-card__heading {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.4rem;
   color: var(--white);
   margin-bottom: 8px;
@@ -203,7 +203,7 @@
 }
 
 .tracker-section__title {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(1.7rem, 3vw, 2.6rem);
   color: var(--white);
   line-height: 1.2;
@@ -452,7 +452,7 @@ body.tracker-preview-open {
   border-radius: 50%;
   background: var(--blue);
   color: var(--white);
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 700;
   display: flex;
@@ -585,7 +585,7 @@ body.tracker-preview-open {
 }
 
 .tracker-final-cta h2 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 3vw, 2.8rem);
   color: var(--white);
   margin-bottom: 16px;

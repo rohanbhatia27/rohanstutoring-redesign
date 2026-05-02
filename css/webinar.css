@@ -135,7 +135,7 @@
   align-items: flex-start;
 }
 .webinar-learn__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2rem;
   font-weight: 700;
   color: var(--blue);
@@ -284,7 +284,7 @@
 }
 .webinar-cred-item__num {
   display: block;
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2rem;
   font-weight: 700;
   color: var(--blue);

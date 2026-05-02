@@ -3,7 +3,7 @@
    ============================================ */
 
 .intl-page {
-  --font-serif: 'Figtree', system-ui, sans-serif;
+  --font-heading: 'Figtree', system-ui, sans-serif;
   background: var(--white);
 }
 
@@ -208,7 +208,7 @@
 }
 
 .intl-snapshot__value {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(1.9rem, 4vw, 2.8rem);
   line-height: 0.95;
   color: var(--navy);

@@ -137,7 +137,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 .outcomes__score-num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2rem;
   color: var(--blue-light);
   line-height: 1;
@@ -233,7 +233,7 @@
 .values__item {}
 .values__num {
   display: block;
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2.5rem;
   color: var(--blue);
   margin-bottom: 8px;
@@ -269,7 +269,7 @@
   text-align: center;
 }
 .about-story__img-badge-stat span {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.4rem;
   color: var(--blue-light);
   line-height: 1;
@@ -347,7 +347,7 @@
   padding: 0 48px;
 }
 .about-proof__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2.5rem;
   color: var(--white);
   line-height: 1;

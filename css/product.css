@@ -456,7 +456,7 @@
 .how__step:last-child { border-bottom: none; }
 
 .how__step-num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 4rem;
   font-weight: 700;
   line-height: 1;
@@ -556,7 +556,7 @@
 .value-item__left { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .value-item__icon { font-size: 2rem; line-height: 1; }
 .value-item__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1rem;
   color: rgba(22,119,190,0.3);
 }
@@ -664,7 +664,7 @@
 .value-summary__cta { text-align: center; min-width: 280px; }
 .value-summary__price { margin-bottom: 20px; }
 .value-summary__was { display: block; font-size: 0.85rem; color: var(--text-muted); text-decoration: line-through; margin-bottom: 4px; }
-.value-summary__now { display: block; font-family: var(--font-serif); font-size: 3rem; color: var(--text); line-height: 1; margin-bottom: 4px; }
+.value-summary__now { display: block; font-family: var(--font-heading); font-size: 3rem; color: var(--text); line-height: 1; margin-bottom: 4px; }
 .value-summary__label { display: block; font-size: 0.8rem; color: var(--green); font-weight: 600; margin-bottom: 20px; }
 .value-summary__note { font-size: 0.8rem; color: var(--text-muted); margin-top: 12px; }
 
@@ -692,7 +692,7 @@
 }
 .product-proof__card:hover { background: rgba(255,255,255,0.08); }
 .product-proof__score {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2.75rem;
   color: var(--blue-light);
   margin-bottom: 14px;
@@ -1048,7 +1048,7 @@
 .courses-hero__left > p { color: var(--text-light); font-size: 0.97rem; max-width: 480px; margin-bottom: 28px; }
 .courses-hero__stats { display: flex; gap: 32px; }
 .courses-hero__stat { display: flex; flex-direction: column; gap: 3px; }
-.courses-hero__stat span { font-family: var(--font-serif); font-size: 1.7rem; color: var(--white); }
+.courses-hero__stat span { font-family: var(--font-heading); font-size: 1.7rem; color: var(--white); }
 .courses-hero__stat small { font-size: 0.75rem; color: var(--text-light); font-weight: 500; }
 
 /* Hero promo card */
@@ -1112,7 +1112,7 @@
 .flagship-card__meta { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
 .flagship-card__price { text-align: right; }
 .price-was { display: block; font-size: 0.85rem; color: var(--text-muted); text-decoration: line-through; }
-.price-now { display: block; font-family: var(--font-serif); font-size: 2.25rem; color: var(--text); line-height: 1; }
+.price-now { display: block; font-family: var(--font-heading); font-size: 2.25rem; color: var(--text); line-height: 1; }
 .price-cta { display: block; font-size: 0.85rem; font-weight: 700; color: var(--blue); margin-top: 4px; }
 
 /* Flagship premium variant */
@@ -1184,7 +1184,7 @@
 .course-tile h3 { color: var(--text); margin-bottom: 10px; }
 .course-tile p { font-size: 0.9rem; flex: 1; margin-bottom: 20px; }
 .course-tile__footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 16px; border-top: 1px solid #E5EAF0; }
-.course-tile__price { font-family: var(--font-serif); font-size: 1.5rem; color: var(--text); }
+.course-tile__price { font-family: var(--font-heading); font-size: 1.5rem; color: var(--text); }
 .course-tile__cta { font-size: 0.85rem; font-weight: 700; color: var(--blue); }
 .course-tile__note { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; flex: 0; }
 
@@ -1459,7 +1459,7 @@
 }
 .pain-statement:first-child { border-top: 1px solid #D5DEED; }
 .pain-statement__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 0.9rem;
   color: rgba(22,119,190,0.38);
   padding-top: 3px;
@@ -1488,7 +1488,7 @@
   color: var(--text-light);
   font-size: 1.15rem;
   line-height: 1.9;
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
 }
 .pain-reframe strong {
   color: var(--white);

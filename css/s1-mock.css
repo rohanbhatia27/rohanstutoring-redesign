@@ -179,7 +179,7 @@
 }
 
 .mock-form-card__header h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--white);
@@ -736,7 +736,7 @@
 }
 
 .mock-cred__num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--blue);

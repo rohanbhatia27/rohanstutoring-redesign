@@ -97,7 +97,7 @@
 }
 
 .summary-name {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-light);
@@ -646,7 +646,7 @@
 }
 
 .success-heading {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-light);

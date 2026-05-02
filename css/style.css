@@ -1,7 +1,7 @@
 /* ============================================
    ROHAN'S GAMSAT — Premium Redesign
    Design: Dark navy authority + electric blue
-   Type:   Figtree throughout
+   Type:   Figtree (headings) · Inter (body)
    ============================================ */
 
 /* ---- Custom Properties ---- */
@@ -37,8 +37,8 @@
   --premium-gold-deep: #B8922A;
   --premium-ink:  #1A0F00;
 
-  --font-serif: 'Figtree', system-ui, sans-serif;
-  --font-sans:  'Figtree', system-ui, sans-serif;
+  --font-heading: 'Figtree', system-ui, sans-serif;
+  --font-sans:  'Inter', system-ui, sans-serif;
 
   --radius-sm:  6px;
   --radius-md:  12px;
@@ -102,7 +102,7 @@ main section[id] {
 }
 
 /* ---- Typography ---- */
-h1, h2 { font-family: var(--font-serif); line-height: 0.95; letter-spacing: -0.035em; }
+h1, h2 { font-family: var(--font-heading); line-height: 1.05; letter-spacing: -0.035em; }
 h1 { font-size: clamp(2.6rem, 5.5vw, 6rem); font-weight: 700; }
 h2 { font-size: clamp(1.9rem, 3.5vw, 3.25rem); font-weight: 700; }
 h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; }
@@ -207,11 +207,9 @@ strong { font-weight: 700; color: inherit; }
   padding: 16px 18px;
   border-radius: 22px;
   border: 1px solid rgba(91, 164, 224, 0.22);
-  background: rgba(8, 15, 26, 0.94);
+  background: var(--navy);
   color: var(--white);
-  box-shadow: 0 18px 44px rgba(8, 15, 26, 0.28);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 18px 44px rgba(8, 15, 26, 0.4);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 .floating-quiz-cta:hover {
@@ -309,7 +307,7 @@ strong { font-weight: 700; color: inherit; }
   padding: 14px 24px;
 }
 .nav__logo {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.45rem;
   color: var(--white);
   margin-right: auto;
@@ -336,6 +334,8 @@ strong { font-weight: 700; color: inherit; }
 }
 .nav__links a:hover,
 .nav__dropdown-trigger:hover { color: var(--white); }
+.nav__links a[aria-current="page"],
+.nav__mobile a[aria-current="page"] { color: var(--white); font-weight: 600; }
 
 /* ---- Nav dropdown ---- */
 .nav__dropdown-wrap {
@@ -1018,7 +1018,7 @@ strong { font-weight: 700; color: inherit; }
 }
 
 .selector__panel-left h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   color: var(--text);
   line-height: 1.15;
@@ -1108,7 +1108,7 @@ strong { font-weight: 700; color: inherit; }
 .how__item:last-child { border-bottom: none; }
 
 .how__item-num {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 4rem;
   font-weight: 700;
   line-height: 1;
@@ -1264,7 +1264,7 @@ strong { font-weight: 700; color: inherit; }
   margin-bottom: 10px;
 }
 .course-tier__price {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2.4rem;
   font-weight: 400;
   color: var(--text);
@@ -1562,7 +1562,7 @@ strong { font-weight: 700; color: inherit; }
   margin-bottom: 18px;
 }
 .proof__highlight-score {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: clamp(4rem, 9vw, 6.5rem);
   color: var(--blue);
   margin-bottom: 18px;
@@ -1615,7 +1615,7 @@ strong { font-weight: 700; color: inherit; }
   border-bottom: none;
 }
 .proof__item-score {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 2.3rem;
   line-height: 1;
   color: var(--blue);
@@ -1716,81 +1716,6 @@ img[loading="lazy"] {
 }
 
 /* ============================================
-   COUNTRY GUIDES
-   ============================================ */
-.country-guides {
-  padding: 96px 0;
-  background:
-    radial-gradient(circle at top left, rgba(22, 119, 190, 0.16), transparent 34%),
-    linear-gradient(180deg, #091321 0%, #102036 100%);
-  color: var(--white);
-}
-.country-guides__header {
-  max-width: 44rem;
-  margin-bottom: 44px;
-}
-.country-guides__header h2,
-.country-guides__header p {
-  color: var(--white);
-}
-.country-guides__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-}
-.country-guide {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  min-height: 280px;
-  padding: clamp(28px, 4vw, 40px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-xl);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(8, 15, 26, 0.64);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
-  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
-}
-.country-guide:hover {
-  transform: translateY(-4px);
-  border-color: rgba(91, 164, 224, 0.4);
-  box-shadow: 0 28px 52px rgba(0, 0, 0, 0.24);
-}
-.country-guide__eyebrow {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--blue-light);
-}
-.country-guide h3 {
-  max-width: 18ch;
-  font-size: clamp(1.45rem, 3vw, 2rem);
-  line-height: 1.05;
-}
-.country-guide p {
-  color: rgba(231, 239, 248, 0.82);
-  max-width: 32rem;
-}
-.country-guide__cta {
-  margin-top: auto;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--white);
-}
-
-@media (max-width: 860px) {
-  .country-guides {
-    padding: 84px 0;
-  }
-  .country-guides__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ============================================
    FOUNDER
    ============================================ */
 .founder {
@@ -1830,7 +1755,7 @@ img[loading="lazy"] {
 }
 .founder__image-badge span {
   display: block;
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.75rem;
   color: var(--blue-light);
   line-height: 1;
@@ -2210,7 +2135,7 @@ img[loading="lazy"] {
   margin-bottom: 32px;
 }
 .footer__logo {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   color: var(--white);
   display: block;
@@ -2381,7 +2306,7 @@ img[loading="lazy"] {
 }
 .versus__col-head--us .versus__col-name { color: var(--blue-light); }
 .versus__col-price {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-size: 1.55rem;
   font-weight: 700;
   color: var(--white);

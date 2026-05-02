@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google Analytics 4 — replace G-H1KDZ561ZE with your Measurement ID -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
   <title>Courses | Rohan's GAMSAT</title>
@@ -16,7 +15,7 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="GAMSAT Courses | Rohan's Tutoring">
-  <meta name="twitter:description" content="Live coaching, self-paced study, essay marking and more, from a top 5% tutor.">
+  <meta name="twitter:description" content="Live coaching, self-paced study, essay marking and more, from a top 1% tutor.">
   <meta name="twitter:image" content="https://www.rohanstutoring.com/assets/rohan/rohan-square-background.webp">
   <link rel="icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
@@ -24,7 +23,7 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
   <link rel="stylesheet" href="css/style.css">
@@ -37,7 +36,8 @@
     <div class="nav__inner">
       <a href="index.html" class="nav__logo"><img src="assets/logo.png" alt="Rohan's GAMSAT" class="nav__logo-img"></a>
       <ul class="nav__links">
-        <li><a href="/courses" style="color:var(--white)">Courses</a></li>
+        <li><a href="/courses" aria-current="page">Courses</a></li>
+        <li><a href="/courses/private-mentoring">Private Mentoring</a></li>
         <li><a href="/courses/essay-marking">Essay Marking</a></li>
         <li class="nav__dropdown-wrap">
           <button type="button" class="nav__dropdown-trigger" aria-expanded="false" aria-controls="resourcesDropdown" aria-haspopup="true">
@@ -65,10 +65,11 @@
         <li><a href="/about">About</a></li>
         <li><a href="/blog">Blog</a></li>
       </ul>
-      <button class="nav__burger" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
+      <button class="nav__burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" id="burger"><span></span><span></span><span></span></button>
     </div>
-    <div class="nav__mobile" id="mobileMenu">
-      <a href="/courses">Courses</a>
+    <div class="nav__mobile" id="mobileMenu" hidden aria-hidden="true">
+      <a href="/courses" aria-current="page">Courses</a>
+      <a href="/courses/private-mentoring">Private Mentoring</a>
       <a href="/courses/essay-marking">Essay Marking</a>
       <div class="nav__mobile-group">
         <button type="button" class="nav__mobile-trigger" aria-expanded="false" aria-controls="mobileResourcesMenu">
@@ -110,7 +111,7 @@
         <div class="courses-hero__left">
           <span class="label reveal">September 2026 Enrolments Open</span>
           <h1 class="reveal reveal--delay-1">Every course you need.<br><em>None of the fluff.</em></h1>
-          <p class="reveal reveal--delay-2">Pick the format that fits. Live coaching, self-paced study, or targeted support. All taught by a top 5% tutor.</p>
+          <p class="reveal reveal--delay-2">Pick the format that fits. Live coaching, self-paced study, or targeted support. All taught by a top 1% tutor.</p>
           <div class="courses-hero__stats reveal reveal--delay-3">
             <div class="courses-hero__stat"><span>1,300+</span><small>students coached</small></div>
             <div class="courses-hero__stat"><span>Top 1%</span><small>GAMSAT score</small></div>
@@ -238,7 +239,7 @@
           <div class="course-tile__body">
             <span class="course-tile__tag course-tile__tag--advanced">70+ Score</span>
             <h3>GAMSAT Elite Excellence Course</h3>
-            <p>For students already scoring well who want to break into the top 5%. 30 hours of elite-level S1 and S2 strategy.</p>
+            <p>For students already scoring well who want to break into the top 1%. 30 hours of elite-level S1 and S2 strategy.</p>
             <div class="course-tile__footer">
               <span class="course-tile__price">$299</span>
               <span class="course-tile__cta">View Course →</span>
@@ -381,7 +382,7 @@
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <span class="footer__logo"><span class="nav__logo-r">R</span>ohan's GAMSAT</span>
+          <img src="assets/homepage/logo-home.png" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram"><svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>

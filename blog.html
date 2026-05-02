@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google Analytics 4 — replace G-H1KDZ561ZE with your Measurement ID -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
   <script src="/js/analytics.js" defer></script>
   <title>Blog | Rohan's GAMSAT</title>
@@ -24,7 +23,7 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
   <link rel="stylesheet" href="css/style.css">
@@ -40,6 +39,7 @@
       </a>
       <ul class="nav__links">
         <li><a href="index.html#courses">Courses</a></li>
+        <li><a href="/courses/private-mentoring">Private Mentoring</a></li>
         <li><a href="/courses/essay-marking">Essay Marking</a></li>
         <li class="nav__dropdown-wrap">
           <button type="button" class="nav__dropdown-trigger" aria-expanded="false" aria-controls="resourcesDropdown" aria-haspopup="true">
@@ -65,14 +65,15 @@
           </div>
         </li>
         <li><a href="/about">About</a></li>
-        <li><a href="/blog" style="color:var(--white)">Blog</a></li>
+        <li><a href="/blog" aria-current="page">Blog</a></li>
       </ul>
-      <button class="nav__burger" aria-label="Menu" id="burger">
+      <button class="nav__burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" id="burger">
         <span></span><span></span><span></span>
       </button>
     </div>
-    <div class="nav__mobile" id="mobileMenu">
+    <div class="nav__mobile" id="mobileMenu" hidden aria-hidden="true">
       <a href="index.html#courses">Courses</a>
+      <a href="/courses/private-mentoring">Private Mentoring</a>
       <a href="/courses/essay-marking">Essay Marking</a>
       <div class="nav__mobile-group">
         <button type="button" class="nav__mobile-trigger" aria-expanded="false" aria-controls="mobileResourcesMenu">
@@ -98,7 +99,7 @@
         </div>
       </div>
       <a href="/about">About</a>
-      <a href="/blog" style="color:var(--white)">Blog</a>
+      <a href="/blog" aria-current="page">Blog</a>
     </div>
   </nav>
 
@@ -277,7 +278,7 @@
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <span class="footer__logo"><span class="nav__logo-r">R</span>ohan's GAMSAT</span>
+          <img src="assets/homepage/logo-home.png" alt="Rohan's GAMSAT" class="footer__logo-img" width="240" height="240" loading="lazy" decoding="async">
           <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
           <div class="footer__socials">
             <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">
