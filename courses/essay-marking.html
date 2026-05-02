@@ -27,45 +27,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-.sticky-bar {
-position: fixed;
-top: 0; left: 0; right: 0;
-z-index: 200;
-background: var(--navy-mid);
-border-bottom: 1px solid var(--border);
-padding: 12px 24px;
-transform: translateY(-100%);
-transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-backdrop-filter: blur(16px);
-}
-.sticky-bar.visible { transform: translateY(0); }
-.sticky-bar__inner {
-max-width: 1200px;
-margin: 0 auto;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 16px;
-}
-.sticky-bar__title {
-font-size: 0.9rem;
-font-weight: 600;
-color: var(--white);
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-.sticky-bar__right {
-display: flex;
-align-items: center;
-gap: 16px;
-flex-shrink: 0;
-}
-.sticky-bar__price {
-font-size: 0.95rem;
-color: var(--text-light);
-}
-.sticky-bar__price strong { color: var(--white); }
 .product-hero {
 position: relative;
 padding: calc(var(--header-height) + 24px) 0 80px;
@@ -81,15 +42,16 @@ pointer-events: none;
 position: relative;
 z-index: 2;
 display: grid;
-grid-template-columns: 1fr 480px;
+grid-template-columns: 1fr 1fr;
 gap: 64px;
-align-items: flex-start;
+align-items: stretch;
 }
 .product-hero__badges {
 display: flex;
 gap: 10px;
 flex-wrap: wrap;
 margin-bottom: 20px;
+justify-content: flex-start;
 }
 .badge {
 display: inline-flex;
@@ -111,9 +73,9 @@ margin-bottom: 20px;
 font-size: clamp(2.5rem, 5vw, 4.5rem);
 }
 .product-hero__sub {
-color: var(--text-light);
+color: var(--white);
 font-size: 1.1rem;
-max-width: 520px;
+max-width: 580px;
 margin-bottom: 28px;
 line-height: 1.7;
 }
@@ -138,15 +100,98 @@ display: flex;
 flex-direction: column;
 gap: 8px;
 margin-bottom: 36px;
+align-items: flex-start;
 }
 .product-hero__checklist span {
 font-size: 0.9rem;
-color: var(--text-light);
+color: var(--white);
 display: flex;
 align-items: center;
 gap: 8px;
 }
-.product-hero__cta { display: flex; flex-direction: column; gap: 10px; }
+.product-hero__cta { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+/* Essay preview mockup */
+.essay-preview {
+border-radius: 14px;
+overflow: hidden;
+box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.3);
+display: grid;
+grid-template-columns: 1fr 190px;
+position: relative;
+transform: perspective(1000px) rotateY(-2deg) rotateX(1deg);
+height: 100%;
+}
+.essay-preview__doc {
+background: #fdf8ed;
+padding: 22px;
+overflow: hidden;
+border-right: 1px solid #e8e0cc;
+}
+.essay-preview__doc p {
+font-size: 0.7rem;
+line-height: 1.75;
+color: #2d2516;
+margin-bottom: 12px;
+font-family: Georgia, serif;
+}
+.essay-preview__doc mark {
+background: rgba(251,191,36,0.38);
+color: inherit;
+padding: 1px 0;
+border-radius: 2px;
+}
+.essay-preview__sidebar {
+background: #fff;
+padding: 14px 12px;
+display: flex;
+flex-direction: column;
+gap: 14px;
+overflow: hidden;
+}
+.essay-comment {
+display: flex;
+gap: 7px;
+}
+.essay-comment__avatar {
+width: 26px;
+height: 26px;
+border-radius: 50%;
+background: var(--blue);
+color: #fff;
+font-size: 0.58rem;
+font-weight: 700;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+.essay-comment__name {
+font-size: 0.62rem;
+font-weight: 700;
+color: #1e293b;
+display: block;
+}
+.essay-comment__time {
+font-size: 0.58rem;
+color: #94a3b8;
+display: block;
+margin-bottom: 3px;
+}
+.essay-comment__text {
+font-size: 0.63rem;
+color: #475569;
+line-height: 1.5;
+margin: 0;
+}
+.essay-preview__fade {
+position: absolute;
+bottom: 0;
+left: 0;
+right: 0;
+height: 90px;
+background: linear-gradient(transparent, #fdf8ed 80%);
+pointer-events: none;
+}
 .product-hero__was {
 font-size: 0.82rem;
 color: var(--white);
@@ -335,6 +380,11 @@ border-radius: 100px;
 .product-hero__inner { grid-template-columns: 1fr; }
 .product-hero__card { max-width: 480px; }
 .product-hero__team { width: 100%; max-width: 560px; }
+.product-hero__content { text-align: center; }
+.product-hero__badges { justify-content: center; }
+.product-hero__sub { margin-left: auto; margin-right: auto; }
+.product-hero__checklist { align-items: center; }
+.product-hero__cta { align-items: center; }
 }
   </style>
   <link rel="preload" as="style" href="../css/product.css"><link rel="stylesheet" href="../css/product.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="../css/product.css"></noscript>
@@ -433,15 +483,6 @@ border-radius: 100px;
 
   <main id="main-content">
 
-  <div class="sticky-bar" id="stickyBar">
-    <div class="sticky-bar__inner">
-      <span class="sticky-bar__title">S2 Essay Marking: 1 Essay</span>
-      <div class="sticky-bar__right">
-        <span class="sticky-bar__price"><strong>$34.99</strong> AUD</span>
-        <a href="/checkout/?product=essay-marking" class="btn btn--primary">Submit Your Essay →</a>
-      </div>
-    </div>
-  </div>
 
   <!-- HERO -->
   <section class="product-hero product-hero--dark">
@@ -466,58 +507,70 @@ border-radius: 100px;
           <div class="product-hero__cta reveal reveal--delay-4" id="purchase">
             <a href="/checkout/?product=essay-marking" class="btn btn--primary btn--lg">Submit Your Essay for $34.99 AUD</a>
             <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg">Buy 10 Essays for $249.00 AUD</a>
-            <span class="product-hero__secondary-link">Save $100.90 vs 10 single essays</span>
           </div>
         </div>
 
-        <div class="product-hero__card reveal reveal--delay-2">
-          <div class="product-hero__card-details product-hero__card-details--solo">
-            <div class="detail-row"><span>💰 Price</span><strong>$34.99 AUD</strong></div>
-            <div class="detail-row"><span>⏱️ Turnaround</span><strong>3 days (5 during peak)</strong></div>
-
-            <div class="detail-row"><span>✍️ Covers</span><strong>Ideas · Structure · Language</strong></div>
-            <div class="detail-row"><span>📊 Includes</span><strong>Exemplars + evidence suggestions</strong></div>
+        <div class="essay-preview reveal reveal--delay-2" aria-hidden="true">
+          <div class="essay-preview__doc">
+            <p>For the past few years I've been speed-running through life. I've been <mark>extremely fortunate to switch careers, get married and have my first child</mark> - with another already on the way. At the heart of this whirlwind of change is my wife.</p>
+            <p>Long before I met her, <mark>I was a calculative and risk-adverse individual</mark>. I played by the rules and believed that as long as I kept my head down and worked hard, I would be rewarded for it. <mark>This belief stemmed from the perspectives I had towards my parents.</mark> They were immigrants who relied solely on hard work to achieve the Australian dream.</p>
+            <p>I had already laid out a plan for my future. Graduate university and enter a reputable engineering or consulting company. Find a future wife and propose when I am financially secure in my 30s. <mark>My point of reference was not from an internal compass of personal desire but from what I saw reflected in society.</mark></p>
+            <p>My wife took this perspective and flipped it upside down. <mark>When she planned her wedding she was wholly content with a cheap dress and a rented out public gazebo overlooking Observatory Hill.</mark> A far cry from the grand ballrooms of Dolton House.</p>
           </div>
+          <div class="essay-preview__sidebar">
+            <div class="essay-comment">
+              <div class="essay-comment__avatar">RB</div>
+              <div class="essay-comment__body">
+                <span class="essay-comment__name">Rohan B</span>
+                <span class="essay-comment__time">9:56 PM Feb 22</span>
+                <p class="essay-comment__text">how does speed-running relate to the theme of social norms vs personal pace</p>
+              </div>
+            </div>
+            <div class="essay-comment">
+              <div class="essay-comment__avatar">RB</div>
+              <div class="essay-comment__body">
+                <span class="essay-comment__name">Rohan B</span>
+                <span class="essay-comment__time">9:57 PM Feb 22</span>
+                <p class="essay-comment__text">what made you calculative? Fear of failure? Immigrant scarcity mindset? Specify the psychological origin</p>
+              </div>
+            </div>
+            <div class="essay-comment">
+              <div class="essay-comment__avatar">RB</div>
+              <div class="essay-comment__body">
+                <span class="essay-comment__name">Rohan B</span>
+                <span class="essay-comment__time">9:57 PM Feb 22</span>
+                <p class="essay-comment__text">how exactly did observing immigrant struggle create risk aversion? What's the intermediate step?</p>
+              </div>
+            </div>
+            <div class="essay-comment">
+              <div class="essay-comment__avatar">RB</div>
+              <div class="essay-comment__body">
+                <span class="essay-comment__name">Rohan B</span>
+                <span class="essay-comment__time">9:58 PM Feb 22</span>
+                <p class="essay-comment__text">how does external reference point suppress agency?</p>
+              </div>
+            </div>
+            <div class="essay-comment">
+              <div class="essay-comment__avatar">RB</div>
+              <div class="essay-comment__body">
+                <span class="essay-comment__name">Rohan B</span>
+                <span class="essay-comment__time">9:59 PM Feb 22</span>
+                <p class="essay-comment__text">Show don't tell... what specific conversation or moment revealed this shift?</p>
+              </div>
+            </div>
+            <div class="essay-comment">
+              <div class="essay-comment__avatar">RB</div>
+              <div class="essay-comment__body">
+                <span class="essay-comment__name">Rohan B</span>
+                <span class="essay-comment__time">9:59 PM Feb 22</span>
+                <p class="essay-comment__text">Unpack why status quo exerts pressure in the first place.</p>
+              </div>
+            </div>
+          </div>
+          <div class="essay-preview__fade"></div>
         </div>
+
       </div>
-    </div>
-  </section>
-
-  <!-- HOW IT WORKS -->
-  <section class="how" id="how">
-    <div class="container">
-      <div class="how__header reveal">
-        <span class="label">How It Works</span>
-        <h2>Three steps. One piece of feedback<br>that changes things.</h2>
-      </div>
-
-      <ol class="how__timeline" aria-label="How it works">
-
-        <li class="how__item reveal">
-          <div class="how__item-num" aria-hidden="true">01</div>
-          <div class="how__item-body">
-            <h3>Upload your essay at checkout</h3>
-            <p>Upload your essay directly when you pay. No separate step needed — your submission is received the moment your order is placed.</p>
-          </div>
-        </li>
-
-        <li class="how__item reveal reveal--delay-1">
-          <div class="how__item-num" aria-hidden="true">02</div>
-          <div class="how__item-body">
-            <h3>Include your prompt if you have one</h3>
-            <p>There's a notes field at checkout. Add the original quote or prompt you wrote to so the feedback is framed against what the exam was actually asking.</p>
-          </div>
-        </li>
-
-        <li class="how__item reveal reveal--delay-2">
-          <div class="how__item-num" aria-hidden="true">03</div>
-          <div class="how__item-body">
-            <h3>Receive detailed feedback within 3 days</h3>
-            <p>You'll get line-level corrections on your ideas, structure and language, specific evidence suggestions, and exemplars showing what a top-scoring response looks like on that type of prompt.</p>
-          </div>
-        </li>
-
-      </ol>
     </div>
   </section>
 
@@ -525,8 +578,8 @@ border-radius: 100px;
   <section class="value-stack">
     <div class="container">
       <div class="value-stack__header reveal">
-        <span class="label">What You Get</span>
-        <h2>Feedback that's specific enough to act on.</h2>
+        <h2>What You Get</h2>
+        <p class="label" style="text-transform:none;letter-spacing:0;font-size:1.1rem;color:var(--blue);">Feedback that's specific enough to act on.</p>
         <p>Most essay feedback tells you what went wrong. This tells you why, and what to do differently.</p>
       </div>
 
@@ -559,10 +612,12 @@ border-radius: 100px;
           <div class="value-summary__cta">
             <div class="value-summary__price">
               <span class="value-summary__now">$34.99</span>
-              <span class="value-summary__label">1 essay · 3-day turnaround</span>
+              <span class="value-summary__label" style="text-align:center;display:block;">3-day turnaround</span>
             </div>
-            <a href="/checkout/?product=essay-marking" class="btn btn--primary btn--lg">Submit Your Essay →</a>
-            <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg">10 Essays for $249.00 AUD</a>
+            <div style="display:flex;gap:12px;width:100%;max-width:560px;margin:0 auto;">
+              <a href="/checkout/?product=essay-marking" class="btn btn--primary btn--lg" style="flex:1;text-align:center;">Submit Your Essay →</a>
+              <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg" style="flex:1;text-align:center;">10 Essays for $249.00 AUD</a>
+            </div>
             <p class="value-summary__note">Save $100.90 compared with 10 single essays.</p>
             <p class="value-summary__note">Peak periods (late Feb & late Aug): allow up to 5 days.</p>
           </div>
@@ -571,19 +626,6 @@ border-radius: 100px;
     </div>
   </section>
 
-  <!-- FINAL CTA -->
-  <section class="product-final-cta">
-    <div class="product-final-cta__bg"><div class="book__orb"></div></div>
-    <div class="container">
-      <div class="product-final-cta__inner reveal">
-        <span class="label" style="color:var(--blue-light)">$34.99 for 1 essay · $249.00 for 10 essays</span>
-        <h2>Find out exactly<br><em>what's holding you back.</em></h2>
-        <p>Choose one essay for $34.99 or the 10-pack for $249.00. Save $100.90 when you batch your feedback and stop repeating mistakes you don't know you're making.</p>
-        <a href="/checkout/?product=essay-marking" class="btn btn--white btn--lg">Submit Your Essay — $34.99 →</a>
-        <a href="/checkout/?product=essay-pack-10" class="btn btn--gold btn--lg">Buy 10 Essays — $249.00</a>
-      </div>
-    </div>
-  </section>
 
 
   </main>
