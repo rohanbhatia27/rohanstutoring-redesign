@@ -85,6 +85,5 @@
 
   if (typeof window !== 'undefined') {
     window.ProductPage = exported;
-    document.addEventListener('DOMContentLoaded', initProductPage);
   }
 })(typeof window !== 'undefined' ? window : globalThis);
