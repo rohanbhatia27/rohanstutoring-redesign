@@ -275,8 +275,20 @@ test('CSP allows GA script and collection endpoints without unsafe inline script
   const csp = config.headers[0].headers.find((header) => header.key === 'Content-Security-Policy').value;
 
   assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
+  assert.match(csp, /script-src[^;]*https:\/\/us-assets\.i\.posthog\.com/);
+  assert.match(csp, /script-src[^;]*https:\/\/eu-assets\.i\.posthog\.com/);
   assert.match(csp, /connect-src[^;]*https:\/\/www\.google-analytics\.com/);
+  assert.match(csp, /connect-src[^;]*https:\/\/us\.i\.posthog\.com/);
+  assert.match(csp, /connect-src[^;]*https:\/\/eu\.i\.posthog\.com/);
   assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
+});
+
+test('essay marking page keeps page-specific CSS out of inline style blocks', () => {
+  const html = read('courses/essay-marking.html');
+
+  assert.doesNotMatch(html, /<style>[\s\S]*?essay-preview[\s\S]*?<\/style>/);
+  assert.doesNotMatch(html, /style="display:flex;gap:12px;width:100%;max-width:560px;margin:0 auto;"/);
+  assert.match(html, /class="essay-marking-cta-row"/);
 });
 
 test('public-page links no longer point at .html paths', () => {

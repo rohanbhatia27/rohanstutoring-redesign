@@ -603,6 +603,15 @@
   box-shadow: 0 8px 32px var(--blue-glow);
 }
 
+.success-addon-note {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
 /* Success page: fallback email line */
 .success-fallback {
   font-family: var(--font-sans);

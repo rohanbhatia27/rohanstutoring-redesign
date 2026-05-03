@@ -1,4 +1,9 @@
 const Stripe = require('stripe');
+const {
+  ESSAY_UPLOAD_INSTRUCTIONS,
+  buildEssayUploadToken,
+  buildEssayUploadUrl,
+} = require('./lib/essay-upload.js');
 
 // Amounts in cents (AUD). Private mentoring uses separate slugs per package.
 const AMOUNTS = {
@@ -38,14 +43,41 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
+function normaliseOriginHost(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase();
+}
+
 function isAllowedOrigin(origin) {
   if (!origin) return true;
 
+  let parsedOrigin;
+  try {
+    parsedOrigin = new URL(origin);
+  } catch (error) {
+    return false;
+  }
+
+  const host = parsedOrigin.host.toLowerCase();
+  const ownVercelHosts = new Set([
+    'rohanstutoring-redesign.vercel.app',
+    normaliseOriginHost(process.env.VERCEL_URL),
+  ]);
+
+  if (parsedOrigin.protocol === 'http:') {
+    return /^(127\.0\.0\.1|localhost):\d+$/i.test(host);
+  }
+
+  if (parsedOrigin.protocol !== 'https:') return false;
+
   return (
-    origin === 'https://rohanstutoring.com' ||
-    origin === 'https://www.rohanstutoring.com' ||
-    /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin) ||
-    /^http:\/\/(127\.0\.0\.1|localhost):\d+$/i.test(origin)
+    host === 'rohanstutoring.com' ||
+    host === 'www.rohanstutoring.com' ||
+    ownVercelHosts.has(host) ||
+    /^rohanstutoring-redesign(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(host)
   );
 }
 
@@ -128,6 +160,10 @@ function normaliseCustomerDetails(body) {
   };
 }
 
+function requiresEssayUploadLink(purchase) {
+  return purchase && purchase.baseSlug === 'essay-marking';
+}
+
 async function createPaymentIntentHandler(req, res) {
   const origin = req.headers.origin || '';
 
@@ -179,6 +215,32 @@ async function createPaymentIntentHandler(req, res) {
         : `Rohan's GAMSAT - ${purchase.baseSlug}`,
       metadata,
     });
+
+    if (requiresEssayUploadLink(purchase) && stripe.paymentIntents.update && intent.id) {
+      const essayUploadToken = buildEssayUploadToken({
+        paymentIntentId: intent.id,
+        productSlug: purchase.baseSlug,
+        upsellSlug: purchase.upsellSlug,
+      });
+      const essayUploadUrl = buildEssayUploadUrl({
+        paymentIntentId: intent.id,
+        productSlug: purchase.baseSlug,
+        upsellSlug: purchase.upsellSlug,
+        uploadToken: essayUploadToken,
+      });
+
+      await stripe.paymentIntents.update(intent.id, {
+        description: `Rohan's GAMSAT - ${purchase.baseSlug}. Upload essay after payment: ${essayUploadUrl}`,
+        metadata: {
+          ...metadata,
+          essay_upload_required: 'true',
+          essay_upload_url: essayUploadUrl,
+          essay_upload_token: essayUploadToken,
+          essay_upload_instructions: ESSAY_UPLOAD_INSTRUCTIONS,
+        },
+      });
+    }
+
     res.status(200).json({ clientSecret: intent.client_secret });
   } catch (err) {
     console.error('Stripe error:', err.message);
@@ -193,6 +255,8 @@ createPaymentIntentHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 createPaymentIntentHandler.isAllowedOrigin = isAllowedOrigin;
 createPaymentIntentHandler.isValidEmail = isValidEmail;
 createPaymentIntentHandler.normaliseCustomerDetails = normaliseCustomerDetails;
+createPaymentIntentHandler.buildEssayUploadToken = buildEssayUploadToken;
+createPaymentIntentHandler.buildEssayUploadUrl = buildEssayUploadUrl;
 createPaymentIntentHandler.isAllowedUpsellCombination = isAllowedUpsellCombination;
 createPaymentIntentHandler.normaliseUpsellSlug = normaliseUpsellSlug;
 createPaymentIntentHandler.resolveCheckoutPurchase = resolveCheckoutPurchase;

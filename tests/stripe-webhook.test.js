@@ -97,6 +97,48 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
   assert.equal(updates[0].payload.metadata.fulfillment_product_slugs, 'blueprint');
 });
 
+test('fulfillment helper preserves essay upload instructions for manual recovery', async () => {
+  process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
+  const updates = [];
+  const paymentIntent = {
+    id: 'pi_essay123',
+    metadata: {
+      base_slug: 'essay-marking',
+      customer_email: 'jane@example.com',
+    },
+  };
+
+  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent,
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+    now: () => '2026-04-19T12:00:00.000Z',
+  });
+
+  assert.equal(result.alreadyFulfilled, false);
+  assert.equal(updates.length, 1);
+  assert.equal(
+    updates[0].payload.metadata.essay_upload_url,
+    'https://tally.so/r/zxQdMR?payment_intent=pi_essay123&product=essay-marking&upload_token=4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6&source=stripe_webhook'
+  );
+  assert.equal(
+    updates[0].payload.metadata.essay_upload_token,
+    '4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6'
+  );
+  assert.equal(updates[0].payload.metadata.essay_upload_required, 'true');
+  assert.equal(
+    updates[0].payload.metadata.essay_upload_instructions,
+    'Upload via essay_upload_url or email essays@rohanstutoring.com with this PaymentIntent ID.'
+  );
+  delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
+});
+
 test('fulfillment helper records combined purchase metadata without breaking base fulfillment', async () => {
   const updates = [];
   const paymentIntent = {

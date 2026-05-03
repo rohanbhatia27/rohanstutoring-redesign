@@ -400,6 +400,13 @@
     return SUCCESS_STATES.failed;
   }
 
+  function getSuccessPageTitle(status) {
+    if (status === 'succeeded') return "Payment Confirmed | Rohan's GAMSAT";
+    if (status === 'processing') return "Payment Processing | Rohan's GAMSAT";
+    if (status === 'verifying') return "Checking Payment | Rohan's GAMSAT";
+    return "Payment Not Confirmed | Rohan's GAMSAT";
+  }
+
   function isProductAvailable(productSlug) {
     return !UNAVAILABLE_PRODUCT_SLUGS.has(String(productSlug || '').trim());
   }
@@ -455,6 +462,29 @@
     }
 
     return items;
+  }
+
+  function buildEssayUploadUrl({
+    paymentIntentId = '',
+    productSlug = 'essay-marking',
+    upsellSlug = '',
+    uploadToken = '',
+    source = 'checkout_success',
+  } = {}) {
+    const params = new URLSearchParams();
+    const safePaymentIntentId = String(paymentIntentId || '').trim();
+    const safeProductSlug = String(productSlug || 'essay-marking').trim();
+    const safeUpsellSlug = String(upsellSlug || '').trim();
+    const safeUploadToken = String(uploadToken || '').trim();
+    const safeSource = String(source || 'checkout_success').trim();
+
+    if (safePaymentIntentId) params.set('payment_intent', safePaymentIntentId);
+    if (safeProductSlug) params.set('product', safeProductSlug);
+    if (safeUpsellSlug) params.set('upsell', safeUpsellSlug);
+    if (safeUploadToken) params.set('upload_token', safeUploadToken);
+    params.set('source', safeSource);
+
+    return `${TALLY_ESSAY_FORM_URL}?${params.toString()}`;
   }
 
   function getApiServerErrorMessage(responseText) {
@@ -966,13 +996,24 @@
     });
   }
 
-  function getSuccessActionMarkup(productSlug) {
+  function getSuccessActionMarkup(productSlug, context = {}) {
     const product = PRODUCTS[productSlug];
     if (!product) return null;
 
     if (product.successType === 'essay-marking') {
+      const uploadUrl = buildEssayUploadUrl({
+        paymentIntentId: context.paymentIntentId,
+        productSlug: context.productSlug || productSlug,
+        upsellSlug: context.upsellSlug,
+        uploadToken: context.uploadToken,
+      });
+      const addOnNote = context.upsellSlug === 'essay-collection'
+        ? '<p class="success-addon-note">Your Essay Collection add-on is confirmed. Access will be shared to your email via Google Drive.</p>'
+        : '';
+
       return `
-        <a href="${TALLY_ESSAY_FORM_URL}" class="success-tally-btn">Upload Your Essay Now &rarr;</a>
+        <a href="${uploadUrl}" class="success-tally-btn">Upload Your Essay Now &rarr;</a>
+        ${addOnNote}
         <p class="success-fallback">Alternatively, email your essay directly to <a href="mailto:essays@rohanstutoring.com">essays@rohanstutoring.com</a></p>
       `;
     }
@@ -988,11 +1029,11 @@
     return null;
   }
 
-  function renderSuccessAction(productSlug) {
+  function renderSuccessAction(productSlug, context = {}) {
     const actionEl = qs('#success-action');
     if (!actionEl) return;
 
-    const markup = getSuccessActionMarkup(productSlug);
+    const markup = getSuccessActionMarkup(productSlug, context);
     if (!markup) return;
 
     actionEl.innerHTML = markup;
@@ -1010,16 +1051,17 @@
     const productSlug = params.get('product');
     const paymentIntentId = params.get('payment_intent');
 
-    function renderState(state) {
+    function renderState(state, statusKey) {
       iconEl.textContent = state.icon;
       headingEl.textContent = state.heading;
       messageEl.textContent = state.message;
+      document.title = getSuccessPageTitle(statusKey);
     }
 
-    renderState(SUCCESS_STATES.verifying);
+    renderState(SUCCESS_STATES.verifying, 'verifying');
 
     if (!paymentIntentId || typeof global.fetch !== 'function') {
-      renderState(SUCCESS_STATES.failed);
+      renderState(SUCCESS_STATES.failed, 'failed');
       return;
     }
 
@@ -1029,11 +1071,17 @@
       const metadata = statusPayload.metadata || {};
       const successProductSlug = metadata.base_slug || metadata.product_slug || params.get('package') || productSlug;
       const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
+      const uploadToken = metadata.essay_upload_token || '';
       const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
 
-      renderState(getSuccessState(status, successMessageProductSlug));
+      renderState(getSuccessState(status, successMessageProductSlug), status);
       if (status === 'succeeded') {
-        renderSuccessAction(successMessageProductSlug);
+        renderSuccessAction(successMessageProductSlug, {
+          paymentIntentId,
+          productSlug: successMessageProductSlug,
+          upsellSlug,
+          uploadToken,
+        });
         if (typeof window.gtag === 'function') {
           const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
 
@@ -1056,7 +1104,7 @@
         }
       }
     } catch (error) {
-      renderState(SUCCESS_STATES.failed);
+      renderState(SUCCESS_STATES.failed, 'failed');
     }
   }
 
@@ -1075,8 +1123,10 @@
     getSuccessMessage,
     buildSuccessUrl,
     getSuccessState,
+    getSuccessPageTitle,
     isProductAvailable,
     buildPurchaseItems,
+    buildEssayUploadUrl,
     getApiServerErrorMessage,
     parseApiResponse,
     fetchCheckoutConfig,

@@ -17,10 +17,12 @@ const {
   getSuccessState,
   isProductAvailable,
   buildPurchaseItems,
+  buildEssayUploadUrl,
   getApiServerErrorMessage,
   parseApiResponse,
   fetchCheckoutConfig,
   fetchPaymentIntentStatus,
+  getSuccessPageTitle,
   getCustomerPayload,
   buildCheckoutPayload,
 } = require('../js/checkout.js');
@@ -178,12 +180,50 @@ test('getSuccessMessage returns the correct post-payment copy for each product t
 });
 
 test('getSuccessActionMarkup renders essay-marking Tally CTA with fallback email', () => {
-  const markup = getSuccessActionMarkup('essay-marking');
+  const uploadUrl = buildEssayUploadUrl({
+    paymentIntentId: 'pi_123',
+    productSlug: 'essay-marking',
+    upsellSlug: 'essay-collection',
+  });
+  const markup = getSuccessActionMarkup('essay-marking', {
+    paymentIntentId: 'pi_123',
+    productSlug: 'essay-marking',
+    upsellSlug: 'essay-collection',
+  });
+
   assert.ok(markup, 'should return markup for essay-marking');
   assert.match(markup, /success-tally-btn/);
-  assert.match(markup, /tally\.so/);
+  assert.match(markup, new RegExp(uploadUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(markup, /payment_intent=pi_123/);
+  assert.match(markup, /product=essay-marking/);
+  assert.match(markup, /upsell=essay-collection/);
   assert.match(markup, /essays@rohanstutoring\.com/);
   assert.match(markup, /success-fallback/);
+});
+
+test('buildEssayUploadUrl appends order context for Tally hidden fields', () => {
+  assert.equal(
+    buildEssayUploadUrl({
+      paymentIntentId: 'pi_123',
+      productSlug: 'essay-marking',
+      upsellSlug: 'essay-collection',
+      uploadToken: 'signed_token_123',
+    }),
+    'https://tally.so/r/zxQdMR?payment_intent=pi_123&product=essay-marking&upsell=essay-collection&upload_token=signed_token_123&source=checkout_success'
+  );
+});
+
+test('getSuccessActionMarkup reassures essay-marking buyers about Essay Collection add-on delivery', () => {
+  const markup = getSuccessActionMarkup('essay-marking', {
+    paymentIntentId: 'pi_123',
+    productSlug: 'essay-marking',
+    upsellSlug: 'essay-collection',
+    uploadToken: 'signed_token_123',
+  });
+
+  assert.match(markup, /upload_token=signed_token_123/);
+  assert.match(markup, /Essay Collection add-on is confirmed/);
+  assert.match(markup, /Google Drive/);
 });
 
 test('getSuccessActionMarkup renders essay-pack-10 email instructions', () => {
@@ -228,6 +268,12 @@ test('getSuccessState maps Stripe statuses to the right success-page copy', () =
   assert.match(getSuccessState('succeeded', 'blueprint').message, /Google Drive/);
   assert.equal(getSuccessState('processing', 'blueprint').heading, 'Payment processing');
   assert.equal(getSuccessState('requires_payment_method', 'blueprint').heading, 'Payment not confirmed');
+});
+
+test('getSuccessPageTitle uses neutral and failure-aware browser titles', () => {
+  assert.equal(getSuccessPageTitle('verifying'), "Checking Payment | Rohan's GAMSAT");
+  assert.equal(getSuccessPageTitle('succeeded'), "Payment Confirmed | Rohan's GAMSAT");
+  assert.equal(getSuccessPageTitle('requires_payment_method'), "Payment Not Confirmed | Rohan's GAMSAT");
 });
 
 test('buildPurchaseItems includes base and upsell products when checkout metadata has both', () => {
@@ -394,11 +440,22 @@ test('EMAIL_PATTERN rejects obviously malformed addresses', () => {
   assert.equal(EMAIL_PATTERN.test('not-an-email'), false);
 });
 
-test('payment intent handler origin allow-list covers production, preview, and local dev', () => {
+test('payment intent handler origin allow-list covers production, own previews, and local dev', () => {
+  const previousVercelUrl = process.env.VERCEL_URL;
+  process.env.VERCEL_URL = 'rohanstutoring-redesign-git-main-rohan.vercel.app';
+
   assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
-  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://preview-build.vercel.app'), true);
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://rohanstutoring-redesign.vercel.app'), true);
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://rohanstutoring-redesign-git-main-rohan.vercel.app'), true);
+  assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://preview-build.vercel.app'), false);
   assert.equal(createPaymentIntentHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
   assert.equal(createPaymentIntentHandler.isAllowedOrigin('https://evil.example.com'), false);
+
+  if (previousVercelUrl === undefined) {
+    delete process.env.VERCEL_URL;
+  } else {
+    process.env.VERCEL_URL = previousVercelUrl;
+  }
 });
 
 test('payment intent handler validates customer details before Stripe call', () => {
@@ -543,9 +600,69 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
   }
 });
 
+test('payment intent handler persists essay upload recovery metadata after creating an essay-marking intent', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
+
+  const createPayloads = [];
+  const updatePayloads = [];
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      create: async (payload) => {
+        createPayloads.push(payload);
+        return {
+          id: 'pi_essay123',
+          client_secret: 'pi_essay123_secret_abc',
+          metadata: payload.metadata,
+        };
+      },
+      update: async (id, payload) => {
+        updatePayloads.push({ id, payload });
+        return { id, metadata: payload.metadata };
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: {
+        origin: 'https://rohanstutoring.com',
+      },
+      body: {
+        slug: 'essay-marking',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createPaymentIntentHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { clientSecret: 'pi_essay123_secret_abc' });
+    assert.equal(createPayloads.length, 1);
+    assert.equal(updatePayloads.length, 1);
+    assert.equal(updatePayloads[0].id, 'pi_essay123');
+    assert.equal(
+      updatePayloads[0].payload.metadata.essay_upload_url,
+      'https://tally.so/r/zxQdMR?payment_intent=pi_essay123&product=essay-marking&upload_token=4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6&source=stripe_metadata'
+    );
+    assert.equal(
+      updatePayloads[0].payload.metadata.essay_upload_token,
+      '4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6'
+    );
+    assert.equal(updatePayloads[0].payload.metadata.essay_upload_required, 'true');
+    assert.match(updatePayloads[0].payload.description, /Upload essay after payment:/);
+  } finally {
+    createPaymentIntentHandler.__resetForTests();
+    delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
+  }
+});
+
 test('payment intent status handler origin allow-list matches checkout endpoint', () => {
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
-  assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://preview-build.vercel.app'), true);
+  assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://preview-build.vercel.app'), false);
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://evil.example.com'), false);
 });
@@ -558,6 +675,7 @@ test('payment intent status handler validates Stripe payment-intent IDs', () => 
 
 test('payment intent status handler returns status with safe checkout metadata', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
 
   paymentIntentStatusHandler.__setStripeFactory(() => ({
     paymentIntents: {
@@ -566,9 +684,10 @@ test('payment intent status handler returns status with safe checkout metadata',
         return {
           status: 'succeeded',
           metadata: {
-            product_slug: 'blueprint',
-            base_slug: 'blueprint',
-            upsell_slug: 'essay-pack-10',
+            product_slug: 'essay-marking',
+            base_slug: 'essay-marking',
+            upsell_slug: 'essay-collection',
+            essay_upload_token: 'persisted_token',
             customer_email: 'jane@example.com',
             customer_name: 'Jane Smith',
           },
@@ -595,18 +714,20 @@ test('payment intent status handler returns status with safe checkout metadata',
     assert.deepEqual(res.body, {
       status: 'succeeded',
       metadata: {
-        base_slug: 'blueprint',
-        upsell_slug: 'essay-pack-10',
+        base_slug: 'essay-marking',
+        upsell_slug: 'essay-collection',
+        essay_upload_token: 'persisted_token',
       },
     });
   } finally {
     paymentIntentStatusHandler.__resetForTests();
+    delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
   }
 });
 
 test('public config handler origin allow-list matches checkout endpoint', () => {
   assert.equal(publicConfigHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
-  assert.equal(publicConfigHandler.isAllowedOrigin('https://preview-build.vercel.app'), true);
+  assert.equal(publicConfigHandler.isAllowedOrigin('https://preview-build.vercel.app'), false);
   assert.equal(publicConfigHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
   assert.equal(publicConfigHandler.isAllowedOrigin('https://evil.example.com'), false);
 });

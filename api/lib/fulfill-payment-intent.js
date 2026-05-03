@@ -1,3 +1,9 @@
+const {
+  ESSAY_UPLOAD_INSTRUCTIONS,
+  buildEssayUploadToken,
+  buildEssayUploadUrl,
+} = require('./essay-upload.js');
+
 const FULFILLMENT_PLANS = {
   blueprint: {
     productSlug: 'blueprint',
@@ -126,6 +132,27 @@ async function fulfillPaymentIntent(options) {
   const fulfillmentProductSlugs = plan.upsellSlug
     ? `${plan.productSlug},${plan.upsellSlug}`
     : plan.productSlug;
+  const essayUploadToken = baseSlug === 'essay-marking'
+    ? buildEssayUploadToken({
+        paymentIntentId: paymentIntent.id,
+        productSlug: baseSlug,
+        upsellSlug,
+      })
+    : '';
+  const essayUploadMetadata = baseSlug === 'essay-marking'
+    ? {
+        essay_upload_required: 'true',
+        essay_upload_url: buildEssayUploadUrl({
+          paymentIntentId: paymentIntent.id,
+          productSlug: baseSlug,
+          upsellSlug,
+          uploadToken: essayUploadToken,
+          source: 'stripe_webhook',
+        }),
+        essay_upload_token: essayUploadToken,
+        essay_upload_instructions: ESSAY_UPLOAD_INSTRUCTIONS,
+      }
+    : {};
 
   await stripeClient.paymentIntents.update(paymentIntent.id, {
     metadata: {
@@ -140,6 +167,7 @@ async function fulfillPaymentIntent(options) {
       fulfillment_delivery_type: plan.deliveryType,
       fulfillment_label: plan.fulfillmentLabel,
       fulfillment_product_slugs: fulfillmentProductSlugs,
+      ...essayUploadMetadata,
     },
   });
 
@@ -150,6 +178,8 @@ async function fulfillPaymentIntent(options) {
 }
 
 fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
+fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
+fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
 
 module.exports = fulfillPaymentIntent;
