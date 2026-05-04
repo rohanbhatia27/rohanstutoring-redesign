@@ -28,8 +28,9 @@ async function publicConfigHandler(req, res) {
 
   const posthogPublicKey = String(process.env.POSTHOG_PUBLIC_KEY || '').trim();
   const posthogHost = String(process.env.POSTHOG_HOST || '').trim();
+  const paypalClientId = String(process.env.PAYPAL_CLIENT_ID || '').trim();
 
-  return res.status(200).json({ stripePublishableKey: publishableKey, amounts, posthogPublicKey, posthogHost });
+  return res.status(200).json({ stripePublishableKey: publishableKey, amounts, posthogPublicKey, posthogHost, paypalClientId });
 }
 
 publicConfigHandler.isAllowedOrigin = isAllowedOrigin;

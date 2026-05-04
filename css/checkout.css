@@ -345,6 +345,42 @@
   line-height: 1.4;
 }
 
+/* Payment method toggle */
+.payment-method-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.payment-tab {
+  flex: 1;
+  background: var(--navy-light);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+
+.payment-tab:hover {
+  border-color: var(--blue);
+  color: var(--text-light);
+}
+
+.payment-tab--active {
+  border-color: var(--blue);
+  background: rgba(22, 119, 190, 0.08);
+  color: var(--text-light);
+}
+
+#paypal-button-container {
+  margin-bottom: 10px;
+}
+
 /* Stripe card element */
 .checkout-card-wrap {
   background: var(--navy-light);

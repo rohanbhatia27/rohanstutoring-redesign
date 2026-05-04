@@ -291,6 +291,135 @@
     return `Pay $${fmtPrice(price)} AUD →`;
   }
 
+  function buildPayPalSuccessUrl(selection, paypalOrderId) {
+    const params = new URLSearchParams({ product: selection.pageSlug });
+    if (paypalOrderId) params.set('paypal_order', paypalOrderId);
+    if (selection.apiSlug && selection.apiSlug !== selection.pageSlug) {
+      params.set('package', selection.apiSlug);
+    }
+    if (selection.upsellSelected && selection.upsell) {
+      params.set('upsell', selection.upsell.slug);
+    }
+    return `/checkout/success?${params.toString()}`;
+  }
+
+  function loadPayPalSDK(clientId) {
+    return new Promise((resolve, reject) => {
+      if (global.paypal) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=AUD`;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('PayPal SDK failed to load.'));
+      document.head.appendChild(script);
+    });
+  }
+
+  function initPaymentMethodToggle(onSwitch) {
+    const toggle = qs('#payment-method-toggle');
+    const tabCard = qs('#tab-card');
+    const tabPaypal = qs('#tab-paypal');
+    if (!toggle || !tabCard || !tabPaypal) return;
+
+    toggle.hidden = false;
+
+    tabCard.addEventListener('click', () => {
+      tabCard.classList.add('payment-tab--active');
+      tabPaypal.classList.remove('payment-tab--active');
+      onSwitch('card');
+    });
+
+    tabPaypal.addEventListener('click', () => {
+      tabPaypal.classList.add('payment-tab--active');
+      tabCard.classList.remove('payment-tab--active');
+      onSwitch('paypal');
+    });
+  }
+
+  function initPayPalButtons(selection) {
+    if (!global.paypal) return;
+
+    const container = qs('#paypal-button-container');
+    if (!container || container.dataset.ppRendered) return;
+    container.dataset.ppRendered = '1';
+
+    global.paypal.Buttons({
+      style: {
+        layout: 'vertical',
+        color: 'gold',
+        shape: 'rect',
+        label: 'paypal',
+        height: 44,
+      },
+      createOrder: async () => {
+        const validation = validateForm();
+        if (!validation.ok) {
+          showCardError(validation.error);
+          throw new Error(validation.error);
+        }
+        clearCardError();
+
+        const payload = buildCheckoutPayload(selection, validation);
+        const response = await fetch('/api/create-paypal-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await parseApiResponse(response);
+        if (!result.ok || !result.data.orderID) {
+          const msg = result.data.error || 'Payment setup failed. Please try again.';
+          showCardError(msg);
+          throw new Error(msg);
+        }
+        return result.data.orderID;
+      },
+      onApprove: async (data) => {
+        const validation = validateForm();
+        if (!validation.ok) {
+          showCardError(validation.error);
+          return;
+        }
+
+        if (typeof window.posthog !== 'undefined') {
+          window.posthog.capture('checkout_payment_submitted', {
+            product: selection.pageSlug,
+            total: selection.price,
+            upsell_selected: selection.upsellSelected,
+            upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
+            payment_method: 'paypal',
+          });
+        }
+
+        try {
+          const captureResponse = await fetch('/api/capture-paypal-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderID: data.orderID,
+              slug: selection.apiSlug,
+              upsellSlug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
+              customerName: validation.billingDetails.name,
+              email: validation.billingDetails.email,
+            }),
+          });
+          const result = await parseApiResponse(captureResponse);
+          if (!result.ok || result.data.status !== 'succeeded') {
+            throw new Error(result.data.error || 'Payment capture failed. Please try again.');
+          }
+          window.location.href = buildPayPalSuccessUrl(selection, data.orderID);
+        } catch (err) {
+          showCardError(err.message || 'Payment failed. Please try again.');
+        }
+      },
+      onError: (err) => {
+        console.error('PayPal error:', err);
+        showCardError('PayPal payment failed. Please try again or pay by card.');
+      },
+    }).render('#paypal-button-container');
+  }
+
   function getOrderBumpConfig(pageSlug) {
     const bump = ORDER_BUMPS[pageSlug];
     if (!bump) return null;
@@ -880,9 +1009,11 @@
     }
 
     let stripePublishableKey = '';
+    let paypalClientId = '';
     try {
       const config = await loadCheckoutConfig();
       stripePublishableKey = String(config.stripePublishableKey || '').trim();
+      paypalClientId = String(config.paypalClientId || '').trim();
     } catch (error) {
       showCardError(error.message || 'Checkout configuration is unavailable.');
       const payButton = qs('#pay-btn');
@@ -895,6 +1026,31 @@
       const payButton = qs('#pay-btn');
       if (payButton) payButton.disabled = true;
       return;
+    }
+
+    if (paypalClientId) {
+      loadPayPalSDK(paypalClientId).then(() => {
+        initPayPalButtons(selection);
+        initPaymentMethodToggle((method) => {
+          const cardWrap = qs('#card-element-wrap');
+          const paypalContainer = qs('#paypal-button-container');
+          const payBtn = qs('#pay-btn');
+          const instalmentLink = qs('#instalment-link');
+          if (method === 'paypal') {
+            if (cardWrap) cardWrap.hidden = true;
+            if (paypalContainer) paypalContainer.hidden = false;
+            if (payBtn) payBtn.hidden = true;
+            if (instalmentLink) instalmentLink.hidden = true;
+          } else {
+            if (cardWrap) cardWrap.hidden = false;
+            if (paypalContainer) paypalContainer.hidden = true;
+            if (payBtn) payBtn.hidden = false;
+            if (product.instalment && instalmentLink) instalmentLink.hidden = false;
+          }
+        });
+      }).catch(() => {
+        // PayPal SDK failed to load — card-only mode, no toggle shown
+      });
     }
 
     let stripe;
@@ -1056,6 +1212,40 @@
       headingEl.textContent = state.heading;
       messageEl.textContent = state.message;
       document.title = getSuccessPageTitle(statusKey);
+    }
+
+    const paypalOrderId = params.get('paypal_order');
+
+    if (paypalOrderId) {
+      const upsellSlug = params.get('upsell') || '';
+      const state = getSuccessState('succeeded', productSlug);
+      renderState(state, 'succeeded');
+      renderSuccessAction(productSlug, {
+        paymentIntentId: paypalOrderId,
+        productSlug,
+        upsellSlug,
+      });
+      if (typeof window.gtag === 'function') {
+        const items = buildPurchaseItems(productSlug, upsellSlug, productSlug);
+        window.gtag('event', 'purchase', {
+          transaction_id: paypalOrderId,
+          currency: 'AUD',
+          value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
+          items,
+        });
+      }
+      if (typeof window.posthog !== 'undefined') {
+        const items = buildPurchaseItems(productSlug, upsellSlug, productSlug);
+        window.posthog.capture('checkout_completed', {
+          transaction_id: paypalOrderId,
+          currency: 'AUD',
+          value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
+          product: productSlug,
+          upsell_slug: upsellSlug || null,
+          payment_method: 'paypal',
+        });
+      }
+      return;
     }
 
     renderState(SUCCESS_STATES.verifying, 'verifying');
