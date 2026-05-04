@@ -1,5 +1,10 @@
 const { PAYPAL_API, getPayPalAccessToken } = require('./lib/paypal.js');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
+const {
+  isValidPayPalOrderId,
+  resolvePayPalPurchaseFromBody,
+  validateCompletedPayPalOrder,
+} = require('./lib/paypal-order-validation.js');
 
 const { isAllowedOrigin } = createPaymentIntentHandler;
 
@@ -24,10 +29,16 @@ async function capturePayPalOrderHandler(req, res) {
     return res.status(400).json({ error: 'Missing PayPal order ID.' });
   }
 
-  const baseSlug = String(body.slug || '').trim();
-  const upsellSlug = String(body.upsellSlug || '').trim();
-  const customerName = String(body.customerName || '').trim();
-  const email = String(body.email || '').trim();
+  if (!isValidPayPalOrderId(orderID)) {
+    return res.status(400).json({ error: 'Invalid PayPal order ID.' });
+  }
+
+  const resolved = resolvePayPalPurchaseFromBody(body);
+  if (resolved.error) {
+    return res.status(400).json({ error: resolved.error });
+  }
+
+  const { purchase, customer } = resolved;
 
   try {
     const accessToken = await getPayPalAccessToken();
@@ -51,30 +62,31 @@ async function capturePayPalOrderHandler(req, res) {
 
     const captureData = await captureResponse.json();
 
-    if (captureData.status !== 'COMPLETED') {
-      console.error('PayPal capture not completed:', captureData.status);
-      return res.status(400).json({ error: 'Payment was not completed.' });
+    const validation = validateCompletedPayPalOrder(captureData, purchase, orderID);
+    if (validation.error) {
+      console.error('PayPal capture validation failed:', validation.error);
+      return res.status(400).json({ error: validation.error });
     }
 
-    const captureUnit = captureData.purchase_units?.[0]?.payments?.captures?.[0];
-    const capturedAmount = captureUnit?.amount?.value;
-    const capturedCurrency = captureUnit?.amount?.currency_code;
-
     console.log('PayPal order captured:', {
-      orderID: captureData.id,
-      status: captureData.status,
-      amount: capturedAmount,
-      currency: capturedCurrency,
-      baseSlug,
-      upsellSlug: upsellSlug || null,
-      customerName,
-      email,
+      orderID: validation.orderID,
+      status: 'COMPLETED',
+      amount: validation.amount,
+      currency: validation.currency,
+      baseSlug: purchase.baseSlug,
+      upsellSlug: purchase.upsellSlug || null,
+      customerName: customer.customerName,
+      email: customer.email,
       fulfillmentRequired: true,
     });
 
     return res.status(200).json({
       status: 'succeeded',
-      orderID: captureData.id,
+      orderID: validation.orderID,
+      metadata: {
+        base_slug: purchase.baseSlug,
+        upsell_slug: purchase.upsellSlug || '',
+      },
     });
   } catch (err) {
     console.error('PayPal capture error:', err.message);

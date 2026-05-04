@@ -22,11 +22,18 @@ const {
   parseApiResponse,
   fetchCheckoutConfig,
   fetchPaymentIntentStatus,
+  fetchPayPalOrderStatus,
   getSuccessPageTitle,
   getCustomerPayload,
   buildCheckoutPayload,
+  initSuccessPage,
 } = require('../js/checkout.js');
 const createPaymentIntentHandler = require('../api/create-payment-intent.js');
+const createPayPalOrderHandler = require('../api/create-paypal-order.js');
+const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
+const paypalOrderStatusHandler = require('../api/paypal-order-status.js');
+const paypalWebhookHandler = require('../api/paypal-webhook.js');
+const paypalValidation = require('../api/lib/paypal-order-validation.js');
 const paymentIntentStatusHandler = require('../api/payment-intent-status.js');
 const publicConfigHandler = require('../api/public-config.js');
 
@@ -508,6 +515,518 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
     }).error,
     'This product is currently unavailable.'
   );
+});
+
+test('PayPal validation formats cents and custom IDs from server-side purchase data', () => {
+  const purchase = createPaymentIntentHandler.resolveCheckoutPurchase({
+    slug: 'blueprint',
+    upsellSlug: 'essay-pack-10',
+  });
+
+  assert.equal(paypalValidation.formatPayPalAmount(purchase.amount), '848.00');
+  assert.equal(paypalValidation.getPayPalPurchaseCustomId(purchase), 'blueprint+essay-pack-10');
+});
+
+test('PayPal validation rejects mismatched capture amount and currency', () => {
+  const purchase = createPaymentIntentHandler.resolveCheckoutPurchase({
+    slug: 'blueprint',
+  });
+
+  const mismatch = paypalValidation.validateCompletedPayPalOrder(
+    {
+      id: 'ORDER123',
+      status: 'COMPLETED',
+      purchase_units: [
+        {
+          custom_id: 'blueprint',
+          payments: {
+            captures: [
+              {
+                status: 'COMPLETED',
+                amount: { value: '34.99', currency_code: 'AUD' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    purchase,
+    'ORDER123'
+  );
+
+  assert.equal(mismatch.error, 'Captured PayPal amount does not match checkout amount.');
+
+  const wrongCurrency = paypalValidation.validateCompletedPayPalOrder(
+    {
+      id: 'ORDER123',
+      status: 'COMPLETED',
+      purchase_units: [
+        {
+          custom_id: 'blueprint',
+          payments: {
+            captures: [
+              {
+                status: 'COMPLETED',
+                amount: { value: '599.00', currency_code: 'USD' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    purchase,
+    'ORDER123'
+  );
+
+  assert.equal(wrongCurrency.error, 'Captured PayPal currency does not match checkout currency.');
+});
+
+test('PayPal validation rejects captures without completed status', () => {
+  const purchase = createPaymentIntentHandler.resolveCheckoutPurchase({
+    slug: 'blueprint',
+  });
+
+  const missingCaptureStatus = paypalValidation.validateCompletedPayPalOrder(
+    {
+      id: 'ORDER123',
+      status: 'COMPLETED',
+      purchase_units: [
+        {
+          custom_id: 'blueprint',
+          payments: {
+            captures: [
+              {
+                amount: { value: '599.00', currency_code: 'AUD' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    purchase,
+    'ORDER123'
+  );
+
+  assert.equal(missingCaptureStatus.error, 'PayPal capture was not completed.');
+});
+
+test('PayPal capture handler rejects completed orders with mismatched amounts', async () => {
+  process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
+  process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  const previousFetch = global.fetch;
+  const fetchCalls = [];
+
+  global.fetch = async (url, options) => {
+    fetchCalls.push({ url: String(url), options });
+
+    if (String(url).includes('/v1/oauth2/token')) {
+      return {
+        ok: true,
+        json: async () => ({ access_token: 'access_token_test' }),
+      };
+    }
+
+    if (String(url).includes('/v2/checkout/orders/ORDER123/capture')) {
+      return {
+        ok: true,
+        json: async () => ({
+          id: 'ORDER123',
+          status: 'COMPLETED',
+          purchase_units: [
+            {
+              custom_id: 'blueprint',
+              payments: {
+                captures: [
+                  {
+                    status: 'COMPLETED',
+                    amount: { value: '34.99', currency_code: 'AUD' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        orderID: 'ORDER123',
+        slug: 'blueprint',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await capturePayPalOrderHandler(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, {
+      error: 'Captured PayPal amount does not match checkout amount.',
+    });
+    assert.equal(fetchCalls.length, 2);
+  } finally {
+    global.fetch = previousFetch;
+    delete process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_SECRET;
+  }
+});
+
+test('PayPal capture handler accepts only validated completed checkout orders', async () => {
+  process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
+  process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  const previousFetch = global.fetch;
+
+  global.fetch = async (url) => {
+    if (String(url).includes('/v1/oauth2/token')) {
+      return {
+        ok: true,
+        json: async () => ({ access_token: 'access_token_test' }),
+      };
+    }
+
+    if (String(url).includes('/v2/checkout/orders/ORDER123/capture')) {
+      return {
+        ok: true,
+        json: async () => ({
+          id: 'ORDER123',
+          status: 'COMPLETED',
+          purchase_units: [
+            {
+              custom_id: 'blueprint',
+              payments: {
+                captures: [
+                  {
+                    status: 'COMPLETED',
+                    amount: { value: '599.00', currency_code: 'AUD' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        orderID: 'ORDER123',
+        slug: 'blueprint',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await capturePayPalOrderHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      status: 'succeeded',
+      orderID: 'ORDER123',
+      metadata: {
+        base_slug: 'blueprint',
+        upsell_slug: '',
+      },
+    });
+  } finally {
+    global.fetch = previousFetch;
+    delete process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_SECRET;
+  }
+});
+
+test('PayPal order status handler rejects invalid order IDs before PayPal calls', async () => {
+  const previousFetch = global.fetch;
+  let fetchCalled = false;
+  global.fetch = async () => {
+    fetchCalled = true;
+    throw new Error('fetch should not be called');
+  };
+
+  try {
+    const req = {
+      method: 'GET',
+      headers: { origin: 'https://rohanstutoring.com' },
+      query: {
+        paypal_order: '../bad',
+        product: 'blueprint',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await paypalOrderStatusHandler(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { error: 'Invalid PayPal order ID.' });
+    assert.equal(fetchCalled, false);
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('PayPal order status handler verifies completed order with PayPal before returning success', async () => {
+  process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
+  process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  const previousFetch = global.fetch;
+
+  global.fetch = async (url) => {
+    if (String(url).includes('/v1/oauth2/token')) {
+      return {
+        ok: true,
+        json: async () => ({ access_token: 'access_token_test' }),
+      };
+    }
+
+    if (String(url).includes('/v2/checkout/orders/ORDER123')) {
+      return {
+        ok: true,
+        json: async () => ({
+          id: 'ORDER123',
+          status: 'COMPLETED',
+          purchase_units: [
+            {
+              custom_id: 'blueprint',
+              payments: {
+                captures: [
+                  {
+                    status: 'COMPLETED',
+                    amount: { value: '599.00', currency_code: 'AUD' },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const req = {
+      method: 'GET',
+      headers: { origin: 'https://rohanstutoring.com' },
+      query: {
+        paypal_order: 'ORDER123',
+        product: 'blueprint',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await paypalOrderStatusHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      status: 'succeeded',
+      orderID: 'ORDER123',
+      metadata: {
+        base_slug: 'blueprint',
+        upsell_slug: '',
+      },
+    });
+  } finally {
+    global.fetch = previousFetch;
+    delete process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_SECRET;
+  }
+});
+
+test('fetchPayPalOrderStatus verifies PayPal success through the API endpoint', async () => {
+  const previousFetch = global.fetch;
+
+  global.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      '/api/paypal-order-status?paypal_order=ORDER123&product=private-mentoring&package=mentoring-pack&upsell=essay-collection'
+    );
+
+    return {
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: async () => JSON.stringify({
+        status: 'succeeded',
+        orderID: 'ORDER123',
+        metadata: {
+          base_slug: 'mentoring-pack',
+          upsell_slug: 'essay-collection',
+        },
+      }),
+    };
+  };
+
+  try {
+    const payload = await fetchPayPalOrderStatus({
+      orderID: 'ORDER123',
+      productSlug: 'private-mentoring',
+      packageSlug: 'mentoring-pack',
+      upsellSlug: 'essay-collection',
+    });
+
+    assert.deepEqual(payload, {
+      status: 'succeeded',
+      orderID: 'ORDER123',
+      metadata: {
+        base_slug: 'mentoring-pack',
+        upsell_slug: 'essay-collection',
+      },
+    });
+  } finally {
+    global.fetch = previousFetch;
+  }
+});
+
+test('initSuccessPage shows PayPal verification before failing an unverified order', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const elements = {
+    '#success-message': { textContent: '' },
+    '#success-heading': { textContent: '' },
+    '#success-icon': { textContent: '' },
+    '#success-action': { innerHTML: '', hidden: true },
+  };
+
+  global.window = {
+    location: {
+      search: '?product=blueprint&paypal_order=ORDER123',
+    },
+  };
+  global.document = {
+    title: '',
+    querySelector: (selector) => elements[selector] || null,
+  };
+  global.fetch = async () => ({
+    ok: false,
+    text: async () => JSON.stringify({ error: 'Payment was not completed.' }),
+  });
+
+  try {
+    const renderPromise = initSuccessPage();
+
+    assert.equal(elements['#success-heading'].textContent, 'Checking payment');
+    assert.equal(global.document.title, "Checking Payment | Rohan's GAMSAT");
+
+    await renderPromise;
+
+    assert.equal(elements['#success-heading'].textContent, 'Payment not confirmed');
+    assert.equal(global.document.title, "Payment Not Confirmed | Rohan's GAMSAT");
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+  }
+});
+
+test('PayPal webhook rejects requests before verification when webhook ID is missing', async () => {
+  const previousWebhookId = process.env.PAYPAL_WEBHOOK_ID;
+  const req = {
+    method: 'POST',
+    headers: {},
+    body: {},
+  };
+  const res = createJsonResponseRecorder();
+
+  delete process.env.PAYPAL_WEBHOOK_ID;
+
+  try {
+    await paypalWebhookHandler(req, res);
+
+    assert.equal(res.statusCode, 500);
+    assert.deepEqual(res.body, { error: 'PayPal webhook is not configured.' });
+  } finally {
+    if (previousWebhookId === undefined) {
+      delete process.env.PAYPAL_WEBHOOK_ID;
+    } else {
+      process.env.PAYPAL_WEBHOOK_ID = previousWebhookId;
+    }
+  }
+});
+
+test('PayPal webhook verifies signature and acknowledges capture completed events', async () => {
+  process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
+  process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  process.env.PAYPAL_WEBHOOK_ID = 'webhook_id_test';
+  const previousFetch = global.fetch;
+  const calls = [];
+
+  global.fetch = async (url, options) => {
+    calls.push({ url: String(url), options });
+
+    if (String(url).includes('/v1/oauth2/token')) {
+      return {
+        ok: true,
+        json: async () => ({ access_token: 'access_token_test' }),
+      };
+    }
+
+    if (String(url).includes('/v1/notifications/verify-webhook-signature')) {
+      return {
+        ok: true,
+        json: async () => ({ verification_status: 'SUCCESS' }),
+      };
+    }
+
+    return {
+      ok: false,
+      json: async () => ({}),
+    };
+  };
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: {
+        'paypal-auth-algo': 'SHA256withRSA',
+        'paypal-cert-url': 'https://api-m.paypal.com/certs/test',
+        'paypal-transmission-id': 'transmission_id_test',
+        'paypal-transmission-sig': 'signature_test',
+        'paypal-transmission-time': '2026-05-04T00:00:00Z',
+      },
+      body: {
+        id: 'WH-123',
+        event_type: 'PAYMENT.CAPTURE.COMPLETED',
+        resource: {
+          id: 'CAPTURE123',
+          amount: { value: '599.00', currency_code: 'AUD' },
+          supplementary_data: {
+            related_ids: {
+              order_id: 'ORDER123',
+            },
+          },
+        },
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await paypalWebhookHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { received: true });
+    assert.equal(
+      calls.some((call) => call.url.includes('/v1/notifications/verify-webhook-signature')),
+      true
+    );
+  } finally {
+    global.fetch = previousFetch;
+    delete process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_SECRET;
+    delete process.env.PAYPAL_WEBHOOK_ID;
+  }
 });
 
 test('isProductAvailable flags sold-out sprint slugs as unavailable', () => {

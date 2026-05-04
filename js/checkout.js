@@ -658,6 +658,27 @@
     return result.data;
   }
 
+  async function fetchPayPalOrderStatus({
+    orderID = '',
+    productSlug = '',
+    packageSlug = '',
+    upsellSlug = '',
+  } = {}) {
+    const params = new URLSearchParams();
+    params.set('paypal_order', String(orderID || '').trim());
+    if (productSlug) params.set('product', String(productSlug).trim());
+    if (packageSlug) params.set('package', String(packageSlug).trim());
+    if (upsellSlug) params.set('upsell', String(upsellSlug).trim());
+
+    const response = await global.fetch(`/api/paypal-order-status?${params.toString()}`);
+    const result = await parseApiResponse(response);
+    if (!result.ok) {
+      throw new Error(result.data.error || 'We could not verify this PayPal payment.');
+    }
+
+    return result.data;
+  }
+
   async function fetchCheckoutConfig() {
     const response = await global.fetch('/api/public-config');
     const result = await parseApiResponse(response);
@@ -1217,33 +1238,53 @@
     const paypalOrderId = params.get('paypal_order');
 
     if (paypalOrderId) {
-      const upsellSlug = params.get('upsell') || '';
-      const state = getSuccessState('succeeded', productSlug);
-      renderState(state, 'succeeded');
-      renderSuccessAction(productSlug, {
-        paymentIntentId: paypalOrderId,
-        productSlug,
-        upsellSlug,
-      });
-      if (typeof window.gtag === 'function') {
-        const items = buildPurchaseItems(productSlug, upsellSlug, productSlug);
-        window.gtag('event', 'purchase', {
-          transaction_id: paypalOrderId,
-          currency: 'AUD',
-          value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
-          items,
+      renderState(SUCCESS_STATES.verifying, 'verifying');
+
+      try {
+        const packageSlug = params.get('package') || '';
+        const upsellSlug = params.get('upsell') || '';
+        const statusPayload = await fetchPayPalOrderStatus({
+          orderID: paypalOrderId,
+          productSlug,
+          packageSlug,
+          upsellSlug,
         });
-      }
-      if (typeof window.posthog !== 'undefined') {
-        const items = buildPurchaseItems(productSlug, upsellSlug, productSlug);
-        window.posthog.capture('checkout_completed', {
-          transaction_id: paypalOrderId,
-          currency: 'AUD',
-          value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
-          product: productSlug,
-          upsell_slug: upsellSlug || null,
-          payment_method: 'paypal',
-        });
+        const metadata = statusPayload.metadata || {};
+        const successProductSlug = metadata.base_slug || packageSlug || productSlug;
+        const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
+        const verifiedUpsellSlug = metadata.upsell_slug || upsellSlug || '';
+        const state = getSuccessState(statusPayload.status, successMessageProductSlug);
+
+        renderState(state, statusPayload.status);
+        if (statusPayload.status === 'succeeded') {
+          renderSuccessAction(successMessageProductSlug, {
+            paymentIntentId: paypalOrderId,
+            productSlug: successMessageProductSlug,
+            upsellSlug: verifiedUpsellSlug,
+          });
+          if (typeof window.gtag === 'function') {
+            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
+            window.gtag('event', 'purchase', {
+              transaction_id: paypalOrderId,
+              currency: 'AUD',
+              value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
+              items,
+            });
+          }
+          if (typeof window.posthog !== 'undefined') {
+            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
+            window.posthog.capture('checkout_completed', {
+              transaction_id: paypalOrderId,
+              currency: 'AUD',
+              value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
+              product: successMessageProductSlug,
+              upsell_slug: verifiedUpsellSlug || null,
+              payment_method: 'paypal',
+            });
+          }
+        }
+      } catch (error) {
+        renderState(SUCCESS_STATES.failed, 'failed');
       }
       return;
     }
@@ -1322,6 +1363,7 @@
     fetchCheckoutConfig,
     loadCheckoutConfig,
     fetchPaymentIntentStatus,
+    fetchPayPalOrderStatus,
     getCustomerPayload,
     buildCheckoutPayload,
     renderSummaryMarkup,

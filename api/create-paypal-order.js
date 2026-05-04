@@ -1,5 +1,10 @@
 const { PAYPAL_API, getPayPalAccessToken } = require('./lib/paypal.js');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
+const {
+  PAYPAL_CURRENCY,
+  formatPayPalAmount,
+  getPayPalPurchaseCustomId,
+} = require('./lib/paypal-order-validation.js');
 
 const { isAllowedOrigin, resolveCheckoutPurchase, normaliseCustomerDetails } = createPaymentIntentHandler;
 
@@ -29,7 +34,8 @@ async function createPayPalOrderHandler(req, res) {
     return res.status(400).json({ error: customer.error });
   }
 
-  const amountValue = (purchase.amount / 100).toFixed(2);
+  const amountValue = formatPayPalAmount(purchase.amount);
+  const customId = getPayPalPurchaseCustomId(purchase);
   const description = purchase.upsellSlug
     ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
     : `Rohan's GAMSAT - ${purchase.baseSlug}`;
@@ -48,10 +54,10 @@ async function createPayPalOrderHandler(req, res) {
         purchase_units: [
           {
             amount: {
-              currency_code: 'AUD',
+              currency_code: PAYPAL_CURRENCY,
               value: amountValue,
             },
-            custom_id: purchase.baseSlug,
+            custom_id: customId,
             description,
           },
         ],
