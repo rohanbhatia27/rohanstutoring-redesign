@@ -887,6 +887,14 @@ body.menu-open .nav::after {
   flex: 1;
   min-width: 0;
 }
+.hero__cta-proof {
+  display: none;
+  width: 100%;
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
 
 /* ============================================
    HERO RESPONSIVE
@@ -912,15 +920,16 @@ body.menu-open .nav::after {
     min-height: auto;
   }
   .hero__inner {
-    padding-top: calc(var(--header-height) + 48px);
-    padding-bottom: 64px;
+    padding-top: calc(var(--header-height) + 36px);
+    padding-bottom: 56px;
   }
   .hero__content { max-width: 100%; }
   .hero__photo-col { display: none; }
   .hero__grain { display: none; }
   .hero__urgency {
-    margin-bottom: 18px;
-    font-size: 0.76rem;
+    margin-bottom: 16px;
+    font-size: 0.74rem;
+    line-height: 1.45;
   }
   .hero__headline {
     max-width: 10ch;
@@ -928,7 +937,7 @@ body.menu-open .nav::after {
   }
   .hero__sub {
     font-size: 1rem;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
   }
   .hero__proof {
     gap: 10px;
@@ -940,16 +949,24 @@ body.menu-open .nav::after {
   }
 }
 
-/* Small phones */
-@media (max-width: 480px) {
-  .hero__inner {
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: calc(var(--header-height) + 36px);
-    padding-bottom: 52px;
+/* Phone layout */
+@media (max-width: 640px) {
+  .hero__headline,
+  .hero__sub,
+  .hero__proof {
+    text-align: center;
+  }
+  .hero__headline,
+  .hero__sub {
+    margin-left: auto;
+    margin-right: auto;
   }
   .hero__proof {
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 28px;
+    justify-items: center;
   }
   .hero__proof-separator {
     display: none;
@@ -957,10 +974,6 @@ body.menu-open .nav::after {
   .hero__proof-item {
     width: 100%;
   }
-}
-
-/* Very small phones — stack CTA buttons */
-@media (max-width: 400px) {
   .hero__ctas {
     flex-direction: column;
     gap: 10px;
@@ -968,7 +981,35 @@ body.menu-open .nav::after {
   .hero__ctas .btn--lg {
     width: 100%;
     justify-content: center;
-    padding: 14px 20px;
+    padding: 15px 20px;
+  }
+  .hero__cta-proof {
+    display: block;
+    text-align: center;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .hero__inner {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: calc(var(--header-height) + 26px);
+    padding-bottom: 48px;
+  }
+  .hero__headline {
+    max-width: 100%;
+    font-size: 2.35rem;
+  }
+}
+
+/* Very small phones — stack CTA buttons */
+@media (max-width: 400px) {
+  .hero__headline {
+    font-size: 2.2rem;
+  }
+  .hero__ctas .btn--lg {
+    padding: 14px 18px;
   }
 }
 
@@ -2060,7 +2101,7 @@ img[loading="lazy"] {
     padding: 40px 32px;
     gap: 28px;
   }
-  .slam__content { max-width: none; }
+  .slam__content { max-width: none; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .slam__preview {
     flex-basis: auto;
     max-width: none;
@@ -2358,13 +2399,13 @@ img[loading="lazy"] {
   gap: 4px;
 }
 .versus__col-head--them {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.22);
 }
 .versus__col-head--us {
-  background: linear-gradient(135deg, rgba(22, 119, 190, 0.22), rgba(22, 119, 190, 0.06));
-  border: 1px solid rgba(91, 164, 224, 0.45);
-  box-shadow: 0 8px 32px rgba(22, 119, 190, 0.18);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.07));
+  border: 1px solid rgba(52, 211, 153, 0.42);
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.14);
 }
 .versus__col-name {
   font-size: 0.74rem;
@@ -2373,7 +2414,7 @@ img[loading="lazy"] {
   text-transform: uppercase;
   color: var(--text-dark-muted);
 }
-.versus__col-head--us .versus__col-name { color: var(--blue-light); }
+.versus__col-head--us .versus__col-name { color: #34d399; }
 .versus__col-price {
   font-family: var(--font-heading);
   font-size: 1.55rem;
@@ -2413,13 +2454,13 @@ img[loading="lazy"] {
   line-height: 1.5;
 }
 .versus__row-cell--them {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(220, 38, 38, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.18);
   color: var(--text-dark-muted);
 }
 .versus__row-cell--us {
-  background: rgba(22, 119, 190, 0.09);
-  border: 1px solid rgba(91, 164, 224, 0.28);
+  background: rgba(16, 185, 129, 0.09);
+  border: 1px solid rgba(52, 211, 153, 0.28);
   color: var(--white);
 }
 .versus__icon {
