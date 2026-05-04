@@ -159,6 +159,16 @@
       "permanent": true
     },
     {
+      "source": "/courses/s1-comprehensive.html",
+      "destination": "/courses/s1-comprehensive",
+      "permanent": true
+    },
+    {
+      "source": "/courses/s2-comprehensive.html",
+      "destination": "/courses/s2-comprehensive",
+      "permanent": true
+    },
+    {
       "source": "/courses/essay-collection.html",
       "destination": "/courses/essay-collection",
       "permanent": true
