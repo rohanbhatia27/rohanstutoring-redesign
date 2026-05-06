@@ -1034,7 +1034,8 @@
     try {
       const config = await loadCheckoutConfig();
       stripePublishableKey = String(config.stripePublishableKey || '').trim();
-      paypalClientId = String(config.paypalClientId || '').trim();
+      // PayPal temporarily disabled — merchant account pending verification
+      // paypalClientId = String(config.paypalClientId || '').trim();
     } catch (error) {
       showCardError(error.message || 'Checkout configuration is unavailable.');
       const payButton = qs('#pay-btn');

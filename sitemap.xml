@@ -110,6 +110,18 @@
     <changefreq>monthly</changefreq>
   </url>
 
+  <!-- Location pages -->
+  <url>
+    <loc>https://www.rohanstutoring.com/uk-gamsat</loc>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/ireland-gamsat</loc>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
   <!-- Blog posts -->
   <url>
     <loc>https://www.rohanstutoring.com/blog/how-i-aced-section-1-gamsat</loc>
