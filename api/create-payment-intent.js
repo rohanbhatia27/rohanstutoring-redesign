@@ -43,6 +43,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
+function getUpsellAmount(baseSlug, upsellSlug) {
+  if (baseSlug === 'comprehensive' && upsellSlug === 'mentoring-single') {
+    return 9900;
+  }
+
+  return AMOUNTS[upsellSlug];
+}
+
 function normaliseOriginHost(value) {
   return String(value || '')
     .trim()
@@ -122,7 +130,7 @@ function resolveCheckoutPurchase(body) {
     };
   }
 
-  const upsellAmount = AMOUNTS[upsellSlug];
+  const upsellAmount = getUpsellAmount(baseSlug, upsellSlug);
   if (!upsellAmount) {
     return { error: 'Invalid upsell slug: ' + upsellSlug };
   }
@@ -259,6 +267,7 @@ createPaymentIntentHandler.buildEssayUploadToken = buildEssayUploadToken;
 createPaymentIntentHandler.buildEssayUploadUrl = buildEssayUploadUrl;
 createPaymentIntentHandler.isAllowedUpsellCombination = isAllowedUpsellCombination;
 createPaymentIntentHandler.normaliseUpsellSlug = normaliseUpsellSlug;
+createPaymentIntentHandler.getUpsellAmount = getUpsellAmount;
 createPaymentIntentHandler.resolveCheckoutPurchase = resolveCheckoutPurchase;
 createPaymentIntentHandler.__setStripeFactory = (value) => {
   stripeFactory = value;

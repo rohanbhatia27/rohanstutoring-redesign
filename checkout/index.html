@@ -20,11 +20,17 @@
   <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body class="checkout-page">
+  <div class="checkout-backdrop" aria-hidden="true">
+    <span class="checkout-backdrop__orb checkout-backdrop__orb--one"></span>
+    <span class="checkout-backdrop__orb checkout-backdrop__orb--two"></span>
+    <span class="checkout-backdrop__grid"></span>
+  </div>
+
   <header class="checkout-header">
     <a href="/" class="checkout-logo">
       <img src="../assets/logo.webp" alt="Rohan's GAMSAT" class="checkout-logo__img">
     </a>
-    <span class="checkout-secure">Secure checkout</span>
+    <span class="checkout-secure">SSL encrypted checkout</span>
   </header>
 
   <main class="checkout-main">
@@ -37,6 +43,12 @@
 
       <div class="checkout-right">
         <form id="checkout-form">
+          <div class="checkout-form-intro">
+            <p class="checkout-form-intro__eyebrow">Secure enrolment</p>
+            <h1 class="checkout-form-intro__title">Complete your place in under a minute.</h1>
+            <p class="checkout-form-intro__copy">Your payment is processed securely. Course access and next steps are sent to your email after confirmation.</p>
+          </div>
+
           <p class="checkout-section-label">Your details</p>
 
           <div class="checkout-row">
@@ -53,7 +65,7 @@
           <div class="checkout-field">
             <label class="checkout-label" for="email">Email address</label>
             <input class="checkout-input" id="email" type="email" autocomplete="email" placeholder="jane@gmail.com" required>
-            <p class="checkout-gmail-note" id="gmail-note" hidden>Gmail preferred, since content is shared via Google Drive</p>
+            <p class="checkout-gmail-note" id="gmail-note" hidden></p>
           </div>
 
           <div class="checkout-field">
@@ -61,11 +73,22 @@
             <input class="checkout-input" id="billing-address" type="text" autocomplete="street-address" placeholder="123 Example St, Melbourne VIC 3000" required>
           </div>
 
-          <p class="checkout-section-label" style="margin-top: 24px;">Payment</p>
+          <div class="checkout-payment-heading">
+            <p class="checkout-section-label">Payment</p>
+            <span>Card charged in AUD</span>
+          </div>
+
+          <div id="payment-mode-slot" hidden></div>
 
           <div class="payment-method-toggle" id="payment-method-toggle" hidden style="display:none">
             <button class="payment-tab payment-tab--active" id="tab-card" type="button">Card</button>
             <button class="payment-tab" id="tab-paypal" type="button">PayPal</button>
+          </div>
+
+          <div class="checkout-payment-methods" aria-label="Accepted payment methods">
+            <span class="checkout-payment-methods__item checkout-payment-methods__item--visa"><img src="../assets/payment/visa-desktop.png" alt="Visa"></span>
+            <span class="checkout-payment-methods__item checkout-payment-methods__item--mastercard"><img src="../assets/payment/mastercard-desktop.png" alt="Mastercard"></span>
+            <span class="checkout-payment-methods__item checkout-payment-methods__item--amex"><img src="../assets/payment/amex-desktop.png" alt="American Express"></span>
           </div>
 
           <div class="checkout-card-wrap" id="card-element-wrap">
@@ -83,6 +106,8 @@
 
           <div class="checkout-upsell" id="checkout-upsell-slot" hidden></div>
 
+          <div id="instalment-summary-slot" hidden></div>
+
           <button class="checkout-pay-btn" id="pay-btn" type="submit" disabled>
             <span id="pay-btn-label">&nbsp;</span>
           </button>
@@ -90,9 +115,9 @@
           <a class="checkout-instalment-link" id="instalment-link" href="#" hidden></a>
 
           <div class="checkout-security">
-            <span>SSL encrypted</span>
-            <span>Powered by Stripe</span>
-            <span>Secure payment</span>
+            <span>Encrypted card payment</span>
+            <span>Refund guarantee honoured</span>
+            <span>Receipt sent automatically</span>
           </div>
         </form>
       </div>

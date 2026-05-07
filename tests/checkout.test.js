@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const {
   EMAIL_PATTERN,
@@ -8,9 +10,18 @@ const {
   getProductFromSearch,
   getInitialSelection,
   getOrderBumpConfig,
+  updateSelectionPrice,
+  getPaymentModeOptions,
+  getInstalmentPlanSummary,
+  buildPaymentModeMarkup,
+  buildInstalmentSummaryMarkup,
   renderSummaryMarkup,
   buildOrderBumpMarkup,
+  buildCheckoutAssuranceMarkup,
+  buildInstalmentLinkMarkup,
+  getPrimaryButtonLabel,
   getPayButtonLabel,
+  getPayButtonPendingLabel,
   getSuccessMessage,
   getSuccessActionMarkup,
   buildSuccessUrl,
@@ -26,9 +37,11 @@ const {
   getSuccessPageTitle,
   getCustomerPayload,
   buildCheckoutPayload,
+  initCheckoutPage,
   initSuccessPage,
 } = require('../js/checkout.js');
 const createPaymentIntentHandler = require('../api/create-payment-intent.js');
+const createInstalmentSessionHandler = require('../api/create-instalment-session.js');
 const createPayPalOrderHandler = require('../api/create-paypal-order.js');
 const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
 const paypalOrderStatusHandler = require('../api/paypal-order-status.js');
@@ -36,6 +49,7 @@ const paypalWebhookHandler = require('../api/paypal-webhook.js');
 const paypalValidation = require('../api/lib/paypal-order-validation.js');
 const paymentIntentStatusHandler = require('../api/payment-intent-status.js');
 const publicConfigHandler = require('../api/public-config.js');
+const stripeWebhookHandler = require('../api/stripe-webhook.js');
 
 function createJsonResponseRecorder() {
   return {
@@ -48,6 +62,115 @@ function createJsonResponseRecorder() {
     json(payload) {
       this.body = payload;
       return this;
+    },
+  };
+}
+
+function createDeferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
+function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
+  const payBtn = { disabled: true, hidden: false };
+  const payBtnLabel = { textContent: '' };
+  const paymentModeSlot = {
+    hidden: true,
+    innerHTML: '',
+    listeners: {},
+    addEventListener(type, handler) {
+      this.listeners[type] = handler;
+    },
+  };
+  const cardError = {
+    hidden: true,
+    textContent: '',
+    focus() {},
+    scrollIntoView() {},
+  };
+  const fullInput = { value: 'full', checked: true };
+  const instalmentInput = { value: 'instalments', checked: false };
+  const optionFactory = (input) => ({
+    classList: { toggle() {} },
+    querySelector(selector) {
+      return selector === '.payment-mode-option__input' ? input : null;
+    },
+  });
+  const form = {
+    submitHandler: null,
+    addEventListener(type, handler) {
+      if (type === 'submit') this.submitHandler = handler;
+    },
+  };
+  const elements = {
+    '#checkout-grid': { hidden: true },
+    '#checkout-not-found': { hidden: true, innerHTML: '' },
+    '#checkout-summary': {
+      innerHTML: '',
+      querySelector() {
+        return null;
+      },
+    },
+    '#payment-mode-slot': paymentModeSlot,
+    '#pay-btn': payBtn,
+    '#pay-btn-label': payBtnLabel,
+    '#card-error': cardError,
+    '#checkout-upsell-slot': { hidden: true, innerHTML: '' },
+    '#instalment-summary-slot': { hidden: true, innerHTML: '' },
+    '#card-element-wrap': { hidden: false },
+    '#card-element': { hidden: false },
+    '#checkout-form': form,
+    '#instalment-link': { hidden: true, href: '', innerHTML: '' },
+    '#first-name': { value: 'Jane' },
+    '#last-name': { value: 'Smith' },
+    '#email': {
+      value: 'jane@example.com',
+      checkValidity() {
+        return true;
+      },
+    },
+    '#billing-address': { value: '123 Test Street' },
+    '#gmail-note': { hidden: true },
+    '#essay-banner': { hidden: true },
+    '#paypal-button-container': { hidden: true, dataset: {} },
+    '#payment-method-toggle': { hidden: true },
+    '#tab-card': { addEventListener() {}, classList: { add() {}, remove() {} } },
+    '#tab-paypal': { addEventListener() {}, classList: { add() {}, remove() {} } },
+  };
+
+  return {
+    payBtn,
+    payBtnLabel,
+    paymentModeSlot,
+    fullInput,
+    instalmentInput,
+    form,
+    windowObject: {
+      location: {
+        search: productSearch,
+        href: '',
+      },
+    },
+    documentObject: {
+      title: '',
+      querySelector(selector) {
+        return elements[selector] || null;
+      },
+      querySelectorAll(selector) {
+        if (selector === '.payment-mode-option') {
+          return [optionFactory(fullInput), optionFactory(instalmentInput)];
+        }
+        if (selector === '.payment-mode-option__input') {
+          return [fullInput, instalmentInput];
+        }
+        return [];
+      },
     },
   };
 }
@@ -97,8 +220,10 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
     slug: 'mentoring-single',
     title: 'Add one 1:1 strategy class',
     description: 'Private strategy session with a top tutor before classes begin',
-    price: 119,
-    badge: 'Optional add-on',
+    price: 99,
+    priceWas: 119,
+    badge: 'Enrolment-only offer',
+    lockRuntimePrice: true,
   });
 
   assert.deepEqual(getOrderBumpConfig('advanced'), {
@@ -146,6 +271,29 @@ test('renderSummaryMarkup renders standard products with included features', () 
   assert.match(markup, /\$599 AUD/);
 });
 
+test('comprehensive checkout summary uses the May 2026 course title without cohort tagline', () => {
+  const markup = renderSummaryMarkup(PRODUCTS.comprehensive, getInitialSelection('comprehensive', PRODUCTS.comprehensive));
+
+  assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(May 2026 Start\)/);
+  assert.doesNotMatch(markup, /24 live classes · 50\+ hrs content · September cohort/);
+});
+
+test('checkout page uses local payment provider logo assets', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../checkout/index.html'), 'utf8');
+  const logoFiles = [
+    '../assets/payment/visa-desktop.png',
+    '../assets/payment/mastercard-desktop.png',
+    '../assets/payment/amex-desktop.png',
+  ];
+
+  for (const logoFile of logoFiles) {
+    assert.match(html, new RegExp(logoFile.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.equal(fs.existsSync(path.join(__dirname, '../checkout', logoFile)), true);
+  }
+
+  assert.doesNotMatch(html, /stripe\.svg/);
+});
+
 test('renderSummaryMarkup renders mentoring selector with active default package', () => {
   const product = PRODUCTS['private-mentoring'];
   const markup = renderSummaryMarkup(product, getInitialSelection('private-mentoring', product));
@@ -174,9 +322,582 @@ test('buildOrderBumpMarkup renders an unchecked opt-in card', () => {
   assert.doesNotMatch(markup, /checked/);
 });
 
+test('buildOrderBumpMarkup renders the comprehensive enrolment-only discount with strikethrough pricing', () => {
+  const markup = buildOrderBumpMarkup(
+    getOrderBumpConfig('comprehensive'),
+    getInitialSelection('comprehensive', PRODUCTS.comprehensive)
+  );
+
+  assert.match(markup, /Enrolment-only offer/);
+  assert.match(markup, /\$119/);
+  assert.match(markup, /\+\$99/);
+});
+
+test('buildCheckoutAssuranceMarkup renders compact trust proof for the payment step', () => {
+  const markup = buildCheckoutAssuranceMarkup();
+
+  assert.match(markup, /checkout-assurance/);
+  assert.match(markup, /Encrypted card payment/);
+  assert.match(markup, /Refund guarantee honoured/);
+  assert.match(markup, /Receipt sent automatically/);
+});
+
+test('buildInstalmentLinkMarkup renders instalment plans as a deliberate checkout option', () => {
+  const markup = buildInstalmentLinkMarkup(PRODUCTS.comprehensive);
+
+  assert.match(markup, /checkout-instalment-link__eyebrow/);
+  assert.match(markup, /Pay in 4 instalments/);
+  assert.match(markup, /\$449 × 4 instalments/);
+  assert.match(markup, /Opens secure Stripe instalment checkout/);
+});
+
+test('getPaymentModeOptions returns instalment mode for comprehensive and mastery only', () => {
+  assert.deepEqual(getPaymentModeOptions('comprehensive'), ['full', 'instalments']);
+  assert.deepEqual(getPaymentModeOptions('mastery'), ['full', 'instalments']);
+  assert.deepEqual(getPaymentModeOptions('advanced'), ['full']);
+});
+
+test('getInstalmentPlanSummary returns first payment and future monthly copy for comprehensive', () => {
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  selection.paymentMode = 'instalments';
+
+  const summary = getInstalmentPlanSummary(selection);
+
+  assert.equal(summary.dueToday, 449);
+  assert.equal(summary.futurePaymentAmount, 449);
+  assert.match(summary.futurePaymentCopy, /3 monthly payments/);
+});
+
+test('getInstalmentPlanSummary adds the comprehensive mentoring bump to the first instalment only', () => {
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  selection.paymentMode = 'instalments';
+  selection.upsellSelected = true;
+  updateSelectionPrice(selection);
+
+  const summary = getInstalmentPlanSummary(selection);
+
+  assert.equal(summary.dueToday, 548);
+  assert.equal(summary.futurePaymentAmount, 449);
+});
+
+test('buildPaymentModeMarkup renders full and instalment options for eligible products', () => {
+  const markup = buildPaymentModeMarkup(
+    'comprehensive',
+    getInitialSelection('comprehensive', PRODUCTS.comprehensive)
+  );
+
+  assert.match(markup, /Pay in full/);
+  assert.match(markup, /Pay in 4 monthly payments/);
+  assert.match(markup, /payment-mode-toggle/);
+});
+
+test('buildInstalmentSummaryMarkup explains due today and future payments', () => {
+  const selection = getInitialSelection('mastery', PRODUCTS.mastery);
+  selection.paymentMode = 'instalments';
+
+  const markup = buildInstalmentSummaryMarkup(selection);
+
+  assert.match(markup, /Due today/);
+  assert.match(markup, /Then 3 monthly payments/);
+  assert.match(markup, /Stripe will email you to update your card/);
+});
+
+test('initCheckoutPage keeps the pay button disabled until checkout is ready', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const configRequest = createDeferred();
+  const payBtn = { disabled: true, hidden: false };
+  const payBtnLabel = { textContent: '' };
+  const paymentModeSlot = {
+    hidden: true,
+    innerHTML: '',
+    listeners: {},
+    addEventListener(type, handler) {
+      this.listeners[type] = handler;
+    },
+  };
+  const fullInput = { value: 'full', checked: true };
+  const instalmentInput = { value: 'instalments', checked: false };
+  const optionFactory = (input) => ({
+    classList: { toggle() {} },
+    querySelector(selector) {
+      return selector === '.payment-mode-option__input' ? input : null;
+    },
+  });
+  const elements = {
+    '#checkout-grid': { hidden: true },
+    '#checkout-not-found': { hidden: true, innerHTML: '' },
+    '#checkout-summary': {
+      innerHTML: '',
+      querySelector() {
+        return null;
+      },
+    },
+    '#payment-mode-slot': paymentModeSlot,
+    '#pay-btn': payBtn,
+    '#pay-btn-label': payBtnLabel,
+    '#card-error': {
+      hidden: true,
+      textContent: '',
+      focus() {},
+      scrollIntoView() {},
+    },
+    '#checkout-upsell-slot': { hidden: true, innerHTML: '' },
+    '#instalment-summary-slot': { hidden: true, innerHTML: '' },
+    '#card-element-wrap': { hidden: false },
+    '#card-element': { hidden: false },
+    '#checkout-form': { addEventListener() {} },
+    '#instalment-link': { hidden: true, href: '', innerHTML: '' },
+  };
+
+  global.window = {
+    location: {
+      search: '?product=comprehensive',
+    },
+  };
+  global.document = {
+    title: '',
+    querySelector(selector) {
+      return elements[selector] || null;
+    },
+    querySelectorAll(selector) {
+      if (selector === '.payment-mode-option') {
+        return [optionFactory(fullInput), optionFactory(instalmentInput)];
+      }
+      if (selector === '.payment-mode-option__input') {
+        return [fullInput, instalmentInput];
+      }
+      return [];
+    },
+  };
+  global.fetch = async () => configRequest.promise;
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on() {},
+          };
+        },
+      };
+    },
+  });
+
+  try {
+    const initPromise = initCheckoutPage();
+
+    paymentModeSlot.listeners.change({
+      target: {
+        closest(selector) {
+          return selector === '.payment-mode-option__input' ? instalmentInput : null;
+        },
+      },
+    });
+
+    assert.equal(payBtn.disabled, true);
+    assert.equal(payBtnLabel.textContent, 'Loading secure payment...');
+
+    configRequest.resolve({
+      ok: true,
+      text: async () => JSON.stringify({
+        stripePublishableKey: 'pk_test_123',
+      }),
+    });
+
+    await initPromise;
+
+    assert.equal(payBtn.disabled, false);
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('initCheckoutPage routes instalment submissions to the hosted checkout session URL', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const env = createCheckoutSubmitTestEnv();
+  const fetchCalls = [];
+  let confirmCardPaymentCalled = false;
+
+  global.window = env.windowObject;
+  global.document = env.documentObject;
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
+    if (url === '/api/public-config') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-instalment-session') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/session_123' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  };
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on() {},
+          };
+        },
+      };
+    },
+    async confirmCardPayment() {
+      confirmCardPaymentCalled = true;
+      return {};
+    },
+  });
+
+  try {
+    await initCheckoutPage();
+
+    env.paymentModeSlot.listeners.change({
+      target: {
+        closest(selector) {
+          return selector === '.payment-mode-option__input' ? env.instalmentInput : null;
+        },
+      },
+    });
+
+    await env.form.submitHandler({
+      preventDefault() {},
+    });
+
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(confirmCardPaymentCalled, false);
+    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/session_123');
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('initCheckoutPage keeps full-pay submissions on the payment-intent card flow', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const env = createCheckoutSubmitTestEnv('?product=advanced');
+  const fetchCalls = [];
+  const confirmedPayments = [];
+
+  global.window = env.windowObject;
+  global.document = env.documentObject;
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
+    if (url === '/api/public-config') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-payment-intent') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ clientSecret: 'pi_secret_123' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  };
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on() {},
+          };
+        },
+      };
+    },
+    async confirmCardPayment(clientSecret, payload) {
+      confirmedPayments.push({ clientSecret, payload });
+      return {
+        paymentIntent: {
+          id: 'pi_123',
+          status: 'succeeded',
+        },
+      };
+    },
+  });
+
+  try {
+    await initCheckoutPage();
+
+    await env.form.submitHandler({
+      preventDefault() {},
+    });
+
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-payment-intent'), true);
+    assert.equal(confirmedPayments.length, 1);
+    assert.equal(confirmedPayments[0].clientSecret, 'pi_secret_123');
+    assert.match(env.windowObject.location.href, /\/checkout\/success\?product=advanced&payment_intent=pi_123/);
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('stripe webhook only treats tagged subscription events as instalment lifecycle events', () => {
+  assert.equal(
+    stripeWebhookHandler.__isInstalmentWebhookEvent({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          metadata: {
+            payment_mode: 'instalments',
+          },
+        },
+      },
+    }),
+    true
+  );
+  assert.equal(
+    stripeWebhookHandler.__isInstalmentWebhookEvent({
+      type: 'invoice.paid',
+      data: {
+        object: {
+          id: 'in_123',
+          subscription_details: {
+            metadata: {
+              payment_mode: 'instalments',
+              product_slug: 'comprehensive',
+            },
+          },
+        },
+      },
+    }),
+    true
+  );
+  assert.equal(
+    stripeWebhookHandler.__isInstalmentWebhookEvent({
+      type: 'invoice.payment_failed',
+      data: {
+        object: {
+          id: 'in_456',
+          subscription_details: {
+            metadata: {
+              payment_mode: 'full',
+              product_slug: 'comprehensive',
+            },
+          },
+        },
+      },
+    }),
+    false
+  );
+  assert.equal(
+    stripeWebhookHandler.__isInstalmentWebhookEvent({
+      type: 'payment_intent.succeeded',
+      data: {
+        object: {
+          metadata: {
+            payment_mode: 'instalments',
+          },
+        },
+      },
+    }),
+    false
+  );
+});
+
+for (const eventType of ['invoice.paid', 'invoice.payment_failed']) {
+  test(`stripe webhook acknowledges tagged ${eventType} instalment invoice events without fulfilling them`, async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+    let fulfilled = false;
+    stripeWebhookHandler.__setStripeFactory(() => ({
+      webhooks: {
+        constructEvent() {
+          return {
+            type: eventType,
+            data: {
+              object: {
+                id: 'in_test_123',
+                subscription_details: {
+                  metadata: {
+                    payment_mode: 'instalments',
+                    product_slug: 'comprehensive',
+                  },
+                },
+              },
+            },
+          };
+        },
+      },
+      paymentIntents: {
+        update: async () => undefined,
+      },
+    }));
+    stripeWebhookHandler.__setFulfillPaymentIntent(async () => {
+      fulfilled = true;
+      return { alreadyFulfilled: false };
+    });
+
+    const req = {
+      method: 'POST',
+      headers: {
+        'stripe-signature': 't=123,v1=abc',
+      },
+      body: Buffer.from('{"id":"evt_123","object":"event"}'),
+    };
+    const res = createJsonResponseRecorder();
+
+    await stripeWebhookHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { received: true });
+    assert.equal(fulfilled, false);
+    stripeWebhookHandler.__resetForTests();
+  });
+}
+
+test('stripe webhook acknowledges checkout.session.completed for instalment checkouts', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  let fulfilled = false;
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        return {
+          type: 'checkout.session.completed',
+          data: {
+            object: {
+              id: 'cs_test_123',
+              metadata: {
+                product_slug: 'comprehensive',
+                payment_mode: 'instalments',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => {
+    fulfilled = true;
+    return { alreadyFulfilled: false };
+  });
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: Buffer.from('{"id":"evt_123","object":"event"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, { received: true });
+  assert.equal(fulfilled, false);
+  stripeWebhookHandler.__resetForTests();
+});
+
+test('stripe webhook still fulfills payment_intent.succeeded events', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  let fulfilled = false;
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_test_123',
+              metadata: {
+                payment_mode: 'full',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => {
+    fulfilled = true;
+    return { alreadyFulfilled: false };
+  });
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: Buffer.from('{"id":"evt_123","object":"event"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, { received: true });
+  assert.equal(fulfilled, true);
+  stripeWebhookHandler.__resetForTests();
+});
+
+test('checkout stylesheet preserves hidden state for conditional checkout panels', () => {
+  const css = fs.readFileSync(path.join(__dirname, '../css/checkout.css'), 'utf8');
+
+  assert.match(css, /\.checkout-essay-banner\[hidden\]/);
+  assert.match(css, /\.checkout-instalment-link\[hidden\]/);
+  assert.match(css, /display:\s*none\s*!important/);
+});
+
 test('getPayButtonLabel reflects current amount', () => {
   assert.equal(getPayButtonLabel(347), 'Pay $347 AUD →');
   assert.equal(getPayButtonLabel(34.99), 'Pay $34.99 AUD →');
+});
+
+test('getPrimaryButtonLabel switches CTA copy for instalment mode', () => {
+  const selection = getInitialSelection('mastery', PRODUCTS.mastery);
+  selection.paymentMode = 'instalments';
+
+  assert.equal(getPrimaryButtonLabel(selection), 'Continue to secure instalment checkout');
+  assert.equal(
+    getPrimaryButtonLabel(getInitialSelection('advanced', PRODUCTS.advanced)),
+    'Pay $299 AUD →'
+  );
+});
+
+test('getPayButtonPendingLabel keeps disabled checkout buttons explanatory', () => {
+  assert.equal(getPayButtonPendingLabel(), 'Loading secure payment...');
 });
 
 test('getSuccessMessage returns the correct post-payment copy for each product type', () => {
@@ -317,6 +1038,23 @@ test('buildPurchaseItems maps mentoring package slugs to the matching package de
   ]);
 });
 
+test('buildPurchaseItems keeps the comprehensive order bump at the bundled discount price', () => {
+  assert.deepEqual(buildPurchaseItems('comprehensive', 'mentoring-single'), [
+    {
+      item_id: 'comprehensive',
+      item_name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
+      price: 1549,
+      quantity: 1,
+    },
+    {
+      item_id: 'mentoring-single',
+      item_name: 'Add one 1:1 strategy class',
+      price: 99,
+      quantity: 1,
+    },
+  ]);
+});
+
 test('buildPurchaseItems falls back to the default mentoring package when success metadata omits the package slug', () => {
   assert.deepEqual(buildPurchaseItems('', '', 'private-mentoring'), [
     {
@@ -410,7 +1148,7 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.upsellSelected = true;
   selection.basePrice = 1549;
-  selection.price = 1668;
+  selection.price = 1648;
 
   const payload = buildCheckoutPayload(selection, {
     billingDetails: {
@@ -421,23 +1159,38 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
 
   assert.deepEqual(payload, {
     slug: 'comprehensive',
+    paymentMode: 'full',
     primaryProduct: {
       pageSlug: 'comprehensive',
       slug: 'comprehensive',
       price: 1549,
     },
-    totalAmount: 1668,
+    totalAmount: 1648,
     customerName: 'Jane Smith',
     email: 'jane@example.com',
     upsell: {
       slug: 'mentoring-single',
-      price: 119,
+      price: 99,
       title: 'Add one 1:1 strategy class',
     },
     upsellSlug: 'mentoring-single',
-    upsellPrice: 119,
+    upsellPrice: 99,
     upsellSelected: true,
   });
+});
+
+test('buildCheckoutPayload includes paymentMode for instalment submissions', () => {
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  selection.paymentMode = 'instalments';
+
+  const payload = buildCheckoutPayload(selection, {
+    billingDetails: {
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+    },
+  });
+
+  assert.equal(payload.paymentMode, 'instalments');
 });
 
 test('EMAIL_PATTERN rejects obviously malformed addresses', () => {
@@ -501,6 +1254,20 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
     }
   );
 
+  assert.deepEqual(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'comprehensive',
+      upsellSlug: 'mentoring-single',
+    }),
+    {
+      amount: 164800,
+      baseAmount: 154900,
+      baseSlug: 'comprehensive',
+      upsellAmount: 9900,
+      upsellSlug: 'mentoring-single',
+    }
+  );
+
   assert.equal(
     createPaymentIntentHandler.resolveCheckoutPurchase({
       slug: 'blueprint',
@@ -515,6 +1282,156 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
     }).error,
     'This product is currently unavailable.'
   );
+});
+
+test('instalment session handler rejects unsupported product slugs', async () => {
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://rohanstutoring.com' },
+    body: {
+      slug: 'advanced',
+      paymentMode: 'instalments',
+      customerName: 'Jane Smith',
+      email: 'jane@example.com',
+    },
+  };
+  const res = createJsonResponseRecorder();
+
+  await createInstalmentSessionHandler(req, res);
+
+  assert.equal(res.statusCode, 400);
+  assert.match(res.body.error, /not available/i);
+});
+
+test('instalment session handler rejects invalid payment modes', async () => {
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://rohanstutoring.com' },
+    body: {
+      slug: 'comprehensive',
+      paymentMode: 'full',
+      customerName: 'Jane Smith',
+      email: 'jane@example.com',
+    },
+  };
+  const res = createJsonResponseRecorder();
+
+  await createInstalmentSessionHandler(req, res);
+
+  assert.equal(res.statusCode, 400);
+  assert.match(res.body.error, /payment mode/i);
+});
+
+test('instalment session handler rejects whitespace-only Stripe secret keys', async () => {
+  process.env.STRIPE_SECRET_KEY = '   ';
+  process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
+
+  let stripeFactoryCalled = false;
+  createInstalmentSessionHandler.__setStripeFactory(() => {
+    stripeFactoryCalled = true;
+    return {
+      checkout: {
+        sessions: {
+          create: async () => {
+            throw new Error('should not be called');
+          },
+        },
+      },
+    };
+  });
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug: 'comprehensive',
+        paymentMode: 'instalments',
+        customerName: 'Jane Smith',
+        email: 'jane@example.com',
+        origin: 'https://rohanstutoring.com',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createInstalmentSessionHandler(req, res);
+
+    assert.equal(res.statusCode, 500);
+    assert.equal(res.body.error, 'Missing STRIPE_SECRET_KEY environment variable');
+    assert.equal(stripeFactoryCalled, false);
+  } finally {
+    createInstalmentSessionHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT;
+  }
+});
+
+test('instalment session handler creates a subscription checkout session with first-invoice add-on only', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
+
+  const createdSessions = [];
+  createInstalmentSessionHandler.__setStripeFactory(() => ({
+    checkout: {
+      sessions: {
+        create: async (payload) => {
+          createdSessions.push(payload);
+          return { url: 'https://checkout.stripe.test/session_123' };
+        },
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug: 'comprehensive',
+        paymentMode: 'instalments',
+        upsellSlug: 'mentoring-single',
+        customerName: 'Jane Smith',
+        email: 'jane@example.com',
+        origin: 'https://rohanstutoring.com',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createInstalmentSessionHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(createdSessions.length, 1);
+    assert.equal(createdSessions[0].mode, 'subscription');
+    assert.equal(createdSessions[0].success_url, 'https://rohanstutoring.com/checkout/success?product=comprehensive&session_id={CHECKOUT_SESSION_ID}');
+    assert.equal(createdSessions[0].cancel_url, 'https://rohanstutoring.com/checkout/?product=comprehensive');
+    assert.equal(createdSessions[0].customer_email, 'jane@example.com');
+    assert.equal(createdSessions[0].line_items.length, 1);
+    assert.equal(createdSessions[0].line_items[0].price, 'price_comp_123');
+    assert.equal(createdSessions[0].line_items[0].quantity, 1);
+    assert.deepEqual(createdSessions[0].metadata, {
+      product_slug: 'comprehensive',
+      base_slug: 'comprehensive',
+      payment_mode: 'instalments',
+      customer_email: 'jane@example.com',
+      customer_name: 'Jane Smith',
+      upsell_slug: 'mentoring-single',
+    });
+    assert.deepEqual(createdSessions[0].subscription_data.metadata, {
+      product_slug: 'comprehensive',
+      base_slug: 'comprehensive',
+      payment_mode: 'instalments',
+      customer_email: 'jane@example.com',
+      customer_name: 'Jane Smith',
+      upsell_slug: 'mentoring-single',
+    });
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items.length, 1);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].price_data.unit_amount, 9900);
+    assert.equal(res.body.url, 'https://checkout.stripe.test/session_123');
+  } finally {
+    createInstalmentSessionHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT;
+  }
 });
 
 test('PayPal validation formats cents and custom IDs from server-side purchase data', () => {
@@ -1105,7 +2022,7 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, { clientSecret: 'pi_secret_123' });
     assert.equal(createPayloads.length, 1);
-    assert.equal(createPayloads[0].amount, 166800);
+    assert.equal(createPayloads[0].amount, 164800);
     assert.equal(createPayloads[0].description, "Rohan's GAMSAT - comprehensive + mentoring-single");
     assert.deepEqual(createPayloads[0].metadata, {
       product_slug: 'comprehensive',

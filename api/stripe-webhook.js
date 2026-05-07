@@ -3,6 +3,11 @@ const fulfillPaymentIntent = require('./lib/fulfill-payment-intent.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 let fulfillPaymentIntentImpl = fulfillPaymentIntent;
+const INSTALMENT_WEBHOOK_EVENTS = new Set([
+  'checkout.session.completed',
+  'invoice.paid',
+  'invoice.payment_failed',
+]);
 
 function getStripeClient() {
   const secretKey = String(process.env.STRIPE_SECRET_KEY || '').trim();
@@ -88,6 +93,9 @@ async function stripeWebhookHandler(req, res) {
         paymentIntent: event.data.object,
         stripeClient,
       });
+    } else if (isInstalmentWebhookEvent(event)) {
+      // Instalment billing events are acknowledged for launch, but fulfillment
+      // remains on the existing payment_intent.succeeded path for now.
     }
 
     return res.status(200).json({ received: true });
@@ -97,6 +105,22 @@ async function stripeWebhookHandler(req, res) {
   }
 }
 
+function isInstalmentWebhookEvent(event) {
+  const eventType = String(event && event.type ? event.type : '').trim();
+
+  if (!INSTALMENT_WEBHOOK_EVENTS.has(eventType)) {
+    return false;
+  }
+
+  const eventObject = event?.data?.object || {};
+  const metadata =
+    eventType === 'checkout.session.completed'
+      ? eventObject.metadata
+      : eventObject.subscription_details?.metadata;
+
+  return String(metadata?.payment_mode || '').trim() === 'instalments';
+}
+
 stripeWebhookHandler.readRawBody = readRawBody;
 stripeWebhookHandler.__setStripeFactory = (value) => {
   stripeFactory = value;
@@ -104,6 +128,7 @@ stripeWebhookHandler.__setStripeFactory = (value) => {
 stripeWebhookHandler.__setFulfillPaymentIntent = (value) => {
   fulfillPaymentIntentImpl = value;
 };
+stripeWebhookHandler.__isInstalmentWebhookEvent = isInstalmentWebhookEvent;
 stripeWebhookHandler.__resetForTests = () => {
   stripeFactory = (secretKey) => Stripe(secretKey);
   fulfillPaymentIntentImpl = fulfillPaymentIntent;

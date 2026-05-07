@@ -111,8 +111,8 @@
       successType: 'essay-pack-10',
     },
     comprehensive: {
-      name: 'Comprehensive Course',
-      tagline: '24 live classes · 50+ hrs content · September cohort',
+      name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
+      tagline: '',
       price: 1549,
       features: [
         '50+ hours of recorded library content',
@@ -206,8 +206,10 @@
       slug: 'mentoring-single',
       title: 'Add one 1:1 strategy class',
       description: 'Private strategy session with a top tutor before classes begin',
-      price: 119,
-      badge: 'Optional add-on',
+      price: 99,
+      priceWas: 119,
+      badge: 'Enrolment-only offer',
+      lockRuntimePrice: true,
     },
     advanced: {
       slug: 'essay-collection',
@@ -253,6 +255,21 @@
     },
   };
 
+  const INSTALMENT_PLANS = {
+    comprehensive: {
+      count: 4,
+      firstPayment: 449,
+      recurringPayment: 449,
+      priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
+    },
+    mastery: {
+      count: 4,
+      firstPayment: 649,
+      recurringPayment: 649,
+      priceEnvKey: 'STRIPE_PRICE_MASTERY_INSTALMENT',
+    },
+  };
+
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
     'essay-marking': "Payment confirmed. Use the button below to upload your essay — it takes about 30 seconds.",
@@ -287,8 +304,24 @@
     return value % 1 === 0 ? value.toLocaleString() : value.toFixed(2);
   }
 
+  function escapeText(value) {
+    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
   function getPayButtonLabel(price) {
     return `Pay $${fmtPrice(price)} AUD →`;
+  }
+
+  function getPrimaryButtonLabel(selection) {
+    if (selection?.paymentMode === 'instalments') {
+      return 'Continue to secure instalment checkout';
+    }
+
+    return getPayButtonLabel(selection?.price ?? 0);
+  }
+
+  function getPayButtonPendingLabel() {
+    return 'Loading secure payment...';
   }
 
   function buildPayPalSuccessUrl(selection, paypalOrderId) {
@@ -427,6 +460,81 @@
     return { ...bump };
   }
 
+  function getPaymentModeOptions(productSlug) {
+    return INSTALMENT_PLANS[productSlug] ? ['full', 'instalments'] : ['full'];
+  }
+
+  function getInstalmentPlanSummary(selection) {
+    const plan = INSTALMENT_PLANS[selection?.pageSlug];
+    if (!plan) return null;
+
+    const upsellToday = selection?.pageSlug === 'comprehensive' && selection.upsellSelected && selection.upsell
+      ? selection.upsell.price
+      : 0;
+
+    return {
+      dueToday: plan.firstPayment + upsellToday,
+      futurePaymentAmount: plan.recurringPayment,
+      futurePaymentCount: plan.count - 1,
+      futurePaymentCopy: `Then ${plan.count - 1} monthly payments of $${fmtPrice(plan.recurringPayment)}`,
+    };
+  }
+
+  function buildPaymentModeMarkup(productSlug, selection) {
+    const options = getPaymentModeOptions(productSlug);
+    if (options.length < 2) return '';
+
+    const activeMode = selection?.paymentMode === 'instalments' ? 'instalments' : 'full';
+    const plan = INSTALMENT_PLANS[productSlug];
+
+    return `
+      <div class="payment-mode-toggle" role="radiogroup" aria-label="Payment mode">
+        <label class="payment-mode-option${activeMode === 'full' ? ' payment-mode-option--active' : ''}">
+          <input
+            class="payment-mode-option__input"
+            type="radio"
+            name="payment-mode"
+            value="full"
+            ${activeMode === 'full' ? 'checked' : ''}
+          >
+          <span class="payment-mode-option__body">
+            <strong>Pay in full</strong>
+            <span>One secure card payment today</span>
+          </span>
+        </label>
+        <label class="payment-mode-option${activeMode === 'instalments' ? ' payment-mode-option--active' : ''}">
+          <input
+            class="payment-mode-option__input"
+            type="radio"
+            name="payment-mode"
+            value="instalments"
+            ${activeMode === 'instalments' ? 'checked' : ''}
+          >
+          <span class="payment-mode-option__body">
+            <strong>Pay in ${plan.count} monthly payments</strong>
+            <span>$${fmtPrice(plan.firstPayment)} due today, then monthly auto-pay</span>
+          </span>
+        </label>
+      </div>
+    `;
+  }
+
+  function buildInstalmentSummaryMarkup(selection) {
+    const summary = getInstalmentPlanSummary(selection);
+    if (!summary) return '';
+
+    return `
+      <div class="instalment-summary" aria-label="Instalment summary">
+        <div class="instalment-summary__row">
+          <span>Due today</span>
+          <strong>$${fmtPrice(summary.dueToday)} AUD</strong>
+        </div>
+        <p class="instalment-summary__copy">${summary.futurePaymentCopy} AUD.</p>
+        <p class="instalment-summary__note">Stripe will email you to update your card if a future payment fails.</p>
+      </div>
+    `;
+  }
+
   function updateSelectionPrice(selection) {
     const upsellPrice = selection.upsellSelected && selection.upsell ? selection.upsell.price : 0;
     selection.price = selection.basePrice + upsellPrice;
@@ -435,6 +543,9 @@
 
   function buildOrderBumpMarkup(orderBump, selection) {
     if (!orderBump) return '';
+    const priceMarkup = orderBump.priceWas
+      ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}</span></span>`
+      : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}</span>`;
 
     return `
       <div class="checkout-upsell checkout-upsell--order-bump${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
@@ -451,9 +562,34 @@
             <strong>${orderBump.title}</strong>
             <span>${orderBump.description}</span>
           </span>
-          <span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}</span>
+          ${priceMarkup}
         </label>
       </div>
+    `;
+  }
+
+  function buildCheckoutAssuranceMarkup() {
+    return `
+      <div class="checkout-assurance" aria-label="Checkout reassurance">
+        <span>Encrypted card payment</span>
+        <span>Refund guarantee honoured</span>
+        <span>Receipt sent automatically</span>
+      </div>
+    `;
+  }
+
+  function getInstalmentPlanText(product) {
+    const label = String(product?.instalment?.label || '').replace(/^or\s+/i, '').replace(/\s*→$/, '').trim();
+    return label || 'Pay by instalments';
+  }
+
+  function buildInstalmentLinkMarkup(product) {
+    if (!product?.instalment) return '';
+
+    return `
+      <span class="checkout-instalment-link__eyebrow">Pay in 4 instalments</span>
+      <span class="checkout-instalment-link__main">${getInstalmentPlanText(product)}</span>
+      <span class="checkout-instalment-link__note">Opens secure Stripe instalment checkout</span>
     `;
   }
 
@@ -567,8 +703,20 @@
 
   function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug) {
     const baseProduct = PRODUCTS[baseSlug] || findPackageBySlug(baseSlug) || getDefaultProductVariant(fallbackBaseSlug);
-    const upsellProduct = PRODUCTS[upsellSlug]
-      || findPackageBySlug(upsellSlug)
+    const contextualOrderBump = (
+      (ORDER_BUMPS[baseSlug] && ORDER_BUMPS[baseSlug].slug === upsellSlug && ORDER_BUMPS[baseSlug])
+      || (ORDER_BUMPS[fallbackBaseSlug] && ORDER_BUMPS[fallbackBaseSlug].slug === upsellSlug && ORDER_BUMPS[fallbackBaseSlug])
+    );
+    const genericUpsellProduct = PRODUCTS[upsellSlug] || findPackageBySlug(upsellSlug);
+    const shouldPreferContextualOrderBump = Boolean(
+      contextualOrderBump && (
+        contextualOrderBump.lockRuntimePrice
+        || contextualOrderBump.priceWas
+        || !genericUpsellProduct
+      )
+    );
+    const upsellProduct = (shouldPreferContextualOrderBump ? contextualOrderBump : null)
+      || genericUpsellProduct
       || Object.values(ORDER_BUMPS).find((bump) => bump.slug === upsellSlug);
     const items = [];
 
@@ -702,8 +850,8 @@
     if (product.hasPkgSelector) {
       return `
         <div class="summary-badge">Your order</div>
-        <h2 class="summary-name">${product.name}</h2>
-        <p class="summary-tagline">${product.tagline}</p>
+        <h2 class="summary-name">${escapeText(product.name)}</h2>
+        ${product.tagline ? `<p class="summary-tagline">${escapeText(product.tagline)}</p>` : ''}
         <hr class="summary-divider">
         <p class="summary-features-label">Choose your package</p>
         <fieldset class="pkg-selector" id="pkg-selector" role="radiogroup" aria-label="Private mentoring package">
@@ -719,8 +867,8 @@
               >
               <span class="pkg-radio" aria-hidden="true"></span>
               <span class="pkg-details">
-                <strong>${pkg.label}</strong>
-                <span>${pkg.sub}</span>
+                <strong>${escapeText(pkg.label)}</strong>
+                <span>${escapeText(pkg.sub)}</span>
               </span>
               <span class="pkg-price">${pkg.priceDisplay}</span>
             </label>
@@ -737,13 +885,13 @@
 
     return `
       <div class="summary-badge">Your order</div>
-      <h2 class="summary-name">${product.name}</h2>
-      <p class="summary-tagline">${product.tagline}</p>
+      <h2 class="summary-name">${escapeText(product.name)}</h2>
+      ${product.tagline ? `<p class="summary-tagline">${escapeText(product.tagline)}</p>` : ''}
       <div class="summary-price">$${fmtPrice(product.price)} <small>AUD</small></div>
       <hr class="summary-divider">
       <p class="summary-features-label">What's included</p>
       <ul class="summary-features">
-        ${product.features.map((feature) => `<li>${feature}</li>`).join('')}
+        ${product.features.map((feature) => `<li>${escapeText(feature)}</li>`).join('')}
       </ul>
       <hr class="summary-divider">
       <div class="summary-total-row">
@@ -779,21 +927,21 @@
     errorEl.textContent = '';
   }
 
-  function setPayButtonReady(price, isReady) {
+  function setPayButtonReady(selection, isReady) {
     const button = qs('#pay-btn');
     const label = qs('#pay-btn-label');
 
     if (button) button.disabled = !isReady;
-    if (label) label.textContent = isReady ? getPayButtonLabel(price) : '';
+    if (label) label.textContent = isReady ? getPrimaryButtonLabel(selection) : getPayButtonPendingLabel();
   }
 
-  function setLoading(isLoading, price) {
+  function setLoading(isLoading, selection) {
     const button = qs('#pay-btn');
     const label = qs('#pay-btn-label');
 
     if (button) button.disabled = isLoading;
     if (label) {
-      label.textContent = isLoading ? 'Processing...' : getPayButtonLabel(price);
+      label.textContent = isLoading ? 'Processing...' : getPrimaryButtonLabel(selection);
     }
   }
 
@@ -813,6 +961,10 @@
     const totalEl = qs('#summary-total');
     const orderBumpCard = qs('#checkout-order-bump');
     const orderBumpInput = qs('#order-bump-toggle');
+    const paymentModeOptions = document.querySelectorAll('.payment-mode-option');
+    const paymentModeInputs = document.querySelectorAll('.payment-mode-option__input');
+    const instalmentSummarySlot = qs('#instalment-summary-slot');
+    const payButtonLabel = qs('#pay-btn-label');
 
     if (totalEl) totalEl.textContent = `$${fmtPrice(selection.price)} AUD`;
     if (orderBumpCard) {
@@ -827,6 +979,54 @@
       option.setAttribute('aria-checked', String(index === selection.packageIndex));
       const input = option.querySelector('.pkg-option-input');
       if (input) input.checked = index === selection.packageIndex;
+    });
+
+    paymentModeOptions.forEach((option) => {
+      const input = option.querySelector('.payment-mode-option__input');
+      option.classList.toggle('payment-mode-option--active', input?.value === selection.paymentMode);
+    });
+
+    paymentModeInputs.forEach((input) => {
+      input.checked = input.value === selection.paymentMode;
+    });
+
+    if (instalmentSummarySlot) {
+      if (selection.paymentMode === 'instalments') {
+        instalmentSummarySlot.innerHTML = buildInstalmentSummaryMarkup(selection);
+        instalmentSummarySlot.hidden = false;
+      } else {
+        instalmentSummarySlot.innerHTML = '';
+        instalmentSummarySlot.hidden = true;
+      }
+    }
+
+    if (payButtonLabel) {
+      payButtonLabel.textContent = getPrimaryButtonLabel(selection);
+    }
+  }
+
+  function setupPaymentMode(productSlug, selection) {
+    const slot = qs('#payment-mode-slot');
+    if (!slot) return;
+
+    const markup = buildPaymentModeMarkup(productSlug, selection);
+    if (!markup) {
+      slot.innerHTML = '';
+      slot.hidden = true;
+      return;
+    }
+
+    selection.paymentMode = selection.paymentMode === 'instalments' ? 'instalments' : 'full';
+    slot.innerHTML = markup;
+    slot.hidden = false;
+
+    slot.addEventListener('change', (event) => {
+      const input = event.target.closest('.payment-mode-option__input');
+      if (!input) return;
+
+      selection.paymentMode = input.value === 'instalments' ? 'instalments' : 'full';
+      syncSelectionUI(selection);
+      setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
   }
 
@@ -849,7 +1049,7 @@
       updateSelectionPrice(selection);
 
       syncSelectionUI(selection);
-      setPayButtonReady(selection.price, true);
+      setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
   }
 
@@ -863,7 +1063,7 @@
       selection.upsellSelected = input.checked;
       updateSelectionPrice(selection);
       syncSelectionUI(selection);
-      setPayButtonReady(selection.price, true);
+      setPayButtonReady(selection, Boolean(selection.checkoutReady));
       if (typeof window.posthog !== 'undefined') {
         window.posthog.capture('checkout_order_bump_toggled', {
           product: selection.pageSlug,
@@ -900,7 +1100,7 @@
     if (!link) return;
 
     link.href = product.instalment.url;
-    link.textContent = product.instalment.label;
+    link.innerHTML = buildInstalmentLinkMarkup(product);
     link.hidden = false;
   }
 
@@ -957,6 +1157,7 @@
   function buildCheckoutPayload(selection, validation) {
     const payload = {
       slug: selection.apiSlug,
+      paymentMode: selection.paymentMode === 'instalments' ? 'instalments' : 'full',
       primaryProduct: {
         pageSlug: selection.pageSlug,
         slug: selection.apiSlug,
@@ -1007,22 +1208,25 @@
     }
 
     const selection = getInitialSelection(productSlug, product);
+    selection.paymentMode = 'full';
 
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
 
     renderSummary(product, selection);
+    setupPaymentMode(productSlug, selection);
     maybeShowGmailNote(product);
     attachInstalmentLink(product);
     maybeShowEssayBanner(productSlug);
     renderOrderBump(productSlug, selection);
+    selection.checkoutReady = false;
 
     if (product.hasPkgSelector) {
       setupPackageSelector(product, selection);
       syncSelectionUI(selection);
-    } else {
-      setPayButtonReady(selection.price, false);
     }
+
+    setPayButtonReady(selection, false);
 
     if (typeof global.Stripe !== 'function') {
       showCardError('Stripe.js failed to load. Please refresh and try again.');
@@ -1110,7 +1314,8 @@
       return;
     }
 
-    setPayButtonReady(selection.price, true);
+    selection.checkoutReady = true;
+    setPayButtonReady(selection, true);
 
     const form = qs('#checkout-form');
     if (!form) return;
@@ -1124,7 +1329,7 @@
         return;
       }
 
-      setLoading(true, selection.price);
+      setLoading(true, selection);
 
       if (typeof window.posthog !== 'undefined') {
         window.posthog.capture('checkout_payment_submitted', {
@@ -1136,10 +1341,27 @@
       }
 
       try {
+        const payload = buildCheckoutPayload(selection, validation);
+
+        if (selection.paymentMode === 'instalments') {
+          const response = await fetch('/api/create-instalment-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const resultPayload = await parseApiResponse(response);
+          if (!resultPayload.ok || !resultPayload.data.url) {
+            throw new Error(resultPayload.data.error || 'Payment setup failed. Please try again.');
+          }
+
+          window.location.href = resultPayload.data.url;
+          return;
+        }
+
         const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(buildCheckoutPayload(selection, validation)),
+          body: JSON.stringify(payload),
         });
 
         const resultPayload = await parseApiResponse(response);
@@ -1169,7 +1391,7 @@
         );
       } catch (error) {
         showCardError(error.message || 'Payment failed. Please try again.');
-        setLoading(false, selection.price);
+        setLoading(false, selection);
       }
     });
   }
@@ -1348,9 +1570,15 @@
     PRODUCTS,
     fmtPrice,
     getPayButtonLabel,
+    getPrimaryButtonLabel,
+    getPayButtonPendingLabel,
     getProductFromSearch,
     getInitialSelection,
     getOrderBumpConfig,
+    getPaymentModeOptions,
+    getInstalmentPlanSummary,
+    buildPaymentModeMarkup,
+    buildInstalmentSummaryMarkup,
     updateSelectionPrice,
     getSuccessMessage,
     buildSuccessUrl,
@@ -1369,6 +1597,8 @@
     buildCheckoutPayload,
     renderSummaryMarkup,
     buildOrderBumpMarkup,
+    buildCheckoutAssuranceMarkup,
+    buildInstalmentLinkMarkup,
     getSuccessActionMarkup,
     renderSuccessAction,
     initCheckoutPage,
@@ -1401,7 +1631,7 @@
             }
           }
           for (const bump of Object.values(ORDER_BUMPS)) {
-            if (config.amounts[bump.slug] !== undefined) {
+            if (!bump.lockRuntimePrice && config.amounts[bump.slug] !== undefined) {
               bump.price = config.amounts[bump.slug];
             }
           }
