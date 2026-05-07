@@ -134,6 +134,11 @@
       "permanent": true
     },
     {
+      "source": "/privacy.html",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
       "source": "/s2-slam-system.html",
       "destination": "/s2-slam-system",
       "permanent": true

@@ -36,7 +36,7 @@
 }
 .courses-quiz-spotlight__copy p {
   max-width: 56ch;
-  color: var(--text-muted);
+  color: var(--text);
 }
 .courses-quiz-spotlight__points {
   display: flex;

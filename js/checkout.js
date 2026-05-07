@@ -1143,6 +1143,7 @@
     const lastNameInput = qs('#last-name');
     const emailInput = qs('#email');
     const addressInput = qs('#billing-address');
+    const termsInput = qs('#terms-accepted');
 
     const firstName = firstNameInput?.value.trim() || '';
     const lastName = lastNameInput?.value.trim() || '';
@@ -1155,6 +1156,10 @@
 
     if (!emailInput?.checkValidity() || !EMAIL_PATTERN.test(email)) {
       return { ok: false, error: 'Please enter a valid email address.' };
+    }
+
+    if (!termsInput?.checked) {
+      return { ok: false, error: 'Please agree to the Terms & Conditions before continuing.' };
     }
 
     return {

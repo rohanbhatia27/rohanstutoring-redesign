@@ -9,6 +9,7 @@ const INDEXABLE_PAGES = [
   { file: 'index.html', canonical: 'https://www.rohanstutoring.com' },
   { file: 'about.html', canonical: 'https://www.rohanstutoring.com/about' },
   { file: 'contact.html', canonical: 'https://www.rohanstutoring.com/contact' },
+  { file: 'privacy.html', canonical: 'https://www.rohanstutoring.com/privacy' },
   { file: 'courses.html', canonical: 'https://www.rohanstutoring.com/courses' },
   { file: 'blog.html', canonical: 'https://www.rohanstutoring.com/blog' },
   { file: 's2-slam-system.html', canonical: 'https://www.rohanstutoring.com/s2-slam-system' },
@@ -79,6 +80,7 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
   const expected = [
     '/about.html -> /about',
     '/contact.html -> /contact',
+    '/privacy.html -> /privacy',
     '/courses.html -> /courses',
     '/blog.html -> /blog',
     '/s2-slam-system.html -> /s2-slam-system',
@@ -341,6 +343,7 @@ test('sitemap includes all confirmed indexable public pages', () => {
     'https://www.rohanstutoring.com/s2-slam-system',
     'https://www.rohanstutoring.com/section-1-tracker',
     'https://www.rohanstutoring.com/webinar',
+    'https://www.rohanstutoring.com/privacy',
   ];
 
   for (const url of expectedUrls) {

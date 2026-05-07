@@ -136,6 +136,7 @@ function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
       },
     },
     '#billing-address': { value: '123 Test Street' },
+    '#terms-accepted': { checked: true },
     '#gmail-note': { hidden: true },
     '#essay-banner': { hidden: true },
     '#paypal-button-container': { hidden: true, dataset: {} },
@@ -660,6 +661,85 @@ test('initCheckoutPage keeps full-pay submissions on the payment-intent card flo
     global.fetch = previousFetch;
     global.Stripe = previousStripe;
   }
+});
+
+test('initCheckoutPage blocks checkout submission until terms are accepted', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const env = createCheckoutSubmitTestEnv('?product=advanced');
+  const fetchCalls = [];
+  const confirmedPayments = [];
+
+  global.window = env.windowObject;
+  global.document = env.documentObject;
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
+    if (url === '/api/public-config') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-payment-intent') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ clientSecret: 'pi_secret_123' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  };
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on() {},
+          };
+        },
+      };
+    },
+    async confirmCardPayment(clientSecret, payload) {
+      confirmedPayments.push({ clientSecret, payload });
+      return {
+        paymentIntent: {
+          id: 'pi_123',
+          status: 'succeeded',
+        },
+      };
+    },
+  });
+
+  try {
+    await initCheckoutPage();
+    env.documentObject.querySelector('#terms-accepted').checked = false;
+
+    await env.form.submitHandler({
+      preventDefault() {},
+    });
+
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-payment-intent'), false);
+    assert.equal(confirmedPayments.length, 0);
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('checkout page requires explicit terms acceptance before purchase', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../checkout/index.html'), 'utf8');
+
+  assert.match(html, /id="terms-accepted"/);
+  assert.match(html, /type="checkbox"/);
+  assert.match(html, /required/);
+  assert.match(html, /Terms &amp; Conditions/);
 });
 
 test('stripe webhook only treats tagged subscription events as instalment lifecycle events', () => {

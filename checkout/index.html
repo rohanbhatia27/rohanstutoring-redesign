@@ -108,6 +108,14 @@
 
           <div id="instalment-summary-slot" hidden></div>
 
+          <label class="checkout-consent" for="terms-accepted">
+            <input class="checkout-consent__input" id="terms-accepted" type="checkbox" required>
+            <span class="checkout-consent__control" aria-hidden="true"></span>
+            <span class="checkout-consent__copy">
+              I agree to the <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>, including the applicable payment, access, refund, and data-handling terms for this product.
+            </span>
+          </label>
+
           <button class="checkout-pay-btn" id="pay-btn" type="submit" disabled>
             <span id="pay-btn-label">&nbsp;</span>
           </button>
@@ -125,7 +133,7 @@
   </main>
 
   <footer class="checkout-footer">
-    <p>By continuing, you agree to the <a href="/terms">Terms &amp; Conditions</a>.</p>
+    <p>Your details are used to process payment and provide course access. Read the <a href="/terms">Terms &amp; Conditions</a> and <a href="/privacy">Privacy Policy</a>.</p>
     <p><a href="/contact">Questions? Contact us</a></p>
   </footer>
 

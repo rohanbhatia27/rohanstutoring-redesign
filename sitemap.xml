@@ -24,6 +24,11 @@
     <priority>0.85</priority>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://www.rohanstutoring.com/privacy</loc>
+    <priority>0.35</priority>
+    <changefreq>yearly</changefreq>
+  </url>
 
   <!-- Product pages -->
   <url>
