@@ -30,6 +30,7 @@ const {
   buildPurchaseItems,
   buildEssayUploadUrl,
   getApiServerErrorMessage,
+  getCheckoutSubmissionErrorMessage,
   parseApiResponse,
   fetchCheckoutConfig,
   fetchPaymentIntentStatus,
@@ -1151,6 +1152,27 @@ test('getApiServerErrorMessage explains when HTML is returned instead of JSON', 
 
   assert.match(message, /Vercel dev/);
   assert.match(message, /127\.0\.0\.1:3000/);
+});
+
+test('getCheckoutSubmissionErrorMessage hides raw instalment setup errors from customers', () => {
+  const message = getCheckoutSubmissionErrorMessage(
+    'Missing STRIPE_PRICE_COMPREHENSIVE_INSTALMENT environment variable',
+    'instalments'
+  );
+
+  assert.equal(
+    message,
+    'Instalments are temporarily unavailable. Please choose pay in full or contact us for help.'
+  );
+});
+
+test('getCheckoutSubmissionErrorMessage preserves standard payment errors outside instalments', () => {
+  const message = getCheckoutSubmissionErrorMessage(
+    'Payment setup failed. Please try again.',
+    'full'
+  );
+
+  assert.equal(message, 'Payment setup failed. Please try again.');
 });
 
 test('parseApiResponse returns parsed JSON for valid API responses', async () => {

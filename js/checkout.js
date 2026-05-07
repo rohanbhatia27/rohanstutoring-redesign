@@ -787,6 +787,22 @@
     return 'Payment setup failed. Please try again.';
   }
 
+  function getCheckoutSubmissionErrorMessage(message, paymentMode) {
+    const safeMessage = String(message || '').trim() || 'Payment setup failed. Please try again.';
+
+    if (paymentMode === 'instalments') {
+      const isInstalmentSetupIssue = safeMessage.includes('Missing STRIPE_PRICE_')
+        || safeMessage.includes('Missing STRIPE_SECRET_KEY')
+        || safeMessage === 'Instalment checkout setup failed. Please try again.';
+
+      if (isInstalmentSetupIssue) {
+        return 'Instalments are temporarily unavailable. Please choose pay in full or contact us for help.';
+      }
+    }
+
+    return safeMessage;
+  }
+
   async function parseApiResponse(response) {
     const responseText = await response.text();
 
@@ -1376,7 +1392,9 @@
           });
           const resultPayload = await parseApiResponse(response);
           if (!resultPayload.ok || !resultPayload.data.url) {
-            throw new Error(resultPayload.data.error || 'Payment setup failed. Please try again.');
+            throw new Error(
+              getCheckoutSubmissionErrorMessage(resultPayload.data.error, selection.paymentMode)
+            );
           }
 
           window.location.href = resultPayload.data.url;
@@ -1613,6 +1631,7 @@
     buildPurchaseItems,
     buildEssayUploadUrl,
     getApiServerErrorMessage,
+    getCheckoutSubmissionErrorMessage,
     parseApiResponse,
     fetchCheckoutConfig,
     loadCheckoutConfig,
