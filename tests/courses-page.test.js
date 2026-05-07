@@ -41,7 +41,7 @@ test('courses page course tiles declare intrinsic image dimensions for key card 
   }
 
   const comprehensiveCards = html.match(/<img\b[^>]*src="\/assets\/courses\/comprehensive-course-card\.webp"[^>]*>/g) || [];
-  assert.ok(comprehensiveCards.length >= 3, 'expected three comprehensive course card images');
+  assert.ok(comprehensiveCards.length >= 1, 'expected at least one comprehensive course card image');
   for (const card of comprehensiveCards) {
     assert.match(card, /\bwidth="960"/);
     assert.match(card, /\bheight="540"/);

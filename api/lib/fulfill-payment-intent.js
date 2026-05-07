@@ -1,3 +1,4 @@
+const { Resend } = require('resend');
 const {
   ESSAY_UPLOAD_INSTRUCTIONS,
   buildEssayUploadToken,
@@ -71,6 +72,78 @@ const FULFILLMENT_PLANS = {
     fulfillmentLabel: 'Send mentoring booking link',
   },
 };
+
+const PRODUCT_NAMES = {
+  blueprint: "Rohan's Blueprint",
+  advanced: 'Elite Excellence Course',
+  'essay-collection': 'Expert Essay Collection',
+  'starter-pack': 'Essentials Playbook',
+  'essay-marking': 'Essay Marking',
+  'essay-pack-10': 'Essay Marking Pack (10 credits)',
+  comprehensive: 'Comprehensive Course',
+  mastery: 'Mastery Program',
+  's1-rescue-sprint': 'S1 Rescue Sprint',
+  's2-rescue-sprint': 'S2 Rescue Sprint',
+  'mentoring-single': 'Private Mentoring Session',
+  'mentoring-pack': 'Private Mentoring Pack',
+  'private-mentoring': 'Private Mentoring',
+};
+
+function productLabel(baseSlug, upsellSlug) {
+  const base = PRODUCT_NAMES[baseSlug] || baseSlug;
+  if (!upsellSlug) return base;
+  return `${base} + ${PRODUCT_NAMES[upsellSlug] || upsellSlug}`;
+}
+
+function buildConfirmationHtml(firstName, productLine) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr><td style="background:#0a0f1e;padding:28px 32px;">
+          <p style="margin:0;color:#3b82f6;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT</p>
+        </td></tr>
+        <tr><td style="padding:36px 32px 28px;">
+          <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#0a0f1e;line-height:1.3;">Payment confirmed.</h1>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hi ${firstName},</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">We've received your payment for <strong>${productLine}</strong>. Your content will be sent to this email address within 24 hours.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">If you have any questions in the meantime, reply to this email or contact us at <a href="mailto:hello@rohanstutoring.com" style="color:#3b82f6;text-decoration:none;">hello@rohanstutoring.com</a>.</p>
+          <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan's GAMSAT</p>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">This is an automated confirmation from Rohan's GAMSAT. You're receiving this because you made a purchase at rohanstutoring.com.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug }) {
+  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
+  if (!apiKey) {
+    console.warn('[fulfill-payment-intent] RESEND_API_KEY not set — skipping confirmation email');
+    return;
+  }
+
+  const firstName = (customerName || '').split(' ')[0] || 'there';
+  const productLine = productLabel(baseSlug, upsellSlug);
+
+  const resend = new Resend(apiKey);
+  await resend.emails.send({
+    from: 'noreply@rohanstutoring.com',
+    to: customerEmail,
+    subject: `Payment confirmed — ${productLine}`,
+    html: buildConfirmationHtml(firstName, productLine),
+    text: `Hi ${firstName},\n\nWe've received your payment for ${productLine}. Your content will be sent to this email address within 24 hours.\n\nIf you have any questions, contact us at hello@rohanstutoring.com.\n\nRohan's GAMSAT`,
+  });
+
+  console.log(`[fulfill-payment-intent] Confirmation email sent to ${customerEmail} for ${productLine}`);
+}
 
 function getFulfillmentPlan(productSlug, upsellSlug) {
   const basePlan = FULFILLMENT_PLANS[String(productSlug || '').trim()] || null;
@@ -170,6 +243,19 @@ async function fulfillPaymentIntent(options) {
       ...essayUploadMetadata,
     },
   });
+
+  const customerEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
+  const customerName = String(metadata.customer_name || '').trim();
+
+  if (customerEmail) {
+    try {
+      await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
+    } catch (emailErr) {
+      console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
+    }
+  } else {
+    console.warn('[fulfill-payment-intent] No customer email found — skipping confirmation email');
+  }
 
   return {
     alreadyFulfilled: false,

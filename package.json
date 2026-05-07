@@ -5,7 +5,10 @@
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
-    "stripe": "^17.0.0",
+    "resend": "^4.0.0",
+    "stripe": "^17.0.0"
+  },
+  "devDependencies": {
     "vercel": "^53.1.1"
   }
 }

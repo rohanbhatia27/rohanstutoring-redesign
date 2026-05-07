@@ -24,7 +24,7 @@ const FLOATING_QUIZ_CTA_HIDDEN_PATHS = [
   /^\/lead-magnets?(?:\/|\.html$|$)/,
   /^\/mocks?(?:\/|\.html$|$)/,
   /^\/section-1-tracker(?:\.html)?$/,
-  /^\/courses\/(?:advanced|blueprint|comprehensive|essay-collection|essay-marking|mastery|private-mentoring|s1-rescue-sprint|s2-rescue-sprint|starter-pack)(?:\.html)?$/,
+  /^\/courses\/(?:advanced|blueprint|comprehensive|essay-collection|essay-marking|mastery|private-mentoring|s1-comprehensive|s1-rescue-sprint|s2-comprehensive|s2-rescue-sprint|starter-pack)(?:\.html)?$/,
 ];
 
 const FLOATING_QUIZ_CTA_DISMISS_KEY = 'floating-quiz-cta:dismissed';
