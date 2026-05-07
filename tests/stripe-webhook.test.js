@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
 
-const fulfillPaymentIntent = require('../api/lib/fulfill-payment-intent.js');
+const fulfillPaymentIntent = require('../api/_lib/_fulfill-payment-intent.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
 
 function createJsonResponseRecorder() {

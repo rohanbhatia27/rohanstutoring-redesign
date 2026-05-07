@@ -1,4 +1,4 @@
-const { PAYPAL_API, getPayPalAccessToken } = require('./lib/paypal.js');
+const { PAYPAL_API, getPayPalAccessToken } = require('./_lib/_paypal.js');
 
 function getHeader(headers, name) {
   const lowerName = String(name).toLowerCase();

@@ -1,10 +1,10 @@
-const { PAYPAL_API, getPayPalAccessToken } = require('./lib/paypal.js');
+const { PAYPAL_API, getPayPalAccessToken } = require('./_lib/_paypal.js');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
 const {
   isValidPayPalOrderId,
   resolvePayPalPurchaseFromBody,
   validateCompletedPayPalOrder,
-} = require('./lib/paypal-order-validation.js');
+} = require('./_lib/_paypal-order-validation.js');
 
 const { isAllowedOrigin } = createPaymentIntentHandler;
 

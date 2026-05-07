@@ -3,7 +3,7 @@ const {
   ESSAY_UPLOAD_INSTRUCTIONS,
   buildEssayUploadToken,
   buildEssayUploadUrl,
-} = require('./essay-upload.js');
+} = require('./_essay-upload.js');
 
 const FULFILLMENT_PLANS = {
   blueprint: {

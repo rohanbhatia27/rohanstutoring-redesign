@@ -1,5 +1,5 @@
 const Stripe = require('stripe');
-const fulfillPaymentIntent = require('./lib/fulfill-payment-intent.js');
+const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 let fulfillPaymentIntentImpl = fulfillPaymentIntent;

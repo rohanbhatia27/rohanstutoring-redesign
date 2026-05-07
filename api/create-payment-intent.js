@@ -3,7 +3,7 @@ const {
   ESSAY_UPLOAD_INSTRUCTIONS,
   buildEssayUploadToken,
   buildEssayUploadUrl,
-} = require('./lib/essay-upload.js');
+} = require('./_lib/_essay-upload.js');
 
 // Amounts in cents (AUD). Private mentoring uses separate slugs per package.
 const AMOUNTS = {
