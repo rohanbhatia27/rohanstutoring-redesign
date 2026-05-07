@@ -524,7 +524,7 @@
           >
           <span class="payment-mode-option__body">
             <strong>Pay in ${plan.count} monthly payments</strong>
-            <span>$${fmtPrice(plan.firstPayment)} due today, then monthly auto-pay</span>
+            <span>$${fmtPrice(plan.firstPayment)} due today, then ${plan.count - 1} more monthly instalments</span>
           </span>
         </label>
       </div>

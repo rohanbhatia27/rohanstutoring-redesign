@@ -736,7 +736,7 @@
   border: 1px solid rgba(184, 148, 42, 0.22);
   border-radius: 0;
   background: rgba(255, 255, 255, 0.035);
-  color: var(--co-text-muted);
+  color: var(--co-text);
   cursor: pointer;
 }
 
@@ -789,6 +789,7 @@
 .checkout-consent__copy {
   font-size: 0.82rem;
   line-height: 1.5;
+  color: inherit;
 }
 
 .checkout-consent__copy a {
