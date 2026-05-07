@@ -129,6 +129,11 @@
       "permanent": true
     },
     {
+      "source": "/terms.html",
+      "destination": "/terms",
+      "permanent": true
+    },
+    {
       "source": "/s2-slam-system.html",
       "destination": "/s2-slam-system",
       "permanent": true

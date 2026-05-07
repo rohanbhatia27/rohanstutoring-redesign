@@ -22,6 +22,18 @@
   ]);
   let checkoutConfigPromise = null;
 
+  const PRODUCT_IMAGES = {
+    blueprint:          '../assets/courses/blueprint-course-card.webp',
+    advanced:           '../assets/courses/advanced-course-card.webp',
+    'essay-collection': '../assets/courses/essay-collection-cover.webp',
+    'essay-marking':    '../assets/courses/essay-collection-cover.webp',
+    'essay-pack-10':    '../assets/courses/essay-collection-cover.webp',
+    comprehensive:      '../assets/courses/comprehensive-course-card.webp',
+    mastery:            '../assets/courses/mastery-course-card.webp',
+    's1-rescue-sprint': '../assets/courses/s1-rescue-sprint-hero.webp',
+    's2-rescue-sprint': '../assets/courses/s2-rescue-sprint-hero.webp',
+  };
+
   // SYNC REQUIRED: These hardcoded prices are fallbacks/display hints.
   // The actual single source of truth is `AMOUNTS` in `api/create-payment-intent.js`.
   // At runtime, `checkout.js` fetches `/api/public-config` and overwrites these prices dynamically.
@@ -847,8 +859,15 @@
   }
 
   function renderSummaryMarkup(product, selection) {
+    const pageSlug = selection && selection.pageSlug;
+    const imgSrc = pageSlug && PRODUCT_IMAGES[pageSlug];
+    const imgHtml = imgSrc
+      ? `<img class="summary-product-img" src="${imgSrc}" alt="${escapeText(product.name)}" loading="eager">`
+      : '';
+
     if (product.hasPkgSelector) {
       return `
+        ${imgHtml}
         <div class="summary-badge">Your order</div>
         <h2 class="summary-name">${escapeText(product.name)}</h2>
         ${product.tagline ? `<p class="summary-tagline">${escapeText(product.tagline)}</p>` : ''}
@@ -884,6 +903,7 @@
     }
 
     return `
+      ${imgHtml}
       <div class="summary-badge">Your order</div>
       <h2 class="summary-name">${escapeText(product.name)}</h2>
       ${product.tagline ? `<p class="summary-tagline">${escapeText(product.tagline)}</p>` : ''}
