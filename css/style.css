@@ -310,6 +310,13 @@ strong { font-weight: 700; color: inherit; }
 .reveal--delay-3 { transition-delay: 0.3s; }
 .reveal--delay-4 { transition-delay: 0.4s; }
 
+.hero .reveal,
+.hero .reveal.visible {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
 @keyframes floating-quiz-cta-enter {
   from {
     opacity: 0;

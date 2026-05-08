@@ -2,7 +2,8 @@
   "name": "rohanstutoring-site",
   "version": "1.0.0",
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "audit:redirects": "node scripts/redirect-audit.js"
   },
   "dependencies": {
     "resend": "^4.0.0",

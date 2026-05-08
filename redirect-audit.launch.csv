@@ -1,0 +1,89 @@
+# Real launch checklist:
+# - legacy redirects that must land cleanly
+# - critical direct-response pages that should return 200 with no redirect surprises
+source,expected,label
+/store,/courses,legacy store root
+/store/gamsat-comprehensive-course,/courses/comprehensive,legacy comprehensive slug
+/store/p/comprehensive,/courses/comprehensive,legacy gumroad comprehensive
+/store/p/rohans-gamsat-blueprint-the-full-package,/courses/blueprint,legacy gumroad blueprint
+/store/p/advanced-mastery-series,/courses/advanced,legacy gumroad advanced
+/store/p/the-expert-essay-collection,/courses/essay-collection,legacy gumroad essay collection
+/store/p/s2-essay-marking,/courses/essay-marking,legacy gumroad essay marking
+/store/p/s2course,/courses,legacy section 2 course index
+/store/p/section2-mastery,/courses/blueprint,legacy section 2 mastery
+/store/gamsat-mastery-course,/courses/blueprint,legacy mastery slug
+/store/p/gamsat-starter-pack,/courses/starter-pack,legacy starter pack
+/store/p/s1-rescue-sprint,/courses/s1-rescue-sprint,legacy s1 sprint
+/store/p/s2-rescue-sprint,/courses/s2-rescue-sprint,legacy s2 sprint
+/contact-me,/contact,legacy contact page
+/private-mentoring,/courses/private-mentoring,legacy mentoring page
+/book-your-gameplan,/webinar,legacy webinar CTA
+/webinar-join,/webinar/thanks,legacy webinar join gate
+/webinar-thanks,/webinar/thanks,legacy webinar thanks page
+/about.html,/about,html canonical redirect
+/contact.html,/contact,html canonical redirect
+/courses.html,/courses,html canonical redirect
+/blog.html,/blog,html canonical redirect
+/terms.html,/terms,html canonical redirect
+/privacy.html,/privacy,html canonical redirect
+/s2-slam-system.html,/s2-slam-system,html canonical redirect
+/uk-gamsat.html,/uk-gamsat,html canonical redirect
+/ireland-gamsat.html,/ireland-gamsat,html canonical redirect
+/courses/advanced.html,/courses/advanced,html product redirect
+/courses/blueprint.html,/courses/blueprint,html product redirect
+/courses/comprehensive.html,/courses/comprehensive,html product redirect
+/courses/s1-comprehensive.html,/courses/s1-comprehensive,html product redirect
+/courses/s2-comprehensive.html,/courses/s2-comprehensive,html product redirect
+/courses/essay-collection.html,/courses/essay-collection,html product redirect
+/courses/essay-marking.html,/courses/essay-marking,html product redirect
+/courses/mastery.html,/courses/mastery,html product redirect
+/courses/private-mentoring.html,/courses/private-mentoring,html product redirect
+/courses/s1-rescue-sprint.html,/courses/s1-rescue-sprint,html product redirect
+/courses/s2-rescue-sprint.html,/courses/s2-rescue-sprint,html product redirect
+/courses/starter-pack.html,/courses/starter-pack,html product redirect
+/blog/how-i-aced-section-1-gamsat.html,/blog/how-i-aced-section-1-gamsat,html blog redirect
+/blog/ideation.html,/blog/ideation,html blog redirect
+/blog/mastering-gamsat-s2-task-a-essay.html,/blog/mastering-gamsat-s2-task-a-essay,html blog redirect
+/blog/poetry-guide.html,/blog/poetry-guide,html blog redirect
+/blog/stop-falling-for-this-common-gamsat-section-1-trap.html,/blog/stop-falling-for-this-common-gamsat-section-1-trap,html blog redirect
+/blog/the-biggest-s2-mistake.html,/blog/the-biggest-s2-mistake,html blog redirect
+/,/,homepage
+/courses,/courses,courses index
+/courses/comprehensive,/courses/comprehensive,flagship course page
+/courses/mastery,/courses/mastery,mastery course page
+/courses/blueprint,/courses/blueprint,blueprint course page
+/courses/advanced,/courses/advanced,advanced course page
+/courses/essay-collection,/courses/essay-collection,essay collection page
+/courses/essay-marking,/courses/essay-marking,essay marking page
+/courses/private-mentoring,/courses/private-mentoring,private mentoring page
+/courses/s1-comprehensive,/courses/s1-comprehensive,s1 comprehensive page
+/courses/s2-comprehensive,/courses/s2-comprehensive,s2 comprehensive page
+/courses/starter-pack,/courses/starter-pack,starter pack page
+/courses/s1-rescue-sprint,/courses/s1-rescue-sprint,s1 rescue sprint page
+/courses/s2-rescue-sprint,/courses/s2-rescue-sprint,s2 rescue sprint page
+/contact,/contact,contact page
+/webinar,/webinar,webinar signup page
+/webinar/thanks,/webinar/thanks,webinar thank you page
+/s2-slam-system,/s2-slam-system,s2 slam lead magnet
+/section-1-tracker,/section-1-tracker,section 1 tracker lead magnet
+/quiz,/quiz,quiz lead magnet
+/quote-generator,/quote-generator,quote generator tool
+/uk-gamsat,/uk-gamsat,uk seo page
+/ireland-gamsat,/ireland-gamsat,ireland seo page
+/checkout/?product=comprehensive,/checkout/?product=comprehensive,checkout comprehensive
+/checkout/?product=mastery,/checkout/?product=mastery,checkout mastery
+/checkout/?product=blueprint,/checkout/?product=blueprint,checkout blueprint
+/checkout/?product=advanced,/checkout/?product=advanced,checkout advanced
+/checkout/?product=essay-collection,/checkout/?product=essay-collection,checkout essay collection
+/checkout/?product=essay-marking,/checkout/?product=essay-marking,checkout essay marking
+/checkout/?product=essay-pack-10,/checkout/?product=essay-pack-10,checkout essay pack
+/checkout/?product=private-mentoring,/checkout/?product=private-mentoring,checkout private mentoring
+/checkout/?product=s1-comprehensive,/checkout/?product=s1-comprehensive,checkout s1 comprehensive
+/checkout/?product=s2-comprehensive,/checkout/?product=s2-comprehensive,checkout s2 comprehensive
+/checkout/?product=starter-pack,/checkout/?product=starter-pack,checkout starter pack
+/checkout/?product=s1-rescue-sprint,/checkout/?product=s1-rescue-sprint,checkout s1 sprint
+/checkout/?product=s2-rescue-sprint,/checkout/?product=s2-rescue-sprint,checkout s2 sprint
+/checkout/success?product=comprehensive,/checkout/success?product=comprehensive,success page comprehensive
+/checkout/success?product=mastery,/checkout/success?product=mastery,success page mastery
+/checkout/success?product=essay-marking,/checkout/success?product=essay-marking,success page essay marking
+/checkout/success?product=private-mentoring,/checkout/success?product=private-mentoring,success page private mentoring

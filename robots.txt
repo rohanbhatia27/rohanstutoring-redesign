@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /checkout/
 Disallow: /webinar/thanks
-Sitemap: https://rohangamsat.com/sitemap.xml
+Sitemap: https://www.rohanstutoring.com/sitemap.xml

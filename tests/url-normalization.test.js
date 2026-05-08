@@ -266,7 +266,9 @@ test('local stylesheet links resolve on disk', () => {
 
     for (const href of hrefs) {
       if (/^https?:\/\//.test(href)) continue;
-      const resolved = path.resolve(path.dirname(path.join(ROOT, file)), href);
+      const resolved = href.startsWith('/')
+        ? path.join(ROOT, href.slice(1))
+        : path.resolve(path.dirname(path.join(ROOT, file)), href);
       assert.ok(fs.existsSync(resolved), `Missing stylesheet ${href} referenced by ${file}`);
     }
   }
@@ -274,7 +276,13 @@ test('local stylesheet links resolve on disk', () => {
 
 test('CSP allows GA script and collection endpoints without unsafe inline scripts', () => {
   const config = JSON.parse(read('vercel.json'));
-  const csp = config.headers[0].headers.find((header) => header.key === 'Content-Security-Policy').value;
+  const cspHeader = config.headers
+    .flatMap((group) => group.headers || [])
+    .find((header) => header.key === 'Content-Security-Policy');
+
+  assert.ok(cspHeader, 'Missing Content-Security-Policy header');
+
+  const csp = cspHeader.value;
 
   assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
   assert.match(csp, /script-src[^;]*https:\/\/us-assets\.i\.posthog\.com/);
