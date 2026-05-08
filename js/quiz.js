@@ -8,8 +8,8 @@ const QUESTIONS = [
     key: 'timeline',
     stem: 'When are you sitting the GAMSAT?',
     answers: [
-      { value: 'sep-2026', label: 'September 2026 (5 months out)' },
-      { value: 'mar-2027', label: 'March 2027 (about 11 months out)' },
+      { value: 'sep-2026', label: 'September 2026' },
+      { value: 'mar-2027', label: 'March 2027' },
       { value: 'later', label: 'Later than March 2027' },
       { value: 'unsure', label: 'Still deciding' },
     ],
@@ -25,23 +25,22 @@ const QUESTIONS = [
   },
   {
     key: 'current',
-    stem: 'Where are you scoring right now, in practice or in the real thing?',
+    stem: 'Where are you at right now with your prep?',
     answers: [
-      { value: 'untested', label: 'I have not done a full practice yet' },
-      { value: 'sub55', label: 'Below 55' },
-      { value: '55-60', label: '55 to 60' },
-      { value: '60-64', label: '60 to 64' },
-      { value: '65plus', label: '65 or above' },
+      { value: 'new', label: 'I have not done a full mock yet' },
+      { value: 'building', label: 'I have done some practice, but not a full mock' },
+      { value: 'mocked', label: 'I have sat at least one full mock' },
+      { value: 'exam-ready', label: 'I have sat the real exam and know roughly where I stand' },
     ],
   },
   {
     key: 'target',
-    stem: 'What score do you need?',
+    stem: 'What outcome are you aiming for?',
     answers: [
-      { value: '60', label: 'Around 60, a safe pass' },
-      { value: '63-65', label: '63 to 65, competitive' },
-      { value: '65-68', label: '65 to 68, top-tier' },
-      { value: '68plus', label: '68 or above, elite' },
+      { value: 'realistic', label: 'I want a realistic shot this cycle' },
+      { value: 'competitive', label: 'I want to be competitive for stronger programs' },
+      { value: 'maximise', label: 'I want to push as high as I can' },
+      { value: 'figuring-out', label: 'I am still figuring out my options' },
     ],
   },
   {
@@ -93,6 +92,7 @@ const track = (event, params = {}) => {
 console.log('[quiz] loaded, questions:', QUESTIONS.length);
 
 const CALENDLY = 'https://calendly.com/rohansgamsat/gamsat-strategy-consultation';
+const WEBINAR  = '/webinar';
 
 const PRODUCT_IMAGES = {
   MASTERY_CALL: { src: 'assets/rohan/rohan-mentoring-3637.webp', alt: 'Mastery mentoring program' },
@@ -163,8 +163,8 @@ const OUTCOMES = {
         <li>In the final week, drop volume by half. Sleep and confidence matter more than one more paper.</li>
       </ol>
     `,
-    primaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
-    secondaryCta: { label: 'Book a 15-min chat first', url: CALENDLY },
+    primaryCta: { label: 'Book your strategy call', url: CALENDLY },
+    secondaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
   },
   ELITE_EXCELLENCE: {
     id: 'ELITE_EXCELLENCE',
@@ -194,8 +194,8 @@ const OUTCOMES = {
         <li>Walk into the exam planning to score 70+, not planning to avoid mistakes.</li>
       </ol>
     `,
-    primaryCta: { label: 'See the Elite Excellence Course', url: '/courses/advanced' },
-    secondaryCta: { label: 'Join the free Sunday webinar', url: '/webinar' },
+    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
+    secondaryCta: { label: 'See the Elite Excellence Course', url: '/courses/advanced' },
   },
   BLUEPRINT: {
     id: 'BLUEPRINT',
@@ -225,8 +225,8 @@ const OUTCOMES = {
         <li>Trust the plan. Self-paced students lose points to second-guessing, not lack of content.</li>
       </ol>
     `,
-    primaryCta: { label: 'See the Blueprint', url: '/courses/blueprint' },
-    secondaryCta: { label: 'Join the free Sunday webinar', url: '/webinar' },
+    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
+    secondaryCta: { label: 'See the Blueprint', url: '/courses/blueprint' },
   },
   ESSAY_ACCELERATOR: {
     id: 'ESSAY_ACCELERATOR',
@@ -256,8 +256,8 @@ const OUTCOMES = {
         <li>Practice quote integration from memory, the Quote Generator is free on the site.</li>
       </ol>
     `,
-    primaryCta: { label: 'Get the Expert Essay Collection', url: '/courses/essay-collection' },
-    secondaryCta: { label: 'Add a one-off essay marking', url: '/courses/essay-marking' },
+    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
+    secondaryCta: { label: 'Get the Expert Essay Collection', url: '/courses/essay-collection' },
   },
   START_HERE: {
     id: 'START_HERE',
@@ -270,7 +270,7 @@ const OUTCOMES = {
       <ol>
         <li>Study every weekday, even if only 30 minutes. Consistency over volume.</li>
         <li>Write and submit your first essay by week 2. It does not matter how it scores.</li>
-        <li>Attend one Sunday webinar to see how the full system fits together.</li>
+        <li>Use the Sunday session to ask questions and see how the full system fits together.</li>
       </ol>
       <h3>Phase 2: Weeks 5 to 9: Widen the scope</h3>
       <p class="plan-phase-focus">Weekly focus: move beyond Playbook basics into full-section study, weekly essay.</p>
@@ -284,40 +284,55 @@ const OUTCOMES = {
       <ol>
         <li>By now you'll know whether you need live teaching or self-paced content.</li>
         <li>Book into whichever fits and treat the Playbook as your foundation, not your finish line.</li>
-        <li>If you're not sure, book a free 15-minute chat to get a straight recommendation.</li>
+        <li>If you're not sure, bring your questions to the Sunday session and get a straight recommendation.</li>
       </ol>
     `,
-    primaryCta: { label: 'Start with the Essentials Playbook', url: '/courses/starter-pack' },
-    secondaryCta: { label: 'Join the free Sunday webinar', url: '/webinar' },
+    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
+    secondaryCta: { label: 'Start with the Essentials Playbook', url: '/courses/starter-pack' },
   },
 };
 
-const CURRENT_SCORE = { untested: 55, sub55: 50, '55-60': 57, '60-64': 62, '65plus': 66 };
-const TARGET_SCORE  = { '60': 60, '63-65': 64, '65-68': 66.5, '68plus': 69 };
-
 function routeAnswers(a) {
-  const current = CURRENT_SCORE[a.current];
-  const target = TARGET_SCORE[a.target];
-  const gap = target - current;
   const highHours = a.hours === '10-20' || a.hours === '20plus';
   const longRunway = a.timeline === 'sep-2026' || a.timeline === 'mar-2027';
+  const earlyPrep = a.current === 'new' || a.current === 'building';
+  const hasSatMock = a.current === 'mocked' || a.current === 'exam-ready';
+  const ambitiousGoal = a.target === 'competitive' || a.target === 'maximise';
 
   // 1. Hot re-sitter with capacity
-  if (a.attempts === 'multi' && gap >= 5 && highHours) return OUTCOMES.MASTERY_CALL;
+  if (
+    a.attempts === 'multi' &&
+    hasSatMock &&
+    (a.blocker === 'plateau' || a.blocker === 'timing') &&
+    ambitiousGoal &&
+    highHours
+  ) {
+    return OUTCOMES.MASTERY_CALL;
+  }
 
-  // 2. Already high scorer chasing top tier
-  if (a.current === '65plus' && (a.target === '65-68' || a.target === '68plus')) return OUTCOMES.ELITE_EXCELLENCE;
+  // 2. Advanced student pushing for the ceiling
+  if (
+    a.current === 'exam-ready' &&
+    a.target === 'maximise' &&
+    a.attempts !== 'first'
+  ) {
+    return OUTCOMES.ELITE_EXCELLENCE;
+  }
 
-  // 3. Serious gap with runway and hours
-  if (gap >= 5 && longRunway && highHours) return OUTCOMES.COMPREHENSIVE;
+  // 3. Structured course for students with runway, hours, and a serious goal
+  if (hasSatMock && ambitiousGoal && longRunway && highHours) return OUTCOMES.COMPREHENSIVE;
 
   // 4. S2-only pain
-  if (a.section === 's2' && a.blocker === 'essays' && gap <= 4) return OUTCOMES.ESSAY_ACCELERATOR;
+  if (a.section === 's2' && a.blocker === 'essays' && a.target !== 'maximise') {
+    return OUTCOMES.ESSAY_ACCELERATOR;
+  }
 
   // 5. Early-stage signals
   if (a.attempts === 'first' && (a.timeline === 'later' || a.timeline === 'unsure')) return OUTCOMES.START_HERE;
   if (a.hours === 'sub5') return OUTCOMES.START_HERE;
   if (a.blocker === 'no-plan' && a.attempts === 'first') return OUTCOMES.START_HERE;
+  if (earlyPrep && a.target === 'figuring-out') return OUTCOMES.START_HERE;
+  if (a.current === 'new' && a.attempts === 'first') return OUTCOMES.START_HERE;
 
   // 6. Fallback
   return OUTCOMES.BLUEPRINT;
