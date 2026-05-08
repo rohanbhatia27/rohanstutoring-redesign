@@ -118,3 +118,10 @@ Recommended launch-day interpretation:
 - `docs/launch/2026-05-09-dns-email-cutover-checklist.md`
 - `docs/launch/2026-05-09-payment-url-audit.md`
 - `docs/launch/2026-05-09-leadgen-integration-audit.md`
+- `docs/launch/2026-05-09-preview-deploy-prep.md`
+- `docs/launch/2026-05-09-launch-day-smoke-test-plan.md`
+- `docs/launch/2026-05-09-production-deploy-prep.md`
+- `docs/launch/2026-05-09-post-cutover-qa-sheet.md`
+- `docs/launch/2026-05-09-search-console-indexing-checklist.md`
+- `docs/launch/2026-05-09-first-24-hours-monitoring-sheet.md`
+- `docs/launch/2026-05-09-rollback-runbook.md`

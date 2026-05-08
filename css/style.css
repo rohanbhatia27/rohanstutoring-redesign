@@ -147,6 +147,8 @@ strong { font-weight: 700; color: inherit; }
   box-shadow: 0 4px 24px var(--blue-glow);
 }
 .btn--primary:hover { background: var(--blue-hover); box-shadow: 0 8px 32px var(--blue-glow); }
+.btn:has(.btn__sub) { flex-direction: column; gap: 2px; }
+.btn__sub { display: block; font-size: 1rem; font-weight: 600; color: #ffb06b; letter-spacing: 0.01em; }
 .btn--ghost {
   background: transparent;
   color: var(--white);
