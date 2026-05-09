@@ -549,7 +549,17 @@
 
   function updateSelectionPrice(selection) {
     const upsellPrice = selection.upsellSelected && selection.upsell ? selection.upsell.price : 0;
-    selection.price = selection.basePrice + upsellPrice;
+    const subtotal = selection.basePrice + upsellPrice;
+    let couponAmount = 0;
+    if (selection.couponDiscount) {
+      if (selection.couponDiscount.type === 'percent') {
+        couponAmount = Math.floor(subtotal * selection.couponDiscount.value) / 100;
+      } else {
+        couponAmount = Math.min(selection.couponDiscount.value, subtotal);
+      }
+    }
+    selection.couponAmount = couponAmount;
+    selection.price = Math.max(0, subtotal - couponAmount);
     return selection.price;
   }
 
@@ -625,6 +635,9 @@
         packageIndex: defaultIndex,
         upsell: orderBump,
         upsellSelected: false,
+        couponCode: null,
+        couponDiscount: null,
+        couponAmount: 0,
       };
 
       updateSelectionPrice(selection);
@@ -639,6 +652,9 @@
       packageIndex: null,
       upsell: orderBump,
       upsellSelected: false,
+      couponCode: null,
+      couponDiscount: null,
+      couponAmount: 0,
     };
 
     updateSelectionPrice(selection);
@@ -910,6 +926,10 @@
           `).join('')}
         </fieldset>
         <hr class="summary-divider">
+        <div class="summary-discount-row" id="summary-discount-row"${selection.couponAmount > 0 ? '' : ' hidden'}>
+          <span>Discount (<span id="summary-coupon-label">${escapeText(selection.couponCode || '')}</span>)</span>
+          <span id="summary-discount-amount">-$${fmtPrice(selection.couponAmount || 0)} AUD</span>
+        </div>
         <div class="summary-total-row">
           <span>Total due today</span>
           <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
@@ -930,6 +950,10 @@
         ${product.features.map((feature) => `<li>${escapeText(feature)}</li>`).join('')}
       </ul>
       <hr class="summary-divider">
+      <div class="summary-discount-row" id="summary-discount-row"${selection.couponAmount > 0 ? '' : ' hidden'}>
+        <span>Discount (<span id="summary-coupon-label">${escapeText(selection.couponCode || '')}</span>)</span>
+        <span id="summary-discount-amount">-$${fmtPrice(selection.couponAmount || 0)} AUD</span>
+      </div>
       <div class="summary-total-row">
         <span>Total due today</span>
         <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
@@ -1003,6 +1027,25 @@
     const payButtonLabel = qs('#pay-btn-label');
 
     if (totalEl) totalEl.textContent = `$${fmtPrice(selection.price)} AUD`;
+
+    const discountRow = qs('#summary-discount-row');
+    const discountAmountEl = qs('#summary-discount-amount');
+    const couponLabelEl = qs('#summary-coupon-label');
+    if (discountRow && discountAmountEl) {
+      if (selection.couponAmount > 0) {
+        if (couponLabelEl) couponLabelEl.textContent = selection.couponCode || '';
+        discountAmountEl.textContent = `-$${fmtPrice(selection.couponAmount)} AUD`;
+        discountRow.hidden = false;
+      } else {
+        discountRow.hidden = true;
+      }
+    }
+
+    if (selection.paymentRequest) {
+      selection.paymentRequest.update({
+        total: { label: 'Total', amount: Math.round(selection.price * 100) },
+      });
+    }
     if (orderBumpCard) {
       orderBumpCard.classList.toggle('checkout-upsell--selected', Boolean(selection.upsellSelected));
     }
@@ -1211,6 +1254,7 @@
       upsellSlug: null,
       upsellPrice: null,
       upsellSelected: false,
+      couponCode: selection.couponCode || null,
     };
 
     if (selection.upsell && selection.upsellSelected) {
@@ -1225,6 +1269,177 @@
     }
 
     return payload;
+  }
+
+  async function initPaymentRequestButton(stripe, elements, product, selection) {
+    const container = qs('#payment-request-button');
+    const separator = qs('#payment-request-separator');
+    if (!container) return null;
+
+    const paymentRequest = stripe.paymentRequest({
+      country: 'AU',
+      currency: 'aud',
+      total: { label: product.name, amount: Math.round(selection.price * 100) },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    const canMakePayment = await paymentRequest.canMakePayment();
+    if (!canMakePayment) return null;
+
+    const prButton = elements.create('paymentRequestButton', {
+      paymentRequest,
+      style: { paymentRequestButton: { type: 'default', theme: 'dark', height: '48px' } },
+    });
+    prButton.mount('#payment-request-button');
+    container.hidden = false;
+    if (separator) separator.hidden = false;
+
+    paymentRequest.on('paymentmethod', async (ev) => {
+      const payerName = ev.payerName || '';
+      const payerEmail = ev.payerEmail || '';
+
+      if (!payerEmail) {
+        ev.complete('fail');
+        showCardError('Could not retrieve your email. Please pay by card below.');
+        return;
+      }
+
+      if (typeof window.posthog !== 'undefined') {
+        window.posthog.capture('checkout_payment_submitted', {
+          product: selection.pageSlug,
+          total: selection.price,
+          upsell_selected: selection.upsellSelected,
+          upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
+          payment_method: canMakePayment.applePay ? 'apple_pay' : 'google_pay',
+        });
+      }
+
+      try {
+        const payload = buildCheckoutPayload(selection, {
+          ok: true,
+          billingDetails: { name: payerName, email: payerEmail, address: { line1: '' } },
+        });
+
+        const response = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const resultPayload = await parseApiResponse(response);
+        if (!resultPayload.ok) {
+          ev.complete('fail');
+          showCardError(resultPayload.data.error || 'Payment setup failed. Please try again.');
+          return;
+        }
+
+        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+          resultPayload.data.clientSecret,
+          { payment_method: ev.paymentMethod.id },
+          { handleActions: false }
+        );
+
+        if (confirmError) {
+          ev.complete('fail');
+          showCardError(confirmError.message);
+          return;
+        }
+
+        if (paymentIntent.status === 'requires_action') {
+          ev.complete('success');
+          const { error: actionError, paymentIntent: finalIntent } = await stripe.confirmCardPayment(resultPayload.data.clientSecret);
+          if (actionError) { showCardError(actionError.message); return; }
+          window.location.href = buildSuccessUrl(selection, finalIntent.id);
+          return;
+        }
+
+        ev.complete('success');
+        window.location.href = buildSuccessUrl(selection, paymentIntent.id);
+      } catch (err) {
+        ev.complete('fail');
+        showCardError(err.message || 'Payment failed. Please try again.');
+      }
+    });
+
+    return paymentRequest;
+  }
+
+  function setupCoupon(selection) {
+    const toggle = qs('#coupon-toggle');
+    const form = qs('#coupon-form');
+    const input = qs('#coupon-code');
+    const applyBtn = qs('#coupon-apply');
+    const feedback = qs('#coupon-feedback');
+
+    if (!toggle || !form || !input || !applyBtn) return;
+
+    toggle.addEventListener('click', () => {
+      const isOpen = !form.hidden;
+      form.hidden = isOpen;
+      toggle.setAttribute('aria-expanded', String(!isOpen));
+      if (!isOpen) input.focus();
+    });
+
+    async function applyCoupon() {
+      const code = input.value.trim().toUpperCase();
+      if (!code) return;
+
+      applyBtn.disabled = true;
+      applyBtn.textContent = 'Checking...';
+      if (feedback) { feedback.textContent = ''; feedback.hidden = true; }
+
+      try {
+        const response = await fetch('/api/validate-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+        const result = await parseApiResponse(response);
+
+        if (!result.ok || !result.data.valid) {
+          if (feedback) {
+            feedback.textContent = (result.data && result.data.error) || 'Invalid or expired coupon code.';
+            feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--error';
+            feedback.hidden = false;
+          }
+          applyBtn.disabled = false;
+          applyBtn.textContent = 'Apply';
+          return;
+        }
+
+        selection.couponCode = result.data.code || code;
+        selection.couponDiscount = result.data.discount;
+        updateSelectionPrice(selection);
+        syncSelectionUI(selection);
+        setPayButtonReady(selection, Boolean(selection.checkoutReady));
+
+        const discountText = result.data.discount.type === 'percent'
+          ? `${result.data.discount.value}% off`
+          : `$${fmtPrice(result.data.discount.value)} off`;
+
+        if (feedback) {
+          feedback.textContent = `${result.data.label || code} applied — ${discountText}`;
+          feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--success';
+          feedback.hidden = false;
+        }
+        input.disabled = true;
+        applyBtn.textContent = 'Applied';
+      } catch (err) {
+        if (feedback) {
+          feedback.textContent = 'Could not validate coupon. Please try again.';
+          feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--error';
+          feedback.hidden = false;
+        }
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Apply';
+      }
+    }
+
+    applyBtn.addEventListener('click', applyCoupon);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
+    });
   }
 
   async function initCheckoutPage() {
@@ -1321,11 +1536,12 @@
     }
 
     let stripe;
+    let elements;
     let cardElement;
 
     try {
       stripe = global.Stripe(stripePublishableKey);
-      const elements = stripe.elements();
+      elements = stripe.elements();
       cardElement = elements.create('card', {
         style: {
           base: {
@@ -1357,6 +1573,12 @@
 
     selection.checkoutReady = true;
     setPayButtonReady(selection, true);
+
+    setupCoupon(selection);
+
+    initPaymentRequestButton(stripe, elements, product, selection).then((pr) => {
+      if (pr) selection.paymentRequest = pr;
+    }).catch(() => {});
 
     const form = qs('#checkout-form');
     if (!form) return;
@@ -1647,6 +1869,8 @@
     renderSuccessAction,
     initCheckoutPage,
     initSuccessPage,
+    initPaymentRequestButton,
+    setupCoupon,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

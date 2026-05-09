@@ -1307,3 +1307,118 @@
     gap: 12px;
   }
 }
+
+/* ── Payment Request Button (Apple Pay / Google Pay) ────────────────────────── */
+
+#payment-request-button {
+  margin-bottom: 0;
+}
+
+.checkout-wallet-separator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 14px 0;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.checkout-wallet-separator::before,
+.checkout-wallet-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--co-border);
+}
+
+/* ── Coupon code ─────────────────────────────────────────────────────────────── */
+
+.checkout-coupon {
+  margin-bottom: 16px;
+}
+
+.checkout-coupon__toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition);
+}
+
+.checkout-coupon__toggle:hover {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.checkout-coupon__form {
+  margin-top: 10px;
+}
+
+.checkout-coupon__row {
+  display: flex;
+  gap: 8px;
+}
+
+.checkout-coupon__input {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.82rem;
+}
+
+.checkout-coupon__apply {
+  padding: 0 16px;
+  background: var(--co-blue);
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--transition);
+}
+
+.checkout-coupon__apply:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.checkout-coupon__apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkout-coupon__feedback {
+  margin: 6px 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+}
+
+.checkout-coupon__feedback--success {
+  color: var(--co-green);
+}
+
+.checkout-coupon__feedback--error {
+  color: #ff6b6b;
+}
+
+/* ── Summary discount row ────────────────────────────────────────────────────── */
+
+.summary-discount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--co-green);
+  margin-bottom: 6px;
+}

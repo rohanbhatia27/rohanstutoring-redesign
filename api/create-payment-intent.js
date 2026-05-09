@@ -43,6 +43,37 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
+async function applyCouponDiscount(stripe, baseAmount, couponCode) {
+  if (!couponCode) return { discountAmount: 0 };
+
+  try {
+    const result = await stripe.promotionCodes.list({
+      code: String(couponCode).trim().toUpperCase(),
+      active: true,
+      limit: 1,
+    });
+    const promoCode = result.data[0];
+
+    if (!promoCode || !promoCode.coupon || !promoCode.coupon.valid) {
+      return { discountAmount: 0 };
+    }
+
+    const coupon = promoCode.coupon;
+    let discountAmount = 0;
+
+    if (coupon.percent_off) {
+      discountAmount = Math.round(baseAmount * coupon.percent_off / 100);
+    } else if (coupon.amount_off) {
+      discountAmount = Math.min(coupon.amount_off, baseAmount);
+    }
+
+    return { discountAmount, couponCode: String(couponCode).trim().toUpperCase() };
+  } catch (err) {
+    console.error('Coupon lookup error:', err.message);
+    return { discountAmount: 0 };
+  }
+}
+
 function getUpsellAmount(baseSlug, upsellSlug) {
   if (baseSlug === 'comprehensive' && upsellSlug === 'mentoring-single') {
     return 9900;
@@ -214,8 +245,17 @@ async function createPaymentIntentHandler(req, res) {
       metadata.upsell_slug = purchase.upsellSlug;
     }
 
+    const couponCode = String(body.couponCode || '').trim();
+    const { discountAmount, couponCode: validatedCode } = await applyCouponDiscount(stripe, purchase.amount, couponCode);
+    const finalAmount = Math.max(50, purchase.amount - discountAmount);
+
+    if (validatedCode && discountAmount > 0) {
+      metadata.coupon_code = validatedCode;
+      metadata.discount_amount = String(discountAmount);
+    }
+
     const intent = await stripe.paymentIntents.create({
-      amount: purchase.amount,
+      amount: finalAmount,
       currency: 'aud',
       receipt_email: customer.email,
       description: purchase.upsellSlug

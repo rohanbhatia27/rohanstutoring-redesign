@@ -91,6 +91,11 @@
             <span class="checkout-payment-methods__item checkout-payment-methods__item--amex"><img src="../assets/payment/amex-desktop.png" alt="American Express"></span>
           </div>
 
+          <div id="payment-request-button" hidden></div>
+          <div class="checkout-wallet-separator" id="payment-request-separator" hidden>
+            <span>or pay by card</span>
+          </div>
+
           <div class="checkout-card-wrap" id="card-element-wrap">
             <div id="card-element"></div>
           </div>
@@ -107,6 +112,19 @@
           <div class="checkout-upsell" id="checkout-upsell-slot" hidden></div>
 
           <div id="instalment-summary-slot" hidden></div>
+
+          <div class="checkout-coupon" id="checkout-coupon">
+            <button class="checkout-coupon__toggle" type="button" id="coupon-toggle" aria-expanded="false">
+              Have a coupon code?
+            </button>
+            <div class="checkout-coupon__form" id="coupon-form" hidden>
+              <div class="checkout-coupon__row">
+                <input class="checkout-input checkout-coupon__input" id="coupon-code" type="text" placeholder="Enter code" autocomplete="off" autocapitalize="characters" spellcheck="false">
+                <button class="checkout-coupon__apply" type="button" id="coupon-apply">Apply</button>
+              </div>
+              <p class="checkout-coupon__feedback" id="coupon-feedback" hidden></p>
+            </div>
+          </div>
 
           <label class="checkout-consent" for="terms-accepted">
             <input class="checkout-consent__input" id="terms-accepted" type="checkbox" required>
