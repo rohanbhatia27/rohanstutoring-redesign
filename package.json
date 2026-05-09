@@ -6,6 +6,7 @@
     "audit:redirects": "node scripts/redirect-audit.js"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "resend": "^4.0.0",
     "stripe": "^17.0.0"
   },
