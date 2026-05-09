@@ -926,7 +926,7 @@
           `).join('')}
         </fieldset>
         <hr class="summary-divider">
-        <div class="summary-discount-row" id="summary-discount-row"${selection.couponAmount > 0 ? '' : ' hidden'}>
+        <div class="summary-discount-row" id="summary-discount-row" style="${selection.couponAmount > 0 ? '' : 'display:none'}">
           <span>Discount (<span id="summary-coupon-label">${escapeText(selection.couponCode || '')}</span>)</span>
           <span id="summary-discount-amount">-$${fmtPrice(selection.couponAmount || 0)} AUD</span>
         </div>
@@ -950,7 +950,7 @@
         ${product.features.map((feature) => `<li>${escapeText(feature)}</li>`).join('')}
       </ul>
       <hr class="summary-divider">
-      <div class="summary-discount-row" id="summary-discount-row"${selection.couponAmount > 0 ? '' : ' hidden'}>
+      <div class="summary-discount-row" id="summary-discount-row" style="${selection.couponAmount > 0 ? '' : 'display:none'}">
         <span>Discount (<span id="summary-coupon-label">${escapeText(selection.couponCode || '')}</span>)</span>
         <span id="summary-discount-amount">-$${fmtPrice(selection.couponAmount || 0)} AUD</span>
       </div>
@@ -1035,9 +1035,9 @@
       if (selection.couponAmount > 0) {
         if (couponLabelEl) couponLabelEl.textContent = selection.couponCode || '';
         discountAmountEl.textContent = `-$${fmtPrice(selection.couponAmount)} AUD`;
-        discountRow.hidden = false;
+        discountRow.style.display = '';
       } else {
-        discountRow.hidden = true;
+        discountRow.style.display = 'none';
       }
     }
 
@@ -1472,7 +1472,6 @@
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
     maybeShowGmailNote(product);
-    attachInstalmentLink(product);
     maybeShowEssayBanner(productSlug);
     renderOrderBump(productSlug, selection);
     selection.checkoutReady = false;
