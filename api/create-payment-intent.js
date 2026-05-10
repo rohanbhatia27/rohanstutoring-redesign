@@ -14,6 +14,8 @@ const AMOUNTS = {
   'essay-marking': 3499,
   'essay-pack-10': 24900,
   comprehensive: 154900,
+  's1-comprehensive': 89900,
+  's2-comprehensive': 89900,
   mastery: 224900,
   's1-rescue-sprint': 34700,
   's2-rescue-sprint': 19900,

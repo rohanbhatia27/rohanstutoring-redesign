@@ -189,6 +189,41 @@ test('getProductFromSearch resolves a valid product slug', () => {
   assert.equal(product.name, PRODUCTS.advanced.name);
 });
 
+test('getProductFromSearch resolves s1-comprehensive and s2-comprehensive', () => {
+  assert.equal(getProductFromSearch('?product=s1-comprehensive').name, PRODUCTS['s1-comprehensive'].name);
+  assert.equal(getProductFromSearch('?product=s2-comprehensive').name, PRODUCTS['s2-comprehensive'].name);
+});
+
+test('create-payment-intent accepts s1-comprehensive and s2-comprehensive', async () => {
+  const slugs = ['s1-comprehensive', 's2-comprehensive'];
+
+  for (const slug of slugs) {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug,
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    createPaymentIntentHandler.__setStripeFactory(() => ({
+      paymentIntents: {
+        create: async (payload) => ({ id: 'pi_test', client_secret: 'pi_test_secret', metadata: payload.metadata }),
+      },
+      promotionCodes: { list: async () => ({ data: [] }) },
+    }));
+
+    process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+    await createPaymentIntentHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.clientSecret, 'pi_test_secret');
+  }
+});
+
 test('getInitialSelection defaults private mentoring to the 10-class pack and essay collection bump', () => {
   const selection = getInitialSelection('private-mentoring', PRODUCTS['private-mentoring']);
 
@@ -206,6 +241,9 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
       badge: 'Optional add-on',
     },
     upsellSelected: false,
+    couponCode: null,
+    couponDiscount: null,
+    couponAmount: 0,
   });
 });
 
@@ -1278,6 +1316,7 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
     upsellSlug: 'mentoring-single',
     upsellPrice: 99,
     upsellSelected: true,
+    couponCode: null,
   });
 });
 

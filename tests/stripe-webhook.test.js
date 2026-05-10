@@ -237,6 +237,107 @@ test('fulfillment helper skips stale webhook replays when Stripe already shows f
   }
 });
 
+test('fulfillment helper chooses the comprehensive welcome email template', async () => {
+  const sentEmails = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_123',
+      metadata: {
+        base_slug: 'comprehensive',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async () => ({}),
+      },
+    },
+  });
+
+  assert.equal(sentEmails[0].from, 'noreply@rohanstutoring.com');
+  assert.equal(sentEmails[0].subject, "Welcome to the Comprehensive Course 👋 Let's get started.");
+  assert.match(sentEmails[0].html, /Tuesday 26 May 6pm AEDT/);
+  fulfillPaymentIntent.__resetForTests();
+});
+
+test('fulfillment helper uses the S2-specific start time for s2-comprehensive', async () => {
+  const sentEmails = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_123',
+      metadata: {
+        base_slug: 's2-comprehensive',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async () => ({}),
+      },
+    },
+  });
+
+  assert.match(sentEmails[0].html, /Wednesday 27 May 7pm AEDT/);
+  fulfillPaymentIntent.__resetForTests();
+});
+
+test('fulfillment helper does not reuse the comprehensive template for mastery', async () => {
+  const sentEmails = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_123',
+      metadata: {
+        base_slug: 'mastery',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async () => ({}),
+      },
+    },
+  });
+
+  assert.doesNotMatch(sentEmails[0].subject, /Welcome to the Comprehensive Course/);
+  fulfillPaymentIntent.__resetForTests();
+});
+
 test('stripe webhook rejects requests without a signature header', async () => {
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
 

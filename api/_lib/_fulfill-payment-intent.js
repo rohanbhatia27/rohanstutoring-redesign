@@ -1,4 +1,21 @@
 const { Resend } = require('resend');
+
+let resendFactory = (apiKey) => new Resend(apiKey);
+
+const COURSE_EMAIL_VARIANTS = {
+  comprehensive: {
+    subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
+    startLine: 'before our first live class kicks off on Tuesday 26 May 6pm AEDT.',
+  },
+  's1-comprehensive': {
+    subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
+    startLine: 'before our first live class kicks off on Tuesday 26 May 6pm AEDT.',
+  },
+  's2-comprehensive': {
+    subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
+    startLine: 'before our first live class kicks off on Wednesday 27 May 7pm AEDT.',
+  },
+};
 const {
   ESSAY_UPLOAD_INSTRUCTIONS,
   buildEssayUploadToken,
@@ -38,6 +55,16 @@ const FULFILLMENT_PLANS = {
   },
   comprehensive: {
     productSlug: 'comprehensive',
+    deliveryType: 'cohort-onboarding',
+    fulfillmentLabel: 'Send cohort onboarding email',
+  },
+  's1-comprehensive': {
+    productSlug: 's1-comprehensive',
+    deliveryType: 'cohort-onboarding',
+    fulfillmentLabel: 'Send cohort onboarding email',
+  },
+  's2-comprehensive': {
+    productSlug: 's2-comprehensive',
     deliveryType: 'cohort-onboarding',
     fulfillmentLabel: 'Send cohort onboarding email',
   },
@@ -81,6 +108,8 @@ const PRODUCT_NAMES = {
   'essay-marking': 'Essay Marking',
   'essay-pack-10': 'Essay Marking Pack (10 credits)',
   comprehensive: 'Comprehensive Course',
+  's1-comprehensive': 'Section 1 Comprehensive Course',
+  's2-comprehensive': 'Section 2 Comprehensive Course',
   mastery: 'Mastery Program',
   's1-rescue-sprint': 'S1 Rescue Sprint',
   's2-rescue-sprint': 'S2 Rescue Sprint',
@@ -123,6 +152,36 @@ function buildConfirmationHtml(firstName, productLine) {
 </html>`;
 }
 
+function buildCourseWelcomeHtml(firstName, startLine) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr><td style="background:#0a0f1e;padding:28px 32px;">
+          <p style="margin:0;color:#3b82f6;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT</p>
+        </td></tr>
+        <tr><td style="padding:36px 32px 28px;">
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hey ${firstName},</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Good to see your enrolment come through. I'm excited to have you in the cohort.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You can use the link here to book your 1-on-1 consultation for us to chat, as part of your early bird bonus! <a href="https://calendly.com/rohansgamsat/gamsat-strategy-consultation" style="color:#3b82f6;text-decoration:none;">https://calendly.com/rohansgamsat/gamsat-strategy-consultation</a></p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">I can walk you through the next few months and how to best prepare ${startLine}</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Talk soon,</p>
+          <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan</p>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">This is an automated confirmation from Rohan's GAMSAT. You're receiving this because you made a purchase at rohanstutoring.com.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug }) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
   if (!apiKey) {
@@ -132,15 +191,30 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
 
   const firstName = (customerName || '').split(' ')[0] || 'there';
   const productLine = productLabel(baseSlug, upsellSlug);
+  const variant = COURSE_EMAIL_VARIANTS[baseSlug];
 
-  const resend = new Resend(apiKey);
-  await resend.emails.send({
-    from: 'noreply@rohanstutoring.com',
-    to: customerEmail,
-    subject: `Payment confirmed — ${productLine}`,
-    html: buildConfirmationHtml(firstName, productLine),
-    text: `Hi ${firstName},\n\nWe've received your payment for ${productLine}. Your content will be sent to this email address within 24 hours.\n\nIf you have any questions, contact us at hello@rohanstutoring.com.\n\nRohan's GAMSAT`,
-  });
+  const resend = resendFactory(apiKey);
+  let emailOptions;
+
+  if (variant) {
+    emailOptions = {
+      from: 'noreply@rohanstutoring.com',
+      to: customerEmail,
+      subject: variant.subject,
+      html: buildCourseWelcomeHtml(firstName, variant.startLine),
+      text: `Hey ${firstName},\n\nGood to see your enrolment come through. I'm excited to have you in the cohort.\n\nYou should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.\n\nYou can use the link here to book your 1-on-1 consultation for us to chat, as part of your early bird bonus! https://calendly.com/rohansgamsat/gamsat-strategy-consultation\n\nI can walk you through the next few months and how to best prepare ${variant.startLine}\n\nTalk soon,\n\nRohan`,
+    };
+  } else {
+    emailOptions = {
+      from: 'noreply@rohanstutoring.com',
+      to: customerEmail,
+      subject: `Payment confirmed — ${productLine}`,
+      html: buildConfirmationHtml(firstName, productLine),
+      text: `Hi ${firstName},\n\nWe've received your payment for ${productLine}. Your content will be sent to this email address within 24 hours.\n\nIf you have any questions, contact us at hello@rohanstutoring.com.\n\nRohan's GAMSAT`,
+    };
+  }
+
+  await resend.emails.send(emailOptions);
 
   console.log(`[fulfill-payment-intent] Confirmation email sent to ${customerEmail} for ${productLine}`);
 }
@@ -267,5 +341,7 @@ fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
 fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
 fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
+fulfillPaymentIntent.__setResendFactory = (factory) => { resendFactory = factory; };
+fulfillPaymentIntent.__resetForTests = () => { resendFactory = (apiKey) => new Resend(apiKey); };
 
 module.exports = fulfillPaymentIntent;
