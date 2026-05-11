@@ -28,11 +28,12 @@ function firstNameFromFullName(value) {
 }
 
 async function kitRequest(path, { method = 'GET', body } = {}) {
+  const apiKey = getRequiredEnv('KIT_API_KEY');
   const response = await fetchImpl(`${KIT_API_BASE}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'X-Kit-Api-Key': getRequiredEnv('KIT_API_KEY'),
+      'X-Kit-Api-Key': apiKey,
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -42,7 +43,11 @@ async function kitRequest(path, { method = 'GET', body } = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const errors = Array.isArray(payload.errors) ? payload.errors.join('; ') : '';
-    throw new Error(`Kit API request failed (${response.status})${errors ? `: ${errors}` : ''}`);
+    const keyPrefix = apiKey.slice(0, 8);
+    const keyLength = apiKey.length;
+    throw new Error(
+      `Kit API request failed (${response.status})${errors ? `: ${errors}` : ''} [key_prefix=${keyPrefix} key_length=${keyLength}]`
+    );
   }
 
   return payload;
