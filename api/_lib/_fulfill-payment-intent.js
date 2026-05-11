@@ -242,10 +242,45 @@ function getFulfillmentPlan(productSlug, upsellSlug) {
   };
 }
 
+function needsStarterPackAutomation(metadata, baseSlug) {
+  if (String(baseSlug || '').trim() !== 'starter-pack') return false;
+
+  return (
+    metadata.drive_share_status !== 'shared' &&
+    metadata.drive_share_status !== 'already_shared'
+  ) || metadata.kit_purchase_tag_status !== 'tagged';
+}
+
+function buildFulfillmentMetadata({
+  metadata,
+  baseSlug,
+  upsellSlug,
+  plan,
+  fulfillmentProductSlugs,
+  requestedAt,
+  extra = {},
+}) {
+  return {
+    ...metadata,
+    product_slug: baseSlug,
+    base_slug: baseSlug,
+    ...(upsellSlug ? { upsell_slug: upsellSlug } : {}),
+    fulfillment_status: 'manual_fulfillment_pending',
+    manual_fulfillment_required: 'true',
+    fulfillment_requested_at: requestedAt,
+    fulfillment_source: 'stripe-webhook',
+    fulfillment_delivery_type: plan.deliveryType,
+    fulfillment_label: plan.fulfillmentLabel,
+    fulfillment_product_slugs: fulfillmentProductSlugs,
+    ...extra,
+  };
+}
+
 async function fulfillPaymentIntent(options) {
   const paymentIntent = options && options.paymentIntent ? options.paymentIntent : null;
   const stripeClient = options && options.stripeClient ? options.stripeClient : null;
   const now = options && typeof options.now === 'function' ? options.now : () => new Date().toISOString();
+  const forceAutomation = Boolean(options && options.forceAutomation);
 
   if (!paymentIntent || !paymentIntent.id) {
     throw new Error('Missing PaymentIntent to fulfill.');
@@ -266,7 +301,11 @@ async function fulfillPaymentIntent(options) {
   const upsellSlug = String(metadata.upsell_slug || '').trim();
 
   const finalFulfillmentStatuses = new Set(['fulfilled', 'manual_fulfillment_pending']);
-  if (finalFulfillmentStatuses.has(metadata.fulfillment_status)) {
+  if (
+    finalFulfillmentStatuses.has(metadata.fulfillment_status) &&
+    !forceAutomation &&
+    !needsStarterPackAutomation(metadata, baseSlug)
+  ) {
     return {
       alreadyFulfilled: true,
       plan: getFulfillmentPlan(baseSlug, upsellSlug),
@@ -281,6 +320,7 @@ async function fulfillPaymentIntent(options) {
   const fulfillmentProductSlugs = plan.upsellSlug
     ? `${plan.productSlug},${plan.upsellSlug}`
     : plan.productSlug;
+  const requestedAt = now();
   const essayUploadToken = baseSlug === 'essay-marking'
     ? buildEssayUploadToken({
         paymentIntentId: paymentIntent.id,
@@ -304,20 +344,15 @@ async function fulfillPaymentIntent(options) {
     : {};
 
   await stripeClient.paymentIntents.update(paymentIntent.id, {
-    metadata: {
-      ...metadata,
-      product_slug: baseSlug,
-      base_slug: baseSlug,
-      ...(upsellSlug ? { upsell_slug: upsellSlug } : {}),
-      fulfillment_status: 'manual_fulfillment_pending',
-      manual_fulfillment_required: 'true',
-      fulfillment_requested_at: now(),
-      fulfillment_source: 'stripe-webhook',
-      fulfillment_delivery_type: plan.deliveryType,
-      fulfillment_label: plan.fulfillmentLabel,
-      fulfillment_product_slugs: fulfillmentProductSlugs,
-      ...essayUploadMetadata,
-    },
+    metadata: buildFulfillmentMetadata({
+      metadata,
+      baseSlug,
+      upsellSlug,
+      plan,
+      fulfillmentProductSlugs,
+      requestedAt,
+      extra: essayUploadMetadata,
+    }),
   });
 
   const customerEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
@@ -336,24 +371,21 @@ async function fulfillPaymentIntent(options) {
         );
 
         await stripeClient.paymentIntents.update(paymentIntent.id, {
-          metadata: {
-            ...metadata,
-            product_slug: baseSlug,
-            base_slug: baseSlug,
-            ...(upsellSlug ? { upsell_slug: upsellSlug } : {}),
-            fulfillment_status: 'manual_fulfillment_pending',
-            manual_fulfillment_required: 'true',
-            fulfillment_requested_at: now(),
-            fulfillment_source: 'stripe-webhook',
-            fulfillment_delivery_type: plan.deliveryType,
-            fulfillment_label: plan.fulfillmentLabel,
-            fulfillment_product_slugs: fulfillmentProductSlugs,
+          metadata: buildFulfillmentMetadata({
+            metadata,
+            baseSlug,
+            upsellSlug,
+            plan,
+            fulfillmentProductSlugs,
+            requestedAt,
+            extra: {
             drive_share_status: driveResult.alreadyShared ? 'already_shared' : 'shared',
             drive_share_folder_id: driveResult.folderId || '',
             drive_share_folder_env: driveResult.folderEnvName || '',
             drive_share_permission_id: driveResult.permissionId || '',
             ...essayUploadMetadata,
-          },
+            },
+          }),
         });
       } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
         console.warn(`[fulfill-payment-intent] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
@@ -377,6 +409,21 @@ async function fulfillPaymentIntent(options) {
 
       if (kitResult && !kitResult.skipped) {
         console.log(`[fulfill-payment-intent] Kit purchase tag synced for ${customerEmail}`);
+        await stripeClient.paymentIntents.update(paymentIntent.id, {
+          metadata: buildFulfillmentMetadata({
+            metadata,
+            baseSlug,
+            upsellSlug,
+            plan,
+            fulfillmentProductSlugs,
+            requestedAt,
+            extra: {
+              kit_purchase_tag_status: 'tagged',
+              kit_purchase_tagged_at: requestedAt,
+              ...essayUploadMetadata,
+            },
+          }),
+        });
       }
     } catch (kitErr) {
       console.error('[fulfill-payment-intent] Kit purchase sync failed:', kitErr.message);
@@ -392,7 +439,8 @@ async function fulfillPaymentIntent(options) {
 }
 
 fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
-  fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
+fulfillPaymentIntent.needsStarterPackAutomation = needsStarterPackAutomation;
+fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
 fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
 fulfillPaymentIntent.__setResendFactory = (factory) => { resendFactory = factory; };
