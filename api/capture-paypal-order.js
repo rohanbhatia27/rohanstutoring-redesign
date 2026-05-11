@@ -6,6 +6,7 @@ const {
   validateCompletedPayPalOrder,
 } = require('./_lib/_paypal-order-validation.js');
 const { syncPurchaseTag } = require('./_lib/_kit.js');
+const { shareProductAccess } = require('./_lib/_google-drive.js');
 
 const { isAllowedOrigin } = createPaymentIntentHandler;
 
@@ -80,6 +81,23 @@ async function capturePayPalOrderHandler(req, res) {
       email: customer.email,
       fulfillmentRequired: true,
     });
+
+    try {
+      const driveResult = await shareProductAccess({
+        baseSlug: purchase.baseSlug,
+        email: customer.email,
+      });
+
+      if (driveResult && !driveResult.skipped) {
+        console.log(
+          `[capture-paypal-order] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customer.email} (${purchase.baseSlug})`
+        );
+      } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
+        console.warn(`[capture-paypal-order] No Google Drive folder configured for ${purchase.baseSlug} (${driveResult.folderEnvName})`);
+      }
+    } catch (driveErr) {
+      console.error('[capture-paypal-order] Google Drive sharing failed:', driveErr.message);
+    }
 
     try {
       const kitResult = await syncPurchaseTag({

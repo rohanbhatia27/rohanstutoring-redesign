@@ -1,5 +1,6 @@
 const { Resend } = require('resend');
 const { syncPurchaseTag } = require('./_kit.js');
+const { shareProductAccess } = require('./_google-drive.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
 
@@ -324,6 +325,44 @@ async function fulfillPaymentIntent(options) {
 
   if (customerEmail) {
     try {
+      const driveResult = await shareProductAccess({
+        baseSlug,
+        email: customerEmail,
+      });
+
+      if (driveResult && !driveResult.skipped) {
+        console.log(
+          `[fulfill-payment-intent] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
+        );
+
+        await stripeClient.paymentIntents.update(paymentIntent.id, {
+          metadata: {
+            ...metadata,
+            product_slug: baseSlug,
+            base_slug: baseSlug,
+            ...(upsellSlug ? { upsell_slug: upsellSlug } : {}),
+            fulfillment_status: 'manual_fulfillment_pending',
+            manual_fulfillment_required: 'true',
+            fulfillment_requested_at: now(),
+            fulfillment_source: 'stripe-webhook',
+            fulfillment_delivery_type: plan.deliveryType,
+            fulfillment_label: plan.fulfillmentLabel,
+            fulfillment_product_slugs: fulfillmentProductSlugs,
+            drive_share_status: driveResult.alreadyShared ? 'already_shared' : 'shared',
+            drive_share_folder_id: driveResult.folderId || '',
+            drive_share_folder_env: driveResult.folderEnvName || '',
+            drive_share_permission_id: driveResult.permissionId || '',
+            ...essayUploadMetadata,
+          },
+        });
+      } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
+        console.warn(`[fulfill-payment-intent] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
+      }
+    } catch (driveErr) {
+      console.error('[fulfill-payment-intent] Google Drive sharing failed:', driveErr.message);
+    }
+
+    try {
       await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
     } catch (emailErr) {
       console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
@@ -353,7 +392,7 @@ async function fulfillPaymentIntent(options) {
 }
 
 fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
-fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
+  fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
 fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
 fulfillPaymentIntent.__setResendFactory = (factory) => { resendFactory = factory; };

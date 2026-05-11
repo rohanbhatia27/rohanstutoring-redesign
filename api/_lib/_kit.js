@@ -43,11 +43,7 @@ async function kitRequest(path, { method = 'GET', body } = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const errors = Array.isArray(payload.errors) ? payload.errors.join('; ') : '';
-    const keyPrefix = apiKey.slice(0, 8);
-    const keyLength = apiKey.length;
-    throw new Error(
-      `Kit API request failed (${response.status})${errors ? `: ${errors}` : ''} [key_prefix=${keyPrefix} key_length=${keyLength}]`
-    );
+    throw new Error(`Kit API request failed (${response.status})${errors ? `: ${errors}` : ''}`);
   }
 
   return payload;
