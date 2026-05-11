@@ -13,6 +13,12 @@ test('quiz page does not load the unused GSAP bundle', () => {
   assert.doesNotMatch(quizHtml, /cdnjs\.cloudflare\.com\/ajax\/libs\/gsap/i);
 });
 
+test('quiz lead gate submits to the internal Kit sync endpoint and removes webinar copy', () => {
+  assert.match(quizHtml, /<form class="result__gate" id="resultForm" action="\/api\/quiz-lead"/);
+  assert.doesNotMatch(quizHtml, /Sunday webinar invite/i);
+  assert.match(quizHtml, /relevant course recommendations/i);
+});
+
 test('quiz focus styles use a defined shared token', () => {
   assert.doesNotMatch(quizCss, /var\(--electric\)/);
   assert.match(

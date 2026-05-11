@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
 
 const fulfillPaymentIntent = require('../api/_lib/_fulfill-payment-intent.js');
+const kit = require('../api/_lib/_kit.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
 
 function createJsonResponseRecorder() {
@@ -336,6 +337,72 @@ test('fulfillment helper does not reuse the comprehensive template for mastery',
 
   assert.doesNotMatch(sentEmails[0].subject, /Welcome to the Comprehensive Course/);
   fulfillPaymentIntent.__resetForTests();
+});
+
+test('fulfillment helper tags starter-pack buyers in Kit', async () => {
+  const sentEmails = [];
+  const calls = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK = '19492826';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  kit.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+
+    if (url.endsWith('/v4/subscribers')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    if (url.endsWith('/v4/tags/19492826/subscribers/789')) {
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_kit123',
+      metadata: {
+        base_slug: 'starter-pack',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async () => ({}),
+      },
+    },
+  });
+
+  assert.equal(sentEmails.length, 1);
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /\/v4\/subscribers$/);
+  assert.match(calls[1].url, /\/v4\/tags\/19492826\/subscribers\/789$/);
+
+  fulfillPaymentIntent.__resetForTests();
+  kit.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK;
 });
 
 test('stripe webhook rejects requests without a signature header', async () => {

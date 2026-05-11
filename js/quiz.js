@@ -614,12 +614,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setSubmitLoading(true);
     hideError();
 
-    const data = new FormData(form);
+    const payload = {
+      firstName: String(form.elements.firstName?.value || '').trim(),
+      email: String(form.elements.email?.value || '').trim(),
+      outcome: String(form.elements.outcome?.value || state.outcomeId || '').trim(),
+    };
     try {
       const res = await fetch(form.action, {
         method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         track('quiz_email_captured', { outcome: state.outcomeId });

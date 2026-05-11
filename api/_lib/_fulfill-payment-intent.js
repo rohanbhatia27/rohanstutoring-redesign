@@ -1,4 +1,5 @@
 const { Resend } = require('resend');
+const { syncPurchaseTag } = require('./_kit.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
 
@@ -326,6 +327,20 @@ async function fulfillPaymentIntent(options) {
       await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
     } catch (emailErr) {
       console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
+    }
+
+    try {
+      const kitResult = await syncPurchaseTag({
+        baseSlug,
+        email: customerEmail,
+        customerName,
+      });
+
+      if (kitResult && !kitResult.skipped) {
+        console.log(`[fulfill-payment-intent] Kit purchase tag synced for ${customerEmail}`);
+      }
+    } catch (kitErr) {
+      console.error('[fulfill-payment-intent] Kit purchase sync failed:', kitErr.message);
     }
   } else {
     console.warn('[fulfill-payment-intent] No customer email found — skipping confirmation email');

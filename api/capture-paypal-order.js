@@ -5,6 +5,7 @@ const {
   resolvePayPalPurchaseFromBody,
   validateCompletedPayPalOrder,
 } = require('./_lib/_paypal-order-validation.js');
+const { syncPurchaseTag } = require('./_lib/_kit.js');
 
 const { isAllowedOrigin } = createPaymentIntentHandler;
 
@@ -79,6 +80,20 @@ async function capturePayPalOrderHandler(req, res) {
       email: customer.email,
       fulfillmentRequired: true,
     });
+
+    try {
+      const kitResult = await syncPurchaseTag({
+        baseSlug: purchase.baseSlug,
+        email: customer.email,
+        customerName: customer.customerName,
+      });
+
+      if (kitResult && !kitResult.skipped) {
+        console.log(`[capture-paypal-order] Kit purchase tag synced for ${customer.email}`);
+      }
+    } catch (kitErr) {
+      console.error('[capture-paypal-order] Kit purchase sync failed:', kitErr.message);
+    }
 
     return res.status(200).json({
       status: 'succeeded',
