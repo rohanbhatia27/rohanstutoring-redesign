@@ -268,7 +268,7 @@ test('fulfillment helper chooses the comprehensive welcome email template', asyn
     },
   });
 
-  assert.equal(sentEmails[0].from, 'noreply@rohanstutoring.com');
+  assert.equal(sentEmails[0].from, 'hello@rohanstutoring.com');
   assert.equal(sentEmails[0].subject, "Welcome to the Comprehensive Course 👋 Let's get started.");
   assert.match(sentEmails[0].html, /Tuesday 26 May 6pm AEDT/);
   fulfillPaymentIntent.__resetForTests();

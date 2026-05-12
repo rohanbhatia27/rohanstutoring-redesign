@@ -138,13 +138,6 @@
     <changefreq>monthly</changefreq>
   </url>
 
-  <!-- Lead-gen / webinar -->
-  <url>
-    <loc>https://www.rohanstutoring.com/webinar</loc>
-    <priority>0.3</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-
   <!-- Blog posts -->
   <url>
     <loc>https://www.rohanstutoring.com/blog/how-i-aced-section-1-gamsat</loc>

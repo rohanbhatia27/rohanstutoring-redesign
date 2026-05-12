@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /checkout/
-Disallow: /webinar/thanks
 Sitemap: https://www.rohanstutoring.com/sitemap.xml

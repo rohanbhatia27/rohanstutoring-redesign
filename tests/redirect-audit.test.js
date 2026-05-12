@@ -40,7 +40,7 @@ test('parseAuditList supports simple newline-separated paths', () => {
 
 test('parseAuditList supports csv input with source and expected columns', () => {
   const entries = parseAuditList(
-    'source,expected,label\n/store/p/comprehensive,/courses/comprehensive,legacy gumroad\nhttps://www.rohanstutoring.com/book-your-gameplan,https://www.rohanstutoring.com/webinar,webinar\n',
+    'source,expected,label\n/store/p/comprehensive,/courses/comprehensive,legacy gumroad\nhttps://www.rohanstutoring.com/contact-me,https://www.rohanstutoring.com/contact,contact\n',
     { baseOrigin: 'https://www.rohanstutoring.com' }
   );
 
@@ -51,9 +51,9 @@ test('parseAuditList supports csv input with source and expected columns', () =>
       label: 'legacy gumroad',
     },
     {
-      source: 'https://www.rohanstutoring.com/book-your-gameplan',
-      expected: 'https://www.rohanstutoring.com/webinar',
-      label: 'webinar',
+      source: 'https://www.rohanstutoring.com/contact-me',
+      expected: 'https://www.rohanstutoring.com/contact',
+      label: 'contact',
     },
   ]);
 });
@@ -193,10 +193,7 @@ test('launch redirect audit csv covers legacy redirects and high-risk money path
     bySource.get('https://www.rohanstutoring.com/store/p/comprehensive')?.expected,
     'https://www.rohanstutoring.com/courses/comprehensive'
   );
-  assert.equal(
-    bySource.get('https://www.rohanstutoring.com/book-your-gameplan')?.expected,
-    'https://www.rohanstutoring.com/webinar'
-  );
+  assert.equal(bySource.has('https://www.rohanstutoring.com/book-your-gameplan'), false);
   assert.equal(
     bySource.get('https://www.rohanstutoring.com/checkout/?product=comprehensive')?.expected,
     'https://www.rohanstutoring.com/checkout/?product=comprehensive'
@@ -213,10 +210,7 @@ test('launch redirect audit csv covers legacy redirects and high-risk money path
     bySource.get('https://www.rohanstutoring.com/checkout/success?product=comprehensive')?.expected,
     'https://www.rohanstutoring.com/checkout/success?product=comprehensive'
   );
-  assert.equal(
-    bySource.get('https://www.rohanstutoring.com/webinar/thanks')?.expected,
-    'https://www.rohanstutoring.com/webinar/thanks'
-  );
+  assert.equal(bySource.has('https://www.rohanstutoring.com/webinar/thanks'), false);
   assert.equal(
     bySource.get('https://www.rohanstutoring.com/courses/private-mentoring')?.expected,
     'https://www.rohanstutoring.com/courses/private-mentoring'

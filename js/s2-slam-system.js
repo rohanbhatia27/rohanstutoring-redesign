@@ -8,8 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form || !submitBtn || !submitText || !submitLoading || !success || !error) return;
 
-  const REDIRECT_DELAY_MS = 2200;
-
   const setLoadingState = (isLoading) => {
     submitBtn.disabled = isLoading;
     submitText.hidden = isLoading;
@@ -38,10 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
       form.reset();
       success.hidden = false;
       success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-      window.setTimeout(() => {
-        window.location.assign('/webinar');
-      }, REDIRECT_DELAY_MS);
     } catch (submissionError) {
       error.hidden = false;
       error.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

@@ -107,12 +107,11 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
   }
 });
 
-test('legacy booking path and lead magnet follow-up both point to the webinar page', () => {
+test('legacy booking path and lead magnet follow-up do not point to retired funnels', () => {
   const config = JSON.parse(read('vercel.json'));
   const bookingRedirect = config.redirects.find(({ source }) => source === '/book-your-gameplan');
 
-  assert.ok(bookingRedirect, 'Missing redirect for /book-your-gameplan');
-  assert.equal(bookingRedirect.destination, '/webinar');
+  assert.equal(bookingRedirect, undefined);
 
   const mockSignupPage = read('s1-mock.html');
   assert.match(
@@ -120,10 +119,10 @@ test('legacy booking path and lead magnet follow-up both point to the webinar pa
     /action="https:\/\/app\.kit\.com\/forms\/8717603\/subscriptions"/,
     'S1 mock should keep the live Kit signup endpoint'
   );
-  assert.match(
+  assert.doesNotMatch(
     mockSignupPage,
-    /free webinar/i,
-    'S1 mock should still point post-signup follow-up toward the webinar'
+    /webinar/i,
+    'S1 mock should not point post-signup follow-up toward the retired funnel'
   );
 });
 
@@ -183,77 +182,35 @@ test('GA pages use external bootstrap script instead of inline GA code', () => {
   }
 });
 
-test('webinar funnel pages do not ship inline executable scripts', () => {
-  const webinarPage = read('webinar.html');
-  const webinarThanksPage = read('webinar/thanks.html');
+test('retired webinar funnel is absent from active site code', () => {
+  const forbiddenPathFragments = [
+    'webinar.html',
+    'webinar/thanks.html',
+    'css/webinar.css',
+    'css/webinar-thanks.css',
+    'js/webinar.js',
+  ];
 
-  assert.match(
-    webinarPage,
-    /<script src="js\/webinar\.js" defer><\/script>/,
-    'Missing webinar enhancement script'
-  );
-  assert.doesNotMatch(
-    webinarPage,
-    /<script>(?!\s*<\/script>)/,
-    'webinar.html should not include inline executable scripts'
-  );
-  assert.doesNotMatch(
-    webinarThanksPage,
-    /<script>(?!\s*<\/script>)/,
-    'webinar/thanks.html should not include inline executable scripts'
-  );
-});
+  for (const fragment of forbiddenPathFragments) {
+    assert.equal(fs.existsSync(path.join(ROOT, fragment)), false, `${fragment} should be removed`);
+  }
 
-test('webinar submit tracking remains compatible with shared analytics hooks', () => {
-  const webinarPage = read('webinar.html');
-  const mainScript = read('js/main.js');
-  const webinarScript = read('js/webinar.js');
+  const activeFiles = fs.readdirSync(ROOT, { recursive: true })
+    .map(String)
+    .filter((file) => !file.startsWith('docs/'))
+    .filter((file) => !file.startsWith('tests/'))
+    .filter((file) => !file.startsWith('node_modules/'))
+    .filter((file) => !/redirect-audit-.*-output\.csv$/.test(file))
+    .filter((file) => /\.(?:html|js|json|xml|txt|csv)$/.test(file));
 
-  assert.match(
-    webinarPage,
-    /class="[^"]*\bformkit-form\b[^"]*\bwebinar-kit-form\b[^"]*"/,
-    'webinar form should keep the shared FormKit class for analytics tracking'
-  );
-  assert.match(
-    mainScript,
-    /document\.addEventListener\('submit',[\s\S]*newsletter_signup[\s\S]*capture:\s*true[\s\S]*\}\);/,
-    'main.js should track FormKit submits in the capture phase'
-  );
-  assert.doesNotMatch(
-    webinarScript,
-    /stopImmediatePropagation|preventDefault/,
-    'webinar enhancement should not block shared submit tracking'
-  );
-});
-
-test('webinar thank-you assets do not expose the Zoom join url publicly', () => {
-  const webinarThanksPage = read('webinar/thanks.html');
-  const config = JSON.parse(read('vercel.json'));
-  const webinarJoinRedirect = config.redirects.find(({ source }) => source === '/webinar-join');
-
-  assert.doesNotMatch(
-    webinarThanksPage,
-    /https:\/\/uni-sydney\.zoom\.us/,
-    'webinar/thanks.html should not expose the Zoom meeting url'
-  );
-  assert.ok(webinarJoinRedirect, 'Missing redirect for /webinar-join');
-  assert.equal(
-    webinarJoinRedirect.destination,
-    '/webinar/thanks',
-    '/webinar-join should no longer redirect straight to Zoom'
-  );
-});
-
-test('webinar form fields and below-fold speaker image keep the low-friction performance attrs', () => {
-  const webinarPage = read('webinar.html');
-
-  assert.match(webinarPage, /autocomplete="given-name"/);
-  assert.match(webinarPage, /autocomplete="email"/);
-  assert.match(
-    webinarPage,
-    /<img src="assets\/rohan-hero\.png" alt="Rohan Bhatia" class="webinar-about__photo" width="756" height="756" loading="lazy" decoding="async">/,
-    'webinar speaker image should include intrinsic dimensions and lazy-loading attrs'
-  );
+  for (const file of activeFiles) {
+    const source = read(file);
+    assert.doesNotMatch(
+      source,
+      /webinar|Zoom link|2790583002|Sunday at 7pm|Sunday webinar|GAMSAT Strategy Session/i,
+      `Retired webinar reference remains in ${file}`
+    );
+  }
 });
 
 test('local stylesheet links resolve on disk', () => {
@@ -350,7 +307,6 @@ test('sitemap includes all confirmed indexable public pages', () => {
     'https://www.rohanstutoring.com/s1-mock',
     'https://www.rohanstutoring.com/s2-slam-system',
     'https://www.rohanstutoring.com/section-1-tracker',
-    'https://www.rohanstutoring.com/webinar',
     'https://www.rohanstutoring.com/privacy',
   ];
 

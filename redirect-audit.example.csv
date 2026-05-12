@@ -2,7 +2,6 @@ source,expected,label
 /store,/courses,legacy store root
 /store/p/comprehensive,/courses/comprehensive,legacy comprehensive
 /store/p/rohans-gamsat-blueprint-the-full-package,/courses/blueprint,legacy blueprint
-/book-your-gameplan,/webinar,legacy webinar CTA
 /private-mentoring,/courses/private-mentoring,legacy mentoring page
 /about.html,/about,html canonical redirect
 /blog/mastering-gamsat-s2-task-a-essay.html,/blog/mastering-gamsat-s2-task-a-essay,legacy blog slug

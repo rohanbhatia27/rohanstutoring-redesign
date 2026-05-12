@@ -14,7 +14,6 @@ const FLOATING_QUIZ_CTA_ALLOWED_PATHS = [
 const FLOATING_QUIZ_CTA_HIDDEN_PATHS = [
   /^\/quiz(?:\.html)?$/,
   /^\/checkout(?:\/|$)/,
-  /^\/webinar(?:\/|\.html$|$)/,
   /^\/contact(?:\.html)?$/,
   /^\/blog(?:\/|\.html$|$)/,
   /^\/courses(?:\/?$|\.html$)/,

@@ -17,9 +17,6 @@ source,expected,label
 /store/p/s2-rescue-sprint,/courses/s2-rescue-sprint,legacy s2 sprint
 /contact-me,/contact,legacy contact page
 /private-mentoring,/courses/private-mentoring,legacy mentoring page
-/book-your-gameplan,/webinar,legacy webinar CTA
-/webinar-join,/webinar/thanks,legacy webinar join gate
-/webinar-thanks,/webinar/thanks,legacy webinar thanks page
 /about.html,/about,html canonical redirect
 /contact.html,/contact,html canonical redirect
 /courses.html,/courses,html canonical redirect
@@ -62,8 +59,6 @@ source,expected,label
 /courses/s1-rescue-sprint,/courses/s1-rescue-sprint,s1 rescue sprint page
 /courses/s2-rescue-sprint,/courses/s2-rescue-sprint,s2 rescue sprint page
 /contact,/contact,contact page
-/webinar,/webinar,webinar signup page
-/webinar/thanks,/webinar/thanks,webinar thank you page
 /s2-slam-system,/s2-slam-system,s2 slam lead magnet
 /section-1-tracker,/section-1-tracker,section 1 tracker lead magnet
 /quiz,/quiz,quiz lead magnet

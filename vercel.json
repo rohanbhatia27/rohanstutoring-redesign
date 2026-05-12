@@ -116,11 +116,6 @@
       "permanent": true
     },
     {
-      "source": "/book-your-gameplan",
-      "destination": "/webinar",
-      "permanent": true
-    },
-    {
       "source": "/store/p/gamsat-starter-pack",
       "destination": "/courses/starter-pack",
       "permanent": true
@@ -268,16 +263,6 @@
     {
       "source": "/blog/the-biggest-s2-mistake.html",
       "destination": "/blog/the-biggest-s2-mistake",
-      "permanent": true
-    },
-    {
-      "source": "/webinar-join",
-      "destination": "/webinar/thanks",
-      "permanent": false
-    },
-    {
-      "source": "/webinar-thanks",
-      "destination": "/webinar/thanks",
       "permanent": true
     }
   ]

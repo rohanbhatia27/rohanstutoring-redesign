@@ -92,7 +92,6 @@ const track = (event, params = {}) => {
 console.log('[quiz] loaded, questions:', QUESTIONS.length);
 
 const CALENDLY = 'https://calendly.com/rohansgamsat/gamsat-strategy-consultation';
-const WEBINAR  = '/webinar';
 
 const PRODUCT_IMAGES = {
   MASTERY_CALL: { src: 'assets/rohan/rohan-mentoring-3637.webp', alt: 'Mastery mentoring program' },
@@ -194,8 +193,8 @@ const OUTCOMES = {
         <li>Walk into the exam planning to score 70+, not planning to avoid mistakes.</li>
       </ol>
     `,
-    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
-    secondaryCta: { label: 'See the Elite Excellence Course', url: '/courses/advanced' },
+    primaryCta: { label: 'See the Elite Excellence Course', url: '/courses/advanced' },
+    secondaryCta: { label: 'Book a Strategy Consultation', url: CALENDLY },
   },
   BLUEPRINT: {
     id: 'BLUEPRINT',
@@ -225,8 +224,8 @@ const OUTCOMES = {
         <li>Trust the plan. Self-paced students lose points to second-guessing, not lack of content.</li>
       </ol>
     `,
-    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
-    secondaryCta: { label: 'See the Blueprint', url: '/courses/blueprint' },
+    primaryCta: { label: 'See the Blueprint', url: '/courses/blueprint' },
+    secondaryCta: { label: 'Browse All Courses', url: '/courses' },
   },
   ESSAY_ACCELERATOR: {
     id: 'ESSAY_ACCELERATOR',
@@ -256,8 +255,8 @@ const OUTCOMES = {
         <li>Practice quote integration from memory, the Quote Generator is free on the site.</li>
       </ol>
     `,
-    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
-    secondaryCta: { label: 'Get the Expert Essay Collection', url: '/courses/essay-collection' },
+    primaryCta: { label: 'Get the Expert Essay Collection', url: '/courses/essay-collection' },
+    secondaryCta: { label: 'Browse Essay Support', url: '/courses/essay-marking' },
   },
   START_HERE: {
     id: 'START_HERE',
@@ -270,7 +269,7 @@ const OUTCOMES = {
       <ol>
         <li>Study every weekday, even if only 30 minutes. Consistency over volume.</li>
         <li>Write and submit your first essay by week 2. It does not matter how it scores.</li>
-        <li>Use the Sunday session to ask questions and see how the full system fits together.</li>
+        <li>Use the free resources on the site to see how the full system fits together.</li>
       </ol>
       <h3>Phase 2: Weeks 5 to 9: Widen the scope</h3>
       <p class="plan-phase-focus">Weekly focus: move beyond Playbook basics into full-section study, weekly essay.</p>
@@ -284,11 +283,11 @@ const OUTCOMES = {
       <ol>
         <li>By now you'll know whether you need live teaching or self-paced content.</li>
         <li>Book into whichever fits and treat the Playbook as your foundation, not your finish line.</li>
-        <li>If you're not sure, bring your questions to the Sunday session and get a straight recommendation.</li>
+        <li>If you're not sure, take the quiz again after a month of prep and compare the recommendation.</li>
       </ol>
     `,
-    primaryCta: { label: 'Join the free Sunday session', url: WEBINAR },
-    secondaryCta: { label: 'Start with the Essentials Playbook', url: '/courses/starter-pack' },
+    primaryCta: { label: 'Start with the Essentials Playbook', url: '/courses/starter-pack' },
+    secondaryCta: { label: 'Browse All Courses', url: '/courses' },
   },
 };
 

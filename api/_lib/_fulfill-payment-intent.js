@@ -200,7 +200,7 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
 
   if (variant) {
     emailOptions = {
-      from: 'noreply@rohanstutoring.com',
+      from: 'hello@rohanstutoring.com',
       to: customerEmail,
       subject: variant.subject,
       html: buildCourseWelcomeHtml(firstName, variant.startLine),
@@ -208,7 +208,7 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
     };
   } else {
     emailOptions = {
-      from: 'noreply@rohanstutoring.com',
+      from: 'hello@rohanstutoring.com',
       to: customerEmail,
       subject: `Payment confirmed — ${productLine}`,
       html: buildConfirmationHtml(firstName, productLine),
