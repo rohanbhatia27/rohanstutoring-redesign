@@ -1,10 +1,14 @@
 const { PAYPAL_API, getPayPalAccessToken } = require('./_lib/_paypal.js');
+const { resolveCompletedPayPalOrder } = require('./_lib/_paypal-order-validation.js');
+const fulfillPayPalOrder = require('./_lib/_paypal-fulfillment.js');
 
 function getHeader(headers, name) {
   const lowerName = String(name).toLowerCase();
   const entry = Object.entries(headers || {}).find(([key]) => key.toLowerCase() === lowerName);
   return entry ? String(entry[1] || '') : '';
 }
+
+let fulfillPayPalOrderImpl = fulfillPayPalOrder;
 
 async function verifyPayPalWebhook(req, eventBody) {
   const webhookId = String(process.env.PAYPAL_WEBHOOK_ID || '').trim();
@@ -42,6 +46,31 @@ async function verifyPayPalWebhook(req, eventBody) {
   return { ok: true };
 }
 
+async function loadCompletedPayPalOrder(orderID) {
+  const accessToken = await getPayPalAccessToken();
+  const orderResponse = await fetch(`${PAYPAL_API}/v2/checkout/orders/${encodeURIComponent(orderID)}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!orderResponse.ok) {
+    const errorData = await orderResponse.json().catch(() => ({}));
+    console.error('PayPal webhook order lookup failed:', errorData);
+    throw new Error('PayPal order lookup failed.');
+  }
+
+  const orderData = await orderResponse.json();
+  const resolved = resolveCompletedPayPalOrder(orderData, orderID);
+  if (resolved.error) {
+    throw new Error(resolved.error);
+  }
+
+  return resolved;
+}
+
 async function paypalWebhookHandler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -62,13 +91,29 @@ async function paypalWebhookHandler(req, res) {
     if (eventBody.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
       const resource = eventBody.resource || {};
       const relatedIds = resource.supplementary_data?.related_ids || {};
+      const orderID = String(relatedIds.order_id || '').trim();
+
       console.log('PayPal capture completed webhook:', {
         eventId: eventBody.id,
         captureId: resource.id,
-        orderID: relatedIds.order_id || null,
+        orderID: orderID || null,
         amount: resource.amount?.value || null,
         currency: resource.amount?.currency_code || null,
         fulfillmentRequired: true,
+      });
+
+      if (!orderID) {
+        console.warn('PayPal capture completed webhook is missing an order ID.');
+        return res.status(200).json({ received: true });
+      }
+
+      const resolved = await loadCompletedPayPalOrder(orderID);
+
+      await fulfillPayPalOrderImpl({
+        purchase: resolved.purchase,
+        customer: resolved.customer,
+        orderID: resolved.orderID,
+        source: 'paypal-webhook',
       });
     }
 
@@ -80,5 +125,11 @@ async function paypalWebhookHandler(req, res) {
 }
 
 paypalWebhookHandler.verifyPayPalWebhook = verifyPayPalWebhook;
+paypalWebhookHandler.__setFulfillPayPalOrder = (value) => {
+  fulfillPayPalOrderImpl = value;
+};
+paypalWebhookHandler.__resetForTests = () => {
+  fulfillPayPalOrderImpl = fulfillPayPalOrder;
+};
 
 module.exports = paypalWebhookHandler;

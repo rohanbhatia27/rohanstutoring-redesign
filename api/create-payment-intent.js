@@ -93,7 +93,7 @@ function normaliseOriginHost(value) {
 }
 
 function isAllowedOrigin(origin) {
-  if (!origin) return true;
+  if (!origin) return false;
 
   let parsedOrigin;
   try {
@@ -205,6 +205,21 @@ function requiresEssayUploadLink(purchase) {
   return purchase && purchase.baseSlug === 'essay-marking';
 }
 
+function buildPaymentIntentIdempotencyKey({ customerEmail = '', purchase = {} } = {}) {
+  const emailPart = String(customerEmail || '').trim().toLowerCase();
+  const baseSlugPart = String(purchase.baseSlug || '').trim().toLowerCase();
+  const upsellSlugPart = String(purchase.upsellSlug || '').trim().toLowerCase();
+  const minuteWindow = Math.floor(Date.now() / 60000);
+
+  return [
+    'pi',
+    emailPart || 'anonymous',
+    baseSlugPart || 'unknown',
+    upsellSlugPart || 'no-upsell',
+    minuteWindow,
+  ].join('-');
+}
+
 async function createPaymentIntentHandler(req, res) {
   const origin = req.headers.origin || '';
 
@@ -264,6 +279,11 @@ async function createPaymentIntentHandler(req, res) {
         ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
         : `Rohan's GAMSAT - ${purchase.baseSlug}`,
       metadata,
+    }, {
+      idempotencyKey: buildPaymentIntentIdempotencyKey({
+        customerEmail: customer.email,
+        purchase,
+      }),
     });
 
     if (requiresEssayUploadLink(purchase) && stripe.paymentIntents.update && intent.id) {
@@ -311,6 +331,7 @@ createPaymentIntentHandler.isAllowedUpsellCombination = isAllowedUpsellCombinati
 createPaymentIntentHandler.normaliseUpsellSlug = normaliseUpsellSlug;
 createPaymentIntentHandler.getUpsellAmount = getUpsellAmount;
 createPaymentIntentHandler.resolveCheckoutPurchase = resolveCheckoutPurchase;
+createPaymentIntentHandler.buildPaymentIntentIdempotencyKey = buildPaymentIntentIdempotencyKey;
 createPaymentIntentHandler.__setStripeFactory = (value) => {
   stripeFactory = value;
 };

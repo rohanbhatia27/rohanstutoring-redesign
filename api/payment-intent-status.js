@@ -48,7 +48,6 @@ async function paymentIntentStatusHandler(req, res) {
       metadata: {
         base_slug: metadata.base_slug || metadata.product_slug || '',
         upsell_slug: metadata.upsell_slug || '',
-        essay_upload_token: metadata.essay_upload_token || '',
       },
     });
   } catch (error) {

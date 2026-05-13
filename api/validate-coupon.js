@@ -11,7 +11,7 @@ function normaliseOriginHost(value) {
 }
 
 function isAllowedOrigin(origin) {
-  if (!origin) return true;
+  if (!origin) return false;
 
   let parsedOrigin;
   try {

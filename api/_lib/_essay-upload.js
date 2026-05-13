@@ -8,7 +8,9 @@ function normaliseTokenPart(value) {
 }
 
 function getEssayUploadTokenSecret() {
-  return normaliseTokenPart(process.env.ESSAY_UPLOAD_TOKEN_SECRET || process.env.STRIPE_SECRET_KEY);
+  const secret = normaliseTokenPart(process.env.ESSAY_UPLOAD_TOKEN_SECRET);
+  if (!secret) throw new Error('Missing ESSAY_UPLOAD_TOKEN_SECRET');
+  return secret;
 }
 
 function buildEssayUploadToken({

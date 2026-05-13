@@ -2015,12 +2015,13 @@ test('PayPal webhook rejects requests before verification when webhook ID is mis
   }
 });
 
-test('PayPal webhook verifies signature and acknowledges capture completed events', async () => {
+test('PayPal webhook verifies signature, fetches the order, and fulfills capture completed events', async () => {
   process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
   process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
   process.env.PAYPAL_WEBHOOK_ID = 'webhook_id_test';
   const previousFetch = global.fetch;
   const calls = [];
+  const fulfilledOrders = [];
 
   global.fetch = async (url, options) => {
     calls.push({ url: String(url), options });
@@ -2039,11 +2040,46 @@ test('PayPal webhook verifies signature and acknowledges capture completed event
       };
     }
 
+    if (String(url).includes('/v2/checkout/orders/ORDER123')) {
+      return {
+        ok: true,
+        json: async () => ({
+          id: 'ORDER123',
+          status: 'COMPLETED',
+          purchase_units: [
+            {
+              custom_id: 'blueprint',
+              payments: {
+                captures: [
+                  {
+                    status: 'COMPLETED',
+                    amount: { value: '599.00', currency_code: 'AUD' },
+                  },
+                ],
+              },
+            },
+          ],
+          payer: {
+            email_address: 'jane@example.com',
+            name: {
+              given_name: 'Jane',
+              surname: 'Smith',
+            },
+          },
+        }),
+      };
+    }
+
     return {
       ok: false,
       json: async () => ({}),
     };
   };
+
+  paypalWebhookHandler.__setFulfillPayPalOrder(async (payload) => {
+    fulfilledOrders.push(payload);
+    return { fulfilled: true };
+  });
 
   try {
     const req = {
@@ -2079,11 +2115,17 @@ test('PayPal webhook verifies signature and acknowledges capture completed event
       calls.some((call) => call.url.includes('/v1/notifications/verify-webhook-signature')),
       true
     );
+    assert.equal(calls.some((call) => call.url.includes('/v2/checkout/orders/ORDER123')), true);
+    assert.equal(fulfilledOrders.length, 1);
+    assert.equal(fulfilledOrders[0].orderID, 'ORDER123');
+    assert.equal(fulfilledOrders[0].purchase.baseSlug, 'blueprint');
+    assert.equal(fulfilledOrders[0].customer.email, 'jane@example.com');
   } finally {
     global.fetch = previousFetch;
     delete process.env.PAYPAL_CLIENT_ID;
     delete process.env.PAYPAL_CLIENT_SECRET;
     delete process.env.PAYPAL_WEBHOOK_ID;
+    paypalWebhookHandler.__resetForTests();
   }
 });
 
@@ -2293,12 +2335,54 @@ test('payment intent status handler returns status with safe checkout metadata',
       metadata: {
         base_slug: 'essay-marking',
         upsell_slug: 'essay-collection',
-        essay_upload_token: 'persisted_token',
       },
     });
   } finally {
     paymentIntentStatusHandler.__resetForTests();
     delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
+  }
+});
+
+test('payment intent handler sends Stripe idempotency keys for retries in the same minute', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  const createCalls = [];
+  const previousNow = Date.now;
+  Date.now = () => new Date('2026-05-13T12:34:56.000Z').valueOf();
+
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      create: async (payload, options) => {
+        createCalls.push({ payload, options });
+        return { client_secret: 'pi_secret_123' };
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: {
+        origin: 'https://rohanstutoring.com',
+      },
+      body: {
+        slug: 'comprehensive',
+        upsellSlug: 'mentoring-single',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createPaymentIntentHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(createCalls.length, 1);
+    assert.equal(createCalls[0].options.idempotencyKey, 'pi-jane@example.com-comprehensive-mentoring-single-29644594');
+  } finally {
+    Date.now = previousNow;
+    createPaymentIntentHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
   }
 });
 

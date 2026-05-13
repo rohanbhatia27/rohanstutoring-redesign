@@ -126,6 +126,10 @@ function productLabel(baseSlug, upsellSlug) {
   return `${base} + ${PRODUCT_NAMES[upsellSlug] || upsellSlug}`;
 }
 
+function esc(v) {
+  return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function buildConfirmationHtml(firstName, productLine) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -139,8 +143,8 @@ function buildConfirmationHtml(firstName, productLine) {
         </td></tr>
         <tr><td style="padding:36px 32px 28px;">
           <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#0a0f1e;line-height:1.3;">Payment confirmed.</h1>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hi ${firstName},</p>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">We've received your payment for <strong>${productLine}</strong>. Your content will be sent to this email address within 24 hours.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hi ${esc(firstName)},</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">We've received your payment for <strong>${esc(productLine)}</strong>. Your content will be sent to this email address within 24 hours.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">If you have any questions in the meantime, reply to this email or contact us at <a href="mailto:hello@rohanstutoring.com" style="color:#3b82f6;text-decoration:none;">hello@rohanstutoring.com</a>.</p>
           <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan's GAMSAT</p>
         </td></tr>
@@ -166,7 +170,7 @@ function buildCourseWelcomeHtml(firstName, startLine) {
           <p style="margin:0;color:#3b82f6;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT</p>
         </td></tr>
         <tr><td style="padding:36px 32px 28px;">
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hey ${firstName},</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hey ${esc(firstName)},</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Good to see your enrolment come through. I'm excited to have you in the cohort.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You can use the link here to book your 1-on-1 consultation for us to chat, as part of your early bird bonus! <a href="https://calendly.com/rohansgamsat/gamsat-strategy-consultation" style="color:#3b82f6;text-decoration:none;">https://calendly.com/rohansgamsat/gamsat-strategy-consultation</a></p>
@@ -442,6 +446,7 @@ fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
 fulfillPaymentIntent.needsStarterPackAutomation = needsStarterPackAutomation;
 fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
 fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
+fulfillPaymentIntent.sendConfirmationEmail = sendConfirmationEmail;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
 fulfillPaymentIntent.__setResendFactory = (factory) => { resendFactory = factory; };
 fulfillPaymentIntent.__resetForTests = () => { resendFactory = (apiKey) => new Resend(apiKey); };
