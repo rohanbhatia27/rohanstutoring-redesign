@@ -120,6 +120,20 @@ strong { font-weight: 700; color: inherit; }
   margin-bottom: 12px;
 }
 
+.hero__seo-kicker {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blue-light);
+  margin-bottom: 16px;
+}
+.hero__main-text {
+  display: block;
+}
+
 /* ---- Buttons ---- */
 .btn {
   display: inline-flex;
