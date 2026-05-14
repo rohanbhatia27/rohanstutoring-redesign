@@ -988,35 +988,6 @@ border-radius: 100px;
         </aside>
       </div>
     </div>
-    <script>
-    (function() {
-      var el = document.querySelector('[data-countdown-v3]');
-      if (!el) return;
-      var target = new Date(el.getAttribute('data-countdown-v3-target'));
-      if (isNaN(target.getTime())) return;
-      var d = el.querySelector('[data-cd-days]');
-      var h = el.querySelector('[data-cd-hours]');
-      var m = el.querySelector('[data-cd-mins]');
-      var s = el.querySelector('[data-cd-secs]');
-      var pad = function(n) { return String(Math.max(0, n)).padStart(2, '0'); };
-      var intervalId = null;
-      function tick() {
-        var diff = target.getTime() - Date.now();
-        if (diff <= 0) {
-          d.textContent = '00'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
-          el.classList.add('hero-v3__countdown--complete');
-          if (intervalId) { clearInterval(intervalId); intervalId = null; }
-          return;
-        }
-        d.textContent = pad(Math.floor(diff / 86400000));
-        h.textContent = pad(Math.floor((diff % 86400000) / 3600000));
-        m.textContent = pad(Math.floor((diff % 3600000) / 60000));
-        s.textContent = pad(Math.floor((diff % 60000) / 1000));
-      }
-      tick();
-      intervalId = setInterval(tick, 1000);
-    })();
-    </script>
   </section>
 
   <!-- PAIN SECTION - editorial redesign -->
