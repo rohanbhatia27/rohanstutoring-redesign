@@ -2392,3 +2392,25 @@ test('public config handler origin allow-list matches checkout endpoint', () => 
   assert.equal(publicConfigHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
   assert.equal(publicConfigHandler.isAllowedOrigin('https://evil.example.com'), false);
 });
+
+test('public config handler allows same-site browser requests without an origin header', async () => {
+  const previousStripeKey = process.env.STRIPE_PUBLISHABLE_KEY;
+  process.env.STRIPE_PUBLISHABLE_KEY = 'pk_test_123';
+
+  const req = {
+    method: 'GET',
+    headers: {},
+  };
+  const res = createJsonResponseRecorder();
+
+  await publicConfigHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.stripePublishableKey, 'pk_test_123');
+
+  if (previousStripeKey === undefined) {
+    delete process.env.STRIPE_PUBLISHABLE_KEY;
+  } else {
+    process.env.STRIPE_PUBLISHABLE_KEY = previousStripeKey;
+  }
+});
