@@ -69,7 +69,7 @@ color: var(--text-light);
 .sticky-bar__price strong { color: var(--white); }
 .product-hero {
 position: relative;
-padding: calc(var(--header-height) + 24px) 0 80px;
+padding: calc(var(--header-height) + 12px) 0 56px;
 overflow: hidden;
 }
 .product-hero--dark { background: var(--navy); }
@@ -83,7 +83,7 @@ position: relative;
 z-index: 2;
 display: grid;
 grid-template-columns: 1fr 480px;
-gap: 64px;
+gap: 52px;
 align-items: flex-start;
 }
 .product-hero__badges {
@@ -108,21 +108,22 @@ border-radius: 100px;
 .badge--soldout { background: rgba(107,114,128,0.1); color: #9CA3AF; border: 1px solid rgba(107,114,128,0.25); }
 .product-hero h1 {
 color: var(--white);
-margin-bottom: 20px;
+margin-bottom: 16px;
 font-size: clamp(2.5rem, 5vw, 4.5rem);
 }
 .product-hero__sub {
 color: var(--text-light);
 font-size: 1.1rem;
 max-width: 520px;
-margin-bottom: 28px;
+margin-bottom: 20px;
 line-height: 1.7;
 }
 .product-hero__proof {
 display: flex;
 gap: 10px;
 flex-wrap: wrap;
-margin-bottom: 36px;
+margin-top: 24px;
+margin-bottom: 0;
 }
 .proof-pill {
 background: rgba(255,255,255,0.06);
@@ -547,23 +548,26 @@ border-radius: 100px;
             </span>
           </div>
           <h1 class="reveal reveal--delay-1 visible">
-            <span class="hero__seo-kicker">GAMSAT Live Comprehensive Course</span>
-            <span class="hero__main-text">Make September 2026<br><em>your final sitting.</em></span>
+            <span class="hero__seo-kicker">September 2026 Cohort</span>
+            <span class="hero__main-text">GAMSAT Live Comprehensive Course</span>
           </h1>
-          <p class="product-hero__sub reveal reveal--delay-2 visible">Most GAMSAT students keep re-sitting because they keep preparing the same way. This program changes that with live coaching, specific feedback, and a method that builds on itself.</p>
+          <p class="product-hero__sub reveal reveal--delay-2 visible">24 live classes, essay feedback, and weekly coaching for September 2026 sitters who want this to be their final sitting.</p>
 
-          <div class="product-hero__proof reveal reveal--delay-3">
+          <div class="product-hero__cta reveal reveal--delay-3">
+            <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg" id="enrol">Enrol Now - $1549<span class="btn__sub"><s>$1,699</s> early bird price</span></a>
+            <a href="https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m" class="cta-instalment cta-instalment--hero">or pay $449 × 4 instalments</a>
+            <a href="#included" class="product-hero__secondary-link">See what's included →</a>
+            <div class="cta-trust">
+              <span>24 live Zoom classes</span>
+              <span>Personal onboarding call</span>
+              <span>Blueprint library shared via Google Drive on enrolment</span>
+            </div>
+          </div>
+
+          <div class="product-hero__proof reveal reveal--delay-4">
             <div class="proof-pill">Roheed: S2 <strong>51 → 85 (100th percentile)</strong></div>
             <div class="proof-pill">Alexis: S1 <strong>59 → 70 (99th percentile)</strong></div>
             <div class="proof-pill">Beth: <strong>USYD Medicine ✓</strong></div>
-          </div>
-
-          <div class="product-hero__cta reveal reveal--delay-4">
-            <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg" id="enrol">Claim your spot →<span class="btn__sub"><s>$1,699</s> $1,549</span></a>
-            <a href="https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m" class="cta-instalment cta-instalment--hero">or pay $449 × 4 instalments</a>
-            <div class="cta-trust">
-              <span>Blueprint library shared via Google Drive on enrolment</span>
-            </div>
           </div>
         </div>
 
@@ -582,7 +586,7 @@ border-radius: 100px;
               </div>
               <div class="hero-feature-card__text">
                 <strong>100% Refund Guarantee</strong>
-                <span>Best if you can join live most weeks. If shifts or time zones clash, recordings and weekly structure keep you on pace.</span>
+                <span>Attend at least 80% of classes. If you finish without feeling twice as confident, contact us for a full refund.</span>
               </div>
             </div>
             <div class="hero-feature-card">
@@ -692,7 +696,7 @@ border-radius: 100px;
   </section>
 
   <!-- VALUE STACK -->
-  <section class="value-stack">
+  <section class="value-stack" id="included">
     <div class="container">
       <div class="value-stack__header reveal">
         <span class="label">Everything Included</span>
