@@ -339,95 +339,58 @@ border-radius: 100px;
 .product-hero__team { width: 100%; max-width: 560px; }
 }
 
-/* ===== HERO V3 ===== */
-.hero-v3 { padding-top: calc(var(--header-height) + 32px); padding-bottom: 80px; }
-
-.hero-v3__countdown {
+/* ==================== HERO V2 MOCK ==================== */
+.hero-v2 { padding-top: calc(var(--header-height) + 32px); padding-bottom: 80px; }
+.hero-v2__status {
   display: inline-flex;
   align-items: center;
-  gap: 18px;
-  padding: 12px 22px;
+  gap: 14px;
+  padding: 8px 18px;
   margin-bottom: 36px;
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  color: var(--text-light);
+  flex-wrap: wrap;
 }
-.hero-v3__countdown-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
+.hero-v2__status-eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--text-light);
-  padding-right: 18px;
-  border-right: 1px solid var(--border);
-  white-space: nowrap;
+  color: var(--blue-light);
 }
-.hero-v3__countdown-pulse {
-  width: 7px; height: 7px;
+.hero-v2__status-dot {
+  width: 4px; height: 4px;
   border-radius: 50%;
-  background: var(--blue-light);
-  box-shadow: 0 0 0 0 rgba(100,160,255,0.7);
-  animation: heroV3Pulse 2s infinite;
-  flex-shrink: 0;
+  background: var(--text-muted);
+  opacity: 0.6;
 }
-@keyframes heroV3Pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(100,160,255,0.55); }
-  70%  { box-shadow: 0 0 0 9px rgba(100,160,255,0); }
-  100% { box-shadow: 0 0 0 0 rgba(100,160,255,0); }
+.hero-v2__status-item strong { color: var(--white); font-weight: 600; }
+.hero-v2__status-item--urgent { color: #FCD34D; }
+.hero-v2__status-item--urgent strong { color: #FCD34D; }
+.hero-v2__status-pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #FCD34D;
+  box-shadow: 0 0 0 0 rgba(252,211,77,0.6);
+  animation: heroPulse 2s infinite;
 }
-.hero-v3__countdown-units {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.hero-v3__countdown-unit {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 44px;
-  line-height: 1;
-}
-.hero-v3__countdown-unit strong {
-  font-size: 1.55rem;
-  font-weight: 700;
-  color: var(--white);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-.hero-v3__countdown-unit small {
-  font-size: 0.62rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-top: 6px;
-}
-.hero-v3__countdown-sep {
-  font-size: 1.4rem;
-  font-weight: 300;
-  color: var(--text-muted);
-  opacity: 0.45;
-  line-height: 1;
-  align-self: flex-start;
-  margin-top: 2px;
-}
-.hero-v3__countdown--complete .hero-v3__countdown-pulse {
-  background: var(--green);
-  animation: none;
-  box-shadow: 0 0 0 3px rgba(16,191,122,0.25);
+@keyframes heroPulse {
+  0% { box-shadow: 0 0 0 0 rgba(252,211,77,0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(252,211,77,0); }
+  100% { box-shadow: 0 0 0 0 rgba(252,211,77,0); }
 }
 
-.hero-v3__inner {
+.hero-v2__inner {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 64px;
   align-items: start;
 }
 
-.hero-v3__h1 {
+.hero-v2__h1 {
   color: var(--white);
   font-size: clamp(2.25rem, 4.8vw, 4.1rem);
   line-height: 1.04;
@@ -435,12 +398,12 @@ border-radius: 100px;
   margin: 0 0 22px;
   font-weight: 700;
 }
-.hero-v3__h1 em {
+.hero-v2__h1 em {
   font-style: italic;
   color: var(--blue-light);
   font-weight: 600;
 }
-.hero-v3__sub {
+.hero-v2__sub {
   color: var(--text-light);
   font-size: 1.125rem;
   line-height: 1.6;
@@ -448,7 +411,7 @@ border-radius: 100px;
   margin: 0 0 30px;
 }
 
-.hero-v3__proof {
+.hero-v2__proof {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -478,6 +441,7 @@ border-radius: 100px;
   font-size: 0.95rem;
   color: #fff;
   flex-shrink: 0;
+  letter-spacing: -0.01em;
 }
 .proof-card__avatar--r { background: linear-gradient(135deg, #5aa3ff, #2563eb); }
 .proof-card__avatar--a { background: linear-gradient(135deg, #34d399, #047857); }
@@ -485,16 +449,20 @@ border-radius: 100px;
 .proof-card__body { display: flex; flex-direction: column; gap: 1px; line-height: 1.3; min-width: 0; }
 .proof-card__body strong { color: var(--white); font-size: 0.9rem; font-weight: 600; }
 .proof-card__body span { color: var(--text-muted); font-size: 0.8rem; }
-.proof-card__body em { color: var(--green); font-style: normal; font-weight: 700; }
+.proof-card__body em {
+  color: var(--green);
+  font-style: normal;
+  font-weight: 700;
+}
 
-.hero-v3__cta { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
-.hero-v3__cta-row {
+.hero-v2__cta { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.hero-v2__cta-row {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   align-items: center;
 }
-.hero-v3__cta-primary {
+.hero-v2__cta-primary {
   display: inline-flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -503,14 +471,14 @@ border-radius: 100px;
   font-size: 1.05rem !important;
   line-height: 1.2;
 }
-.hero-v3__cta-save {
+.hero-v2__cta-save {
   font-size: 0.72rem;
   font-weight: 600;
   opacity: 0.92;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.hero-v3__cta-ghost {
+.hero-v2__cta-ghost {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -524,23 +492,23 @@ border-radius: 100px;
   font-weight: 600;
   transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
-.hero-v3__cta-ghost:hover {
+.hero-v2__cta-ghost:hover {
   border-color: var(--blue-light);
   transform: translateY(-1px);
   background: rgba(100,160,255,0.06);
 }
-.hero-v3__cta-ghost svg { transition: transform 0.2s ease; }
-.hero-v3__cta-ghost:hover svg { transform: translateX(2px); }
-.hero-v3__cta-text {
+.hero-v2__cta-ghost svg { transition: transform 0.2s ease; }
+.hero-v2__cta-ghost:hover svg { transform: translateX(2px); }
+.hero-v2__cta-text {
   font-size: 0.9rem;
   color: var(--blue-light);
   text-decoration: none;
   font-weight: 500;
   margin-top: 4px;
 }
-.hero-v3__cta-text:hover { color: var(--white); }
+.hero-v2__cta-text:hover { color: var(--white); }
 
-.hero-v3__card {
+.hero-v2__card {
   position: relative;
   background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
   border: 1px solid var(--border);
@@ -548,7 +516,7 @@ border-radius: 100px;
   padding: 30px;
   overflow: hidden;
 }
-.hero-v3__card::before {
+.hero-v2__card::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -560,8 +528,8 @@ border-radius: 100px;
           mask-composite: exclude;
   pointer-events: none;
 }
-.hero-v3__card-head { margin-bottom: 22px; }
-.hero-v3__card-eyebrow {
+.hero-v2__card-head { margin-bottom: 22px; }
+.hero-v2__card-eyebrow {
   display: inline-block;
   font-size: 0.7rem;
   font-weight: 700;
@@ -570,7 +538,7 @@ border-radius: 100px;
   color: var(--blue-light);
   margin-bottom: 8px;
 }
-.hero-v3__card-head h2 {
+.hero-v2__card-head h2 {
   color: var(--white);
   font-size: 1.35rem;
   line-height: 1.25;
@@ -578,13 +546,13 @@ border-radius: 100px;
   margin: 0;
   font-weight: 600;
 }
-.hero-v3__roadmap {
+.hero-v2__roadmap {
   list-style: none;
   padding: 0;
   margin: 0 0 24px;
   position: relative;
 }
-.hero-v3__roadmap::before {
+.hero-v2__roadmap::before {
   content: '';
   position: absolute;
   left: 9px;
@@ -593,14 +561,14 @@ border-radius: 100px;
   width: 1px;
   background: linear-gradient(180deg, rgba(100,160,255,0.5), rgba(100,160,255,0.05));
 }
-.hero-v3__roadmap li {
+.hero-v2__roadmap li {
   position: relative;
   padding: 10px 0 10px 32px;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
-.hero-v3__roadmap li::before {
+.hero-v2__roadmap li::before {
   content: '';
   position: absolute;
   left: 4px; top: 16px;
@@ -609,35 +577,36 @@ border-radius: 100px;
   background: var(--blue);
   box-shadow: 0 0 0 3px rgba(100,160,255,0.18);
 }
-.hero-v3__roadmap li:first-child::before {
+.hero-v2__roadmap li:first-child::before {
   background: var(--blue-light);
   box-shadow: 0 0 0 3px rgba(100,160,255,0.28), 0 0 16px rgba(100,160,255,0.5);
 }
-.hero-v3__roadmap-week {
+.hero-v2__roadmap-week {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--blue-light);
 }
-.hero-v3__roadmap-title {
+.hero-v2__roadmap-title {
   font-size: 0.97rem;
   font-weight: 600;
   color: var(--white);
 }
-.hero-v3__roadmap-desc {
+.hero-v2__roadmap-desc {
   font-size: 0.82rem;
   color: var(--text-muted);
   line-height: 1.45;
 }
-.hero-v3__card-guarantees {
+
+.hero-v2__card-guarantees {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   padding-top: 22px;
   border-top: 1px solid var(--border);
 }
-.hero-v3__card-guarantee {
+.hero-v2__card-guarantee {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -646,45 +615,42 @@ border-radius: 100px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.04);
 }
-.hero-v3__card-guarantee svg { width: 18px; height: 18px; color: var(--green); margin-bottom: 4px; }
-.hero-v3__card-guarantee strong { color: var(--white); font-size: 0.83rem; font-weight: 600; }
-.hero-v3__card-guarantee span { color: var(--text-muted); font-size: 0.73rem; line-height: 1.4; }
+.hero-v2__card-guarantee svg { width: 18px; height: 18px; color: var(--green); margin-bottom: 4px; }
+.hero-v2__card-guarantee strong { color: var(--white); font-size: 0.83rem; font-weight: 600; }
+.hero-v2__card-guarantee span { color: var(--text-muted); font-size: 0.73rem; line-height: 1.4; }
+
+.hero-v2__mockbar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,23,42,0.92);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  padding: 8px 14px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  z-index: 999;
+  display: flex; gap: 12px; align-items: center;
+}
+.hero-v2__mockbar a { color: var(--blue-light); font-weight: 600; text-decoration: none; }
+.hero-v2__mockbar a:hover { color: var(--white); }
 
 @media (max-width: 960px) {
-  .hero-v3__inner { grid-template-columns: 1fr; gap: 40px; }
-  .hero-v3__card { max-width: 560px; }
-  .hero-v3__countdown { font-size: 0.76rem; gap: 12px; }
-}
-@media (max-width: 720px) {
-  .hero-v3__countdown {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 14px 18px;
-    width: 100%;
-    max-width: 480px;
-  }
-  .hero-v3__countdown-label {
-    padding-right: 0;
-    border-right: none;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-    width: 100%;
-  }
-  .hero-v3__countdown-units { gap: 8px; width: 100%; justify-content: space-between; }
-  .hero-v3__countdown-unit { min-width: 0; flex: 1; }
-  .hero-v3__countdown-unit strong { font-size: 1.4rem; }
-  .hero-v3__countdown-sep { display: none; }
+  .hero-v2__inner { grid-template-columns: 1fr; gap: 40px; }
+  .hero-v2__card { max-width: 560px; }
+  .hero-v2__status { font-size: 0.76rem; gap: 10px; padding: 7px 14px; }
 }
 @media (max-width: 640px) {
-  .hero-v3 { padding-bottom: 56px; }
-  .hero-v3__cta { width: 100%; }
-  .hero-v3__cta-primary { width: 100%; }
-  .hero-v3__cta-ghost { width: 100%; justify-content: center; }
+  .hero-v2 { padding-bottom: 56px; }
+  .hero-v2__cta { width: 100%; }
+  .hero-v2__cta-primary { width: 100%; }
+  .hero-v2__cta-ghost { width: 100%; justify-content: center; }
   .proof-card { padding: 10px 12px; }
   .proof-card__avatar { width: 34px; height: 34px; font-size: 0.85rem; }
-  .hero-v3__card { padding: 24px; }
-  .hero-v3__card-guarantees { grid-template-columns: 1fr; }
+  .hero-v2__card { padding: 24px; }
+  .hero-v2__card-guarantees { grid-template-columns: 1fr; }
 }
   </style>
   <link rel="stylesheet" href="../css/product.css">
@@ -868,155 +834,118 @@ border-radius: 100px;
     </div>
   </div>
 
-  <!-- HERO -->
-  <section class="product-hero product-hero--dark hero-v3">
+  <!-- HERO (MOCK V2) -->
+  <section class="product-hero product-hero--dark hero-v2">
     <div class="product-hero__bg">
       <div class="hero__grain"></div>
       <div class="hero__orb hero__orb--1"></div>
     </div>
     <div class="container">
-
-      <div
-        class="hero-v3__countdown reveal visible"
-        role="timer"
-        aria-live="polite"
-        data-countdown-v3
-        data-countdown-v3-target="2026-05-26T18:00:00+10:00"
-      >
-        <span class="hero-v3__countdown-label">
-          <span class="hero-v3__countdown-pulse" aria-hidden="true"></span>
-          Cohort begins in
+      <div class="hero-v2__status reveal visible">
+        <span class="hero-v2__status-eyebrow">September 2026 Cohort</span>
+        <span class="hero-v2__status-dot"></span>
+        <span class="hero-v2__status-item"><strong>Cohort starts</strong> 26 May 2026</span>
+        <span class="hero-v2__status-dot"></span>
+        <span class="hero-v2__status-item hero-v2__status-item--urgent">
+          <span class="hero-v2__status-pulse" aria-hidden="true"></span>
+          <strong>Early bird closes 15 May</strong>
         </span>
-        <div class="hero-v3__countdown-units">
-          <div class="hero-v3__countdown-unit"><strong data-cd-days>00</strong><small>days</small></div>
-          <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
-          <div class="hero-v3__countdown-unit"><strong data-cd-hours>00</strong><small>hrs</small></div>
-          <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
-          <div class="hero-v3__countdown-unit"><strong data-cd-mins>00</strong><small>min</small></div>
-          <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
-          <div class="hero-v3__countdown-unit"><strong data-cd-secs>00</strong><small>sec</small></div>
-        </div>
       </div>
 
-      <div class="hero-v3__inner">
+      <div class="hero-v2__inner">
         <div class="product-hero__content">
-          <h1 class="hero-v3__h1 reveal visible">
-            Sit GAMSAT in September 2026. <em>Don't sit it again.</em>
+          <h1 class="hero-v2__h1 reveal visible">
+            Make September 2026 your <em>final</em> sitting.
           </h1>
-          <p class="hero-v3__sub reveal reveal--delay-1 visible">
-            Twelve weeks of live coaching, real essay feedback, and a small cohort. The point isn't to cover more content. It's to walk into the exam already knowing how you'll handle it.
+          <p class="hero-v2__sub reveal reveal--delay-1 visible">
+            24 live coaching classes, weekly essay feedback, and a small cohort built around one outcome: walking into the exam knowing you've already done the work.
           </p>
 
-          <div class="hero-v3__proof reveal reveal--delay-2 visible">
+          <div class="hero-v2__proof reveal reveal--delay-2 visible">
             <div class="proof-card">
               <span class="proof-card__avatar proof-card__avatar--r">R</span>
               <div class="proof-card__body">
                 <strong>Roheed</strong>
-                <span>S2: 51 → <em>85</em>. 100th percentile.</span>
+                <span>S2 51 → <em>85</em> · 100th percentile</span>
               </div>
             </div>
             <div class="proof-card">
               <span class="proof-card__avatar proof-card__avatar--a">A</span>
               <div class="proof-card__body">
                 <strong>Alexis</strong>
-                <span>S1: 59 → <em>70</em>. 99th percentile.</span>
+                <span>S1 59 → <em>70</em> · 99th percentile</span>
               </div>
             </div>
             <div class="proof-card">
               <span class="proof-card__avatar proof-card__avatar--b">B</span>
               <div class="proof-card__body">
                 <strong>Beth</strong>
-                <span>Now studying <em>Medicine at USYD</em>.</span>
+                <span>Offered <em>USYD Medicine</em></span>
               </div>
             </div>
           </div>
 
-          <div class="hero-v3__cta reveal reveal--delay-3 visible">
-            <div class="hero-v3__cta-row">
-              <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg hero-v3__cta-primary" id="enrol">
+          <div class="hero-v2__cta reveal reveal--delay-3 visible">
+            <div class="hero-v2__cta-row">
+              <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg hero-v2__cta-primary" id="enrol">
                 Enrol now · $1,549
-                <span class="hero-v3__cta-save">Save $150 · Early bird</span>
+                <span class="hero-v2__cta-save">Save $150 · Early bird</span>
               </a>
-              <a href="https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m" class="hero-v3__cta-ghost">
+              <a href="https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m" class="hero-v2__cta-ghost">
                 <span>Pay in 4 · $449/mo</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </a>
             </div>
-            <a href="#included" class="hero-v3__cta-text">See what's included →</a>
+            <a href="#included" class="hero-v2__cta-text">See what's included →</a>
           </div>
         </div>
 
-        <aside class="hero-v3__card reveal reveal--delay-2 visible">
-          <div class="hero-v3__card-head">
-            <span class="hero-v3__card-eyebrow">12 weeks · 24 live classes</span>
-            <h2>What the twelve weeks actually look like.</h2>
+        <aside class="hero-v2__card reveal reveal--delay-2 visible">
+          <div class="hero-v2__card-head">
+            <span class="hero-v2__card-eyebrow">12-week curriculum</span>
+            <h2>From foundations to test-day readiness.</h2>
           </div>
-          <ol class="hero-v3__roadmap">
+          <ol class="hero-v2__roadmap">
             <li>
-              <span class="hero-v3__roadmap-week">Weeks 1–3</span>
-              <span class="hero-v3__roadmap-title">Foundations</span>
-              <span class="hero-v3__roadmap-desc">Build the reasoning habits and essay structure you'll lean on for the rest of the course.</span>
+              <span class="hero-v2__roadmap-week">Weeks 1–3</span>
+              <span class="hero-v2__roadmap-title">Foundations</span>
+              <span class="hero-v2__roadmap-desc">S1 reasoning patterns, S2 structure, baseline mocks</span>
             </li>
             <li>
-              <span class="hero-v3__roadmap-week">Weeks 4–7</span>
-              <span class="hero-v3__roadmap-title">Reps</span>
-              <span class="hero-v3__roadmap-desc">Weekly essays with real feedback. S1 timing drills under pressure.</span>
+              <span class="hero-v2__roadmap-week">Weeks 4–7</span>
+              <span class="hero-v2__roadmap-title">Method drilling</span>
+              <span class="hero-v2__roadmap-desc">Weekly essays, S1 timing systems, MCQ pattern recognition</span>
             </li>
             <li>
-              <span class="hero-v3__roadmap-week">Weeks 8–10</span>
-              <span class="hero-v3__roadmap-title">Mocks</span>
-              <span class="hero-v3__roadmap-desc">Full length practice exams. 1:1 coaching to clean up your weak spots.</span>
+              <span class="hero-v2__roadmap-week">Weeks 8–10</span>
+              <span class="hero-v2__roadmap-title">Performance</span>
+              <span class="hero-v2__roadmap-desc">Full mocks, individual coaching, weak-area cleanups</span>
             </li>
             <li>
-              <span class="hero-v3__roadmap-week">Weeks 11–12</span>
-              <span class="hero-v3__roadmap-title">Taper</span>
-              <span class="hero-v3__roadmap-desc">Wind the volume down. Walk through exam day. One last check-in before you sit.</span>
+              <span class="hero-v2__roadmap-week">Weeks 11–12</span>
+              <span class="hero-v2__roadmap-title">Taper &amp; exam week</span>
+              <span class="hero-v2__roadmap-desc">Mental rehearsal, exam-day plan, final 1:1 check-ins</span>
             </li>
           </ol>
-          <div class="hero-v3__card-guarantees">
-            <div class="hero-v3__card-guarantee">
+          <div class="hero-v2__card-guarantees">
+            <div class="hero-v2__card-guarantee">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2L3 6v5c0 5.25 3.75 10.15 9 11.5C17.25 21.15 21 16.25 21 11V6L12 2z" stroke="currentColor" stroke-width="1.5" fill="rgba(16,191,122,0.18)" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <strong>Full Refund Guarantee</strong>
-              <span>Show up to 80% of classes. Don't finish twice as confident? We refund you.</span>
+              <strong>100% Refund Guarantee</strong>
+              <span>Attend 80%+ of classes. Don't feel twice as confident? Full refund.</span>
             </div>
-            <div class="hero-v3__card-guarantee">
+            <div class="hero-v2__card-guarantee">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M6 20v-1a6 6 0 0112 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               <strong>1:1 Onboarding Call</strong>
-              <span>Before Day 1, Rohan sits down with you and maps the plan.</span>
+              <span>Map your prep plan with Rohan before Day 1.</span>
             </div>
           </div>
         </aside>
       </div>
     </div>
-    <script>
-    (function() {
-      var el = document.querySelector('[data-countdown-v3]');
-      if (!el) return;
-      var target = new Date(el.dataset.countdownV3Target);
-      if (isNaN(target.getTime())) return;
-      var d = el.querySelector('[data-cd-days]');
-      var h = el.querySelector('[data-cd-hours]');
-      var m = el.querySelector('[data-cd-mins]');
-      var s = el.querySelector('[data-cd-secs]');
-      var pad = function(n) { return String(Math.max(0, n)).padStart(2, '0'); };
-      var intervalId = null;
-      function tick() {
-        var diff = target.getTime() - Date.now();
-        if (diff <= 0) {
-          d.textContent = '00'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
-          el.classList.add('hero-v3__countdown--complete');
-          if (intervalId) { clearInterval(intervalId); intervalId = null; }
-          return;
-        }
-        d.textContent = pad(Math.floor(diff / 86400000));
-        h.textContent = pad(Math.floor((diff % 86400000) / 3600000));
-        m.textContent = pad(Math.floor((diff % 3600000) / 60000));
-        s.textContent = pad(Math.floor((diff % 60000) / 1000));
-      }
-      tick();
-      intervalId = setInterval(tick, 1000);
-    })();
-    </script>
+    <div class="hero-v2__mockbar">
+      <span>Mock hero · v2</span>
+      <a href="/courses/comprehensive">View original →</a>
+    </div>
   </section>
 
   <!-- PAIN SECTION - editorial redesign -->
