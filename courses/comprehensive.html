@@ -992,7 +992,7 @@ border-radius: 100px;
     (function() {
       var el = document.querySelector('[data-countdown-v3]');
       if (!el) return;
-      var target = new Date(el.dataset.countdownV3Target);
+      var target = new Date(el.getAttribute('data-countdown-v3-target'));
       if (isNaN(target.getTime())) return;
       var d = el.querySelector('[data-cd-days]');
       var h = el.querySelector('[data-cd-hours]');
