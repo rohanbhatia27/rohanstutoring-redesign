@@ -5,7 +5,12 @@ const path = require('node:path');
 
 const storefrontConfig = require('../js/storefront-config.js');
 const { PRODUCTS } = require('../js/checkout.js');
-const { createStickyBarController, shouldShowStickyBar } = require('../js/product.js');
+const {
+  createStickyBarController,
+  getCountdownParts,
+  padCountdownUnit,
+  shouldShowStickyBar,
+} = require('../js/product.js');
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -65,6 +70,48 @@ test('mastery hero uses the dedicated mastery artwork asset', () => {
 test('checkout instalment links use shared storefront config', () => {
   assert.deepEqual(PRODUCTS.comprehensive.instalment, storefrontConfig.instalmentLinks.comprehensive);
   assert.deepEqual(PRODUCTS.mastery.instalment, storefrontConfig.instalmentLinks.mastery);
+});
+
+test('comprehensive hero uses an accessible countdown fallback for the live start date', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
+  const countdownTag = html.match(/<span\b[^>]*data-countdown[^>]*>/);
+
+  assert.ok(countdownTag, 'expected comprehensive hero to include countdown markup');
+  assert.match(countdownTag[0], /\bdata-countdown-target="2026-05-26T00:00:00\+10:00"/);
+  assert.match(countdownTag[0], /\bdata-countdown-complete="Starts today"/);
+  assert.match(html, /data-countdown-fallback>Live Classes · Starts 26 May<\/span>/);
+  assert.match(html, /\bdata-countdown-days\b/);
+  assert.match(html, /\bdata-countdown-hours\b/);
+  assert.match(html, /\bdata-countdown-minutes\b/);
+});
+
+test('getCountdownParts returns days, hours, and minutes until 26 May', () => {
+  const target = new Date('2026-05-26T00:00:00+10:00');
+  const now = new Date('2026-05-14T20:27:00+10:00');
+
+  assert.deepEqual(getCountdownParts(target, now), {
+    isComplete: false,
+    days: 11,
+    hours: 3,
+    minutes: 33,
+  });
+});
+
+test('getCountdownParts completes cleanly after the target date arrives', () => {
+  const target = new Date('2026-05-26T00:00:00+10:00');
+  const now = new Date('2026-05-26T00:01:00+10:00');
+
+  assert.deepEqual(getCountdownParts(target, now), {
+    isComplete: true,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+  });
+});
+
+test('padCountdownUnit keeps hour and minute values stable in the compact UI', () => {
+  assert.equal(padCountdownUnit(3), '03');
+  assert.equal(padCountdownUnit(12), '12');
 });
 
 test('shouldShowStickyBar uses the live hero position', () => {
