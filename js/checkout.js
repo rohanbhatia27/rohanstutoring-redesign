@@ -905,7 +905,7 @@
 
   async function fetchCheckoutSessionStatus(sessionId) {
     const response = await global.fetch(
-      `/api/checkout-session-status?session_id=${encodeURIComponent(sessionId)}`
+      `/api/payment-intent-status?session_id=${encodeURIComponent(sessionId)}`
     );
     const result = await parseApiResponse(response);
 
@@ -1705,7 +1705,7 @@
         }
 
         if (selection.paymentMode === 'afterpay') {
-          const response = await fetch('/api/create-afterpay-session', {
+          const response = await fetch('/api/create-instalment-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),

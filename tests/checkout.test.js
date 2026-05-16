@@ -42,9 +42,7 @@ const {
   initSuccessPage,
 } = require('../js/checkout.js');
 const createPaymentIntentHandler = require('../api/create-payment-intent.js');
-const createAfterpaySessionHandler = require('../api/create-afterpay-session.js');
 const createInstalmentSessionHandler = require('../api/create-instalment-session.js');
-const checkoutSessionStatusHandler = require('../api/checkout-session-status.js');
 const createPayPalOrderHandler = require('../api/create-paypal-order.js');
 const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
 const paypalOrderStatusHandler = require('../api/paypal-order-status.js');
@@ -684,7 +682,7 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
       };
     }
 
-    if (url === '/api/create-afterpay-session') {
+    if (url === '/api/create-instalment-session') {
       return {
         ok: true,
         text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/afterpay_123' }),
@@ -725,7 +723,7 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-afterpay-session'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
     assert.equal(confirmCardPaymentCalled, false);
     assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/afterpay_123');
   } finally {
@@ -736,11 +734,11 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
   }
 });
 
-test('afterpay session handler creates a one-time Blueprint Checkout Session', async () => {
+test('instalment session handler creates a one-time Blueprint Afterpay Checkout Session', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 
   let sessionPayload = null;
-  createAfterpaySessionHandler.__setStripeFactory(() => ({
+  createInstalmentSessionHandler.__setStripeFactory(() => ({
     checkout: {
       sessions: {
         create: async (payload) => {
@@ -764,7 +762,7 @@ test('afterpay session handler creates a one-time Blueprint Checkout Session', a
   };
   const res = createJsonResponseRecorder();
 
-  await createAfterpaySessionHandler(req, res);
+  await createInstalmentSessionHandler(req, res);
 
   assert.equal(res.statusCode, 200);
   assert.deepEqual(res.body, { url: 'https://checkout.stripe.test/afterpay_123' });
@@ -775,51 +773,61 @@ test('afterpay session handler creates a one-time Blueprint Checkout Session', a
   assert.equal(sessionPayload.payment_intent_data.metadata.product_slug, 'blueprint');
   assert.match(sessionPayload.success_url, /session_id=\{CHECKOUT_SESSION_ID\}/);
 
-  createAfterpaySessionHandler.__resetForTests();
+  createInstalmentSessionHandler.__resetForTests();
 });
 
-test('checkout session status handler returns payment intent metadata for hosted checkouts', async () => {
+test('payment intent status handler returns hosted checkout session metadata when session_id is provided', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 
-  checkoutSessionStatusHandler.__setStripeFactory(() => ({
+  paymentIntentStatusHandler.__setStripeFactory(() => ({
     checkout: {
       sessions: {
-        retrieve: async () => ({
-          payment_status: 'paid',
-          payment_intent: {
-            id: 'pi_test_123',
-            status: 'succeeded',
-            metadata: {
-              base_slug: 'blueprint',
-              product_slug: 'blueprint',
-              payment_mode: 'afterpay',
+        retrieve: async (sessionId) => {
+          assert.equal(sessionId, 'cs_test_123');
+          return {
+            payment_status: 'paid',
+            payment_intent: {
+              id: 'pi_test_123',
+              status: 'succeeded',
+              metadata: {
+                base_slug: 'blueprint',
+                product_slug: 'blueprint',
+                payment_mode: 'afterpay',
+              },
             },
-          },
-        }),
+          };
+        },
+      },
+    },
+    paymentIntents: {
+      retrieve: async () => {
+        throw new Error('should not fetch payment intent directly for session lookups');
       },
     },
   }));
 
-  const req = {
-    method: 'GET',
-    headers: { origin: 'https://rohanstutoring.com' },
-    query: { session_id: 'cs_test_123' },
-  };
-  const res = createJsonResponseRecorder();
+  try {
+    const req = {
+      method: 'GET',
+      headers: { origin: 'https://rohanstutoring.com' },
+      query: { session_id: 'cs_test_123' },
+    };
+    const res = createJsonResponseRecorder();
 
-  await checkoutSessionStatusHandler(req, res);
+    await paymentIntentStatusHandler(req, res);
 
-  assert.equal(res.statusCode, 200);
-  assert.equal(res.body.status, 'succeeded');
-  assert.equal(res.body.paymentIntentId, 'pi_test_123');
-  assert.deepEqual(res.body.metadata, {
-    base_slug: 'blueprint',
-    product_slug: 'blueprint',
-    upsell_slug: '',
-    payment_mode: 'afterpay',
-  });
-
-  checkoutSessionStatusHandler.__resetForTests();
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.status, 'succeeded');
+    assert.equal(res.body.paymentIntentId, 'pi_test_123');
+    assert.deepEqual(res.body.metadata, {
+      base_slug: 'blueprint',
+      product_slug: 'blueprint',
+      upsell_slug: '',
+      payment_mode: 'afterpay',
+    });
+  } finally {
+    paymentIntentStatusHandler.__resetForTests();
+  }
 });
 
 test('initCheckoutPage keeps full-pay submissions on the payment-intent card flow', async () => {
@@ -2523,9 +2531,12 @@ test('payment intent status handler returns status with safe checkout metadata',
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, {
       status: 'succeeded',
+      paymentIntentId: '',
       metadata: {
         base_slug: 'essay-marking',
+        product_slug: 'essay-marking',
         upsell_slug: 'essay-collection',
+        payment_mode: '',
       },
     });
   } finally {
