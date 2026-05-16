@@ -238,10 +238,10 @@
   const ORDER_BUMPS = {
     blueprint: {
       slug: 'essay-pack-10',
-      title: 'Add the 10-essay pack',
-      description: '10 x essay markings · Top 1% scorer feedback',
+      title: 'Add 10 essay reviews',
+      description: 'Get clear feedback on ideas, structure, and expression across 10 full essays.',
       price: 249,
-      badge: 'Best value',
+      badge: 'Save $100',
     },
     comprehensive: {
       slug: 'mentoring-single',
@@ -621,9 +621,10 @@
     const priceMarkup = orderBump.priceWas
       ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}</span></span>`
       : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}</span>`;
+    const variantClass = orderBump.slug === 'essay-pack-10' ? ' checkout-upsell--essay-pack' : '';
 
     return `
-      <div class="checkout-upsell checkout-upsell--order-bump${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
+      <div class="checkout-upsell checkout-upsell--order-bump${variantClass}${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
         <label class="checkout-upsell__toggle" for="order-bump-toggle">
           <input
             class="checkout-upsell__input"

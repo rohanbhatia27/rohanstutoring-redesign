@@ -250,10 +250,10 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
 test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.deepEqual(getOrderBumpConfig('blueprint'), {
     slug: 'essay-pack-10',
-    title: 'Add the 10-essay pack',
-    description: '10 x essay markings · Top 1% scorer feedback',
+    title: 'Add 10 essay reviews',
+    description: 'Get clear feedback on ideas, structure, and expression across 10 full essays.',
     price: 249,
-    badge: 'Best value',
+    badge: 'Save $100',
   });
 
   assert.deepEqual(getOrderBumpConfig('comprehensive'), {
