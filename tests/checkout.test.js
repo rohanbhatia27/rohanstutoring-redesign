@@ -42,7 +42,9 @@ const {
   initSuccessPage,
 } = require('../js/checkout.js');
 const createPaymentIntentHandler = require('../api/create-payment-intent.js');
+const createAfterpaySessionHandler = require('../api/create-afterpay-session.js');
 const createInstalmentSessionHandler = require('../api/create-instalment-session.js');
+const checkoutSessionStatusHandler = require('../api/checkout-session-status.js');
 const createPayPalOrderHandler = require('../api/create-paypal-order.js');
 const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
 const paypalOrderStatusHandler = require('../api/paypal-order-status.js');
@@ -394,7 +396,19 @@ test('buildInstalmentLinkMarkup renders instalment plans as a deliberate checkou
 test('getPaymentModeOptions returns instalment mode for comprehensive and mastery only', () => {
   assert.deepEqual(getPaymentModeOptions('comprehensive'), ['full', 'instalments']);
   assert.deepEqual(getPaymentModeOptions('mastery'), ['full', 'instalments']);
+  assert.deepEqual(getPaymentModeOptions('blueprint'), ['full', 'afterpay']);
   assert.deepEqual(getPaymentModeOptions('advanced'), ['full']);
+});
+
+test('buildPaymentModeMarkup renders Afterpay as a Blueprint payment option', () => {
+  const markup = buildPaymentModeMarkup(
+    'blueprint',
+    getInitialSelection('blueprint', PRODUCTS.blueprint)
+  );
+
+  assert.match(markup, /Pay in 4 with Afterpay/);
+  assert.match(markup, /value="afterpay"/);
+  assert.match(markup, /Redirects to Afterpay to finish checkout/);
 });
 
 test('getInstalmentPlanSummary returns first payment and future monthly copy for comprehensive', () => {
@@ -629,6 +643,183 @@ test('initCheckoutPage routes instalment submissions to the hosted checkout sess
     global.fetch = previousFetch;
     global.Stripe = previousStripe;
   }
+});
+
+test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted Afterpay session URL', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const env = createCheckoutSubmitTestEnv('?product=blueprint');
+  const afterpayInput = { value: 'afterpay', checked: false };
+  const fetchCalls = [];
+  let confirmCardPaymentCalled = false;
+
+  global.window = env.windowObject;
+  global.document = {
+    ...env.documentObject,
+    querySelectorAll(selector) {
+      if (selector === '.payment-mode-option') {
+        const optionFactory = (input) => ({
+          classList: { toggle() {} },
+          querySelector(childSelector) {
+            return childSelector === '.payment-mode-option__input' ? input : null;
+          },
+        });
+        return [optionFactory(env.fullInput), optionFactory(afterpayInput)];
+      }
+      if (selector === '.payment-mode-option__input') {
+        return [env.fullInput, afterpayInput];
+      }
+      return [];
+    },
+  };
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
+    if (url === '/api/public-config') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-afterpay-session') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/afterpay_123' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  };
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on() {},
+          };
+        },
+      };
+    },
+    async confirmCardPayment() {
+      confirmCardPaymentCalled = true;
+      return {};
+    },
+  });
+
+  try {
+    await initCheckoutPage();
+
+    env.paymentModeSlot.listeners.change({
+      target: {
+        closest(selector) {
+          return selector === '.payment-mode-option__input' ? afterpayInput : null;
+        },
+      },
+    });
+
+    await env.form.submitHandler({
+      preventDefault() {},
+    });
+
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-afterpay-session'), true);
+    assert.equal(confirmCardPaymentCalled, false);
+    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/afterpay_123');
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('afterpay session handler creates a one-time Blueprint Checkout Session', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  let sessionPayload = null;
+  createAfterpaySessionHandler.__setStripeFactory(() => ({
+    checkout: {
+      sessions: {
+        create: async (payload) => {
+          sessionPayload = payload;
+          return { url: 'https://checkout.stripe.test/afterpay_123' };
+        },
+      },
+    },
+  }));
+
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://rohanstutoring.com' },
+    body: {
+      slug: 'blueprint',
+      paymentMode: 'afterpay',
+      email: 'jane@example.com',
+      customerName: 'Jane Smith',
+      origin: 'https://rohanstutoring.com',
+    },
+  };
+  const res = createJsonResponseRecorder();
+
+  await createAfterpaySessionHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, { url: 'https://checkout.stripe.test/afterpay_123' });
+  assert.equal(sessionPayload.mode, 'payment');
+  assert.deepEqual(sessionPayload.payment_method_types, ['afterpay_clearpay']);
+  assert.equal(sessionPayload.line_items[0].price_data.unit_amount, 59900);
+  assert.equal(sessionPayload.payment_intent_data.metadata.payment_mode, 'afterpay');
+  assert.equal(sessionPayload.payment_intent_data.metadata.product_slug, 'blueprint');
+  assert.match(sessionPayload.success_url, /session_id=\{CHECKOUT_SESSION_ID\}/);
+
+  createAfterpaySessionHandler.__resetForTests();
+});
+
+test('checkout session status handler returns payment intent metadata for hosted checkouts', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  checkoutSessionStatusHandler.__setStripeFactory(() => ({
+    checkout: {
+      sessions: {
+        retrieve: async () => ({
+          payment_status: 'paid',
+          payment_intent: {
+            id: 'pi_test_123',
+            status: 'succeeded',
+            metadata: {
+              base_slug: 'blueprint',
+              product_slug: 'blueprint',
+              payment_mode: 'afterpay',
+            },
+          },
+        }),
+      },
+    },
+  }));
+
+  const req = {
+    method: 'GET',
+    headers: { origin: 'https://rohanstutoring.com' },
+    query: { session_id: 'cs_test_123' },
+  };
+  const res = createJsonResponseRecorder();
+
+  await checkoutSessionStatusHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.status, 'succeeded');
+  assert.equal(res.body.paymentIntentId, 'pi_test_123');
+  assert.deepEqual(res.body.metadata, {
+    base_slug: 'blueprint',
+    product_slug: 'blueprint',
+    upsell_slug: '',
+    payment_mode: 'afterpay',
+  });
+
+  checkoutSessionStatusHandler.__resetForTests();
 });
 
 test('initCheckoutPage keeps full-pay submissions on the payment-intent card flow', async () => {

@@ -49,6 +49,7 @@
         'Lifetime access · No expiry',
       ],
       isDigital: true,
+      afterpay: true,
       instalment: null,
       successType: 'digital',
     },
@@ -357,6 +358,10 @@
       return 'Continue to secure instalment checkout';
     }
 
+    if (selection?.paymentMode === 'afterpay') {
+      return 'Continue to Afterpay';
+    }
+
     return getPayButtonLabel(selection?.price ?? 0);
   }
 
@@ -501,6 +506,7 @@
   }
 
   function getPaymentModeOptions(productSlug) {
+    if (PRODUCTS[productSlug]?.afterpay) return ['full', 'afterpay'];
     return INSTALMENT_PLANS[productSlug] ? ['full', 'instalments'] : ['full'];
   }
 
@@ -524,8 +530,39 @@
     const options = getPaymentModeOptions(productSlug);
     if (options.length < 2) return '';
 
-    const activeMode = selection?.paymentMode === 'instalments' ? 'instalments' : 'full';
+    const activeMode = options.includes(selection?.paymentMode) ? selection.paymentMode : 'full';
     const plan = INSTALMENT_PLANS[productSlug];
+    const secondaryOption = options.includes('afterpay')
+      ? `
+        <label class="payment-mode-option${activeMode === 'afterpay' ? ' payment-mode-option--active' : ''}">
+          <input
+            class="payment-mode-option__input"
+            type="radio"
+            name="payment-mode"
+            value="afterpay"
+            ${activeMode === 'afterpay' ? 'checked' : ''}
+          >
+          <span class="payment-mode-option__body">
+            <strong>Pay in 4 with Afterpay</strong>
+            <span>Redirects to Afterpay to finish checkout</span>
+          </span>
+        </label>
+      `
+      : `
+        <label class="payment-mode-option${activeMode === 'instalments' ? ' payment-mode-option--active' : ''}">
+          <input
+            class="payment-mode-option__input"
+            type="radio"
+            name="payment-mode"
+            value="instalments"
+            ${activeMode === 'instalments' ? 'checked' : ''}
+          >
+          <span class="payment-mode-option__body">
+            <strong>Pay in ${plan.count} monthly payments</strong>
+            <span>$${fmtPrice(plan.firstPayment)} due today, then ${plan.count - 1} more monthly instalments</span>
+          </span>
+        </label>
+      `;
 
     return `
       <div class="payment-mode-toggle" role="radiogroup" aria-label="Payment mode">
@@ -542,19 +579,7 @@
             <span>One secure card payment today</span>
           </span>
         </label>
-        <label class="payment-mode-option${activeMode === 'instalments' ? ' payment-mode-option--active' : ''}">
-          <input
-            class="payment-mode-option__input"
-            type="radio"
-            name="payment-mode"
-            value="instalments"
-            ${activeMode === 'instalments' ? 'checked' : ''}
-          >
-          <span class="payment-mode-option__body">
-            <strong>Pay in ${plan.count} monthly payments</strong>
-            <span>$${fmtPrice(plan.firstPayment)} due today, then ${plan.count - 1} more monthly instalments</span>
-          </span>
-        </label>
+        ${secondaryOption}
       </div>
     `;
   }
@@ -878,6 +903,19 @@
     return result.data;
   }
 
+  async function fetchCheckoutSessionStatus(sessionId) {
+    const response = await global.fetch(
+      `/api/checkout-session-status?session_id=${encodeURIComponent(sessionId)}`
+    );
+    const result = await parseApiResponse(response);
+
+    if (!result.ok || !result.data.status) {
+      throw new Error(result.data.error || 'We could not verify this payment.');
+    }
+
+    return result.data;
+  }
+
   async function fetchPayPalOrderStatus({
     orderID = '',
     productSlug = '',
@@ -1053,6 +1091,9 @@
     const paymentModeInputs = document.querySelectorAll('.payment-mode-option__input');
     const instalmentSummarySlot = qs('#instalment-summary-slot');
     const payButtonLabel = qs('#pay-btn-label');
+    const cardWrap = qs('#card-element-wrap');
+    const paymentRequestButton = qs('#payment-request-button');
+    const paymentRequestSeparator = qs('#payment-request-separator');
 
     if (totalEl) totalEl.textContent = `$${fmtPrice(selection.price)} AUD`;
 
@@ -1107,6 +1148,18 @@
       }
     }
 
+    if (cardWrap) {
+      cardWrap.hidden = selection.paymentMode === 'afterpay';
+    }
+
+    if (selection.paymentRequest && paymentRequestButton) {
+      paymentRequestButton.hidden = selection.paymentMode === 'afterpay';
+    }
+
+    if (selection.paymentRequest && paymentRequestSeparator) {
+      paymentRequestSeparator.hidden = selection.paymentMode === 'afterpay';
+    }
+
     if (payButtonLabel) {
       payButtonLabel.textContent = getPrimaryButtonLabel(selection);
     }
@@ -1123,7 +1176,8 @@
       return;
     }
 
-    selection.paymentMode = selection.paymentMode === 'instalments' ? 'instalments' : 'full';
+    const options = getPaymentModeOptions(productSlug);
+    selection.paymentMode = options.includes(selection.paymentMode) ? selection.paymentMode : 'full';
     slot.innerHTML = markup;
     slot.hidden = false;
 
@@ -1131,7 +1185,7 @@
       const input = event.target.closest('.payment-mode-option__input');
       if (!input) return;
 
-      selection.paymentMode = input.value === 'instalments' ? 'instalments' : 'full';
+      selection.paymentMode = options.includes(input.value) ? input.value : 'full';
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
@@ -1269,7 +1323,7 @@
   function buildCheckoutPayload(selection, validation) {
     const payload = {
       slug: selection.apiSlug,
-      paymentMode: selection.paymentMode === 'instalments' ? 'instalments' : 'full',
+      paymentMode: ['instalments', 'afterpay'].includes(selection.paymentMode) ? selection.paymentMode : 'full',
       primaryProduct: {
         pageSlug: selection.pageSlug,
         slug: selection.apiSlug,
@@ -1650,6 +1704,21 @@
           return;
         }
 
+        if (selection.paymentMode === 'afterpay') {
+          const response = await fetch('/api/create-afterpay-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const resultPayload = await parseApiResponse(response);
+          if (!resultPayload.ok || !resultPayload.data.url) {
+            throw new Error(resultPayload.data.error || 'Afterpay checkout setup failed. Please try again.');
+          }
+
+          window.location.href = resultPayload.data.url;
+          return;
+        }
+
         const response = await fetch('/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1742,6 +1811,7 @@
     const params = new URLSearchParams(window.location.search);
     const productSlug = params.get('product');
     const paymentIntentId = params.get('payment_intent');
+    const checkoutSessionId = params.get('session_id');
 
     function renderState(state, statusKey) {
       iconEl.textContent = state.icon;
@@ -1807,6 +1877,29 @@
     renderState(SUCCESS_STATES.verifying, 'verifying');
 
     if (!paymentIntentId || typeof global.fetch !== 'function') {
+      if (checkoutSessionId && typeof global.fetch === 'function') {
+        try {
+          const statusPayload = await fetchCheckoutSessionStatus(checkoutSessionId);
+          const status = statusPayload.status;
+          const metadata = statusPayload.metadata || {};
+          const successProductSlug = metadata.base_slug || metadata.product_slug || productSlug;
+          const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
+          const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
+
+          renderState(getSuccessState(status, successMessageProductSlug), status);
+          if (status === 'succeeded') {
+            renderSuccessAction(successMessageProductSlug, {
+              paymentIntentId: statusPayload.paymentIntentId || checkoutSessionId,
+              productSlug: successMessageProductSlug,
+              upsellSlug,
+            });
+          }
+        } catch (error) {
+          renderState(SUCCESS_STATES.failed, 'failed');
+        }
+        return;
+      }
+
       renderState(SUCCESS_STATES.failed, 'failed');
       return;
     }
@@ -1885,6 +1978,7 @@
     fetchCheckoutConfig,
     loadCheckoutConfig,
     fetchPaymentIntentStatus,
+    fetchCheckoutSessionStatus,
     fetchPayPalOrderStatus,
     getCustomerPayload,
     buildCheckoutPayload,
