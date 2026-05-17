@@ -2,6 +2,7 @@ const Stripe = require('stripe');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
 
 const ELIGIBLE_INSTALMENT_PRODUCTS = new Set(['comprehensive', 'mastery']);
+const ELIGIBLE_AFTERPAY_PRODUCTS = new Set(['blueprint']);
 const PRICE_ENV_KEYS = {
   comprehensive: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
   mastery: 'STRIPE_PRICE_MASTERY_INSTALMENT',
@@ -9,17 +10,52 @@ const PRICE_ENV_KEYS = {
 const PUBLIC_ERROR_MESSAGE = 'Instalment checkout setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
+async function applyCouponDiscount(stripe, baseAmount, couponCode) {
+  if (!couponCode) return { discountAmount: 0 };
+
+  try {
+    const result = await stripe.promotionCodes.list({
+      code: String(couponCode).trim().toUpperCase(),
+      active: true,
+      limit: 1,
+    });
+    const promoCode = result.data[0];
+
+    if (!promoCode || !promoCode.coupon || !promoCode.coupon.valid) {
+      return { discountAmount: 0 };
+    }
+
+    const coupon = promoCode.coupon;
+    let discountAmount = 0;
+
+    if (coupon.percent_off) {
+      discountAmount = Math.round(baseAmount * coupon.percent_off / 100);
+    } else if (coupon.amount_off) {
+      discountAmount = Math.min(coupon.amount_off, baseAmount);
+    }
+
+    return { discountAmount, couponCode: String(couponCode).trim().toUpperCase() };
+  } catch (err) {
+    console.error('Coupon lookup error:', err.message);
+    return { discountAmount: 0 };
+  }
+}
+
 function validateInstalmentRequest(body) {
   const slug = String(body && body.slug ? body.slug : '').trim();
   const paymentMode = String(body && body.paymentMode ? body.paymentMode : '').trim();
   const upsellSlug = createPaymentIntentHandler.normaliseUpsellSlug(body || {});
 
-  if (paymentMode !== 'instalments') {
+  if (!['instalments', 'afterpay'].includes(paymentMode)) {
     return { error: 'Invalid payment mode.' };
   }
 
-  if (!ELIGIBLE_INSTALMENT_PRODUCTS.has(slug)) {
+  if (paymentMode === 'instalments' && !ELIGIBLE_INSTALMENT_PRODUCTS.has(slug)) {
     return { error: 'Instalments are not available for this product.' };
+  }
+
+  if (paymentMode === 'afterpay' && !ELIGIBLE_AFTERPAY_PRODUCTS.has(slug)) {
+    return { error: 'Afterpay is not available for this product.' };
   }
 
   if (upsellSlug) {
@@ -93,6 +129,61 @@ function buildInstalmentSessionPayload({ slug, upsellSlug, customer, origin, rec
   };
 }
 
+function buildAfterpaySessionPayload({
+  purchase,
+  customer,
+  origin,
+  finalAmount,
+  couponCode,
+}) {
+  const metadata = {
+    product_slug: purchase.baseSlug,
+    base_slug: purchase.baseSlug,
+    payment_mode: 'afterpay',
+    customer_email: customer.email,
+    customer_name: customer.customerName,
+  };
+
+  if (purchase.upsellSlug) {
+    metadata.upsell_slug = purchase.upsellSlug;
+  }
+
+  if (couponCode) {
+    metadata.coupon_code = couponCode;
+  }
+
+  return {
+    mode: 'payment',
+    payment_method_types: ['afterpay_clearpay'],
+    success_url: `${origin}/checkout/success?product=${purchase.baseSlug}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/checkout/?product=${purchase.baseSlug}`,
+    customer_email: customer.email,
+    billing_address_collection: 'required',
+    line_items: [
+      {
+        price_data: {
+          currency: 'aud',
+          product_data: {
+            name: purchase.upsellSlug
+              ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
+              : `Rohan's GAMSAT - ${purchase.baseSlug}`,
+          },
+          unit_amount: finalAmount,
+        },
+        quantity: 1,
+      },
+    ],
+    metadata,
+    payment_intent_data: {
+      receipt_email: customer.email,
+      description: purchase.upsellSlug
+        ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
+        : `Rohan's GAMSAT - ${purchase.baseSlug}`,
+      metadata,
+    },
+  };
+}
+
 async function createInstalmentSessionHandler(req, res) {
   const origin = req.headers.origin || '';
 
@@ -109,9 +200,9 @@ async function createInstalmentSessionHandler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid JSON body' });
   }
 
-  const instalmentRequest = validateInstalmentRequest(body);
-  if (instalmentRequest.error) {
-    return res.status(400).json({ error: instalmentRequest.error });
+  const checkoutRequest = validateInstalmentRequest(body);
+  if (checkoutRequest.error) {
+    return res.status(400).json({ error: checkoutRequest.error });
   }
 
   const customer = createPaymentIntentHandler.normaliseCustomerDetails(body);
@@ -129,22 +220,43 @@ async function createInstalmentSessionHandler(req, res) {
     return res.status(500).json({ error: 'Missing STRIPE_SECRET_KEY environment variable' });
   }
 
-  const recurringPriceId = String(process.env[PRICE_ENV_KEYS[instalmentRequest.slug]] || '').trim();
-  if (!recurringPriceId) {
-    return res.status(500).json({ error: `Missing ${PRICE_ENV_KEYS[instalmentRequest.slug]} environment variable` });
-  }
-
   try {
     const stripe = stripeFactory(secretKey);
-    const session = await stripe.checkout.sessions.create(
-      buildInstalmentSessionPayload({
-        slug: instalmentRequest.slug,
-        upsellSlug: instalmentRequest.upsellSlug,
+    let sessionPayload;
+
+    if (checkoutRequest.paymentMode === 'afterpay') {
+      const purchase = createPaymentIntentHandler.resolveCheckoutPurchase(body);
+      if (purchase.error) {
+        return res.status(400).json({ error: purchase.error });
+      }
+
+      const couponCode = String(body.couponCode || '').trim();
+      const { discountAmount, couponCode: validatedCode } = await applyCouponDiscount(stripe, purchase.amount, couponCode);
+      const finalAmount = Math.max(50, purchase.amount - discountAmount);
+
+      sessionPayload = buildAfterpaySessionPayload({
+        purchase,
+        customer,
+        origin: sessionOrigin,
+        finalAmount,
+        couponCode: validatedCode && discountAmount > 0 ? validatedCode : '',
+      });
+    } else {
+      const recurringPriceId = String(process.env[PRICE_ENV_KEYS[checkoutRequest.slug]] || '').trim();
+      if (!recurringPriceId) {
+        return res.status(500).json({ error: `Missing ${PRICE_ENV_KEYS[checkoutRequest.slug]} environment variable` });
+      }
+
+      sessionPayload = buildInstalmentSessionPayload({
+        slug: checkoutRequest.slug,
+        upsellSlug: checkoutRequest.upsellSlug,
         customer,
         origin: sessionOrigin,
         recurringPriceId,
-      })
-    );
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionPayload);
 
     return res.status(200).json({ url: session.url });
   } catch (error) {
@@ -154,11 +266,13 @@ async function createInstalmentSessionHandler(req, res) {
 }
 
 createInstalmentSessionHandler.ELIGIBLE_INSTALMENT_PRODUCTS = ELIGIBLE_INSTALMENT_PRODUCTS;
+createInstalmentSessionHandler.ELIGIBLE_AFTERPAY_PRODUCTS = ELIGIBLE_AFTERPAY_PRODUCTS;
 createInstalmentSessionHandler.PRICE_ENV_KEYS = PRICE_ENV_KEYS;
 createInstalmentSessionHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 createInstalmentSessionHandler.validateInstalmentRequest = validateInstalmentRequest;
 createInstalmentSessionHandler.getSessionOrigin = getSessionOrigin;
 createInstalmentSessionHandler.buildInstalmentSessionPayload = buildInstalmentSessionPayload;
+createInstalmentSessionHandler.buildAfterpaySessionPayload = buildAfterpaySessionPayload;
 createInstalmentSessionHandler.__setStripeFactory = (value) => {
   stripeFactory = value;
 };

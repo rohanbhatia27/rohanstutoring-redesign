@@ -224,11 +224,41 @@
     module.exports = exported;
   }
 
+  function initHeroV3Countdown() {
+    const el = document.querySelector('[data-countdown-v3]');
+    if (!el) return null;
+    const target = new Date(el.getAttribute('data-countdown-v3-target'));
+    if (isNaN(target.getTime())) return null;
+    const d = el.querySelector('[data-cd-days]');
+    const h = el.querySelector('[data-cd-hours]');
+    const m = el.querySelector('[data-cd-mins]');
+    const s = el.querySelector('[data-cd-secs]');
+    const pad = (n) => String(Math.max(0, n)).padStart(2, '0');
+    let id = null;
+    function tick() {
+      const diff = target.getTime() - Date.now();
+      if (diff <= 0) {
+        d.textContent = '00'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
+        el.classList.add('hero-v3__countdown--complete');
+        if (id) { clearInterval(id); id = null; }
+        return;
+      }
+      d.textContent = pad(Math.floor(diff / 86400000));
+      h.textContent = pad(Math.floor((diff % 86400000) / 3600000));
+      m.textContent = pad(Math.floor((diff % 3600000) / 60000));
+      s.textContent = pad(Math.floor((diff % 60000) / 1000));
+    }
+    tick();
+    id = setInterval(tick, 1000);
+    return { destroy() { if (id) { clearInterval(id); id = null; } } };
+  }
+
   if (typeof window !== 'undefined') {
     window.ProductPage = exported;
 
     const startProductPage = () => {
       window.ProductPageController = initProductPage();
+      initHeroV3Countdown();
     };
 
     if (document.readyState === 'loading') {

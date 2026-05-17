@@ -340,11 +340,13 @@ test('fulfillment helper does not reuse the comprehensive template for mastery',
   fulfillPaymentIntent.__resetForTests();
 });
 
-test('fulfillment helper tags starter-pack buyers in Kit', async () => {
+test('fulfillment helper tags supported product buyers in Kit', async () => {
   const sentEmails = [];
   const calls = [];
   process.env.RESEND_API_KEY = 're_test_123';
   process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT = '19492824';
+  process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE = '19492825';
   process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK = '19492826';
 
   fulfillPaymentIntent.__setResendFactory(() => ({
@@ -367,7 +369,7 @@ test('fulfillment helper tags starter-pack buyers in Kit', async () => {
       };
     }
 
-    if (url.endsWith('/v4/tags/19492826/subscribers/789')) {
+    if (/\/v4\/tags\/1949282[4-6]\/subscribers\/789$/.test(url)) {
       return {
         ok: true,
         status: 201,
@@ -378,31 +380,37 @@ test('fulfillment helper tags starter-pack buyers in Kit', async () => {
     throw new Error(`Unexpected fetch URL: ${url}`);
   });
 
-  await fulfillPaymentIntent.fulfillPaymentIntent({
-    paymentIntent: {
-      id: 'pi_kit123',
-      metadata: {
-        base_slug: 'starter-pack',
-        customer_email: 'jane@example.com',
-        customer_name: 'Jane Smith',
+  for (const baseSlug of ['blueprint', 'comprehensive', 'starter-pack']) {
+    await fulfillPaymentIntent.fulfillPaymentIntent({
+      paymentIntent: {
+        id: `pi_kit_${baseSlug}`,
+        metadata: {
+          base_slug: baseSlug,
+          customer_email: 'jane@example.com',
+          customer_name: 'Jane Smith',
+        },
       },
-    },
-    stripeClient: {
-      paymentIntents: {
-        update: async () => ({}),
+      stripeClient: {
+        paymentIntents: {
+          update: async () => ({}),
+        },
       },
-    },
-  });
+    });
+  }
 
-  assert.equal(sentEmails.length, 1);
-  assert.equal(calls.length, 2);
+  assert.equal(sentEmails.length, 3);
+  assert.equal(calls.length, 6);
   assert.match(calls[0].url, /\/v4\/subscribers$/);
-  assert.match(calls[1].url, /\/v4\/tags\/19492826\/subscribers\/789$/);
+  assert.match(calls[1].url, /\/v4\/tags\/19492824\/subscribers\/789$/);
+  assert.match(calls[3].url, /\/v4\/tags\/19492825\/subscribers\/789$/);
+  assert.match(calls[5].url, /\/v4\/tags\/19492826\/subscribers\/789$/);
 
   fulfillPaymentIntent.__resetForTests();
   kit.__resetForTests();
   delete process.env.RESEND_API_KEY;
   delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT;
+  delete process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE;
   delete process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK;
 });
 

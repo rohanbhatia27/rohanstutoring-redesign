@@ -7,7 +7,7 @@ function isAllowedOrigin(origin) {
 async function publicConfigHandler(req, res) {
   const origin = req.headers.origin || '';
 
-  if (!isAllowedOrigin(origin)) {
+  if (origin && !isAllowedOrigin(origin)) {
     return res.status(403).json({ error: 'Origin not allowed' });
   }
 

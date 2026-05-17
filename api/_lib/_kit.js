@@ -1,5 +1,19 @@
 const KIT_API_BASE = 'https://api.kit.com/v4';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const QUIZ_OUTCOME_TAG_ENV = {
+  START_HERE: 'KIT_TAG_ID_QUIZ_START_HERE',
+  BLUEPRINT: 'KIT_TAG_ID_QUIZ_BLUEPRINT',
+  COMPREHENSIVE: 'KIT_TAG_ID_QUIZ_COMPREHENSIVE',
+  MASTERY_CALL: 'KIT_TAG_ID_QUIZ_MASTERY',
+};
+
+const PURCHASE_TAG_ENV = {
+  blueprint: 'KIT_TAG_ID_PURCHASED_BLUEPRINT',
+  comprehensive: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
+  's1-comprehensive': 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
+  's2-comprehensive': 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
+  'starter-pack': 'KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK',
+};
 
 let fetchImpl = (...args) => fetch(...args);
 
@@ -107,10 +121,17 @@ async function syncQuizLead({ email, firstName = '', outcome = '' }) {
     throw new Error('Kit subscriber upsert failed');
   }
 
-  if (safeOutcome === 'START_HERE') {
+  const quizTagEnv = QUIZ_OUTCOME_TAG_ENV[safeOutcome];
+  if (quizTagEnv) {
+    const quizTagId = getOptionalEnv(quizTagEnv);
+    if (!quizTagId) {
+      console.warn(`[kit] Missing ${quizTagEnv}; quiz lead saved without outcome tag.`);
+      return subscriber;
+    }
+
     await tagSubscriber({
       subscriberId: subscriber.id,
-      tagId: getRequiredEnv('KIT_TAG_ID_QUIZ_START_HERE'),
+      tagId: quizTagId,
     });
   }
 
@@ -118,7 +139,9 @@ async function syncQuizLead({ email, firstName = '', outcome = '' }) {
 }
 
 async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
-  if (String(baseSlug || '').trim() !== 'starter-pack') {
+  const purchaseTagEnv = PURCHASE_TAG_ENV[String(baseSlug || '').trim()];
+
+  if (!purchaseTagEnv) {
     return { skipped: true, reason: 'unsupported_product' };
   }
 
@@ -127,7 +150,7 @@ async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
   }
 
   const apiKey = getOptionalEnv('KIT_API_KEY');
-  const purchasedTagId = getOptionalEnv('KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK');
+  const purchasedTagId = getOptionalEnv(purchaseTagEnv);
 
   if (!apiKey || !purchasedTagId) {
     return { skipped: true, reason: 'missing_kit_config' };

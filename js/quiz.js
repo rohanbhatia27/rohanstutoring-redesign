@@ -96,9 +96,7 @@ const CALENDLY = 'https://calendly.com/rohansgamsat/gamsat-strategy-consultation
 const PRODUCT_IMAGES = {
   MASTERY_CALL: { src: 'assets/rohan/rohan-mentoring-3637.webp', alt: 'Mastery mentoring program' },
   COMPREHENSIVE: { src: 'assets/courses/comprehensive-course-card.webp', alt: 'Comprehensive course' },
-  ELITE_EXCELLENCE: { src: 'assets/courses/advanced-course-card.webp', alt: 'Elite Excellence course' },
   BLUEPRINT: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Blueprint course' },
-  ESSAY_ACCELERATOR: { src: 'assets/courses/essay-collection-cover.webp', alt: 'Expert Essay Collection' },
   START_HERE: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Essentials Playbook' },
 };
 
@@ -131,7 +129,7 @@ const OUTCOMES = {
         <li>One final 1:1 to walk into the exam with a clear plan for each section.</li>
       </ol>
     `,
-    primaryCta: { label: 'Book your strategy consultation', url: CALENDLY },
+    primaryCta: { label: 'Book a free strategy consultation', url: CALENDLY },
     secondaryCta: { label: 'See the Mastery Program', url: '/courses/mastery' },
   },
   COMPREHENSIVE: {
@@ -162,39 +160,8 @@ const OUTCOMES = {
         <li>In the final week, drop volume by half. Sleep and confidence matter more than one more paper.</li>
       </ol>
     `,
-    primaryCta: { label: 'Book your strategy call', url: CALENDLY },
+    primaryCta: { label: 'Book a free strategy call', url: CALENDLY },
     secondaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
-  },
-  ELITE_EXCELLENCE: {
-    id: 'ELITE_EXCELLENCE',
-    name: "The Resitter's Path",
-    teaser: "You're already scoring 65+. More content won't move you from here. The gap to the top 5% is sharper strategy, better S2 writing, and a handful of costly habits that most courses won't touch. This one does.",
-    planHtml: `
-      <p>At 65+, most GAMSAT courses are teaching you things you already know. The gap between 65 and the top 5% is not more content. It's marginal strategy gains across all three sections, and an S2 scoring in the 80s rather than the high 70s. The Elite Excellence Course is built for that. Here is the 12-week structure.</p>
-      <h3>Phase 1: Weeks 1 to 4: Autopsy your ceiling</h3>
-      <p class="plan-phase-focus">Weekly focus: one full mock, granular error analysis, 1 advanced essay per week.</p>
-      <ol>
-        <li>Identify the exact question types you're losing points on. It's almost never random.</li>
-        <li>Stop doing standard practice. Move to elite-level S1 questions and advanced S3 reasoning.</li>
-        <li>Study high-scoring essays, do not just write more of your own.</li>
-      </ol>
-      <h3>Phase 2: Weeks 5 to 9: Compound the edge</h3>
-      <p class="plan-phase-focus">Weekly focus: elite-level drills, 2 essays weekly with focus on expression.</p>
-      <ol>
-        <li>Stretch your S1 depth: inference, tone, layered meaning. The top-tier questions reward nuance.</li>
-        <li>In S3, work on speed not knowledge. Your bottleneck is time allocation, not content.</li>
-        <li>Refine your S2 voice. Your structure is probably fine; your sentences are not.</li>
-      </ol>
-      <h3>Phase 3: Weeks 10 to 12: Peak and protect</h3>
-      <p class="plan-phase-focus">Weekly focus: one mock per week, strategic rest, micro-refinement.</p>
-      <ol>
-        <li>Do fewer, better mocks. Over-practising at your level causes regression.</li>
-        <li>Protect sleep, protect confidence. You're optimising a 90th percentile brain.</li>
-        <li>Walk into the exam planning to score 70+, not planning to avoid mistakes.</li>
-      </ol>
-    `,
-    primaryCta: { label: 'See the Elite Excellence Course', url: '/courses/advanced' },
-    secondaryCta: { label: 'Book a Strategy Consultation', url: CALENDLY },
   },
   BLUEPRINT: {
     id: 'BLUEPRINT',
@@ -226,37 +193,6 @@ const OUTCOMES = {
     `,
     primaryCta: { label: 'See the Blueprint', url: '/courses/blueprint' },
     secondaryCta: { label: 'Browse All Courses', url: '/courses' },
-  },
-  ESSAY_ACCELERATOR: {
-    id: 'ESSAY_ACCELERATOR',
-    name: 'The Essay Accelerator',
-    teaser: "S1 and S3 aren't your problem. Your writing is. S2 is the most fixable section in the GAMSAT, but only once you've actually studied what a top-scoring essay looks like from the inside.",
-    planHtml: `
-      <p>S2 has the steepest scoring curve in the GAMSAT. Most students never read an essay that actually scored above 80, let alone study one with commentary on why it worked. The Expert Essay Collection is 25 of them for $79. Here is how to build your prep around it.</p>
-      <h3>Phase 1: Weeks 1 to 4: Re-learn what good looks like</h3>
-      <p class="plan-phase-focus">Weekly focus: study 3 to 4 essays from the Collection, write 1 essay.</p>
-      <ol>
-        <li>Read high-scoring essays before you write more of your own. Pattern-match first.</li>
-        <li>Identify the 2 or 3 structural moves that appear across most top essays.</li>
-        <li>Write one essay a week using a single borrowed structure. Do not invent.</li>
-      </ol>
-      <h3>Phase 2: Weeks 5 to 9: Build your own voice on a proven frame</h3>
-      <p class="plan-phase-focus">Weekly focus: 2 essays per week, self-marked against the Collection.</p>
-      <ol>
-        <li>Lock in a template. Any template. Consistency beats creativity at this stage.</li>
-        <li>Every essay gets reviewed against a Collection essay with a similar theme.</li>
-        <li>If you can, submit at least one for marking, external feedback catches what you cannot.</li>
-      </ol>
-      <h3>Phase 3: Weeks 10 to 12: Refine language, not structure</h3>
-      <p class="plan-phase-focus">Weekly focus: one essay per week, heavy revision, read-alouds.</p>
-      <ol>
-        <li>Stop changing your structure. At this point it's language work only.</li>
-        <li>Read your essays aloud. If a sentence trips you, cut it.</li>
-        <li>Practice quote integration from memory, the Quote Generator is free on the site.</li>
-      </ol>
-    `,
-    primaryCta: { label: 'Get the Expert Essay Collection', url: '/courses/essay-collection' },
-    secondaryCta: { label: 'Browse Essay Support', url: '/courses/essay-marking' },
   },
   START_HERE: {
     id: 'START_HERE',
@@ -292,46 +228,50 @@ const OUTCOMES = {
 };
 
 function routeAnswers(a) {
-  const highHours = a.hours === '10-20' || a.hours === '20plus';
+  const highHours = a.hours === '5-10' || a.hours === '10-20' || a.hours === '20plus';
   const longRunway = a.timeline === 'sep-2026' || a.timeline === 'mar-2027';
   const earlyPrep = a.current === 'new' || a.current === 'building';
-  const hasSatMock = a.current === 'mocked' || a.current === 'exam-ready';
+  const hasProgress = a.current === 'building' || a.current === 'mocked' || a.current === 'exam-ready';
+  const seriousGoal = a.target === 'realistic' || a.target === 'competitive' || a.target === 'maximise';
   const ambitiousGoal = a.target === 'competitive' || a.target === 'maximise';
 
-  // 1. Hot re-sitter with capacity
+  // 1. Clear beginner signals
+  if (a.attempts === 'first' && (a.timeline === 'later' || a.timeline === 'unsure')) return OUTCOMES.START_HERE;
+  if (a.blocker === 'no-plan' && a.attempts === 'first') return OUTCOMES.START_HERE;
+  if (earlyPrep && a.target === 'figuring-out') return OUTCOMES.START_HERE;
+
+  // 2. High-friction re-sitters who need hands-on support
   if (
     a.attempts === 'multi' &&
-    hasSatMock &&
-    (a.blocker === 'plateau' || a.blocker === 'timing') &&
-    ambitiousGoal &&
+    hasProgress &&
+    (a.blocker === 'plateau' || a.blocker === 'timing' || a.blocker === 'materials') &&
     highHours
   ) {
     return OUTCOMES.MASTERY_CALL;
   }
 
-  // 2. Advanced student pushing for the ceiling
+  // 3. Exam-ready multi-attempters chasing the ceiling
   if (
     a.current === 'exam-ready' &&
     a.target === 'maximise' &&
-    a.attempts !== 'first'
+    a.attempts === 'multi'
   ) {
-    return OUTCOMES.ELITE_EXCELLENCE;
+    return OUTCOMES.MASTERY_CALL;
   }
 
-  // 3. Structured course for students with runway, hours, and a serious goal
-  if (hasSatMock && ambitiousGoal && longRunway && highHours) return OUTCOMES.COMPREHENSIVE;
+  // 4. Structured course for students with runway, hours, and a serious goal
+  if (
+    (hasProgress && seriousGoal && longRunway && highHours) ||
+    (a.current === 'new' && longRunway && highHours && ambitiousGoal) ||
+    (a.current === 'new' && a.attempts !== 'first' && a.blocker === 'essays' && longRunway && highHours && seriousGoal)
+  ) {
+    return OUTCOMES.COMPREHENSIVE;
+  }
 
-  // 4. S2-only pain
+  // 5. S2 pain still defaults to self-paced unless it hit the course rule above
   if (a.section === 's2' && a.blocker === 'essays' && a.target !== 'maximise') {
-    return OUTCOMES.ESSAY_ACCELERATOR;
+    return OUTCOMES.BLUEPRINT;
   }
-
-  // 5. Early-stage signals
-  if (a.attempts === 'first' && (a.timeline === 'later' || a.timeline === 'unsure')) return OUTCOMES.START_HERE;
-  if (a.hours === 'sub5') return OUTCOMES.START_HERE;
-  if (a.blocker === 'no-plan' && a.attempts === 'first') return OUTCOMES.START_HERE;
-  if (earlyPrep && a.target === 'figuring-out') return OUTCOMES.START_HERE;
-  if (a.current === 'new' && a.attempts === 'first') return OUTCOMES.START_HERE;
 
   // 6. Fallback
   return OUTCOMES.BLUEPRINT;

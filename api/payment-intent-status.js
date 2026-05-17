@@ -3,6 +3,7 @@ const createPaymentIntentHandler = require('./create-payment-intent.js');
 
 const PUBLIC_ERROR_MESSAGE = 'We could not verify this payment.';
 const PAYMENT_INTENT_ID_PATTERN = /^pi_[A-Za-z0-9]+$/;
+const CHECKOUT_SESSION_ID_PATTERN = /^cs_(test|live)_[A-Za-z0-9]+$/;
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
 function isAllowedOrigin(origin) {
@@ -13,10 +14,26 @@ function isValidPaymentIntentId(value) {
   return PAYMENT_INTENT_ID_PATTERN.test(String(value || '').trim());
 }
 
+function isValidCheckoutSessionId(value) {
+  return CHECKOUT_SESSION_ID_PATTERN.test(String(value || '').trim());
+}
+
+function getStatusFromCheckoutSession(session) {
+  if (session?.payment_status === 'paid') {
+    return 'succeeded';
+  }
+
+  if (session?.payment_status === 'unpaid') {
+    return 'requires_payment_method';
+  }
+
+  return session?.payment_status || '';
+}
+
 async function paymentIntentStatusHandler(req, res) {
   const origin = req.headers.origin || '';
 
-  if (!isAllowedOrigin(origin)) {
+  if (origin && !isAllowedOrigin(origin)) {
     return res.status(403).json({ error: 'Origin not allowed' });
   }
 
@@ -25,8 +42,12 @@ async function paymentIntentStatusHandler(req, res) {
   }
 
   const paymentIntentId = String(req.query?.payment_intent || '').trim();
-  if (!isValidPaymentIntentId(paymentIntentId)) {
-    return res.status(400).json({ error: 'Invalid payment intent.' });
+  const checkoutSessionId = String(req.query?.session_id || '').trim();
+  const hasValidPaymentIntent = isValidPaymentIntentId(paymentIntentId);
+  const hasValidSession = isValidCheckoutSessionId(checkoutSessionId);
+
+  if (!hasValidPaymentIntent && !hasValidSession) {
+    return res.status(400).json({ error: paymentIntentId ? 'Invalid payment intent.' : 'Invalid checkout session.' });
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -35,19 +56,34 @@ async function paymentIntentStatusHandler(req, res) {
 
   try {
     const stripe = stripeFactory(process.env.STRIPE_SECRET_KEY);
-    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    let intent;
+    let session;
 
-    if (!intent || !intent.status) {
+    if (hasValidSession) {
+      session = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
+        expand: ['payment_intent'],
+      });
+
+      intent = session?.payment_intent || null;
+    } else {
+      intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    }
+
+    const status = intent?.status || getStatusFromCheckoutSession(session);
+    const metadata = intent?.metadata || session?.metadata || {};
+
+    if (!status) {
       return res.status(404).json({ error: PUBLIC_ERROR_MESSAGE });
     }
 
-    const metadata = intent.metadata || {};
-
     return res.status(200).json({
-      status: intent.status,
+      status,
+      paymentIntentId: intent?.id || '',
       metadata: {
         base_slug: metadata.base_slug || metadata.product_slug || '',
+        product_slug: metadata.product_slug || metadata.base_slug || '',
         upsell_slug: metadata.upsell_slug || '',
+        payment_mode: metadata.payment_mode || '',
       },
     });
   } catch (error) {
@@ -59,6 +95,8 @@ async function paymentIntentStatusHandler(req, res) {
 paymentIntentStatusHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 paymentIntentStatusHandler.isAllowedOrigin = isAllowedOrigin;
 paymentIntentStatusHandler.isValidPaymentIntentId = isValidPaymentIntentId;
+paymentIntentStatusHandler.isValidCheckoutSessionId = isValidCheckoutSessionId;
+paymentIntentStatusHandler.getStatusFromCheckoutSession = getStatusFromCheckoutSession;
 paymentIntentStatusHandler.__setStripeFactory = (value) => {
   stripeFactory = value;
 };

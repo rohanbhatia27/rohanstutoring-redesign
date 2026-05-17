@@ -42,6 +42,127 @@
     @media (max-width:480px){.hero__inner{padding-left:20px;padding-right:20px;padding-top:calc(var(--header-height) + 26px);padding-bottom:48px}.hero__headline{max-width:100%;font-size:2.35rem}}
   </style>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .hero__inner {
+      padding: calc(var(--header-height) - 8px) 24px 56px;
+    }
+    .hero__content {
+      max-width: min(580px, 50vw);
+    }
+    .hero__urgency {
+      margin-bottom: 18px;
+    }
+    .hero__headline {
+      max-width: 12.5ch;
+      margin-bottom: 14px;
+    }
+    .hero__sub {
+      max-width: 38rem;
+      margin-bottom: 16px;
+      font-size: clamp(1.14rem, 1.15vw, 1.34rem);
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--white);
+      text-wrap: balance;
+    }
+    .hero__proof {
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .hero__proof-item {
+      padding: 9px 13px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 0.86rem;
+      line-height: 1.2;
+    }
+    .hero__proof-separator {
+      display: none;
+    }
+    .hero__ctas {
+      gap: 12px;
+    }
+    .hero__ctas .btn--lg {
+      padding: 14px 24px;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+      .hero__inner {
+        padding-top: calc(var(--header-height) - 16px);
+        padding-bottom: 48px;
+      }
+      .hero__content {
+        max-width: min(540px, 52vw);
+      }
+      .hero__headline {
+        max-width: 12.2ch;
+      }
+      .hero__sub {
+        font-size: 1.08rem;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .hero__inner {
+        padding-top: calc(var(--header-height) + 28px);
+        padding-bottom: 52px;
+      }
+      .hero__sub {
+        font-size: 1.08rem;
+        line-height: 1.55;
+      }
+      .hero__proof {
+        margin-bottom: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero__content {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .hero__headline,
+      .hero__sub,
+      .hero__proof {
+        text-align: center;
+      }
+      .hero__headline,
+      .hero__sub {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero__headline {
+        max-width: 9.5ch;
+        font-size: clamp(2.3rem, 10vw, 3rem);
+      }
+      .hero__proof {
+        display: none;
+      }
+      .hero__sub {
+        font-size: 1.04rem;
+      }
+      .hero__ctas {
+        width: 100%;
+      }
+      .hero__cta-proof {
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero__inner {
+        padding-top: calc(var(--header-height) + 20px);
+        padding-bottom: 44px;
+      }
+      .hero__headline {
+        font-size: 2.3rem;
+      }
+    }
+  </style>
 
   <!-- Schema markup -->
   <script type="application/ld+json">
@@ -259,7 +380,7 @@
         </p>
 
         <div class="hero__proof reveal reveal--delay-3" aria-label="Hero proof points">
-          <span class="hero__proof-item">1,300+ students coached</span>
+          <span class="hero__proof-item">Led by a top 1% scorer</span>
           <span class="hero__proof-separator" aria-hidden="true"></span>
           <span class="hero__proof-item">Median +7 in S1</span>
           <span class="hero__proof-separator" aria-hidden="true"></span>

@@ -825,11 +825,11 @@ body.menu-open .nav::after {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: calc(66px + 72px) 24px 96px;
+  padding: calc(var(--header-height) - 8px) 24px 56px;
 }
 
 .hero__content {
-  max-width: min(500px, 46vw);
+  max-width: min(580px, 50vw);
 }
 
 /* Hero urgency */
@@ -837,7 +837,7 @@ body.menu-open .nav::after {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   color: var(--text-light);
   font-size: 0.82rem;
   font-weight: 700;
@@ -864,19 +864,21 @@ body.menu-open .nav::after {
 
 /* Headline */
 .hero__headline {
-  max-width: 11ch;
+  max-width: 12.5ch;
   color: var(--white);
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   line-height: 0.98;
 }
 
 /* Sub */
 .hero__sub {
-  max-width: 34rem;
-  margin-bottom: 28px;
-  font-size: 1.08rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.96);
+  max-width: 38rem;
+  margin-bottom: 16px;
+  font-size: clamp(1.14rem, 1.15vw, 1.34rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--white);
+  text-wrap: balance;
 }
 
 /* Proof row */
@@ -884,31 +886,38 @@ body.menu-open .nav::after {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 34px;
+  gap: 10px;
+  margin-bottom: 18px;
   color: var(--off-white);
 }
 .hero__proof-item {
-  font-size: 0.95rem;
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.86rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 .hero__proof-separator {
-  width: 18px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.28);
+  display: none;
 }
 
 /* CTAs */
 .hero__ctas {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 0;
 }
 .hero__ctas .btn {
   flex: 1;
   min-width: 0;
+}
+.hero__ctas .btn--lg {
+  padding: 14px 24px;
+  font-size: 1rem;
 }
 .hero__cta-proof {
   display: none;
@@ -925,12 +934,18 @@ body.menu-open .nav::after {
 
 /* Large desktop */
 @media (min-width: 1280px) {
-  .hero__content { max-width: 600px; }
+  .hero__content { max-width: 620px; }
 }
 
 /* Small desktop / laptop */
 @media (max-width: 1100px) {
-  .hero__content { max-width: 460px; }
+  .hero__inner {
+    padding-top: calc(var(--header-height) - 16px);
+    padding-bottom: 48px;
+  }
+  .hero__content { max-width: min(540px, 52vw); }
+  .hero__headline { max-width: 12.2ch; }
+  .hero__sub { font-size: 1.08rem; }
 }
 
 @media (max-width: 960px) {
@@ -943,8 +958,8 @@ body.menu-open .nav::after {
     min-height: auto;
   }
   .hero__inner {
-    padding-top: calc(var(--header-height) + 36px);
-    padding-bottom: 56px;
+    padding-top: calc(var(--header-height) + 28px);
+    padding-bottom: 52px;
   }
   .hero__content { max-width: 100%; }
   .hero__photo-col { display: none; }
@@ -959,12 +974,13 @@ body.menu-open .nav::after {
     margin-bottom: 18px;
   }
   .hero__sub {
-    font-size: 1rem;
+    font-size: 1.08rem;
+    line-height: 1.55;
     margin-bottom: 22px;
   }
   .hero__proof {
     gap: 10px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
   .hero__ctas {
     gap: 12px;
@@ -974,6 +990,12 @@ body.menu-open .nav::after {
 
 /* Phone layout */
 @media (max-width: 640px) {
+  .hero__content {
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   .hero__headline,
   .hero__sub,
   .hero__proof {
@@ -984,22 +1006,20 @@ body.menu-open .nav::after {
     margin-left: auto;
     margin-right: auto;
   }
+  .hero__headline {
+    max-width: 9.5ch;
+    font-size: clamp(2.3rem, 10vw, 3rem);
+  }
   .hero__proof {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-    margin-bottom: 28px;
-    justify-items: center;
+    display: none;
   }
   .hero__proof-separator {
     display: none;
   }
-  .hero__proof-item {
-    width: 100%;
-  }
   .hero__ctas {
     flex-direction: column;
     gap: 10px;
+    width: 100%;
   }
   .hero__ctas .btn--lg {
     width: 100%;
@@ -1017,12 +1037,11 @@ body.menu-open .nav::after {
   .hero__inner {
     padding-left: 20px;
     padding-right: 20px;
-    padding-top: calc(var(--header-height) + 26px);
-    padding-bottom: 48px;
+    padding-top: calc(var(--header-height) + 20px);
+    padding-bottom: 44px;
   }
   .hero__headline {
-    max-width: 100%;
-    font-size: 2.35rem;
+    font-size: 2.3rem;
   }
 }
 
