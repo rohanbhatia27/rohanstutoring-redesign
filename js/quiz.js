@@ -129,7 +129,7 @@ const OUTCOMES = {
         <li>One final 1:1 to walk into the exam with a clear plan for each section.</li>
       </ol>
     `,
-    primaryCta: { label: 'Book your strategy consultation', url: CALENDLY },
+    primaryCta: { label: 'Book a free strategy consultation', url: CALENDLY },
     secondaryCta: { label: 'See the Mastery Program', url: '/courses/mastery' },
   },
   COMPREHENSIVE: {
@@ -160,7 +160,7 @@ const OUTCOMES = {
         <li>In the final week, drop volume by half. Sleep and confidence matter more than one more paper.</li>
       </ol>
     `,
-    primaryCta: { label: 'Book your strategy call', url: CALENDLY },
+    primaryCta: { label: 'Book a free strategy call', url: CALENDLY },
     secondaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
   },
   BLUEPRINT: {
