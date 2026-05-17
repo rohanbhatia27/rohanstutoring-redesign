@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Founder Dashboard · Rohan's GAMSAT</title>
+  <link rel="icon" href="assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/analytics-dashboard.css" />
+</head>
+<body class="dash">
+  <header class="dash__header">
+    <div class="dash__brand">
+      <div class="dash__logo">RG</div>
+      <div>
+        <div class="dash__brand-title">Founder Dashboard</div>
+        <div class="dash__brand-sub">Rohan's GAMSAT · what to do this week</div>
+      </div>
+    </div>
+
+    <div class="dash__controls">
+      <div class="seg" role="tablist" aria-label="Date range">
+        <button class="seg__btn" data-range="7">7d</button>
+        <button class="seg__btn is-active" data-range="30">30d</button>
+        <button class="seg__btn" data-range="90">90d</button>
+      </div>
+      <div class="dash__updated" id="lastUpdated">Mock data</div>
+    </div>
+  </header>
+
+  <main class="dash__main">
+
+    <!-- Recommended actions -->
+    <section class="card card--actions" aria-labelledby="actionsTitle">
+      <div class="card__head">
+        <h2 id="actionsTitle" class="card__title">
+          <span class="dot dot--orange"></span>
+          Recommended actions this week
+        </h2>
+        <span class="card__hint">Driven by the last 30 days</span>
+      </div>
+      <ol class="actions" id="actionsList"></ol>
+    </section>
+
+    <!-- Summary cards -->
+    <section class="grid grid--cards" aria-label="Headline metrics">
+      <div id="metricCards"></div>
+    </section>
+
+    <!-- Trend + Traffic sources -->
+    <section class="grid grid--split">
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Visitors trend</h2>
+          <span class="card__hint" id="trendSummary"></span>
+        </div>
+        <div class="chart">
+          <svg id="trendChart" viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+        <p class="card__note" id="trendNote"></p>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Where it's coming from</h2>
+          <span class="card__hint">Sessions · leads · conv %</span>
+        </div>
+        <table class="tbl" id="sourcesTable">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th class="num">Sessions</th>
+              <th class="num">Eng %</th>
+              <th class="num">Leads</th>
+              <th class="num">Conv %</th>
+              <th>Best action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Funnel + Lead magnets -->
+    <section class="grid grid--split">
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Conversion funnel</h2>
+          <span class="card__hint">Last 30 days</span>
+        </div>
+        <div class="funnel" id="funnel"></div>
+        <p class="card__note" id="funnelNote"></p>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Lead magnet performance</h2>
+          <span class="card__hint">Which freebies actually convert</span>
+        </div>
+        <table class="tbl" id="magnetsTable">
+          <thead>
+            <tr>
+              <th>Magnet</th>
+              <th class="num">Views</th>
+              <th class="num">Signups</th>
+              <th class="num">Conv %</th>
+              <th>Recommendation</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Page performance -->
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Page performance</h2>
+        <span class="card__hint">Ranked by business value, not page views</span>
+      </div>
+      <table class="tbl tbl--full" id="pagesTable">
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th class="num">Views</th>
+            <th class="num">Avg time</th>
+            <th class="num">Next-step CTR</th>
+            <th class="num">Lead conv %</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Content + Tracking gaps -->
+    <section class="grid grid--split">
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Content signals</h2>
+          <span class="card__hint">Sleeping winners and traffic traps</span>
+        </div>
+        <div class="signals">
+          <div class="signals__col">
+            <h3 class="signals__h">
+              <span class="dot dot--blue"></span> Sleeping winners
+            </h3>
+            <ul id="winnersList" class="signals__list"></ul>
+          </div>
+          <div class="signals__col">
+            <h3 class="signals__h">
+              <span class="dot dot--orange"></span> Traffic traps
+            </h3>
+            <ul id="trapsList" class="signals__list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Tracking gaps</h2>
+          <span class="card__hint">Events worth adding</span>
+        </div>
+        <ul class="gaps" id="gapsList"></ul>
+      </div>
+    </section>
+
+    <footer class="dash__footer">
+      <span>Internal · do not share publicly.</span>
+      <span>See <code>docs/analytics-dashboard.md</code> to wire live GA4 data.</span>
+    </footer>
+  </main>
+
+  <script src="js/analytics-dashboard.js"></script>
+</body>
+</html>

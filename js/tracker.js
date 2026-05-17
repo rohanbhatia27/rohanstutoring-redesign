@@ -34,3 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.setTimeout(() => openButton.focus({ preventScroll: true }), 0);
   });
 });
+
+// ConvertKit form success → fire GA4 tracking event.
+// ConvertKit sets data-state="success" on the form element after a valid subscribe.
+(function () {
+  function watchConvertKitForm(form, resourceName) {
+    if (!form) return;
+    const observer = new MutationObserver(function () {
+      if (form.getAttribute('data-state') === 'success') {
+        observer.disconnect();
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'free_resource_download', { resource: resourceName });
+          window.gtag('event', 'generate_lead', { form_id: form.id || resourceName, resource: resourceName });
+        }
+        if (typeof window.posthog !== 'undefined') {
+          window.posthog.capture('free_resource_download', { resource: resourceName });
+        }
+      }
+    });
+    observer.observe(form, { attributes: true, attributeFilter: ['data-state'] });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.seva-form').forEach(function (form) {
+      watchConvertKitForm(form, 'S1 Question Tracker');
+    });
+  });
+})();

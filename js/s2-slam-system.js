@@ -36,6 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
       form.reset();
       success.hidden = false;
       success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'free_resource_download', { resource: 'S2 Slam System' });
+        window.gtag('event', 'generate_lead', { form_id: 'slamLeadForm', resource: 'S2 Slam System' });
+      }
+      if (typeof window.posthog !== 'undefined') {
+        window.posthog.capture('free_resource_download', { resource: 'S2 Slam System' });
+      }
     } catch (submissionError) {
       error.hidden = false;
       error.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

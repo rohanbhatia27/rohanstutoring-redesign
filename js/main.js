@@ -544,6 +544,18 @@ function initMain() {
     if (!shouldTrackNewsletterSignup(form)) return;
     track('newsletter_signup', { method: 'convertkit' });
   }, { capture: true });
+
+  /* ---- Analytics: Calendly link clicks ---- */
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href*="calendly.com/rohansgamsat"]');
+    if (!link) return;
+    const href = link.href || '';
+    if (href.includes('the-2026-gamsat-resitter-s-workshop')) {
+      track('strategy_session_signup', { method: 'calendly_click', url: href });
+    } else if (href.includes('gamsat-strategy-consultation')) {
+      track('strategy_call_click', { method: 'calendly_click', url: href });
+    }
+  });
 }
 
 if (typeof document !== 'undefined') {

@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetCaptcha();
         if (typeof window.gtag === 'function') {
           window.gtag('event', 'contact_form_submit');
+          window.gtag('event', 'generate_lead', { form_id: 'contact' });
         }
         if (typeof window.posthog !== 'undefined') {
           window.posthog.capture('contact_form_submitted');

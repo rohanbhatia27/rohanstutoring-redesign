@@ -1552,6 +1552,14 @@
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
 
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'begin_checkout', {
+        currency: 'AUD',
+        value: selection.price,
+        items: [{ item_id: productSlug, item_name: product.name, price: selection.price, quantity: 1 }],
+      });
+    }
+
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
     maybeShowGmailNote(product);

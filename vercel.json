@@ -1,11 +1,5 @@
 {
   "cleanUrls": true,
-  "crons": [
-    {
-      "path": "/api/analytics?action=digest",
-      "schedule": "0 21 * * 0"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",

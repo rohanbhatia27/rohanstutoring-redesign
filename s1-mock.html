@@ -317,5 +317,31 @@
   </footer>
 
   <script src="js/main.js" defer></script>
+  <script>
+    // ConvertKit success → GA4 free_resource_download
+    (function () {
+      function watchConvertKitForm(form, resourceName) {
+        if (!form) return;
+        var observer = new MutationObserver(function () {
+          if (form.getAttribute('data-state') === 'success') {
+            observer.disconnect();
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'free_resource_download', { resource: resourceName });
+              window.gtag('event', 'generate_lead', { form_id: resourceName, resource: resourceName });
+            }
+            if (typeof window.posthog !== 'undefined') {
+              window.posthog.capture('free_resource_download', { resource: resourceName });
+            }
+          }
+        });
+        observer.observe(form, { attributes: true, attributeFilter: ['data-state'] });
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.seva-form').forEach(function (form) {
+          watchConvertKitForm(form, 'S1 Mini Mock');
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
