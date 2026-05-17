@@ -18,6 +18,18 @@ function isValidCheckoutSessionId(value) {
   return CHECKOUT_SESSION_ID_PATTERN.test(String(value || '').trim());
 }
 
+function getStatusFromCheckoutSession(session) {
+  if (session?.payment_status === 'paid') {
+    return 'succeeded';
+  }
+
+  if (session?.payment_status === 'unpaid') {
+    return 'requires_payment_method';
+  }
+
+  return session?.payment_status || '';
+}
+
 async function paymentIntentStatusHandler(req, res) {
   const origin = req.headers.origin || '';
 
@@ -45,9 +57,10 @@ async function paymentIntentStatusHandler(req, res) {
   try {
     const stripe = stripeFactory(process.env.STRIPE_SECRET_KEY);
     let intent;
+    let session;
 
     if (hasValidSession) {
-      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
+      session = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
         expand: ['payment_intent'],
       });
 
@@ -56,15 +69,16 @@ async function paymentIntentStatusHandler(req, res) {
       intent = await stripe.paymentIntents.retrieve(paymentIntentId);
     }
 
-    if (!intent || !intent.status) {
+    const status = intent?.status || getStatusFromCheckoutSession(session);
+    const metadata = intent?.metadata || session?.metadata || {};
+
+    if (!status) {
       return res.status(404).json({ error: PUBLIC_ERROR_MESSAGE });
     }
 
-    const metadata = intent.metadata || {};
-
     return res.status(200).json({
-      status: intent.status,
-      paymentIntentId: intent.id || '',
+      status,
+      paymentIntentId: intent?.id || '',
       metadata: {
         base_slug: metadata.base_slug || metadata.product_slug || '',
         product_slug: metadata.product_slug || metadata.base_slug || '',
@@ -82,6 +96,7 @@ paymentIntentStatusHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 paymentIntentStatusHandler.isAllowedOrigin = isAllowedOrigin;
 paymentIntentStatusHandler.isValidPaymentIntentId = isValidPaymentIntentId;
 paymentIntentStatusHandler.isValidCheckoutSessionId = isValidCheckoutSessionId;
+paymentIntentStatusHandler.getStatusFromCheckoutSession = getStatusFromCheckoutSession;
 paymentIntentStatusHandler.__setStripeFactory = (value) => {
   stripeFactory = value;
 };

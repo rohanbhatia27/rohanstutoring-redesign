@@ -830,6 +830,57 @@ test('payment intent status handler returns hosted checkout session metadata whe
   }
 });
 
+test('payment intent status handler falls back to session metadata for subscription checkouts', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  paymentIntentStatusHandler.__setStripeFactory(() => ({
+    checkout: {
+      sessions: {
+        retrieve: async (sessionId) => {
+          assert.equal(sessionId, 'cs_test_456');
+          return {
+            payment_status: 'paid',
+            metadata: {
+              base_slug: 'comprehensive',
+              product_slug: 'comprehensive',
+              upsell_slug: 'mentoring-single',
+              payment_mode: 'instalments',
+            },
+          };
+        },
+      },
+    },
+    paymentIntents: {
+      retrieve: async () => {
+        throw new Error('should not fetch payment intent directly for session lookups');
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'GET',
+      headers: { origin: 'https://rohanstutoring.com' },
+      query: { session_id: 'cs_test_456' },
+    };
+    const res = createJsonResponseRecorder();
+
+    await paymentIntentStatusHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.status, 'succeeded');
+    assert.equal(res.body.paymentIntentId, '');
+    assert.deepEqual(res.body.metadata, {
+      base_slug: 'comprehensive',
+      product_slug: 'comprehensive',
+      upsell_slug: 'mentoring-single',
+      payment_mode: 'instalments',
+    });
+  } finally {
+    paymentIntentStatusHandler.__resetForTests();
+  }
+});
+
 test('initCheckoutPage keeps full-pay submissions on the payment-intent card flow', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;

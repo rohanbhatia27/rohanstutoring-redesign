@@ -72,17 +72,20 @@ test('checkout instalment links use shared storefront config', () => {
   assert.deepEqual(PRODUCTS.mastery.instalment, storefrontConfig.instalmentLinks.mastery);
 });
 
-test('comprehensive hero uses an accessible countdown fallback for the live start date', () => {
+test('comprehensive hero uses an accessible V3 countdown for the live start date', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
-  const countdownTag = html.match(/<span\b[^>]*data-countdown[^>]*>/);
+  const countdownTag = html.match(/<div\b[^>]*class="hero-v3__countdown[^"]*"[^>]*>/);
 
   assert.ok(countdownTag, 'expected comprehensive hero to include countdown markup');
-  assert.match(countdownTag[0], /\bdata-countdown-target="2026-05-26T00:00:00\+10:00"/);
-  assert.match(countdownTag[0], /\bdata-countdown-complete="Starts today"/);
-  assert.match(html, /data-countdown-fallback>Live Classes · Starts 26 May<\/span>/);
-  assert.match(html, /\bdata-countdown-days\b/);
-  assert.match(html, /\bdata-countdown-hours\b/);
-  assert.match(html, /\bdata-countdown-minutes\b/);
+  assert.match(countdownTag[0], /\brole="timer"/);
+  assert.match(countdownTag[0], /\baria-live="polite"/);
+  assert.match(countdownTag[0], /\bdata-countdown-v3\b/);
+  assert.match(countdownTag[0], /\bdata-countdown-v3-target="2026-05-26T18:00:00\+10:00"/);
+  assert.match(html, /Cohort begins in/);
+  assert.match(html, /\bdata-cd-days\b/);
+  assert.match(html, /\bdata-cd-hours\b/);
+  assert.match(html, /\bdata-cd-mins\b/);
+  assert.match(html, /\bdata-cd-secs\b/);
 });
 
 test('getCountdownParts returns days, hours, and minutes until 26 May', () => {
