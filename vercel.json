@@ -1,5 +1,11 @@
 {
   "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/analytics?action=digest",
+      "schedule": "0 21 * * 0"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -55,6 +61,11 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/book",
+      "destination": "https://calendly.com/rohansgamsat/gamsat-strategy-consultation",
+      "permanent": false
+    },
     {
       "source": "/store/gamsat-comprehensive-course",
       "destination": "/courses/comprehensive",
