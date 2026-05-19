@@ -126,7 +126,7 @@
     comprehensive: {
       name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
       tagline: '',
-      price: 1549,
+      price: 1699,
       features: [
         '50+ hours of recorded library content',
         '24 live coaching classes',

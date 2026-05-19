@@ -512,7 +512,7 @@ function initMain() {
     'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
     'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
     'essay-pack-10':   { name: 'S2 Essay Marking — 10-Essay Pack',   price: 249 },
-    comprehensive:     { name: 'Comprehensive Course',               price: 1549 },
+    comprehensive:     { name: 'Comprehensive Course',               price: 1699 },
     mastery:           { name: 'Mastery Program',                    price: 2249 },
     'private-mentoring':{ name: 'Private Mentoring',                 price: null },
   };

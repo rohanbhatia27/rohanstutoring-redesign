@@ -13,7 +13,7 @@ const AMOUNTS = {
   'starter-pack': 9700,
   'essay-marking': 3499,
   'essay-pack-10': 24900,
-  comprehensive: 154900,
+  comprehensive: 169900,
   's1-comprehensive': 89900,
   's2-comprehensive': 89900,
   mastery: 224900,
