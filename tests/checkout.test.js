@@ -2661,6 +2661,57 @@ test('validate coupon handler rejects high-ticket-only coupons for lower-ticket 
   }
 });
 
+test('validate coupon handler returns a clean fixed-amount label for eligible products', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  validateCouponHandler.__setStripeFactory(() => ({
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_high_ticket_123',
+            coupon: {
+              id: 'coupon_high_ticket_123',
+              valid: true,
+              amount_off: 15000,
+              metadata: {
+                allowed_product_group: 'high_ticket',
+                allowed_products: 'comprehensive,mastery',
+              },
+              name: 'High Ticket 150 Off',
+            },
+          },
+        ],
+      }),
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        code: 'ESSENTIALS150',
+        slug: 'comprehensive',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await validateCouponHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      valid: true,
+      code: 'ESSENTIALS150',
+      discount: { type: 'fixed', value: 150 },
+      label: '$150 Off',
+    });
+  } finally {
+    validateCouponHandler.__setStripeFactory((secretKey) => require('stripe')(secretKey));
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
 test('payment intent handler rejects high-ticket-only coupons for lower-ticket products', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 

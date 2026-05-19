@@ -113,6 +113,24 @@ function isCouponEligibleForProduct(coupon, productSlug) {
   return allowedProducts.has(slug);
 }
 
+function formatCouponLabel(coupon, fallbackCode = '') {
+  if (!coupon) return fallbackCode;
+
+  if (coupon.percent_off) {
+    return `${coupon.percent_off}% Off`;
+  }
+
+  if (coupon.amount_off) {
+    const amount = coupon.amount_off / 100;
+    const formattedAmount = Number.isInteger(amount)
+      ? amount.toLocaleString()
+      : amount.toFixed(2);
+    return `$${formattedAmount} Off`;
+  }
+
+  return coupon.name || fallbackCode;
+}
+
 async function getValidatedCouponDetails(stripe, {
   couponCode,
   productSlug = '',
@@ -157,7 +175,7 @@ async function getValidatedCouponDetails(stripe, {
       coupon,
       couponId: coupon.id || '',
       promotionCodeId: promoCode.id || '',
-      label: coupon.name || code,
+      label: formatCouponLabel(coupon, code),
       discount: coupon.percent_off
         ? { type: 'percent', value: coupon.percent_off }
         : { type: 'fixed', value: coupon.amount_off / 100 },
@@ -439,6 +457,7 @@ createPaymentIntentHandler.buildEssayUploadUrl = buildEssayUploadUrl;
 createPaymentIntentHandler.isAllowedUpsellCombination = isAllowedUpsellCombination;
 createPaymentIntentHandler.isCouponEligibleForProduct = isCouponEligibleForProduct;
 createPaymentIntentHandler.getCouponAllowedProductSlugs = getCouponAllowedProductSlugs;
+createPaymentIntentHandler.formatCouponLabel = formatCouponLabel;
 createPaymentIntentHandler.getValidatedCouponDetails = getValidatedCouponDetails;
 createPaymentIntentHandler.normaliseUpsellSlug = normaliseUpsellSlug;
 createPaymentIntentHandler.getUpsellAmount = getUpsellAmount;

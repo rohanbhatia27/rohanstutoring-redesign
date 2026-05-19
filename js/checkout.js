@@ -1549,12 +1549,8 @@
         syncSelectionUI(selection);
         setPayButtonReady(selection, Boolean(selection.checkoutReady));
 
-        const discountText = result.data.discount.type === 'percent'
-          ? `${result.data.discount.value}% off`
-          : `$${fmtPrice(result.data.discount.value)} off`;
-
         if (feedback) {
-          feedback.textContent = `${result.data.label || code} applied — ${discountText}`;
+          feedback.textContent = result.data.label || code;
           feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--success';
           feedback.hidden = false;
         }
