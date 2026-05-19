@@ -154,11 +154,31 @@ async function buildDashboard(propertyId, accessToken, days) {
     ],
   };
 
+  // Per-page lead/download event counts — used for magnets table.
+  // Queries pagePath × eventName so we get actual event counts regardless of
+  // whether those events are marked as key events in GA4 admin.
+  const magnetEventNames = [
+    ...EVENT_BUCKETS.lead,
+    ...EVENT_BUCKETS.download,
+  ].filter(Boolean);
+  const reqMagnetEvents = {
+    dateRanges: [dateRangeCurr],
+    dimensions: [{ name: 'pagePath' }, { name: 'eventName' }],
+    metrics: [{ name: 'eventCount' }],
+    dimensionFilter: {
+      filter: {
+        fieldName: 'eventName',
+        inListFilter: { values: magnetEventNames },
+      },
+    },
+    limit: 200,
+  };
+
   const reports = await runBatchReports(propertyId, accessToken, [
-    reqTrend, reqEvents, reqSources, reqPages, reqTotals,
+    reqTrend, reqEvents, reqSources, reqPages, reqTotals, reqMagnetEvents,
   ]);
 
-  const [trendR, eventsR, sourcesR, pagesR, totalsR] = reports;
+  const [trendR, eventsR, sourcesR, pagesR, totalsR, magnetEventsR] = reports;
 
   // ---- Trend (split by dateRange dimension value) ----
   const trendRows = rowsToObjects(trendR);
@@ -225,8 +245,10 @@ async function buildDashboard(propertyId, accessToken, days) {
     };
   });
 
-  // ---- Magnets (best-effort: per-page download events) ----
-  // We approximate magnets from pages whose URL hints at a lead-magnet route.
+  // ---- Magnets (per-page lead/download event counts) ----
+  // Uses actual eventCount for lead+download events per page, so this works
+  // even if those events aren't marked as key events in GA4 admin.
+  const magnetEventRows = rowsToObjects(magnetEventsR);
   const magnetHints = [
     { name: 'S1 Mini Mock',         match: /s1-mock/i },
     { name: 'S2 Slam System',       match: /s2-slam/i },
@@ -236,7 +258,9 @@ async function buildDashboard(propertyId, accessToken, days) {
   const magnets = magnetHints.map((h) => {
     const p = pagesRows.find((r) => h.match.test(r.pagePath || ''));
     const views = p ? p.screenPageViews || 0 : 0;
-    const signups = p ? p.keyEvents || 0 : 0;
+    const signups = magnetEventRows
+      .filter((r) => h.match.test(r.pagePath || ''))
+      .reduce((s, r) => s + (r.eventCount || 0), 0);
     return {
       name: h.name,
       views,

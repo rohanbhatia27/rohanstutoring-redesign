@@ -35,29 +35,52 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ConvertKit form success → fire GA4 tracking event.
-// ConvertKit sets data-state="success" on the form element after a valid subscribe.
+// Kit form submission — handled via fetch so there's no reCAPTCHA dependency.
 (function () {
-  function watchConvertKitForm(form, resourceName) {
-    if (!form) return;
-    const observer = new MutationObserver(function () {
-      if (form.getAttribute('data-state') === 'success') {
-        observer.disconnect();
-        if (typeof window.gtag === 'function') {
-          window.gtag('event', 'free_resource_download', { resource: resourceName });
-          window.gtag('event', 'generate_lead', { form_id: form.id || resourceName, resource: resourceName });
-        }
-        if (typeof window.posthog !== 'undefined') {
-          window.posthog.capture('free_resource_download', { resource: resourceName });
-        }
-      }
-    });
-    observer.observe(form, { attributes: true, attributeFilter: ['data-state'] });
+  const RESOURCE = 'S1 Question Tracker';
+  let tracked = false;
+
+  function fireEvents() {
+    if (tracked) return;
+    tracked = true;
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'free_resource_download', { resource: RESOURCE });
+      window.gtag('event', 'generate_lead', { form_id: RESOURCE, resource: RESOURCE });
+    }
+    if (typeof window.posthog !== 'undefined') {
+      window.posthog.capture('free_resource_download', { resource: RESOURCE });
+    }
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.seva-form').forEach(function (form) {
-      watchConvertKitForm(form, 'S1 Question Tracker');
+  function showSuccess(form) {
+    form.setAttribute('data-state', 'success');
+    const isCard = form.classList.contains('tracker-form');
+    form.innerHTML = isCard
+      ? '<p class="tracker-form__success">Check your inbox — the tracker is on its way.</p>'
+      : '<div class="formkit-alert">Check your inbox! The S1 Tracker is on its way.</div>';
+  }
+
+  // defer scripts run after parsing — DOM is ready, no DOMContentLoaded needed.
+  document.querySelectorAll('.seva-form').forEach(function (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = form.querySelector('[type="submit"]');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span>Sending…</span>'; }
+
+      try {
+        const body = new URLSearchParams(new FormData(form)).toString();
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+        });
+        if (!res.ok) throw new Error(res.status);
+        showSuccess(form);
+        fireEvents();
+      } catch (_) {
+        if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+      }
     });
   });
 })();

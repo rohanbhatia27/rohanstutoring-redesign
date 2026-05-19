@@ -25,7 +25,6 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/s1-mock.css">
-  <script src="https://f.convertkit.com/ckjs/ck.5.js" defer></script>
 </head>
 <body>
 
@@ -318,27 +317,50 @@
 
   <script src="js/main.js" defer></script>
   <script>
-    // ConvertKit success → GA4 free_resource_download
+    // Kit form submission — handled via fetch so there's no reCAPTCHA dependency.
     (function () {
-      function watchConvertKitForm(form, resourceName) {
-        if (!form) return;
-        var observer = new MutationObserver(function () {
-          if (form.getAttribute('data-state') === 'success') {
-            observer.disconnect();
-            if (typeof window.gtag === 'function') {
-              window.gtag('event', 'free_resource_download', { resource: resourceName });
-              window.gtag('event', 'generate_lead', { form_id: resourceName, resource: resourceName });
-            }
-            if (typeof window.posthog !== 'undefined') {
-              window.posthog.capture('free_resource_download', { resource: resourceName });
-            }
-          }
-        });
-        observer.observe(form, { attributes: true, attributeFilter: ['data-state'] });
+      var RESOURCE = 'S1 Mini Mock';
+      var tracked = false;
+
+      function fireEvents() {
+        if (tracked) return;
+        tracked = true;
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'free_resource_download', { resource: RESOURCE });
+          window.gtag('event', 'generate_lead', { form_id: RESOURCE, resource: RESOURCE });
+        }
+        if (typeof window.posthog !== 'undefined') {
+          window.posthog.capture('free_resource_download', { resource: RESOURCE });
+        }
       }
+
+      function showSuccess(form) {
+        form.setAttribute('data-state', 'success');
+        form.innerHTML = '<div class="formkit-alert">Check your inbox! Your S1 Mini Mock is on its way.</div>';
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.seva-form').forEach(function (form) {
-          watchConvertKitForm(form, 'S1 Mini Mock');
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var btn = form.querySelector('[type="submit"]');
+            var origText = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span>Sending…</span>'; }
+
+            try {
+              var body = new URLSearchParams(new FormData(form)).toString();
+              var res = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body,
+              });
+              if (!res.ok) throw new Error(res.status);
+              showSuccess(form);
+              fireEvents();
+            } catch (_) {
+              if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+            }
+          });
         });
       });
     })();
