@@ -339,28 +339,26 @@
         form.innerHTML = '<div class="formkit-alert">Check your inbox! Your S1 Mini Mock is on its way.</div>';
       }
 
-      document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.seva-form').forEach(function (form) {
-          form.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            var btn = form.querySelector('[type="submit"]');
-            var origText = btn ? btn.innerHTML : '';
-            if (btn) { btn.disabled = true; btn.innerHTML = '<span>Sending…</span>'; }
+      document.querySelectorAll('.seva-form').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var btn = form.querySelector('[type="submit"]');
+          var origText = btn ? btn.innerHTML : '';
+          if (btn) { btn.disabled = true; btn.innerHTML = '<span>Sending…</span>'; }
 
-            try {
-              var body = new URLSearchParams(new FormData(form)).toString();
-              var res = await fetch(form.action, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body,
-              });
-              if (!res.ok) throw new Error(res.status);
-              showSuccess(form);
-              fireEvents();
-            } catch (_) {
-              if (btn) { btn.disabled = false; btn.innerHTML = origText; }
-            }
-          });
+          try {
+            var body = new URLSearchParams(new FormData(form)).toString();
+            var res = await fetch(form.action, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: body,
+            });
+            if (!res.ok) throw new Error(res.status);
+            showSuccess(form);
+            fireEvents();
+          } catch (_) {
+            if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+          }
         });
       });
     })();
