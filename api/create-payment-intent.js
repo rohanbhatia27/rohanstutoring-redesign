@@ -27,6 +27,10 @@ const UNAVAILABLE_PRODUCTS = new Set([
   's1-rescue-sprint',
   's2-rescue-sprint',
 ]);
+const HIGH_TICKET_PRODUCT_SLUGS = new Set([
+  'comprehensive',
+  'mastery',
+]);
 
 const ALLOWED_UPSELLS = {
   blueprint: new Set(['essay-pack-10']),
@@ -45,22 +49,100 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
-async function applyCouponDiscount(stripe, baseAmount, couponCode) {
-  if (!couponCode) return { discountAmount: 0 };
+async function applyCouponDiscount(stripe, baseAmount, couponCode, productSlug = '') {
+  const couponDetails = await getValidatedCouponDetails(stripe, {
+    couponCode,
+    productSlug,
+    baseAmount,
+  });
+
+  if (!couponDetails.valid) {
+    return {
+      discountAmount: 0,
+      error: couponDetails.error || '',
+    };
+  }
+
+  return {
+    discountAmount: couponDetails.discountAmount,
+    couponCode: couponDetails.code,
+  };
+}
+
+function parseCouponRestrictionSet(value) {
+  return new Set(
+    String(value || '')
+      .split(/[,\s]+/)
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function getCouponAllowedProductSlugs(coupon) {
+  const metadata = coupon && coupon.metadata && typeof coupon.metadata === 'object'
+    ? coupon.metadata
+    : {};
+  const explicitProducts = parseCouponRestrictionSet(
+    metadata.allowed_products || metadata.allowed_product_slugs || metadata.product_slugs
+  );
+
+  if (explicitProducts.size > 0) {
+    return explicitProducts;
+  }
+
+  const productGroups = parseCouponRestrictionSet(
+    metadata.allowed_product_group || metadata.allowed_product_groups || metadata.product_group
+  );
+
+  if (productGroups.has('high_ticket') || productGroups.has('high-ticket')) {
+    return new Set(HIGH_TICKET_PRODUCT_SLUGS);
+  }
+
+  return null;
+}
+
+function isCouponEligibleForProduct(coupon, productSlug) {
+  const slug = normaliseSlug(productSlug).toLowerCase();
+  if (!slug) return false;
+
+  const allowedProducts = getCouponAllowedProductSlugs(coupon);
+  if (!allowedProducts || allowedProducts.size === 0) {
+    return true;
+  }
+
+  return allowedProducts.has(slug);
+}
+
+async function getValidatedCouponDetails(stripe, {
+  couponCode,
+  productSlug = '',
+  baseAmount = 0,
+} = {}) {
+  const code = String(couponCode || '').trim().toUpperCase();
+  if (!code) {
+    return { valid: false, error: '' };
+  }
 
   try {
     const result = await stripe.promotionCodes.list({
-      code: String(couponCode).trim().toUpperCase(),
+      code,
       active: true,
       limit: 1,
     });
     const promoCode = result.data[0];
 
     if (!promoCode || !promoCode.coupon || !promoCode.coupon.valid) {
-      return { discountAmount: 0 };
+      return { valid: false, error: 'Coupon code not found or expired.' };
     }
 
     const coupon = promoCode.coupon;
+    if (!isCouponEligibleForProduct(coupon, productSlug || 'unknown')) {
+      return {
+        valid: false,
+        error: 'This coupon is only valid for the Comprehensive Course and Mastery Program.',
+      };
+    }
+
     let discountAmount = 0;
 
     if (coupon.percent_off) {
@@ -69,10 +151,21 @@ async function applyCouponDiscount(stripe, baseAmount, couponCode) {
       discountAmount = Math.min(coupon.amount_off, baseAmount);
     }
 
-    return { discountAmount, couponCode: String(couponCode).trim().toUpperCase() };
+    return {
+      valid: true,
+      code,
+      coupon,
+      couponId: coupon.id || '',
+      promotionCodeId: promoCode.id || '',
+      label: coupon.name || code,
+      discount: coupon.percent_off
+        ? { type: 'percent', value: coupon.percent_off }
+        : { type: 'fixed', value: coupon.amount_off / 100 },
+      discountAmount,
+    };
   } catch (err) {
     console.error('Coupon lookup error:', err.message);
-    return { discountAmount: 0 };
+    return { valid: false, error: 'Could not validate coupon. Please try again.' };
   }
 }
 
@@ -186,6 +279,7 @@ function resolveCheckoutPurchase(body) {
 function normaliseCustomerDetails(body) {
   const email = String(body.email || '').trim();
   const customerName = String(body.customerName || '').trim().replace(/\s+/g, ' ');
+  const phone = String(body.phone || '').trim().replace(/\s+/g, ' ');
 
   if (!isValidEmail(email)) {
     return { error: 'Please enter a valid email address.' };
@@ -195,9 +289,14 @@ function normaliseCustomerDetails(body) {
     return { error: 'Missing customer name.' };
   }
 
+  if (!phone) {
+    return { error: 'Please enter a phone number.' };
+  }
+
   return {
     email,
     customerName: customerName.slice(0, 120),
+    phone: phone.slice(0, 40),
   };
 }
 
@@ -256,6 +355,7 @@ async function createPaymentIntentHandler(req, res) {
       base_slug: purchase.baseSlug,
       customer_email: customer.email,
       customer_name: customer.customerName,
+      customer_phone: customer.phone,
     };
 
     if (purchase.upsellSlug) {
@@ -263,7 +363,15 @@ async function createPaymentIntentHandler(req, res) {
     }
 
     const couponCode = String(body.couponCode || '').trim();
-    const { discountAmount, couponCode: validatedCode } = await applyCouponDiscount(stripe, purchase.amount, couponCode);
+    const { discountAmount, couponCode: validatedCode, error: couponError } = await applyCouponDiscount(
+      stripe,
+      purchase.amount,
+      couponCode,
+      purchase.baseSlug
+    );
+    if (couponCode && couponError) {
+      return res.status(400).json({ error: couponError });
+    }
     const finalAmount = Math.max(50, purchase.amount - discountAmount);
 
     if (validatedCode && discountAmount > 0) {
@@ -321,6 +429,7 @@ async function createPaymentIntentHandler(req, res) {
 createPaymentIntentHandler.AMOUNTS = AMOUNTS;
 createPaymentIntentHandler.UNAVAILABLE_PRODUCTS = UNAVAILABLE_PRODUCTS;
 createPaymentIntentHandler.ALLOWED_UPSELLS = ALLOWED_UPSELLS;
+createPaymentIntentHandler.HIGH_TICKET_PRODUCT_SLUGS = HIGH_TICKET_PRODUCT_SLUGS;
 createPaymentIntentHandler.PUBLIC_ERROR_MESSAGE = PUBLIC_ERROR_MESSAGE;
 createPaymentIntentHandler.isAllowedOrigin = isAllowedOrigin;
 createPaymentIntentHandler.isValidEmail = isValidEmail;
@@ -328,6 +437,9 @@ createPaymentIntentHandler.normaliseCustomerDetails = normaliseCustomerDetails;
 createPaymentIntentHandler.buildEssayUploadToken = buildEssayUploadToken;
 createPaymentIntentHandler.buildEssayUploadUrl = buildEssayUploadUrl;
 createPaymentIntentHandler.isAllowedUpsellCombination = isAllowedUpsellCombination;
+createPaymentIntentHandler.isCouponEligibleForProduct = isCouponEligibleForProduct;
+createPaymentIntentHandler.getCouponAllowedProductSlugs = getCouponAllowedProductSlugs;
+createPaymentIntentHandler.getValidatedCouponDetails = getValidatedCouponDetails;
 createPaymentIntentHandler.normaliseUpsellSlug = normaliseUpsellSlug;
 createPaymentIntentHandler.getUpsellAmount = getUpsellAmount;
 createPaymentIntentHandler.resolveCheckoutPurchase = resolveCheckoutPurchase;

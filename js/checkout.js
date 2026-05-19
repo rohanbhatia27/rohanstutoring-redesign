@@ -480,6 +480,7 @@
               upsellSlug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
               customerName: validation.billingDetails.name,
               email: validation.billingDetails.email,
+              phone: validation.billingDetails.phone,
             }),
           });
           const result = await parseApiResponse(captureResponse);
@@ -517,13 +518,24 @@
     const upsellToday = selection?.pageSlug === 'comprehensive' && selection.upsellSelected && selection.upsell
       ? selection.upsell.price
       : 0;
+    const couponToday = selection?.couponAmount || 0;
+    const dueTodayBeforeDiscount = plan.firstPayment + upsellToday;
 
     return {
-      dueToday: plan.firstPayment + upsellToday,
+      dueToday: Math.max(0, dueTodayBeforeDiscount - couponToday),
+      dueTodayBeforeDiscount,
       futurePaymentAmount: plan.recurringPayment,
       futurePaymentCount: plan.count - 1,
       futurePaymentCopy: `Then ${plan.count - 1} monthly payments of $${fmtPrice(plan.recurringPayment)}`,
     };
+  }
+
+  function getSummaryTotal(selection) {
+    if (selection?.paymentMode === 'instalments') {
+      return getInstalmentPlanSummary(selection)?.dueToday ?? selection?.price ?? 0;
+    }
+
+    return selection?.price ?? 0;
   }
 
   function buildPaymentModeMarkup(productSlug, selection) {
@@ -958,6 +970,7 @@
   }
 
   function renderSummaryMarkup(product, selection) {
+    const summaryTotal = getSummaryTotal(selection);
     const pageSlug = selection && selection.pageSlug;
     const imgSrc = pageSlug && PRODUCT_IMAGES[pageSlug];
     const imgHtml = imgSrc
@@ -999,7 +1012,7 @@
         </div>
         <div class="summary-total-row">
           <span>Total due today</span>
-          <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
+          <span id="summary-total">$${fmtPrice(summaryTotal)} AUD</span>
         </div>
         <p class="summary-note">Booking link sent to your email after payment</p>
       `;
@@ -1023,7 +1036,7 @@
       </div>
       <div class="summary-total-row">
         <span>Total due today</span>
-        <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
+        <span id="summary-total">$${fmtPrice(summaryTotal)} AUD</span>
       </div>
     `;
   }
@@ -1096,7 +1109,7 @@
     const paymentRequestButton = qs('#payment-request-button');
     const paymentRequestSeparator = qs('#payment-request-separator');
 
-    if (totalEl) totalEl.textContent = `$${fmtPrice(selection.price)} AUD`;
+    if (totalEl) totalEl.textContent = `$${fmtPrice(getSummaryTotal(selection))} AUD`;
 
     const discountRow = qs('#summary-discount-row');
     const discountAmountEl = qs('#summary-discount-amount');
@@ -1166,6 +1179,32 @@
     }
   }
 
+  function getInstalmentRedirectUrl(selection) {
+    if (selection?.paymentMode !== 'instalments') return '';
+
+    const product = PRODUCTS[selection.pageSlug];
+    const url = product?.instalment?.url;
+
+    return typeof url === 'string' ? url.trim() : '';
+  }
+
+  function redirectToInstalmentCheckout(selection) {
+    const url = getInstalmentRedirectUrl(selection);
+    if (!url) return false;
+
+    if (typeof window.posthog !== 'undefined') {
+      window.posthog.capture('checkout_instalment_redirected', {
+        product: selection.pageSlug,
+        total: selection.price,
+        upsell_selected: selection.upsellSelected,
+        upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
+      });
+    }
+
+    window.location.href = url;
+    return true;
+  }
+
   function setupPaymentMode(productSlug, selection) {
     const slot = qs('#payment-mode-slot');
     if (!slot) return;
@@ -1187,6 +1226,9 @@
       if (!input) return;
 
       selection.paymentMode = options.includes(input.value) ? input.value : 'full';
+      if (selection.paymentMode === 'instalments' && redirectToInstalmentCheckout(selection)) {
+        return;
+      }
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
@@ -1284,15 +1326,17 @@
     const firstNameInput = qs('#first-name');
     const lastNameInput = qs('#last-name');
     const emailInput = qs('#email');
+    const phoneInput = qs('#phone');
     const addressInput = qs('#billing-address');
     const termsInput = qs('#terms-accepted');
 
     const firstName = firstNameInput?.value.trim() || '';
     const lastName = lastNameInput?.value.trim() || '';
     const email = emailInput?.value.trim() || '';
+    const phone = phoneInput?.value.trim() || '';
     const address = addressInput?.value.trim() || '';
 
-    if (!firstName || !lastName || !email || !address) {
+    if (!firstName || !lastName || !email || !phone || !address) {
       return { ok: false, error: 'Please fill in all fields.' };
     }
 
@@ -1309,6 +1353,7 @@
       billingDetails: {
         name: `${firstName} ${lastName}`,
         email,
+        phone,
         address: { line1: address },
       },
     };
@@ -1318,6 +1363,7 @@
     return {
       email: validation.billingDetails.email,
       customerName: validation.billingDetails.name,
+      phone: validation.billingDetails.phone,
     };
   }
 
@@ -1333,6 +1379,7 @@
       totalAmount: selection.price,
       customerName: validation.billingDetails.name,
       email: validation.billingDetails.email,
+      phone: validation.billingDetails.phone,
       upsell: null,
       upsellSlug: null,
       upsellPrice: null,
@@ -1365,6 +1412,7 @@
       total: { label: product.name, amount: Math.round(selection.price * 100) },
       requestPayerName: true,
       requestPayerEmail: true,
+      requestPayerPhone: true,
     });
 
     const canMakePayment = await paymentRequest.canMakePayment();
@@ -1381,10 +1429,11 @@
     paymentRequest.on('paymentmethod', async (ev) => {
       const payerName = ev.payerName || '';
       const payerEmail = ev.payerEmail || '';
+      const payerPhone = ev.payerPhone || '';
 
-      if (!payerEmail) {
+      if (!payerEmail || !payerPhone) {
         ev.complete('fail');
-        showCardError('Could not retrieve your email. Please pay by card below.');
+        showCardError('Could not retrieve your phone number. Please pay by card below.');
         return;
       }
 
@@ -1401,7 +1450,7 @@
       try {
         const payload = buildCheckoutPayload(selection, {
           ok: true,
-          billingDetails: { name: payerName, email: payerEmail, address: { line1: '' } },
+          billingDetails: { name: payerName, email: payerEmail, phone: payerPhone, address: { line1: '' } },
         });
 
         const response = await fetch('/api/create-payment-intent', {
@@ -1476,7 +1525,10 @@
         const response = await fetch('/api/validate-coupon', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
+          body: JSON.stringify({
+            code,
+            slug: selection.apiSlug,
+          }),
         });
         const result = await parseApiResponse(response);
 
@@ -1675,6 +1727,10 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+
+      if (selection.paymentMode === 'instalments' && redirectToInstalmentCheckout(selection)) {
+        return;
+      }
 
       const validation = validateForm();
       if (!validation.ok) {
@@ -1995,6 +2051,8 @@
     buildOrderBumpMarkup,
     buildCheckoutAssuranceMarkup,
     buildInstalmentLinkMarkup,
+    getInstalmentRedirectUrl,
+    redirectToInstalmentCheckout,
     getSuccessActionMarkup,
     renderSuccessAction,
     initCheckoutPage,

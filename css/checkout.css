@@ -498,7 +498,8 @@
   color: var(--co-text-dim);
 }
 
-.checkout-gmail-note {
+.checkout-gmail-note,
+.checkout-field-hint {
   font-family: var(--font-sans);
   font-size: 0.74rem;
   color: var(--co-text-soft);

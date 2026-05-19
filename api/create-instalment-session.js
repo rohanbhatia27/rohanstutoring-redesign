@@ -10,37 +10,6 @@ const PRICE_ENV_KEYS = {
 const PUBLIC_ERROR_MESSAGE = 'Instalment checkout setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
-async function applyCouponDiscount(stripe, baseAmount, couponCode) {
-  if (!couponCode) return { discountAmount: 0 };
-
-  try {
-    const result = await stripe.promotionCodes.list({
-      code: String(couponCode).trim().toUpperCase(),
-      active: true,
-      limit: 1,
-    });
-    const promoCode = result.data[0];
-
-    if (!promoCode || !promoCode.coupon || !promoCode.coupon.valid) {
-      return { discountAmount: 0 };
-    }
-
-    const coupon = promoCode.coupon;
-    let discountAmount = 0;
-
-    if (coupon.percent_off) {
-      discountAmount = Math.round(baseAmount * coupon.percent_off / 100);
-    } else if (coupon.amount_off) {
-      discountAmount = Math.min(coupon.amount_off, baseAmount);
-    }
-
-    return { discountAmount, couponCode: String(couponCode).trim().toUpperCase() };
-  } catch (err) {
-    console.error('Coupon lookup error:', err.message);
-    return { discountAmount: 0 };
-  }
-}
-
 function validateInstalmentRequest(body) {
   const slug = String(body && body.slug ? body.slug : '').trim();
   const paymentMode = String(body && body.paymentMode ? body.paymentMode : '').trim();
@@ -96,7 +65,15 @@ function buildAddInvoiceItems(slug, upsellSlug) {
   ];
 }
 
-function buildInstalmentSessionPayload({ slug, upsellSlug, customer, origin, recurringPriceId }) {
+function buildInstalmentSessionPayload({
+  slug,
+  upsellSlug,
+  customer,
+  origin,
+  recurringPriceId,
+  couponCode,
+  promotionCodeId,
+}) {
   const addInvoiceItems = buildAddInvoiceItems(slug, upsellSlug);
   const metadata = {
     product_slug: slug,
@@ -104,10 +81,15 @@ function buildInstalmentSessionPayload({ slug, upsellSlug, customer, origin, rec
     payment_mode: 'instalments',
     customer_email: customer.email,
     customer_name: customer.customerName,
+    customer_phone: customer.phone,
   };
 
   if (upsellSlug) {
     metadata.upsell_slug = upsellSlug;
+  }
+
+  if (couponCode) {
+    metadata.coupon_code = couponCode;
   }
 
   return {
@@ -126,6 +108,7 @@ function buildInstalmentSessionPayload({ slug, upsellSlug, customer, origin, rec
       metadata,
       ...(addInvoiceItems ? { add_invoice_items: addInvoiceItems } : {}),
     },
+    ...(promotionCodeId ? { discounts: [{ promotion_code: promotionCodeId }] } : {}),
   };
 }
 
@@ -142,6 +125,7 @@ function buildAfterpaySessionPayload({
     payment_mode: 'afterpay',
     customer_email: customer.email,
     customer_name: customer.customerName,
+    customer_phone: customer.phone,
   };
 
   if (purchase.upsellSlug) {
@@ -231,7 +215,16 @@ async function createInstalmentSessionHandler(req, res) {
       }
 
       const couponCode = String(body.couponCode || '').trim();
-      const { discountAmount, couponCode: validatedCode } = await applyCouponDiscount(stripe, purchase.amount, couponCode);
+      const couponDetails = await createPaymentIntentHandler.getValidatedCouponDetails(stripe, {
+        couponCode,
+        productSlug: purchase.baseSlug,
+        baseAmount: purchase.amount,
+      });
+      if (couponCode && !couponDetails.valid) {
+        return res.status(400).json({ error: couponDetails.error || 'Coupon code not found or expired.' });
+      }
+      const discountAmount = couponDetails.valid ? couponDetails.discountAmount : 0;
+      const validatedCode = couponDetails.valid ? couponDetails.code : '';
       const finalAmount = Math.max(50, purchase.amount - discountAmount);
 
       sessionPayload = buildAfterpaySessionPayload({
@@ -247,12 +240,24 @@ async function createInstalmentSessionHandler(req, res) {
         return res.status(500).json({ error: `Missing ${PRICE_ENV_KEYS[checkoutRequest.slug]} environment variable` });
       }
 
+      const couponCode = String(body.couponCode || '').trim();
+      const couponDetails = await createPaymentIntentHandler.getValidatedCouponDetails(stripe, {
+        couponCode,
+        productSlug: checkoutRequest.slug,
+        baseAmount: createPaymentIntentHandler.AMOUNTS[checkoutRequest.slug],
+      });
+      if (couponCode && !couponDetails.valid) {
+        return res.status(400).json({ error: couponDetails.error || 'Coupon code not found or expired.' });
+      }
+
       sessionPayload = buildInstalmentSessionPayload({
         slug: checkoutRequest.slug,
         upsellSlug: checkoutRequest.upsellSlug,
         customer,
         origin: sessionOrigin,
         recurringPriceId,
+        couponCode: couponDetails.valid ? couponDetails.code : '',
+        promotionCodeId: couponDetails.valid ? couponDetails.promotionCodeId : '',
       });
     }
 
