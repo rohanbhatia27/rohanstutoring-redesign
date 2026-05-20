@@ -271,6 +271,11 @@
   color: var(--text-light) !important;
 }
 
+.mock-inline-form .formkit-alert a {
+  color: var(--blue-light) !important;
+  font-weight: 700;
+}
+
 .mock-inline-form .formkit-fields {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;

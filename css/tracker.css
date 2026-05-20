@@ -183,6 +183,11 @@
   padding: 16px 0;
 }
 
+.tracker-form__success a {
+  color: var(--blue-light);
+  font-weight: 700;
+}
+
 /* ---- Section Scaffolding ---- */
 .tracker-section {
   padding: 96px 0;
