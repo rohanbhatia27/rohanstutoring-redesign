@@ -20,6 +20,13 @@ const FREE_RESOURCES = {
     backupUrlEnv: 'FREE_RESOURCE_S1_MOCK_BACKUP_URL',
     backupLabel: 'Open the mini-mock backup link',
   },
+  's2-slam-system': {
+    key: 's2-slam-system',
+    name: 'S2 Slam System',
+    kitFormId: '8526774',
+    backupUrlEnv: 'FREE_RESOURCE_S2_SLAM_SYSTEM_BACKUP_URL',
+    backupLabel: 'Open the S2 Slam System backup link',
+  },
 };
 
 let fetchImpl = (...args) => fetch(...args);

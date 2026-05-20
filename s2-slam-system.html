@@ -55,18 +55,19 @@
 
         <form
           class="slam-lead-form reveal reveal--delay-2"
-          action="https://formspree.io/f/mvzvldzo"
+          action="https://app.kit.com/forms/8526774/subscriptions"
           method="POST"
           id="slamLeadForm"
+          data-resource-key="s2-slam-system"
         >
           <div class="slam-lead-form__row">
             <div class="slam-lead-form__group">
               <label for="slamFirstName" class="slam-lead-form__label--sr">First name</label>
-              <input type="text" id="slamFirstName" name="firstName" placeholder="First name" required autocomplete="given-name">
+              <input type="text" id="slamFirstName" name="fields[first_name]" placeholder="First name" required autocomplete="given-name">
             </div>
             <div class="slam-lead-form__group">
               <label for="slamEmail" class="slam-lead-form__label--sr">Email address</label>
-              <input type="email" id="slamEmail" name="email" placeholder="Email address" required autocomplete="email">
+              <input type="email" id="slamEmail" name="email_address" placeholder="Email address" required autocomplete="email">
             </div>
           </div>
 
@@ -74,12 +75,6 @@
             <label for="slamWebsite">Website</label>
             <input type="text" id="slamWebsite" name="websiteUrl" tabindex="-1" autocomplete="off">
           </div>
-
-          <input type="hidden" name="source" value="s2-slam-system-form">
-          <input type="hidden" name="page" value="s2-slam-system">
-          <input type="hidden" name="resource" value="S2 Slam System">
-          <input type="hidden" name="subject" value="New S2 Slam System lead from rohanstutoring.com">
-
           <button type="submit" class="btn btn--primary btn--lg slam-lead-form__submit" id="slamLeadSubmit">
             <span class="slam-lead-form__submit-text">Send Me the S2 Slam System</span>
             <span class="slam-lead-form__submit-loading" aria-hidden="true" hidden>Sending...</span>

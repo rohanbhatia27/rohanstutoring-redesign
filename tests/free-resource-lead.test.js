@@ -43,6 +43,29 @@ test('submitKitResourceLead posts tracker leads to the matching Kit form endpoin
   freeResource.__resetForTests();
 });
 
+test('submitKitResourceLead posts S2 Slam System leads to the matching Kit form endpoint', async () => {
+  const calls = [];
+
+  freeResource.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+    return { status: 302 };
+  });
+
+  await freeResource.submitKitResourceLead({
+    resourceKey: 's2-slam-system',
+    firstName: 'Krshna',
+    email: 'krshna@example.com',
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://app.kit.com/forms/8526774/subscriptions');
+  assert.equal(calls[0].options.method, 'POST');
+  assert.match(calls[0].options.body, /email_address=krshna%40example\.com/);
+  assert.match(calls[0].options.body, /fields%5Bfirst_name%5D=Krshna/);
+
+  freeResource.__resetForTests();
+});
+
 test('free resource lead handler returns success when Kit accepts the signup', async () => {
   freeResource.__setFetch(async () => ({ status: 302 }));
 
