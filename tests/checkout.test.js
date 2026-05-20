@@ -57,6 +57,11 @@ function createJsonResponseRecorder() {
   return {
     statusCode: 200,
     body: null,
+    headers: {},
+    setHeader(name, value) {
+      this.headers[String(name).toLowerCase()] = value;
+      return this;
+    },
     status(code) {
       this.statusCode = code;
       return this;
@@ -390,7 +395,7 @@ test('buildInstalmentLinkMarkup renders instalment plans as a deliberate checkou
 
   assert.match(markup, /checkout-instalment-link__eyebrow/);
   assert.match(markup, /Pay in 4 instalments/);
-  assert.match(markup, /\$449 × 4 instalments/);
+  assert.match(markup, /\$499 × 4 instalments/);
   assert.match(markup, /Opens secure Stripe instalment checkout/);
 });
 
@@ -418,8 +423,8 @@ test('getInstalmentPlanSummary returns first payment and future monthly copy for
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 449);
-  assert.equal(summary.futurePaymentAmount, 449);
+  assert.equal(summary.dueToday, 499);
+  assert.equal(summary.futurePaymentAmount, 499);
   assert.match(summary.futurePaymentCopy, /3 monthly payments/);
 });
 
@@ -431,8 +436,8 @@ test('getInstalmentPlanSummary adds the comprehensive mentoring bump to the firs
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 548);
-  assert.equal(summary.futurePaymentAmount, 449);
+  assert.equal(summary.dueToday, 598);
+  assert.equal(summary.futurePaymentAmount, 499);
 });
 
 test('getInstalmentPlanSummary applies coupon discounts to the due-today amount only', () => {
@@ -443,8 +448,8 @@ test('getInstalmentPlanSummary applies coupon discounts to the due-today amount 
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 299);
-  assert.equal(summary.futurePaymentAmount, 449);
+  assert.equal(summary.dueToday, 349);
+  assert.equal(summary.futurePaymentAmount, 499);
 });
 
 test('buildPaymentModeMarkup renders full and instalment options for eligible products', () => {
@@ -642,7 +647,7 @@ test('initCheckoutPage redirects comprehensive instalment selections straight to
 
     assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), false);
     assert.equal(confirmCardPaymentCalled, false);
-    assert.equal(env.windowObject.location.href, 'https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m');
+    assert.equal(env.windowObject.location.href, 'https://buy.stripe.com/bJe9ATgM4g2Kc4B9UweEo0t');
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -1476,7 +1481,7 @@ test('buildPurchaseItems keeps the comprehensive order bump at the bundled disco
     {
       item_id: 'comprehensive',
       item_name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
-      price: 1549,
+      price: 1699,
       quantity: 1,
     },
     {
@@ -1603,8 +1608,8 @@ test('getCustomerPayload returns email and full name for API submission', () => 
 test('buildCheckoutPayload includes the primary slug and optional upsell fields', () => {
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.upsellSelected = true;
-  selection.basePrice = 1549;
-  selection.price = 1648;
+  selection.basePrice = 1699;
+  selection.price = 1798;
 
   const payload = buildCheckoutPayload(selection, {
     billingDetails: {
@@ -1620,9 +1625,9 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
     primaryProduct: {
       pageSlug: 'comprehensive',
       slug: 'comprehensive',
-      price: 1549,
+      price: 1699,
     },
-    totalAmount: 1648,
+    totalAmount: 1798,
     customerName: 'Jane Smith',
     email: 'jane@example.com',
     phone: '+61 400 111 222',
@@ -1723,8 +1728,8 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       upsellSlug: 'mentoring-single',
     }),
     {
-      amount: 164800,
-      baseAmount: 154900,
+      amount: 179800,
+      baseAmount: 169900,
       baseSlug: 'comprehensive',
       upsellAmount: 9900,
       upsellSlug: 'mentoring-single',
@@ -2536,7 +2541,7 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, { clientSecret: 'pi_secret_123' });
     assert.equal(createPayloads.length, 1);
-    assert.equal(createPayloads[0].amount, 164800);
+    assert.equal(createPayloads[0].amount, 179800);
     assert.equal(createPayloads[0].description, "Rohan's GAMSAT - comprehensive + mentoring-single");
     assert.deepEqual(createPayloads[0].metadata, {
       product_slug: 'comprehensive',

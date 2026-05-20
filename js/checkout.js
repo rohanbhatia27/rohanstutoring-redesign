@@ -141,7 +141,7 @@
     's1-comprehensive': {
       name: 'GAMSAT Section 1 Comprehensive Course (May 2026 Start)',
       tagline: '',
-      price: 899,
+      price: 999,
       features: [
         'Section 1 live coaching classes',
         'Recorded strategy library',
@@ -155,7 +155,7 @@
     's2-comprehensive': {
       name: 'GAMSAT Section 2 Comprehensive Course (May 2026 Start)',
       tagline: '',
-      price: 899,
+      price: 999,
       features: [
         'Section 2 live coaching classes',
         'Essay feedback and writing frameworks',
@@ -299,8 +299,8 @@
   const INSTALMENT_PLANS = {
     comprehensive: {
       count: 4,
-      firstPayment: 449,
-      recurringPayment: 449,
+      firstPayment: 499,
+      recurringPayment: 499,
       priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
     },
     mastery: {

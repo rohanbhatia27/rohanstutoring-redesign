@@ -2,8 +2,8 @@
   const StorefrontConfig = Object.freeze({
     instalmentLinks: Object.freeze({
       comprehensive: Object.freeze({
-        label: 'or pay $449 × 4 instalments →',
-        url: 'https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m',
+        label: 'or pay $499 × 4 instalments →',
+        url: 'https://buy.stripe.com/bJe9ATgM4g2Kc4B9UweEo0t',
       }),
       mastery: Object.freeze({
         label: 'or pay $649 × 4 instalments →',

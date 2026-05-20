@@ -7,15 +7,15 @@ let resendFactory = (apiKey) => new Resend(apiKey);
 const COURSE_EMAIL_VARIANTS = {
   comprehensive: {
     subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-    startLine: 'before our first live class kicks off on Tuesday 26 May 6pm AEDT.',
+    startLine: 'Our first live class kicks off on Tuesday 26 May at 6pm AEST.',
   },
   's1-comprehensive': {
     subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-    startLine: 'before our first live class kicks off on Tuesday 26 May 6pm AEDT.',
+    startLine: 'Our first live class kicks off on Tuesday 26 May at 6pm AEST.',
   },
   's2-comprehensive': {
     subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-    startLine: 'before our first live class kicks off on Wednesday 27 May 7pm AEDT.',
+    startLine: 'Our first live class kicks off on Wednesday 27 May at 7pm AEST.',
   },
 };
 const {
@@ -173,8 +173,7 @@ function buildCourseWelcomeHtml(firstName, startLine) {
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hey ${esc(firstName)},</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Good to see your enrolment come through. I'm excited to have you in the cohort.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.</p>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You can use the link here to book your 1-on-1 consultation for us to chat, as part of your early bird bonus! <a href="https://rohanstutoring.com/book" style="color:#3b82f6;text-decoration:none;">https://rohanstutoring.com/book</a></p>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">I can walk you through the next few months and how to best prepare ${startLine}</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">${startLine} I'll be in touch with more details before then.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Talk soon,</p>
           <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan</p>
         </td></tr>
@@ -208,7 +207,7 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
       to: customerEmail,
       subject: variant.subject,
       html: buildCourseWelcomeHtml(firstName, variant.startLine),
-      text: `Hey ${firstName},\n\nGood to see your enrolment come through. I'm excited to have you in the cohort.\n\nYou should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.\n\nYou can use the link here to book your 1-on-1 consultation for us to chat, as part of your early bird bonus! https://rohanstutoring.com/book\n\nI can walk you through the next few months and how to best prepare ${variant.startLine}\n\nTalk soon,\n\nRohan`,
+      text: `Hey ${firstName},\n\nGood to see your enrolment come through. I'm excited to have you in the cohort.\n\nYou should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.\n\n${variant.startLine} I'll be in touch with more details before then.\n\nTalk soon,\n\nRohan`,
     };
   } else {
     emailOptions = {
@@ -442,6 +441,43 @@ async function fulfillPaymentIntent(options) {
   };
 }
 
+async function fulfillInstalmentCheckout({ session }) {
+  const metadata = (session && session.metadata) || {};
+  const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
+  const upsellSlug = String(metadata.upsell_slug || '').trim();
+  const customerEmail = String(metadata.customer_email || session.customer_email || '').trim();
+  const customerName = String(metadata.customer_name || '').trim();
+
+  if (!customerEmail) {
+    console.warn('[fulfill-instalment-checkout] No customer email found — skipping fulfillment');
+    return { skipped: true };
+  }
+
+  const plan = getFulfillmentPlan(baseSlug, upsellSlug);
+  if (!plan) {
+    throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
+  }
+
+  try {
+    const driveResult = await shareProductAccess({ baseSlug, email: customerEmail });
+    if (driveResult && !driveResult.skipped) {
+      console.log(
+        `[fulfill-instalment-checkout] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
+      );
+    }
+  } catch (driveErr) {
+    console.error('[fulfill-instalment-checkout] Google Drive sharing failed:', driveErr.message);
+  }
+
+  try {
+    await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
+  } catch (emailErr) {
+    console.error('[fulfill-instalment-checkout] Confirmation email failed:', emailErr.message);
+  }
+
+  return { plan };
+}
+
 fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
 fulfillPaymentIntent.needsStarterPackAutomation = needsStarterPackAutomation;
 fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
@@ -450,5 +486,6 @@ fulfillPaymentIntent.sendConfirmationEmail = sendConfirmationEmail;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
 fulfillPaymentIntent.__setResendFactory = (factory) => { resendFactory = factory; };
 fulfillPaymentIntent.__resetForTests = () => { resendFactory = (apiKey) => new Resend(apiKey); };
+fulfillPaymentIntent.fulfillInstalmentCheckout = fulfillInstalmentCheckout;
 
 module.exports = fulfillPaymentIntent;

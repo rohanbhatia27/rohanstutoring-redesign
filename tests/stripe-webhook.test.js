@@ -270,7 +270,7 @@ test('fulfillment helper chooses the comprehensive welcome email template', asyn
 
   assert.equal(sentEmails[0].from, 'hello@rohanstutoring.com');
   assert.equal(sentEmails[0].subject, "Welcome to the Comprehensive Course 👋 Let's get started.");
-  assert.match(sentEmails[0].html, /Tuesday 26 May 6pm AEDT/);
+  assert.match(sentEmails[0].html, /Tuesday 26 May at 6pm AEST/);
   fulfillPaymentIntent.__resetForTests();
 });
 
@@ -303,7 +303,7 @@ test('fulfillment helper uses the S2-specific start time for s2-comprehensive', 
     },
   });
 
-  assert.match(sentEmails[0].html, /Wednesday 27 May 7pm AEDT/);
+  assert.match(sentEmails[0].html, /Wednesday 27 May at 7pm AEST/);
   fulfillPaymentIntent.__resetForTests();
 });
 
