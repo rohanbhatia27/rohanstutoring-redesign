@@ -905,7 +905,7 @@
 
   async function fetchPaymentIntentStatus(paymentIntentId) {
     const response = await global.fetch(
-      `/api/payment-intent-status?payment_intent=${encodeURIComponent(paymentIntentId)}`
+      `/api/payment-status?payment_intent=${encodeURIComponent(paymentIntentId)}`
     );
     const result = await parseApiResponse(response);
 
@@ -918,7 +918,7 @@
 
   async function fetchCheckoutSessionStatus(sessionId) {
     const response = await global.fetch(
-      `/api/payment-intent-status?session_id=${encodeURIComponent(sessionId)}`
+      `/api/payment-status?session_id=${encodeURIComponent(sessionId)}`
     );
     const result = await parseApiResponse(response);
 
@@ -941,7 +941,7 @@
     if (packageSlug) params.set('package', String(packageSlug).trim());
     if (upsellSlug) params.set('upsell', String(upsellSlug).trim());
 
-    const response = await global.fetch(`/api/paypal-order-status?${params.toString()}`);
+    const response = await global.fetch(`/api/payment-status?${params.toString()}`);
     const result = await parseApiResponse(response);
     if (!result.ok) {
       throw new Error(result.data.error || 'We could not verify this PayPal payment.');

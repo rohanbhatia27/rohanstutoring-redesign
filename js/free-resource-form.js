@@ -96,7 +96,7 @@
         }
 
         try {
-          response = await fetch('/api/free-resource-lead', {
+          response = await fetch('/api/leads', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

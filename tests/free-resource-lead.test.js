@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const freeResourceLeadHandler = require('../api/free-resource-lead.js');
+const freeResourceLeadHandler = require('../api/leads.js');
 const freeResource = require('../api/_lib/_free-resource.js');
 
 function createJsonResponseRecorder() {

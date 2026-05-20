@@ -25,7 +25,7 @@ test('quiz page does not load the unused GSAP bundle', () => {
 });
 
 test('quiz lead gate submits to the internal Kit sync endpoint and removes webinar copy', () => {
-  assert.match(quizHtml, /<form class="result__gate" id="resultForm" action="\/api\/quiz-lead"/);
+  assert.match(quizHtml, /<form class="result__gate" id="resultForm" action="\/api\/leads"/);
   assert.doesNotMatch(quizHtml, /Sunday webinar invite/i);
   assert.match(quizHtml, /relevant course recommendations/i);
 });

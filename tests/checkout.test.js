@@ -45,10 +45,10 @@ const createPaymentIntentHandler = require('../api/create-payment-intent.js');
 const createInstalmentSessionHandler = require('../api/create-instalment-session.js');
 const createPayPalOrderHandler = require('../api/create-paypal-order.js');
 const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
-const paypalOrderStatusHandler = require('../api/paypal-order-status.js');
+const paypalOrderStatusHandler = require('../api/payment-status.js');
 const paypalWebhookHandler = require('../api/paypal-webhook.js');
 const paypalValidation = require('../api/_lib/_paypal-order-validation.js');
-const paymentIntentStatusHandler = require('../api/payment-intent-status.js');
+const paymentIntentStatusHandler = require('../api/payment-status.js');
 const publicConfigHandler = require('../api/public-config.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
 const validateCouponHandler = require('../api/validate-coupon.js');
@@ -2240,7 +2240,7 @@ test('fetchPayPalOrderStatus verifies PayPal success through the API endpoint', 
   global.fetch = async (url) => {
     assert.equal(
       String(url),
-      '/api/paypal-order-status?paypal_order=ORDER123&product=private-mentoring&package=mentoring-pack&upsell=essay-collection'
+      '/api/payment-status?paypal_order=ORDER123&product=private-mentoring&package=mentoring-pack&upsell=essay-collection'
     );
 
     return {

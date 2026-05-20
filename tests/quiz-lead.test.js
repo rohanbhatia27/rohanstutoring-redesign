@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const kit = require('../api/_lib/_kit.js');
-const quizLeadHandler = require('../api/quiz-lead.js');
+const quizLeadHandler = require('../api/leads.js');
 
 function createJsonResponseRecorder() {
   return {

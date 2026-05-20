@@ -1,7 +1,7 @@
 const Stripe = require('stripe');
 const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
-const paymentIntentStatusHandler = require('./payment-intent-status.js');
+const paymentIntentStatusHandler = require('./payment-status.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
