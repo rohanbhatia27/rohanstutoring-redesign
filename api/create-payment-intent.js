@@ -4,46 +4,18 @@ const {
   buildEssayUploadToken,
   buildEssayUploadUrl,
 } = require('./_lib/_essay-upload.js');
-
-// Amounts in cents (AUD). Private mentoring uses separate slugs per package.
-const AMOUNTS = {
-  blueprint: 59900,
-  advanced: 29900,
-  'essay-collection': 7900,
-  'starter-pack': 9700,
-  'essay-marking': 3499,
-  'essay-pack-10': 24900,
-  comprehensive: 169900,
-  's1-comprehensive': 99900,
-  's2-comprehensive': 99900,
-  mastery: 224900,
-  's1-rescue-sprint': 34700,
-  's2-rescue-sprint': 19900,
-  'mentoring-single': 11900,
-  'mentoring-pack': 107000,
-};
-
-const UNAVAILABLE_PRODUCTS = new Set([
-  's1-rescue-sprint',
-  's2-rescue-sprint',
-]);
-const HIGH_TICKET_PRODUCT_SLUGS = new Set([
-  'comprehensive',
-  'mastery',
-]);
-
-const ALLOWED_UPSELLS = {
-  blueprint: new Set(['essay-pack-10']),
-  advanced: new Set(['essay-collection']),
-  'starter-pack': new Set(['essay-collection']),
-  'essay-marking': new Set(['essay-collection']),
-  comprehensive: new Set(['mentoring-single']),
-  's1-rescue-sprint': new Set(['essay-collection']),
-  's2-rescue-sprint': new Set(['essay-collection']),
-  'private-mentoring': new Set(['essay-collection']),
-  'mentoring-single': new Set(['essay-collection']),
-  'mentoring-pack': new Set(['essay-collection']),
-};
+const {
+  AMOUNTS,
+  UNAVAILABLE_PRODUCTS,
+  HIGH_TICKET_PRODUCT_SLUGS,
+  ALLOWED_UPSELLS,
+  normaliseSlug,
+  normaliseUpsellSlug,
+  getUpsellAmount,
+  isAllowedUpsellCombination,
+  resolveCheckoutPurchase,
+  buildPaymentIntentIdempotencyKey,
+} = require('./_lib/products.js');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
@@ -187,13 +159,7 @@ async function getValidatedCouponDetails(stripe, {
   }
 }
 
-function getUpsellAmount(baseSlug, upsellSlug) {
-  if (baseSlug === 'comprehensive' && upsellSlug === 'mentoring-single') {
-    return 9900;
-  }
 
-  return AMOUNTS[upsellSlug];
-}
 
 function normaliseOriginHost(value) {
   return String(value || '')
@@ -237,62 +203,7 @@ function isValidEmail(email) {
   return EMAIL_PATTERN.test(String(email || '').trim());
 }
 
-function normaliseSlug(value) {
-  return String(value || '').trim();
-}
 
-function normaliseUpsellSlug(body) {
-  return normaliseSlug(body.upsellSlug || body.upsell_slug || body.addOnSlug);
-}
-
-function isAllowedUpsellCombination(baseSlug, upsellSlug) {
-  const allowedUpsells = ALLOWED_UPSELLS[baseSlug];
-
-  return !!allowedUpsells && allowedUpsells.has(upsellSlug);
-}
-
-function resolveCheckoutPurchase(body) {
-  const baseSlug = normaliseSlug(body.slug);
-  const upsellSlug = normaliseUpsellSlug(body);
-  const baseAmount = AMOUNTS[baseSlug];
-
-  if (!baseAmount) {
-    return { error: 'Invalid product slug: ' + baseSlug };
-  }
-
-  if (UNAVAILABLE_PRODUCTS.has(baseSlug)) {
-    return { error: 'This product is currently unavailable.' };
-  }
-
-  if (!upsellSlug) {
-    return {
-      amount: baseAmount,
-      baseAmount,
-      baseSlug,
-      upsellAmount: 0,
-      upsellSlug: '',
-    };
-  }
-
-  const upsellAmount = getUpsellAmount(baseSlug, upsellSlug);
-  if (!upsellAmount) {
-    return { error: 'Invalid upsell slug: ' + upsellSlug };
-  }
-
-  if (baseSlug === upsellSlug || !isAllowedUpsellCombination(baseSlug, upsellSlug)) {
-    return {
-      error: `Invalid upsell combination: ${baseSlug} + ${upsellSlug}`,
-    };
-  }
-
-  return {
-    amount: baseAmount + upsellAmount,
-    baseAmount,
-    baseSlug,
-    upsellAmount,
-    upsellSlug,
-  };
-}
 
 function normaliseCustomerDetails(body) {
   const email = String(body.email || '').trim();
@@ -322,20 +233,7 @@ function requiresEssayUploadLink(purchase) {
   return purchase && purchase.baseSlug === 'essay-marking';
 }
 
-function buildPaymentIntentIdempotencyKey({ customerEmail = '', purchase = {} } = {}) {
-  const emailPart = String(customerEmail || '').trim().toLowerCase();
-  const baseSlugPart = String(purchase.baseSlug || '').trim().toLowerCase();
-  const upsellSlugPart = String(purchase.upsellSlug || '').trim().toLowerCase();
-  const minuteWindow = Math.floor(Date.now() / 60000);
 
-  return [
-    'pi',
-    emailPart || 'anonymous',
-    baseSlugPart || 'unknown',
-    upsellSlugPart || 'no-upsell',
-    minuteWindow,
-  ].join('-');
-}
 
 async function createPaymentIntentHandler(req, res) {
   const origin = req.headers.origin || '';
