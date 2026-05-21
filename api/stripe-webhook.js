@@ -66,6 +66,16 @@ async function readRawBody(req) {
   throw new Error('Raw Stripe webhook body unavailable.');
 }
 
+async function pingBetterStackHeartbeat() {
+  const url = String(process.env.BETTER_STACK_PAYMENT_HEARTBEAT_URL || '').trim();
+  if (!url) return;
+  try {
+    await fetch(url);
+  } catch (err) {
+    console.error('Better Stack heartbeat ping failed:', err.message);
+  }
+}
+
 async function stripeWebhookHandler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -94,9 +104,11 @@ async function stripeWebhookHandler(req, res) {
         paymentIntent: event.data.object,
         stripeClient,
       });
+      await pingBetterStackHeartbeat();
     } else if (isInstalmentWebhookEvent(event)) {
       if (event.type === 'checkout.session.completed') {
         await fulfillInstalmentCheckoutImpl({ session: event.data.object });
+        await pingBetterStackHeartbeat();
       }
     }
 

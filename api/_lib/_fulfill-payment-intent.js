@@ -7,8 +7,18 @@ const {
   buildEssayUploadToken,
   buildEssayUploadUrl,
 } = require('./_essay-upload.js');
+const sendFulfillmentAlert = require('./_fulfillment-alerts.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
+let alertFn = sendFulfillmentAlert;
+
+async function safeAlert(args) {
+  try {
+    await alertFn(args);
+  } catch (err) {
+    console.error('[fulfill-payment-intent] Alert send failed:', err.message);
+  }
+}
 
 function productLabel(baseSlug, upsellSlug) {
   const base = (SERVER_CATALOG[baseSlug] && SERVER_CATALOG[baseSlug].name) || baseSlug;
@@ -211,6 +221,16 @@ async function fulfillPaymentIntent(options) {
 
   const plan = getFulfillmentPlan(baseSlug, upsellSlug);
   if (!plan) {
+    const unknownEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
+    await safeAlert({
+      baseSlug: baseSlug || 'unknown',
+      upsellSlug,
+      customerEmail: unknownEmail,
+      provider: 'stripe',
+      paymentId: paymentIntent.id,
+      failedStep: 'unknown_product',
+      errorMessage: `No fulfillment plan for slug: ${baseSlug || 'unknown'}`,
+    });
     throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
   }
 
@@ -290,12 +310,30 @@ async function fulfillPaymentIntent(options) {
       }
     } catch (driveErr) {
       console.error('[fulfill-payment-intent] Google Drive sharing failed:', driveErr.message);
+      await safeAlert({
+        baseSlug,
+        upsellSlug,
+        customerEmail,
+        provider: 'stripe',
+        paymentId: paymentIntent.id,
+        failedStep: 'drive',
+        errorMessage: driveErr.message,
+      });
     }
 
     try {
       await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
     } catch (emailErr) {
       console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
+      await safeAlert({
+        baseSlug,
+        upsellSlug,
+        customerEmail,
+        provider: 'stripe',
+        paymentId: paymentIntent.id,
+        failedStep: 'email',
+        errorMessage: emailErr.message,
+      });
     }
 
     try {
@@ -325,6 +363,15 @@ async function fulfillPaymentIntent(options) {
       }
     } catch (kitErr) {
       console.error('[fulfill-payment-intent] Kit purchase sync failed:', kitErr.message);
+      await safeAlert({
+        baseSlug,
+        upsellSlug,
+        customerEmail,
+        provider: 'stripe',
+        paymentId: paymentIntent.id,
+        failedStep: 'kit',
+        errorMessage: kitErr.message,
+      });
     }
   } else {
     console.warn('[fulfill-payment-intent] No customer email found — skipping confirmation email');
@@ -349,8 +396,19 @@ async function fulfillInstalmentCheckout({ session }) {
     return { skipped: true };
   }
 
+  const instalmentSessionId = (session && session.id) || '';
+
   const plan = getFulfillmentPlan(baseSlug, upsellSlug);
   if (!plan) {
+    await safeAlert({
+      baseSlug: baseSlug || 'unknown',
+      upsellSlug,
+      customerEmail,
+      provider: 'stripe',
+      paymentId: instalmentSessionId,
+      failedStep: 'unknown_product',
+      errorMessage: `No fulfillment plan for slug: ${baseSlug || 'unknown'}`,
+    });
     throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
   }
 
@@ -363,12 +421,30 @@ async function fulfillInstalmentCheckout({ session }) {
     }
   } catch (driveErr) {
     console.error('[fulfill-instalment-checkout] Google Drive sharing failed:', driveErr.message);
+    await safeAlert({
+      baseSlug,
+      upsellSlug,
+      customerEmail,
+      provider: 'stripe',
+      paymentId: instalmentSessionId,
+      failedStep: 'drive',
+      errorMessage: driveErr.message,
+    });
   }
 
   try {
     await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
   } catch (emailErr) {
     console.error('[fulfill-instalment-checkout] Confirmation email failed:', emailErr.message);
+    await safeAlert({
+      baseSlug,
+      upsellSlug,
+      customerEmail,
+      provider: 'stripe',
+      paymentId: instalmentSessionId,
+      failedStep: 'email',
+      errorMessage: emailErr.message,
+    });
   }
 
   try {
@@ -383,6 +459,15 @@ async function fulfillInstalmentCheckout({ session }) {
     }
   } catch (kitErr) {
     console.error('[fulfill-instalment-checkout] Kit purchase sync failed:', kitErr.message);
+    await safeAlert({
+      baseSlug,
+      upsellSlug,
+      customerEmail,
+      provider: 'stripe',
+      paymentId: instalmentSessionId,
+      failedStep: 'kit',
+      errorMessage: kitErr.message,
+    });
   }
 
   return { plan };
@@ -395,7 +480,11 @@ fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
 fulfillPaymentIntent.sendConfirmationEmail = sendConfirmationEmail;
 fulfillPaymentIntent.fulfillPaymentIntent = fulfillPaymentIntent;
 fulfillPaymentIntent.__setResendFactory = (factory) => { resendFactory = factory; };
-fulfillPaymentIntent.__resetForTests = () => { resendFactory = (apiKey) => new Resend(apiKey); };
+fulfillPaymentIntent.__setAlertFn = (fn) => { alertFn = fn; };
+fulfillPaymentIntent.__resetForTests = () => {
+  resendFactory = (apiKey) => new Resend(apiKey);
+  alertFn = sendFulfillmentAlert;
+};
 fulfillPaymentIntent.fulfillInstalmentCheckout = fulfillInstalmentCheckout;
 
 module.exports = fulfillPaymentIntent;

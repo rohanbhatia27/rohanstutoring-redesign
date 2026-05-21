@@ -1,8 +1,19 @@
 const { shareProductAccess } = require('./_google-drive.js');
 const { syncPurchaseTag } = require('./_kit.js');
 const fulfillPaymentIntent = require('./_fulfill-payment-intent.js');
+const sendFulfillmentAlert = require('./_fulfillment-alerts.js');
 
 const { sendConfirmationEmail } = fulfillPaymentIntent;
+
+let alertFn = sendFulfillmentAlert;
+
+async function safeAlert(args) {
+  try {
+    await alertFn(args);
+  } catch (err) {
+    console.error('[paypal-fulfillment] Alert send failed:', err.message);
+  }
+}
 
 async function fulfillPayPalOrder({
   purchase,
@@ -38,6 +49,15 @@ async function fulfillPayPalOrder({
     }
   } catch (driveErr) {
     console.error(`[${source}] Google Drive sharing failed:`, driveErr.message);
+    await safeAlert({
+      baseSlug,
+      upsellSlug,
+      customerEmail,
+      provider: 'paypal',
+      paymentId: orderID,
+      failedStep: 'drive',
+      errorMessage: driveErr.message,
+    });
   }
 
   try {
@@ -50,6 +70,15 @@ async function fulfillPayPalOrder({
     console.log(`[${source}] Confirmation email processed for ${customerEmail} (${orderID || baseSlug})`);
   } catch (emailErr) {
     console.error(`[${source}] Confirmation email failed:`, emailErr.message);
+    await safeAlert({
+      baseSlug,
+      upsellSlug,
+      customerEmail,
+      provider: 'paypal',
+      paymentId: orderID,
+      failedStep: 'email',
+      errorMessage: emailErr.message,
+    });
   }
 
   try {
@@ -64,9 +93,21 @@ async function fulfillPayPalOrder({
     }
   } catch (kitErr) {
     console.error(`[${source}] Kit purchase sync failed:`, kitErr.message);
+    await safeAlert({
+      baseSlug,
+      upsellSlug,
+      customerEmail,
+      provider: 'paypal',
+      paymentId: orderID,
+      failedStep: 'kit',
+      errorMessage: kitErr.message,
+    });
   }
 
   return { fulfilled: true };
 }
+
+fulfillPayPalOrder.__setAlertFn = (fn) => { alertFn = fn; };
+fulfillPayPalOrder.__resetForTests = () => { alertFn = sendFulfillmentAlert; };
 
 module.exports = fulfillPayPalOrder;
