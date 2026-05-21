@@ -100,8 +100,13 @@ async function stripeWebhookHandler(req, res) {
 
   try {
     if (event.type === 'payment_intent.succeeded') {
+      const pi = event.data.object;
+      if (pi.invoice) {
+        console.log(`[stripe-webhook] Skipping subscription-linked PI ${pi.id} (invoice: ${pi.invoice})`);
+        return res.status(200).json({ received: true });
+      }
       await fulfillPaymentIntentImpl({
-        paymentIntent: event.data.object,
+        paymentIntent: pi,
         stripeClient,
       });
       await pingBetterStackHeartbeat();

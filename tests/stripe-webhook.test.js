@@ -887,3 +887,49 @@ test('stripe webhook rejects parsed object bodies because signature verification
   assert.equal(constructEventCalled, false);
   stripeWebhookHandler.__resetForTests();
 });
+
+test('stripe webhook skips fulfillment for subscription-linked payment intents', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  let fulfillCalled = false;
+
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_sub_renewal',
+              invoice: 'in_abc123',
+              metadata: {},
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => {
+    fulfillCalled = true;
+    return { alreadyFulfilled: false };
+  });
+
+  const req = {
+    method: 'POST',
+    headers: { 'stripe-signature': 't=123,v1=abc' },
+    body: Buffer.from('{"id":"evt_sub_renewal"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, { received: true });
+  assert.equal(fulfillCalled, false);
+  stripeWebhookHandler.__resetForTests();
+});
