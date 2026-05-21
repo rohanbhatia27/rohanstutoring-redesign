@@ -1851,8 +1851,8 @@ body.menu-open .nav::after {
   display: block;
   width: auto;
   height: auto;
-  max-width: 300px;
-  max-height: 190px;
+  max-width: 390px;
+  max-height: 247px;
   border-radius: 10px;
   content-visibility: visible;
 }
@@ -1968,8 +1968,8 @@ img[loading="lazy"] {
     border-radius: 16px;
   }
   .proof__testimonial-card img {
-    max-width: 230px;
-    max-height: 150px;
+    max-width: 300px;
+    max-height: 195px;
   }
 }
 
