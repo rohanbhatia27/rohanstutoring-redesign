@@ -1,315 +1,88 @@
 (function (global) {
-  function loadStorefrontConfig() {
-    if (global.StorefrontConfig) return global.StorefrontConfig;
+  function loadProductCatalog() {
+    if (global.ProductCatalog) return global.ProductCatalog;
     if (typeof module !== 'undefined' && module.exports) {
-      try {
-        return require('./storefront-config.js');
-      } catch (error) {
-        return null;
-      }
+      try { return require('./catalog.js'); } catch (e) { return null; }
     }
     return null;
   }
 
-  const STOREFRONT_CONFIG = loadStorefrontConfig();
-  const INSTALMENT_LINKS = STOREFRONT_CONFIG?.instalmentLinks || {};
-  const MASTERY_INSTALMENT_URL = INSTALMENT_LINKS.mastery ? INSTALMENT_LINKS.mastery.url : '';
+  const _CAT_MODULE = loadProductCatalog();
+  const _CAT = _CAT_MODULE ? _CAT_MODULE.CATALOG : {};
+  const _getUpsellPriceCents = _CAT_MODULE ? _CAT_MODULE.getUpsellPriceCents : function () { return null; };
+
   const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/zxQdMR';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
-  const UNAVAILABLE_PRODUCT_SLUGS = new Set([
-    's1-rescue-sprint',
-    's2-rescue-sprint',
-  ]);
+
+  // Derived from catalog — edit js/catalog.js to update products, prices, or availability.
+  const UNAVAILABLE_PRODUCT_SLUGS = new Set(
+    Object.keys(_CAT).filter(function (k) { return !_CAT[k].available; })
+  );
+
+  const PRODUCT_IMAGES = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (k) { if (_CAT[k].image) m[k] = _CAT[k].image; });
+    return m;
+  }());
+
+  const MASTERY_INSTALMENT_URL = _CAT.mastery && _CAT.mastery.instalment ? _CAT.mastery.instalment.url : '';
+
+  const PRODUCTS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (slug) {
+      const e = _CAT[slug];
+      const prod = {
+        name: e.title,
+        tagline: e.tagline || '',
+        price: e.priceCents !== null ? e.priceCents / 100 : undefined,
+        features: e.features || [],
+        isDigital: e.isDigital,
+        instalment: e.instalment ? { label: e.instalment.label, url: e.instalment.url } : null,
+        successType: e.successType,
+      };
+      if (e.afterpay) prod.afterpay = true;
+      if (e.hasPkgSelector) {
+        prod.hasPkgSelector = true;
+        prod.packages = (e.packages || []).map(function (pkg) {
+          const pkgEntry = _CAT[pkg.slug];
+          const pkgPrice = pkgEntry ? pkgEntry.priceCents / 100 : 0;
+          return {
+            slug: pkg.slug,
+            label: pkg.label,
+            sub: pkg.sub,
+            price: pkgPrice,
+            priceDisplay: '$' + (Number.isInteger(pkgPrice) ? pkgPrice.toLocaleString() : pkgPrice.toFixed(2)),
+          };
+        });
+      }
+      m[slug] = prod;
+    });
+    return m;
+  }());
+
+  const ORDER_BUMPS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (slug) {
+      const bump = _CAT[slug].orderBump;
+      if (!bump) return;
+      const bumpCents = _getUpsellPriceCents(slug, bump.slug);
+      m[slug] = Object.assign({}, bump, {
+        price: bumpCents !== null ? bumpCents / 100 : bump.price,
+      });
+    });
+    return m;
+  }());
+
+  const INSTALMENT_PLANS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (k) {
+      const inst = _CAT[k].instalment;
+      if (inst && inst.plan) m[k] = inst.plan;
+    });
+    return m;
+  }());
+
   let checkoutConfigPromise = null;
-
-  const PRODUCT_IMAGES = {
-    blueprint:          '../assets/courses/blueprint-course-card.webp',
-    advanced:           '../assets/courses/advanced-course-card.webp',
-    'essay-collection': '../assets/courses/essay-collection-cover.webp',
-    'essay-marking':    '../assets/courses/essay-collection-cover.webp',
-    'essay-pack-10':    '../assets/courses/essay-collection-cover.webp',
-    comprehensive:      '../assets/courses/comprehensive-course-card.webp',
-    mastery:            '../assets/courses/mastery-course-card.webp',
-    's1-rescue-sprint': '../assets/courses/s1-rescue-sprint-hero.webp',
-    's2-rescue-sprint': '../assets/courses/s2-rescue-sprint-hero.webp',
-  };
-
-  // SYNC REQUIRED: These hardcoded prices are fallbacks/display hints.
-  // The actual single source of truth is `AMOUNTS` in `api/create-payment-intent.js`.
-  // At runtime, `checkout.js` fetches `/api/public-config` and overwrites these prices dynamically.
-  const PRODUCTS = {
-    blueprint: {
-      name: "Rohan's Blueprint",
-      tagline: 'Self-paced · Lifetime access · All devices',
-      price: 599,
-      features: [
-        'S1 & S2 Mastery Course (50+ hrs)',
-        'GAMSAT Advanced Series (30 hrs)',
-        'Expert Essay Collection (25 essays)',
-        'Lifetime access · No expiry',
-      ],
-      isDigital: true,
-      afterpay: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    advanced: {
-      name: 'GAMSAT Advanced Series',
-      tagline: '30 hrs of elite-level S1 & S2 strategy · Lifetime access',
-      price: 299,
-      features: [
-        '30 hours of advanced S1 & S2 content',
-        'Elite-level strategy for 70+ scores',
-        'Worked examples across both sections',
-        'Lifetime access · All devices',
-      ],
-      isDigital: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    'essay-collection': {
-      name: 'Expert Essay Collection',
-      tagline: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      features: [
-        '25 genuine GAMSAT essays scored 80+',
-        '24 themes · Task A and Task B',
-        '$3.16 per essay',
-        'Immediate access · All devices',
-      ],
-      isDigital: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    'starter-pack': {
-      name: 'GAMSAT Essentials Playbook',
-      tagline: '30-day kickstart · $150 credit toward a full course',
-      price: 97,
-      features: [
-        '10-hour S1 & S2 Essentials Course',
-        '2 essays marked with detailed feedback',
-        '5 high-scoring model essays',
-        '$150 credit toward a full course',
-      ],
-      isDigital: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    'essay-marking': {
-      name: 'S2 Essay Marking',
-      tagline: '3-day turnaround · Top 1% scorer feedback',
-      price: 34.99,
-      features: [
-        'In-depth corrections on ideas, structure & language',
-        '3-day turnaround',
-        'Feedback from a top 1% GAMSAT scorer',
-        'Send your essay after purchase',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'essay-marking',
-    },
-    'essay-pack-10': {
-      name: 'S2 Essay Marking — 10-Essay Pack',
-      tagline: '10 essays · Submit over time · Top 1% scorer feedback',
-      price: 249,
-      features: [
-        '10 x in-depth essay markings',
-        'Ideas, structure and language corrections',
-        'Exemplars and evidence suggestions',
-        'Submit essays over time via email',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'essay-pack-10',
-    },
-    comprehensive: {
-      name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
-      tagline: '',
-      price: 1699,
-      features: [
-        '50+ hours of recorded library content',
-        '24 live coaching classes',
-        'Live essay feedback in every class',
-        'Direct access to Rohan',
-        '100% refund guarantee',
-      ],
-      isDigital: false,
-      instalment: INSTALMENT_LINKS.comprehensive || null,
-      successType: 'cohort',
-    },
-    's1-comprehensive': {
-      name: 'GAMSAT Section 1 Comprehensive Course (May 2026 Start)',
-      tagline: '',
-      price: 999,
-      features: [
-        'Section 1 live coaching classes',
-        'Recorded strategy library',
-        'Direct access to Rohan',
-        '100% refund guarantee',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    's2-comprehensive': {
-      name: 'GAMSAT Section 2 Comprehensive Course (May 2026 Start)',
-      tagline: '',
-      price: 999,
-      features: [
-        'Section 2 live coaching classes',
-        'Essay feedback and writing frameworks',
-        'Direct access to Rohan',
-        '100% refund guarantee',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    mastery: {
-      name: 'Mastery Program',
-      tagline: 'Private tutorials · Unlimited essay marking · September cohort',
-      price: 2249,
-      features: [
-        'Everything in the Comprehensive Course',
-        '5 × 1:1 private tutorials with Rohan',
-        'Unlimited essay marking',
-        'Monthly 1:1 check-ins',
-        'Personalised study roadmap',
-      ],
-      isDigital: false,
-      instalment: INSTALMENT_LINKS.mastery || null,
-      successType: 'cohort',
-    },
-    's1-rescue-sprint': {
-      name: 'S1 Rescue Sprint',
-      tagline: '3 weeks · Full refund after Week 1 if not satisfied',
-      price: 347,
-      features: [
-        '3-week intensive S1 program',
-        'Live coaching sessions',
-        'Section 1 reasoning frameworks',
-        'Full refund guarantee after Week 1',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    's2-rescue-sprint': {
-      name: 'S2 Rescue Sprint',
-      tagline: '4 weeks · 3 marked essays · Clinic recordings included',
-      price: 199,
-      features: [
-        '4-week S2 writing intensive',
-        '3 marked essays with detailed feedback',
-        'Live essay clinic sessions',
-        'Clinic recordings included',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    'private-mentoring': {
-      name: '1:1 Private Mentoring',
-      tagline: 'Top 5% scorers · Flexible scheduling · S1, S2 & S3',
-      isDigital: false,
-      instalment: null,
-      successType: 'mentoring',
-      hasPkgSelector: true,
-      packages: [
-        {
-          slug: 'mentoring-single',
-          label: 'Single session',
-          sub: 'Book one class · S1, S2, or S3',
-          price: 119,
-          priceDisplay: '$119',
-        },
-        {
-          slug: 'mentoring-pack',
-          label: '10-class pack',
-          sub: 'Save $120 · $107/hr',
-          price: 1070,
-          priceDisplay: '$1,070',
-        },
-      ],
-    },
-  };
-
-  const ORDER_BUMPS = {
-    blueprint: {
-      slug: 'essay-pack-10',
-      title: 'Add 10 essay reviews',
-      description: 'Get clear feedback on ideas, structure, and expression across 10 full essays.',
-      price: 249,
-      badge: 'Save $100',
-    },
-    comprehensive: {
-      slug: 'mentoring-single',
-      title: 'Add one 1:1 strategy class',
-      description: 'Private strategy session with a top tutor before classes begin',
-      price: 99,
-      priceWas: 119,
-      badge: 'Enrolment-only offer',
-      lockRuntimePrice: true,
-    },
-    advanced: {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    'starter-pack': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    's1-rescue-sprint': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    's2-rescue-sprint': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    'essay-marking': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    'private-mentoring': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-  };
-
-  const INSTALMENT_PLANS = {
-    comprehensive: {
-      count: 4,
-      firstPayment: 499,
-      recurringPayment: 499,
-      priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
-    },
-    mastery: {
-      count: 4,
-      firstPayment: 649,
-      recurringPayment: 649,
-      priceEnvKey: 'STRIPE_PRICE_MASTERY_INSTALMENT',
-    },
-  };
 
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
@@ -2009,11 +1782,13 @@
   }
 
   const exported = {
-    STOREFRONT_CONFIG,
     MASTERY_INSTALMENT_URL,
     TALLY_ESSAY_FORM_URL,
     EMAIL_PATTERN,
     PRODUCTS,
+    ORDER_BUMPS,
+    INSTALMENT_PLANS,
+    UNAVAILABLE_PRODUCT_SLUGS,
     fmtPrice,
     getPayButtonLabel,
     getPrimaryButtonLabel,

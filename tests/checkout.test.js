@@ -285,30 +285,36 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.equal(getOrderBumpConfig('mastery'), null);
 });
 
-test('checkout product prices stay in sync with payment-intent amounts', () => {
-  const apiAmountsByPageSlug = {
-    blueprint: createPaymentIntentHandler.AMOUNTS.blueprint,
-    advanced: createPaymentIntentHandler.AMOUNTS.advanced,
-    'essay-collection': createPaymentIntentHandler.AMOUNTS['essay-collection'],
-    'essay-marking': createPaymentIntentHandler.AMOUNTS['essay-marking'],
-    'essay-pack-10': createPaymentIntentHandler.AMOUNTS['essay-pack-10'],
-    'starter-pack': createPaymentIntentHandler.AMOUNTS['starter-pack'],
-    comprehensive: createPaymentIntentHandler.AMOUNTS.comprehensive,
-    mastery: createPaymentIntentHandler.AMOUNTS.mastery,
-    'private-mentoring-single': createPaymentIntentHandler.AMOUNTS['mentoring-single'],
-    'private-mentoring-pack': createPaymentIntentHandler.AMOUNTS['mentoring-pack'],
-  };
+test('catalog integrity: all purchasable slugs have positive priceCents, required fields, and valid upsell targets', () => {
+  const { CATALOG } = require('../js/catalog.js');
+  const REQUIRED_FIELDS = ['slug', 'name', 'title', 'available', 'successType', 'isDigital'];
 
-  assert.equal(PRODUCTS.blueprint.price * 100, apiAmountsByPageSlug.blueprint);
-  assert.equal(PRODUCTS.advanced.price * 100, apiAmountsByPageSlug.advanced);
-  assert.equal(PRODUCTS['essay-collection'].price * 100, apiAmountsByPageSlug['essay-collection']);
-  assert.equal(PRODUCTS['essay-marking'].price * 100, apiAmountsByPageSlug['essay-marking']);
-  assert.equal(PRODUCTS['essay-pack-10'].price * 100, apiAmountsByPageSlug['essay-pack-10']);
-  assert.equal(PRODUCTS['starter-pack'].price * 100, apiAmountsByPageSlug['starter-pack']);
-  assert.equal(PRODUCTS.comprehensive.price * 100, apiAmountsByPageSlug.comprehensive);
-  assert.equal(PRODUCTS.mastery.price * 100, apiAmountsByPageSlug.mastery);
-  assert.equal(PRODUCTS['private-mentoring'].packages[0].price * 100, apiAmountsByPageSlug['private-mentoring-single']);
-  assert.equal(PRODUCTS['private-mentoring'].packages[1].price * 100, apiAmountsByPageSlug['private-mentoring-pack']);
+  Object.entries(CATALOG).forEach(([slug, entry]) => {
+    REQUIRED_FIELDS.forEach((field) => {
+      assert.notEqual(entry[field], undefined, `${slug} missing field: ${field}`);
+    });
+
+    if (entry.priceCents !== null) {
+      assert.ok(entry.priceCents > 0, `${slug} priceCents must be positive`);
+    }
+
+    (entry.allowedUpsells || []).forEach((upsellSlug) => {
+      assert.ok(CATALOG[upsellSlug], `${slug} upsell target '${upsellSlug}' does not exist in catalog`);
+      assert.ok(CATALOG[upsellSlug].priceCents > 0, `${slug} upsell target '${upsellSlug}' has no price`);
+    });
+
+    Object.keys(entry.upsellPriceOverrides || {}).forEach((upsellSlug) => {
+      assert.ok(
+        (entry.allowedUpsells || []).includes(upsellSlug),
+        `${slug} has upsellPriceOverride for '${upsellSlug}' but it's not in allowedUpsells`
+      );
+    });
+
+    if (entry.orderBump) {
+      assert.ok(entry.orderBump.slug, `${slug} orderBump missing slug`);
+      assert.ok(CATALOG[entry.orderBump.slug], `${slug} orderBump target '${entry.orderBump.slug}' does not exist`);
+    }
+  });
 });
 
 test('renderSummaryMarkup renders standard products with included features', () => {
