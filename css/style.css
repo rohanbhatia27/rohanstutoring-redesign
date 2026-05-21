@@ -1816,6 +1816,8 @@ body.menu-open .nav::after {
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
   animation: testimonial-scroll 46s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .proof__testimonial-marquee:hover {
   animation-play-state: paused;
@@ -1830,17 +1832,16 @@ body.menu-open .nav::after {
 }
 .proof__testimonial-card {
   flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  min-width: clamp(180px, 17vw, 240px);
-  min-height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 14px;
   border: 1px solid rgba(16, 34, 58, 0.1);
-  border-radius: 22px;
+  border-radius: 18px;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(246, 250, 255, 0.88)),
     var(--white);
-  box-shadow: 0 16px 42px rgba(16, 34, 58, 0.09);
+  box-shadow: 0 12px 30px rgba(16, 34, 58, 0.08);
   transform: rotate(var(--testimonial-tilt, -1deg));
 }
 .proof__testimonial-card:nth-child(2n) { --testimonial-tilt: 1.1deg; }
@@ -1849,9 +1850,11 @@ body.menu-open .nav::after {
 .proof__testimonial-card img {
   display: block;
   width: auto;
-  max-width: min(100%, 220px);
   height: auto;
-  border-radius: 14px;
+  max-width: 300px;
+  max-height: 190px;
+  border-radius: 10px;
+  content-visibility: visible;
 }
 
 @keyframes testimonial-scroll {
@@ -1961,13 +1964,12 @@ img[loading="lazy"] {
     mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
   }
   .proof__testimonial-card {
-    min-width: 172px;
-    min-height: 116px;
     padding: 12px;
-    border-radius: 18px;
+    border-radius: 16px;
   }
   .proof__testimonial-card img {
-    max-width: 188px;
+    max-width: 230px;
+    max-height: 150px;
   }
 }
 
