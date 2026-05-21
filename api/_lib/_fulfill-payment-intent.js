@@ -445,8 +445,9 @@ async function fulfillInstalmentCheckout({ session }) {
   const metadata = (session && session.metadata) || {};
   const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
   const upsellSlug = String(metadata.upsell_slug || '').trim();
-  const customerEmail = String(metadata.customer_email || session.customer_email || '').trim();
-  const customerName = String(metadata.customer_name || '').trim();
+  const customerDetails = (session && session.customer_details) || {};
+  const customerEmail = String(metadata.customer_email || session.customer_email || customerDetails.email || '').trim();
+  const customerName = String(metadata.customer_name || customerDetails.name || '').trim();
 
   if (!customerEmail) {
     console.warn('[fulfill-instalment-checkout] No customer email found — skipping fulfillment');
@@ -473,6 +474,20 @@ async function fulfillInstalmentCheckout({ session }) {
     await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
   } catch (emailErr) {
     console.error('[fulfill-instalment-checkout] Confirmation email failed:', emailErr.message);
+  }
+
+  try {
+    const kitResult = await syncPurchaseTag({
+      baseSlug,
+      email: customerEmail,
+      customerName,
+    });
+
+    if (kitResult && !kitResult.skipped) {
+      console.log(`[fulfill-instalment-checkout] Kit purchase tag synced for ${customerEmail}`);
+    }
+  } catch (kitErr) {
+    console.error('[fulfill-instalment-checkout] Kit purchase sync failed:', kitErr.message);
   }
 
   return { plan };

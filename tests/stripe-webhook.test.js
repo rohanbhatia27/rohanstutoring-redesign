@@ -307,6 +307,107 @@ test('fulfillment helper uses the S2-specific start time for s2-comprehensive', 
   fulfillPaymentIntent.__resetForTests();
 });
 
+test('fulfillment helper uses Checkout Session customer details for instalment fulfillment', async () => {
+  const sentEmails = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  const result = await fulfillPaymentIntent.fulfillInstalmentCheckout({
+    session: {
+      id: 'cs_test_123',
+      metadata: {
+        product_slug: 'comprehensive',
+        payment_mode: 'instalments',
+      },
+      customer_details: {
+        email: 'jane@example.com',
+        name: 'Jane Smith',
+      },
+    },
+  });
+
+  assert.equal(result.plan.productSlug, 'comprehensive');
+  assert.equal(sentEmails.length, 1);
+  assert.equal(sentEmails[0].to, 'jane@example.com');
+  assert.match(sentEmails[0].html, /Hey Jane,/);
+
+  fulfillPaymentIntent.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+});
+
+test('fulfillment helper tags instalment buyers in Kit', async () => {
+  const sentEmails = [];
+  const calls = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE = '19492825';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  kit.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+
+    if (url.endsWith('/v4/subscribers')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    if (url.endsWith('/v4/tags/19492825/subscribers/789')) {
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  const result = await fulfillPaymentIntent.fulfillInstalmentCheckout({
+    session: {
+      id: 'cs_test_456',
+      metadata: {
+        product_slug: 'comprehensive',
+        payment_mode: 'instalments',
+      },
+      customer_details: {
+        email: 'jane@example.com',
+        name: 'Jane Smith',
+      },
+    },
+  });
+
+  assert.equal(result.plan.productSlug, 'comprehensive');
+  assert.equal(sentEmails.length, 1);
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /\/v4\/subscribers$/);
+  assert.match(calls[1].url, /\/v4\/tags\/19492825\/subscribers\/789$/);
+
+  fulfillPaymentIntent.__resetForTests();
+  kit.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE;
+});
+
 test('fulfillment helper does not reuse the comprehensive template for mastery', async () => {
   const sentEmails = [];
   process.env.RESEND_API_KEY = 're_test_123';
