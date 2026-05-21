@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "audit:redirects": "node scripts/redirect-audit.js"
+    "audit:redirects": "node scripts/redirect-audit.js",
+    "audit:prices": "node scripts/price-audit.js"
   },
   "dependencies": {
     "resend": "^4.0.0",
