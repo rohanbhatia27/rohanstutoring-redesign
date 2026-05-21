@@ -158,6 +158,7 @@
         'Send your essay after purchase',
       ],
       isDigital: false,
+      requiresEssayUpload: true,
       successType: 'essay-marking',
       instalment: null,
       orderBump: {

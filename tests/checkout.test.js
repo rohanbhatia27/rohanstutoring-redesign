@@ -2664,7 +2664,7 @@ test('validate coupon handler rejects high-ticket-only coupons for lower-ticket 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, {
       valid: false,
-      error: 'This coupon is only valid for the Comprehensive Course and Mastery Program.',
+      error: 'This coupon is not valid for the selected product.',
     });
   } finally {
     validateCouponHandler.__setStripeFactory((secretKey) => require('stripe')(secretKey));
@@ -2769,7 +2769,7 @@ test('payment intent handler rejects high-ticket-only coupons for lower-ticket p
 
     assert.equal(res.statusCode, 400);
     assert.deepEqual(res.body, {
-      error: 'This coupon is only valid for the Comprehensive Course and Mastery Program.',
+      error: 'This coupon is not valid for the selected product.',
     });
   } finally {
     createPaymentIntentHandler.__resetForTests();

@@ -91,6 +91,32 @@ function dollars(cents) {
   return String(cents / 100);
 }
 
+function stripTags(value) {
+  return String(value || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function priceMatchesCatalog(value, product) {
+  if (!product || product.priceCents === null) return false;
+  const expected = dollars(product.priceCents);
+  const expectedFixed = (product.priceCents / 100).toFixed(2);
+  return value === expected || value === expectedFixed;
+}
+
+function getPageProducts(catalog, pageSlug) {
+  return Object.values(catalog).filter(function (p) {
+    return p.pageSlug === pageSlug || p.slug === pageSlug;
+  });
+}
+
+function findProductForPrice(pageProducts, price) {
+  return pageProducts.find(function (product) {
+    return priceMatchesCatalog(price, product);
+  }) || null;
+}
+
 // ─── Page-level checks ──────────────────────────────────────────────────────
 
 /**
@@ -98,7 +124,7 @@ function dollars(cents) {
  * match the catalog price for the product.
  */
 function checkCoursePageVisiblePrices(html, catalog, pageSlug, errors, fileName) {
-  const prod = Object.values(catalog).find(p => p.pageSlug === pageSlug || p.slug === pageSlug);
+  const prod = Object.values(catalog).find(function (p) { return p.pageSlug === pageSlug || p.slug === pageSlug; });
   if (!prod || prod.priceCents === null) return;
 
   const expected = dollars(prod.priceCents);
@@ -123,6 +149,50 @@ function checkCoursePageVisiblePrices(html, catalog, pageSlug, errors, fileName)
     const p = normaliseDollar(valM[1]);
     if (p && p !== expected && p !== (prod.priceCents / 100).toFixed(2)) {
       errors.push('[Visible Price] In ' + fileName + ': value-summary shows $' + p + ', catalog has $' + expected + ' (' + prod.slug + ')');
+    }
+  }
+}
+
+function checkCatalogPriceElements(html, pageProducts, errors, fileName) {
+  const watchedClasses = new Set(['sticky-bar__price', 'value-summary__now', 'bundle-card__price', 'pricing-card__price']);
+  const priceClassRe = /<([a-z0-9]+)\b[^>]*class=["']([^"']+)["'][^>]*>([\s\S]*?)<\/\1>/gi;
+  let match;
+
+  while ((match = priceClassRe.exec(html)) !== null) {
+    const classTokens = String(match[2] || '').split(/\s+/);
+    if (!classTokens.some(function (token) { return watchedClasses.has(token); })) continue;
+
+    const text = stripTags(match[3]);
+    const price = normaliseDollar(text);
+    if (!price) continue;
+
+    if (/\/hr|per hour/i.test(text) && price === '107') continue;
+
+    if (!findProductForPrice(pageProducts, price)) {
+      const expected = pageProducts
+        .filter(function (product) { return product.priceCents !== null; })
+        .map(function (product) { return product.slug + '=$' + dollars(product.priceCents); })
+        .join(', ');
+      errors.push('[Visible Price] In ' + fileName + ': "' + text + '" does not match page catalog prices (' + expected + ')');
+    }
+  }
+}
+
+function checkCheckoutLinkTextPrices(html, catalog, errors, fileName) {
+  const checkoutLinkRe = /<a\b[^>]*href=["'][^"']*\/checkout\/\?product=([a-z0-9-]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match;
+
+  while ((match = checkoutLinkRe.exec(html)) !== null) {
+    const slug = match[1];
+    const product = catalog[slug];
+    if (!product || product.priceCents === null) continue;
+
+    const text = stripTags(match[2]);
+    const price = normaliseDollar(text);
+    if (!price) continue;
+
+    if (!priceMatchesCatalog(price, product)) {
+      errors.push('[CTA Price] In ' + fileName + ': /checkout/?product=' + slug + ' link says $' + price + ', catalog has $' + dollars(product.priceCents));
     }
   }
 }
@@ -294,9 +364,7 @@ function runPriceAudit() {
     if (filePath.endsWith('index.html') || filePath.endsWith('courses.html')) continue;
 
     const pageSlug = path.basename(filePath, '.html');
-    const pageProducts = Object.values(CATALOG).filter(function (p) {
-      return p.pageSlug === pageSlug || p.slug === pageSlug;
-    });
+    const pageProducts = getPageProducts(CATALOG, pageSlug);
     if (pageProducts.length === 0) continue;
 
     // A. Visible price checks
@@ -308,6 +376,8 @@ function runPriceAudit() {
     // the previous regex-based card parser was too brittle (attribute-ordering
     // assumptions, single-quote/double-quote fragility).
     checkCoursePageVisiblePrices(html, CATALOG, pageSlug, errors, fileName);
+    checkCatalogPriceElements(html, pageProducts, errors, fileName);
+    checkCheckoutLinkTextPrices(html, CATALOG, errors, fileName);
 
     // B. Enrolment CTA vs availability
     checkEnrolmentCtaVsAvailability(html, CATALOG, pageSlug, errors, fileName);
@@ -444,4 +514,6 @@ module.exports = {
   runPriceAudit,
   findOffers,
   findMatchingProductForOffer,
+  checkCatalogPriceElements,
+  checkCheckoutLinkTextPrices,
 };

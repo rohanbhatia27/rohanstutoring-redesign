@@ -218,14 +218,15 @@ async function fulfillPaymentIntent(options) {
     ? `${plan.productSlug},${plan.upsellSlug}`
     : plan.productSlug;
   const requestedAt = now();
-  const essayUploadToken = baseSlug === 'essay-marking'
+  const needsEssayUpload = !!(SERVER_CATALOG[baseSlug] || {}).requiresEssayUpload;
+  const essayUploadToken = needsEssayUpload
     ? buildEssayUploadToken({
         paymentIntentId: paymentIntent.id,
         productSlug: baseSlug,
         upsellSlug,
       })
     : '';
-  const essayUploadMetadata = baseSlug === 'essay-marking'
+  const essayUploadMetadata = needsEssayUpload
     ? {
         essay_upload_required: 'true',
         essay_upload_url: buildEssayUploadUrl({

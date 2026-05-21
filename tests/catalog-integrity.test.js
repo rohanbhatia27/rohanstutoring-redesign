@@ -115,6 +115,36 @@ test('every catalog pageSlug has a corresponding courses/*.html file', () => {
   });
 });
 
+// ─── GA4 begin_checkout map in main.js matches catalog prices ────────────────
+// GA4_PRODUCTS is intentionally kept as a standalone map in main.js to avoid
+// loading catalog.js on all marketing pages. This test guards against drift.
+
+test('main.js GA4_PRODUCTS prices match catalog priceCents', () => {
+  const mainSrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8');
+  const blockStart = mainSrc.indexOf('const GA4_PRODUCTS = {');
+  const blockEnd = mainSrc.indexOf('\n  };', blockStart);
+  assert.ok(blockStart !== -1 && blockEnd !== -1, 'Could not find GA4_PRODUCTS block in main.js');
+  const block = mainSrc.slice(blockStart, blockEnd);
+
+  // Extract  slug → price pairs. Values are numbers or null.
+  const lineRE = /['"]?([\w-]+)['"]?\s*:\s*\{[^}]*price:\s*([\d.]+|null)/g;
+  let match;
+  const found = {};
+  while ((match = lineRE.exec(block)) !== null) {
+    found[match[1]] = match[2] === 'null' ? null : parseFloat(match[2]);
+  }
+
+  assert.ok(Object.keys(found).length > 0, 'GA4_PRODUCTS block parsed no entries');
+
+  Object.entries(found).forEach(([slug, gaPrice]) => {
+    const entry = CATALOG[slug];
+    assert.ok(entry, `GA4_PRODUCTS slug '${slug}' not found in catalog`);
+    const catalogPrice = entry.priceCents !== null ? entry.priceCents / 100 : null;
+    assert.equal(gaPrice, catalogPrice,
+      `GA4_PRODUCTS['${slug}'].price ${gaPrice} does not match catalog priceCents/100 ${catalogPrice}`);
+  });
+});
+
 // ─── HTML schema prices match catalog ────────────────────────────────────────
 // Guard: JSON-LD offers.price in each course page must match catalog priceCents.
 // This catches drift when prices change — update catalog.js, not the HTML.

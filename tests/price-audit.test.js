@@ -6,6 +6,8 @@ const {
   runPriceAudit,
   findOffers,
   findMatchingProductForOffer,
+  checkCatalogPriceElements,
+  checkCheckoutLinkTextPrices,
 } = require('../scripts/price-audit.js');
 
 test('findOffers locates nested Offer structures recursively', () => {
@@ -74,6 +76,34 @@ test('findMatchingProductForOffer associates an offer by URL or by price', () =>
   };
   const unmatched = findMatchingProductForOffer(offerUnmatched, pageProducts);
   assert.equal(unmatched, null);
+});
+
+test('checkCatalogPriceElements catches canonical visible price drift', () => {
+  const errors = [];
+  checkCatalogPriceElements(
+    '<span class="value-summary__now">$999</span><span class="bundle-card__total-was">$408 AUD</span>',
+    [{ slug: 'comprehensive', priceCents: 169900 }],
+    errors,
+    'courses/comprehensive.html'
+  );
+
+  assert.deepEqual(errors, [
+    '[Visible Price] In courses/comprehensive.html: "$999" does not match page catalog prices (comprehensive=$1699)'
+  ]);
+});
+
+test('checkCheckoutLinkTextPrices catches CTA price drift by product slug', () => {
+  const errors = [];
+  checkCheckoutLinkTextPrices(
+    '<a href="/checkout/?product=blueprint" class="btn">Get the Blueprint for $499 AUD</a>',
+    { blueprint: { slug: 'blueprint', priceCents: 59900 } },
+    errors,
+    'courses/blueprint.html'
+  );
+
+  assert.deepEqual(errors, [
+    '[CTA Price] In courses/blueprint.html: /checkout/?product=blueprint link says $499, catalog has $599'
+  ]);
 });
 
 test('runPriceAudit executes clean and reports no drift in the main codebase', () => {

@@ -398,7 +398,7 @@
 
 @media (max-width: 960px) {
   .product-hero__inner { grid-template-columns: 1fr; }
-  .product-hero__card { max-width: 480px; }
+  .product-hero__card { order: -1; max-width: 100%; }
   .product-hero__team { width: 100%; max-width: 560px; }
 }
 

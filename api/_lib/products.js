@@ -19,6 +19,9 @@ const AMOUNTS = (function () {
 
 const UNAVAILABLE_PRODUCTS = new Set(getUnavailableSlugs());
 const HIGH_TICKET_PRODUCT_SLUGS = new Set(getHighTicketSlugs());
+const ESSAY_UPLOAD_SLUGS = new Set(
+  Object.keys(CATALOG).filter(function (k) { return CATALOG[k].requiresEssayUpload; })
+);
 
 const ALLOWED_UPSELLS = (function () {
   const m = {};
@@ -107,6 +110,7 @@ module.exports = {
   AMOUNTS,
   UNAVAILABLE_PRODUCTS,
   HIGH_TICKET_PRODUCT_SLUGS,
+  ESSAY_UPLOAD_SLUGS,
   ALLOWED_UPSELLS,
   normaliseSlug,
   normaliseUpsellSlug,

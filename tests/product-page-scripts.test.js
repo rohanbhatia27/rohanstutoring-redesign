@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const storefrontConfig = require('../js/storefront-config.js');
+const { CATALOG } = require('../js/catalog.js');
 const { PRODUCTS } = require('../js/checkout.js');
 const {
   createStickyBarController,
@@ -70,6 +71,47 @@ test('mastery hero uses the dedicated mastery artwork asset', () => {
 test('checkout instalment links use shared storefront config', () => {
   assert.deepEqual(PRODUCTS.comprehensive.instalment, storefrontConfig.instalmentLinks.comprehensive);
   assert.deepEqual(PRODUCTS.mastery.instalment, storefrontConfig.instalmentLinks.mastery);
+});
+
+test('checkout pages load catalog before checkout logic', () => {
+  const pages = [
+    path.join(__dirname, '..', 'checkout', 'index.html'),
+    path.join(__dirname, '..', 'checkout', 'success.html'),
+  ];
+
+  pages.forEach((filePath) => {
+    const html = fs.readFileSync(filePath, 'utf8');
+    const catalogIndex = html.indexOf('/js/catalog.js');
+    const checkoutIndex = html.indexOf('js/checkout.js');
+
+    assert.ok(catalogIndex !== -1, `${path.basename(filePath)} should load /js/catalog.js`);
+    assert.ok(checkoutIndex !== -1, `${path.basename(filePath)} should load checkout.js`);
+    assert.ok(catalogIndex < checkoutIndex, `${path.basename(filePath)} should load catalog before checkout.js`);
+  });
+});
+
+test('course product pages share the product stylesheet and script shell', () => {
+  const coursePageSlugs = new Set(
+    Object.values(CATALOG)
+      .map((entry) => entry.pageSlug)
+      .filter(Boolean)
+  );
+
+  coursePageSlugs.forEach((pageSlug) => {
+    const filePath = path.join(__dirname, '..', 'courses', `${pageSlug}.html`);
+    const html = fs.readFileSync(filePath, 'utf8');
+    const styleIndex = html.indexOf('../css/style.css');
+    const productCssIndex = html.indexOf('../css/product.css');
+    const mainJsIndex = html.indexOf('../js/main.js');
+    const productJsIndex = html.indexOf('../js/product.js');
+
+    assert.ok(styleIndex !== -1, `${pageSlug} should load shared style.css`);
+    assert.ok(productCssIndex !== -1, `${pageSlug} should load shared product.css`);
+    assert.ok(styleIndex < productCssIndex, `${pageSlug} should load style.css before product.css`);
+    assert.ok(mainJsIndex !== -1, `${pageSlug} should load shared main.js`);
+    assert.ok(productJsIndex !== -1, `${pageSlug} should load shared product.js`);
+    assert.ok(mainJsIndex < productJsIndex, `${pageSlug} should load main.js before product.js`);
+  });
 });
 
 test('comprehensive hero uses an accessible V3 countdown for the live start date', () => {

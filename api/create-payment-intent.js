@@ -8,6 +8,7 @@ const {
   AMOUNTS,
   UNAVAILABLE_PRODUCTS,
   HIGH_TICKET_PRODUCT_SLUGS,
+  ESSAY_UPLOAD_SLUGS,
   ALLOWED_UPSELLS,
   normaliseSlug,
   normaliseUpsellSlug,
@@ -129,7 +130,7 @@ async function getValidatedCouponDetails(stripe, {
     if (!isCouponEligibleForProduct(coupon, productSlug || 'unknown')) {
       return {
         valid: false,
-        error: 'This coupon is only valid for the Comprehensive Course and Mastery Program.',
+        error: 'This coupon is not valid for the selected product.',
       };
     }
 
@@ -230,7 +231,7 @@ function normaliseCustomerDetails(body) {
 }
 
 function requiresEssayUploadLink(purchase) {
-  return purchase && purchase.baseSlug === 'essay-marking';
+  return purchase && ESSAY_UPLOAD_SLUGS.has(purchase.baseSlug);
 }
 
 

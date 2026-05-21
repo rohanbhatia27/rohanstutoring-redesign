@@ -5,3 +5,8 @@ node_modules
 .DS_Store
 .env*.local
 redirect-audit-*-output.csv
+tmp/
+*.log
+*.tmp
+.cache/
+coverage/
