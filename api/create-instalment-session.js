@@ -1,12 +1,22 @@
 const Stripe = require('stripe');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
+const { CATALOG } = require('./_lib/catalog.server.js');
 
-const ELIGIBLE_INSTALMENT_PRODUCTS = new Set(['comprehensive', 'mastery']);
-const ELIGIBLE_AFTERPAY_PRODUCTS = new Set(['blueprint']);
-const PRICE_ENV_KEYS = {
-  comprehensive: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
-  mastery: 'STRIPE_PRICE_MASTERY_INSTALMENT',
-};
+// Derived from catalog — edit js/catalog.js instead.
+const ELIGIBLE_INSTALMENT_PRODUCTS = new Set(
+  Object.keys(CATALOG).filter(function (k) { return CATALOG[k].instalmentEligible; })
+);
+const ELIGIBLE_AFTERPAY_PRODUCTS = new Set(
+  Object.keys(CATALOG).filter(function (k) { return CATALOG[k].afterpay; })
+);
+const PRICE_ENV_KEYS = (function () {
+  const m = {};
+  Object.keys(CATALOG).forEach(function (k) {
+    const inst = CATALOG[k].instalment;
+    if (inst && inst.plan && inst.plan.priceEnvKey) m[k] = inst.plan.priceEnvKey;
+  });
+  return m;
+}());
 const PUBLIC_ERROR_MESSAGE = 'Instalment checkout setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
@@ -47,18 +57,20 @@ function getSessionOrigin(bodyOrigin, requestOrigin) {
 }
 
 function buildAddInvoiceItems(slug, upsellSlug) {
-  if (slug !== 'comprehensive' || upsellSlug !== 'mentoring-single') {
-    return undefined;
-  }
+  if (!upsellSlug) return undefined;
+  const upsellEntry = CATALOG[upsellSlug];
+  if (!upsellEntry) return undefined;
+  const upsellCents = createPaymentIntentHandler.getUpsellAmount(slug, upsellSlug);
+  if (!upsellCents) return undefined;
 
   return [
     {
       price_data: {
         currency: 'aud',
         product_data: {
-          name: 'Add one 1:1 strategy class',
+          name: upsellEntry.title || upsellEntry.name,
         },
-        unit_amount: 9900,
+        unit_amount: upsellCents,
       },
       quantity: 1,
     },

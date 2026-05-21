@@ -1,14 +1,6 @@
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 const OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token';
-
-// Products that share the Blueprint folder rather than their own dedicated folder
-const BLUEPRINT_DRIVE_SLUGS = new Set([
-  'blueprint',
-  'comprehensive',
-  's1-comprehensive',
-  's2-comprehensive',
-  'mastery',
-]);
+const { SERVER_CATALOG } = require('./catalog.server.js');
 
 let fetchImpl = (...args) => fetch(...args);
 
@@ -120,9 +112,10 @@ async function shareFolderWithUser({ folderId, email, accessToken }) {
 }
 
 async function shareProductAccess({ baseSlug, email }) {
-  const resolvedSlug = BLUEPRINT_DRIVE_SLUGS.has(String(baseSlug || '').trim()) ? 'blueprint' : baseSlug;
-  const folderEnvName = buildFolderEnvName(resolvedSlug);
-  const folderId = getOptionalEnv(folderEnvName);
+  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
+  const resolvedSlug = entry && entry.driveFolderSlug ? entry.driveFolderSlug : null;
+  const folderEnvName = resolvedSlug ? buildFolderEnvName(resolvedSlug) : '';
+  const folderId = folderEnvName ? getOptionalEnv(folderEnvName) : '';
 
   if (!folderId) {
     return {

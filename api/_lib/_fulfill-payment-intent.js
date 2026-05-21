@@ -1,129 +1,20 @@
 const { Resend } = require('resend');
 const { syncPurchaseTag } = require('./_kit.js');
 const { shareProductAccess } = require('./_google-drive.js');
-
-let resendFactory = (apiKey) => new Resend(apiKey);
-
-const COURSE_EMAIL_VARIANTS = {
-  comprehensive: {
-    subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-    startLine: 'Our first live class kicks off on Tuesday 26 May at 6pm AEST.',
-  },
-  's1-comprehensive': {
-    subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-    startLine: 'Our first live class kicks off on Tuesday 26 May at 6pm AEST.',
-  },
-  's2-comprehensive': {
-    subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-    startLine: 'Our first live class kicks off on Wednesday 27 May at 7pm AEST.',
-  },
-};
+const { SERVER_CATALOG } = require('./catalog.server.js');
 const {
   ESSAY_UPLOAD_INSTRUCTIONS,
   buildEssayUploadToken,
   buildEssayUploadUrl,
 } = require('./_essay-upload.js');
 
-const FULFILLMENT_PLANS = {
-  blueprint: {
-    productSlug: 'blueprint',
-    deliveryType: 'digital-access',
-    fulfillmentLabel: 'Send Google Drive access',
-  },
-  advanced: {
-    productSlug: 'advanced',
-    deliveryType: 'digital-access',
-    fulfillmentLabel: 'Send Google Drive access',
-  },
-  'essay-collection': {
-    productSlug: 'essay-collection',
-    deliveryType: 'digital-access',
-    fulfillmentLabel: 'Send Google Drive access',
-  },
-  'starter-pack': {
-    productSlug: 'starter-pack',
-    deliveryType: 'digital-access',
-    fulfillmentLabel: 'Send Google Drive access',
-  },
-  'essay-marking': {
-    productSlug: 'essay-marking',
-    deliveryType: 'essay-submission',
-    fulfillmentLabel: 'Send essay submission instructions',
-  },
-  'essay-pack-10': {
-    productSlug: 'essay-pack-10',
-    deliveryType: 'essay-submission',
-    fulfillmentLabel: 'Send essay pack submission instructions',
-  },
-  comprehensive: {
-    productSlug: 'comprehensive',
-    deliveryType: 'cohort-onboarding',
-    fulfillmentLabel: 'Send cohort onboarding email',
-  },
-  's1-comprehensive': {
-    productSlug: 's1-comprehensive',
-    deliveryType: 'cohort-onboarding',
-    fulfillmentLabel: 'Send cohort onboarding email',
-  },
-  's2-comprehensive': {
-    productSlug: 's2-comprehensive',
-    deliveryType: 'cohort-onboarding',
-    fulfillmentLabel: 'Send cohort onboarding email',
-  },
-  mastery: {
-    productSlug: 'mastery',
-    deliveryType: 'cohort-onboarding',
-    fulfillmentLabel: 'Send cohort onboarding email',
-  },
-  's1-rescue-sprint': {
-    productSlug: 's1-rescue-sprint',
-    deliveryType: 'cohort-onboarding',
-    fulfillmentLabel: 'Send cohort onboarding email',
-  },
-  's2-rescue-sprint': {
-    productSlug: 's2-rescue-sprint',
-    deliveryType: 'cohort-onboarding',
-    fulfillmentLabel: 'Send cohort onboarding email',
-  },
-  'mentoring-single': {
-    productSlug: 'private-mentoring',
-    deliveryType: 'booking-link',
-    fulfillmentLabel: 'Send mentoring booking link',
-  },
-  'mentoring-pack': {
-    productSlug: 'private-mentoring',
-    deliveryType: 'booking-link',
-    fulfillmentLabel: 'Send mentoring booking link',
-  },
-  'private-mentoring': {
-    productSlug: 'private-mentoring',
-    deliveryType: 'booking-link',
-    fulfillmentLabel: 'Send mentoring booking link',
-  },
-};
-
-const PRODUCT_NAMES = {
-  blueprint: "Rohan's Blueprint",
-  advanced: 'Elite Excellence Course',
-  'essay-collection': 'Expert Essay Collection',
-  'starter-pack': 'Essentials Playbook',
-  'essay-marking': 'Essay Marking',
-  'essay-pack-10': 'Essay Marking Pack (10 credits)',
-  comprehensive: 'Comprehensive Course',
-  's1-comprehensive': 'Section 1 Comprehensive Course',
-  's2-comprehensive': 'Section 2 Comprehensive Course',
-  mastery: 'Mastery Program',
-  's1-rescue-sprint': 'S1 Rescue Sprint',
-  's2-rescue-sprint': 'S2 Rescue Sprint',
-  'mentoring-single': 'Private Mentoring Session',
-  'mentoring-pack': 'Private Mentoring Pack',
-  'private-mentoring': 'Private Mentoring',
-};
+let resendFactory = (apiKey) => new Resend(apiKey);
 
 function productLabel(baseSlug, upsellSlug) {
-  const base = PRODUCT_NAMES[baseSlug] || baseSlug;
+  const base = (SERVER_CATALOG[baseSlug] && SERVER_CATALOG[baseSlug].name) || baseSlug;
   if (!upsellSlug) return base;
-  return `${base} + ${PRODUCT_NAMES[upsellSlug] || upsellSlug}`;
+  const upsell = (SERVER_CATALOG[upsellSlug] && SERVER_CATALOG[upsellSlug].name) || upsellSlug;
+  return `${base} + ${upsell}`;
 }
 
 function esc(v) {
@@ -196,7 +87,7 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
 
   const firstName = (customerName || '').split(' ')[0] || 'there';
   const productLine = productLabel(baseSlug, upsellSlug);
-  const variant = COURSE_EMAIL_VARIANTS[baseSlug];
+  const variant = SERVER_CATALOG[baseSlug] ? SERVER_CATALOG[baseSlug].cohortEmail : null;
 
   const resend = resendFactory(apiKey);
   let emailOptions;
@@ -225,23 +116,26 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
 }
 
 function getFulfillmentPlan(productSlug, upsellSlug) {
-  const basePlan = FULFILLMENT_PLANS[String(productSlug || '').trim()] || null;
+  const baseEntry = SERVER_CATALOG[String(productSlug || '').trim()] || null;
+  if (!baseEntry) return null;
+
+  const basePlan = {
+    productSlug: baseEntry.fulfillmentSlug || productSlug,
+    deliveryType: baseEntry.deliveryType,
+    fulfillmentLabel: baseEntry.fulfillmentLabel,
+  };
+
   const normalizedUpsellSlug = String(upsellSlug || '').trim();
+  if (!normalizedUpsellSlug) return basePlan;
 
-  if (!basePlan || !normalizedUpsellSlug) {
-    return basePlan;
-  }
-
-  const upsellPlan = FULFILLMENT_PLANS[normalizedUpsellSlug] || null;
-  if (!upsellPlan) {
-    return basePlan;
-  }
+  const upsellEntry = SERVER_CATALOG[normalizedUpsellSlug] || null;
+  if (!upsellEntry) return basePlan;
 
   return {
     productSlug: basePlan.productSlug,
-    upsellSlug: upsellPlan.productSlug,
-    deliveryType: `${basePlan.deliveryType}+${upsellPlan.deliveryType}`,
-    fulfillmentLabel: `${basePlan.fulfillmentLabel} + ${upsellPlan.fulfillmentLabel}`,
+    upsellSlug: upsellEntry.fulfillmentSlug || normalizedUpsellSlug,
+    deliveryType: `${basePlan.deliveryType}+${upsellEntry.deliveryType}`,
+    fulfillmentLabel: `${basePlan.fulfillmentLabel} + ${upsellEntry.fulfillmentLabel}`,
   };
 }
 
