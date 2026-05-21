@@ -1,6 +1,7 @@
 (function (global) {
   function loadProductCatalog() {
-    if (global.ProductCatalog) return global.ProductCatalog;
+    if (global && global.ProductCatalog) return global.ProductCatalog;
+    if (typeof globalThis !== 'undefined' && globalThis.ProductCatalog) return globalThis.ProductCatalog;
     if (typeof module !== 'undefined' && module.exports) {
       try { return require('./catalog.js'); } catch (e) { return null; }
     }
