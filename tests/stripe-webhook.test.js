@@ -441,6 +441,86 @@ test('fulfillment helper does not reuse the comprehensive template for mastery',
   fulfillPaymentIntent.__resetForTests();
 });
 
+test('fulfillment helper tags mastery buyers in Kit for full-price and instalment checkouts', async () => {
+  const sentEmails = [];
+  const calls = [];
+  process.env.RESEND_API_KEY = 're_test_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_MASTERY = '19492827';
+
+  fulfillPaymentIntent.__setResendFactory(() => ({
+    emails: {
+      send: async (payload) => {
+        sentEmails.push(payload);
+        return { id: 'email_123' };
+      },
+    },
+  }));
+
+  kit.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+
+    if (url.endsWith('/v4/subscribers')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    if (url.endsWith('/v4/tags/19492827/subscribers/789')) {
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_mastery_full',
+      metadata: {
+        base_slug: 'mastery',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async () => ({}),
+      },
+    },
+  });
+
+  await fulfillPaymentIntent.fulfillInstalmentCheckout({
+    session: {
+      id: 'cs_mastery_instalment',
+      metadata: {
+        product_slug: 'mastery',
+        payment_mode: 'instalments',
+      },
+      customer_details: {
+        email: 'jane@example.com',
+        name: 'Jane Smith',
+      },
+    },
+  });
+
+  assert.equal(sentEmails.length, 2);
+  assert.equal(calls.length, 4);
+  assert.match(calls[1].url, /\/v4\/tags\/19492827\/subscribers\/789$/);
+  assert.match(calls[3].url, /\/v4\/tags\/19492827\/subscribers\/789$/);
+
+  fulfillPaymentIntent.__resetForTests();
+  kit.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_MASTERY;
+});
+
 test('fulfillment helper tags supported product buyers in Kit', async () => {
   const sentEmails = [];
   const calls = [];
@@ -448,6 +528,7 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
   process.env.KIT_API_KEY = 'kit_test_123';
   process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT = '19492824';
   process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE = '19492825';
+  process.env.KIT_TAG_ID_PURCHASED_MASTERY = '19492827';
   process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK = '19492826';
 
   fulfillPaymentIntent.__setResendFactory(() => ({
@@ -470,7 +551,7 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
       };
     }
 
-    if (/\/v4\/tags\/1949282[4-6]\/subscribers\/789$/.test(url)) {
+    if (/\/v4\/tags\/1949282[4-7]\/subscribers\/789$/.test(url)) {
       return {
         ok: true,
         status: 201,
@@ -481,7 +562,7 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
     throw new Error(`Unexpected fetch URL: ${url}`);
   });
 
-  for (const baseSlug of ['blueprint', 'comprehensive', 'starter-pack']) {
+  for (const baseSlug of ['blueprint', 'comprehensive', 'mastery', 'starter-pack']) {
     await fulfillPaymentIntent.fulfillPaymentIntent({
       paymentIntent: {
         id: `pi_kit_${baseSlug}`,
@@ -499,12 +580,13 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
     });
   }
 
-  assert.equal(sentEmails.length, 3);
-  assert.equal(calls.length, 6);
+  assert.equal(sentEmails.length, 4);
+  assert.equal(calls.length, 8);
   assert.match(calls[0].url, /\/v4\/subscribers$/);
   assert.match(calls[1].url, /\/v4\/tags\/19492824\/subscribers\/789$/);
   assert.match(calls[3].url, /\/v4\/tags\/19492825\/subscribers\/789$/);
-  assert.match(calls[5].url, /\/v4\/tags\/19492826\/subscribers\/789$/);
+  assert.match(calls[5].url, /\/v4\/tags\/19492827\/subscribers\/789$/);
+  assert.match(calls[7].url, /\/v4\/tags\/19492826\/subscribers\/789$/);
 
   fulfillPaymentIntent.__resetForTests();
   kit.__resetForTests();
@@ -512,6 +594,7 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
   delete process.env.KIT_API_KEY;
   delete process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT;
   delete process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE;
+  delete process.env.KIT_TAG_ID_PURCHASED_MASTERY;
   delete process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK;
 });
 
