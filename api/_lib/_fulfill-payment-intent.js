@@ -201,7 +201,7 @@ async function fulfillPaymentIntent(options) {
     ? await stripeClient.paymentIntents.retrieve(paymentIntent.id)
     : paymentIntent;
 
-  const metadata = currentPaymentIntent.metadata && typeof currentPaymentIntent.metadata === 'object'
+  let metadata = currentPaymentIntent.metadata && typeof currentPaymentIntent.metadata === 'object'
     ? currentPaymentIntent.metadata
     : {};
   const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
@@ -261,17 +261,36 @@ async function fulfillPaymentIntent(options) {
       }
     : {};
 
+  let nextMetadata = buildFulfillmentMetadata({
+    metadata,
+    baseSlug,
+    upsellSlug,
+    plan,
+    fulfillmentProductSlugs,
+    requestedAt,
+    extra: essayUploadMetadata,
+  });
+  metadata = nextMetadata;
+
   await stripeClient.paymentIntents.update(paymentIntent.id, {
-    metadata: buildFulfillmentMetadata({
+    metadata: nextMetadata,
+  });
+
+  async function updateFulfillmentMetadata(extra) {
+    const updatedMetadata = buildFulfillmentMetadata({
       metadata,
       baseSlug,
       upsellSlug,
       plan,
       fulfillmentProductSlugs,
       requestedAt,
-      extra: essayUploadMetadata,
-    }),
-  });
+      extra,
+    });
+    metadata = updatedMetadata;
+    return stripeClient.paymentIntents.update(paymentIntent.id, {
+      metadata: updatedMetadata,
+    });
+  }
 
   const customerEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
   const customerName = String(metadata.customer_name || '').trim();
@@ -288,22 +307,12 @@ async function fulfillPaymentIntent(options) {
           `[fulfill-payment-intent] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
         );
 
-        await stripeClient.paymentIntents.update(paymentIntent.id, {
-          metadata: buildFulfillmentMetadata({
-            metadata,
-            baseSlug,
-            upsellSlug,
-            plan,
-            fulfillmentProductSlugs,
-            requestedAt,
-            extra: {
-            drive_share_status: driveResult.alreadyShared ? 'already_shared' : 'shared',
-            drive_share_folder_id: driveResult.folderId || '',
-            drive_share_folder_env: driveResult.folderEnvName || '',
-            drive_share_permission_id: driveResult.permissionId || '',
-            ...essayUploadMetadata,
-            },
-          }),
+        await updateFulfillmentMetadata({
+          drive_share_status: driveResult.alreadyShared ? 'already_shared' : 'shared',
+          drive_share_folder_id: driveResult.folderId || '',
+          drive_share_folder_env: driveResult.folderEnvName || '',
+          drive_share_permission_id: driveResult.permissionId || '',
+          ...essayUploadMetadata,
         });
       } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
         console.warn(`[fulfill-payment-intent] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
@@ -345,20 +354,10 @@ async function fulfillPaymentIntent(options) {
 
       if (kitResult && !kitResult.skipped) {
         console.log(`[fulfill-payment-intent] Kit purchase tag synced for ${customerEmail}`);
-        await stripeClient.paymentIntents.update(paymentIntent.id, {
-          metadata: buildFulfillmentMetadata({
-            metadata,
-            baseSlug,
-            upsellSlug,
-            plan,
-            fulfillmentProductSlugs,
-            requestedAt,
-            extra: {
-              kit_purchase_tag_status: 'tagged',
-              kit_purchase_tagged_at: requestedAt,
-              ...essayUploadMetadata,
-            },
-          }),
+        await updateFulfillmentMetadata({
+          kit_purchase_tag_status: 'tagged',
+          kit_purchase_tagged_at: requestedAt,
+          ...essayUploadMetadata,
         });
       }
     } catch (kitErr) {

@@ -179,20 +179,29 @@ function checkCatalogPriceElements(html, pageProducts, errors, fileName) {
 }
 
 function checkCheckoutLinkTextPrices(html, catalog, errors, fileName) {
-  const checkoutLinkRe = /<a\b[^>]*href=["'][^"']*\/checkout\/\?product=([a-z0-9-]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi;
+  const checkoutLinkRe = /<a\b[^>]*href=["']([^"']*\/checkout\/\?product=([a-z0-9-]+)[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match;
 
   while ((match = checkoutLinkRe.exec(html)) !== null) {
-    const slug = match[1];
+    const href = match[1];
+    const slug = match[2];
     const product = catalog[slug];
     if (!product || product.priceCents === null) continue;
 
-    const text = stripTags(match[2]);
+    const text = stripTags(match[3]);
     const price = normaliseDollar(text);
     if (!price) continue;
 
-    if (!priceMatchesCatalog(price, product)) {
-      errors.push('[CTA Price] In ' + fileName + ': /checkout/?product=' + slug + ' link says $' + price + ', catalog has $' + dollars(product.priceCents));
+    const hrefParams = new URLSearchParams(href.split('?')[1] || '');
+    const isInstalmentLink = String(hrefParams.get('paymentMode') || hrefParams.get('payment_mode') || '').trim().toLowerCase() === 'instalments';
+    const expectedAmount = isInstalmentLink && product.instalment && product.instalment.plan
+      ? product.instalment.plan.firstPayment
+      : product.priceCents / 100;
+    const expectedPrice = String(expectedAmount);
+    const expectedFixed = Number(expectedAmount).toFixed(2);
+
+    if (price !== expectedPrice && price !== expectedFixed) {
+      errors.push('[CTA Price] In ' + fileName + ': /checkout/?product=' + slug + ' link says $' + price + ', catalog has $' + expectedPrice);
     }
   }
 }

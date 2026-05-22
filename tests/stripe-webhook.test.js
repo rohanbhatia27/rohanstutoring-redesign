@@ -664,6 +664,100 @@ test('fulfillment helper shares starter-pack Drive access and records share meta
   delete process.env.GOOGLE_DRIVE_FOLDER_ID_STARTER_PACK;
 });
 
+test('fulfillment helper preserves Drive metadata when Kit tagging also succeeds', async () => {
+  const updates = [];
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_STARTER_PACK = 'folder_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK = '19492826';
+
+  googleDrive.__setFetch(async (url) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'google_access_token' }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&fields=')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ permissions: [] }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'perm_123', role: 'reader', type: 'user' }),
+      };
+    }
+
+    throw new Error(`Unexpected Drive fetch URL: ${url}`);
+  });
+
+  kit.__setFetch(async (url) => {
+    if (url.endsWith('/v4/subscribers')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    if (url.endsWith('/v4/tags/19492826/subscribers/789')) {
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+
+    throw new Error(`Unexpected Kit fetch URL: ${url}`);
+  });
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_drive_kit_123',
+      metadata: {
+        base_slug: 'starter-pack',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+    now: () => '2026-05-22T01:00:00.000Z',
+  });
+
+  const finalMetadata = updates[updates.length - 1].payload.metadata;
+  assert.equal(finalMetadata.drive_share_status, 'shared');
+  assert.equal(finalMetadata.drive_share_folder_id, 'folder_123');
+  assert.equal(finalMetadata.drive_share_permission_id, 'perm_123');
+  assert.equal(finalMetadata.kit_purchase_tag_status, 'tagged');
+  assert.equal(finalMetadata.kit_purchase_tagged_at, '2026-05-22T01:00:00.000Z');
+
+  googleDrive.__resetForTests();
+  kit.__resetForTests();
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  delete process.env.GOOGLE_DRIVE_FOLDER_ID_STARTER_PACK;
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK;
+});
+
 test('stripe webhook rejects requests without a signature header', async () => {
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
 

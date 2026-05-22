@@ -3,11 +3,11 @@
     instalmentLinks: Object.freeze({
       comprehensive: Object.freeze({
         label: 'or pay $499 × 4 instalments →',
-        url: 'https://buy.stripe.com/bJe9ATgM4g2Kc4B9UweEo0t',
+        url: '/checkout/?product=comprehensive&paymentMode=instalments',
       }),
       mastery: Object.freeze({
         label: 'or pay $649 × 4 instalments →',
-        url: 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o',
+        url: '/checkout/?product=mastery&paymentMode=instalments',
       }),
     }),
   });

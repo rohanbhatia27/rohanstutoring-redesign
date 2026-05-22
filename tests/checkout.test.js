@@ -596,12 +596,12 @@ test('initCheckoutPage keeps the pay button disabled until checkout is ready', a
   }
 });
 
-test('initCheckoutPage redirects comprehensive instalment selections straight to the hosted Stripe URL', async () => {
+test('initCheckoutPage honours paymentMode=instalments links and submits through the instalment session API', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;
   const previousFetch = global.fetch;
   const previousStripe = global.Stripe;
-  const env = createCheckoutSubmitTestEnv();
+  const env = createCheckoutSubmitTestEnv('?product=comprehensive&paymentMode=instalments');
   const fetchCalls = [];
   let confirmCardPaymentCalled = false;
 
@@ -614,6 +614,13 @@ test('initCheckoutPage redirects comprehensive instalment selections straight to
       return {
         ok: true,
         text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-instalment-session') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/instalment_123' }),
       };
     }
 
@@ -639,21 +646,15 @@ test('initCheckoutPage redirects comprehensive instalment selections straight to
   try {
     await initCheckoutPage();
 
-    env.paymentModeSlot.listeners.change({
-      target: {
-        closest(selector) {
-          return selector === '.payment-mode-option__input' ? env.instalmentInput : null;
-        },
-      },
-    });
+    assert.equal(env.payBtnLabel.textContent, 'Continue to secure instalment checkout');
 
     await env.form.submitHandler({
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), false);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
     assert.equal(confirmCardPaymentCalled, false);
-    assert.equal(env.windowObject.location.href, 'https://buy.stripe.com/bJe9ATgM4g2Kc4B9UweEo0t');
+    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/instalment_123');
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -662,20 +663,30 @@ test('initCheckoutPage redirects comprehensive instalment selections straight to
   }
 });
 
-test('initCheckoutPage redirects mastery instalment selections straight to the hosted Stripe URL', async () => {
+test('initCheckoutPage honours mastery instalment links and submits through the instalment session API', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;
   const previousFetch = global.fetch;
   const previousStripe = global.Stripe;
-  const env = createCheckoutSubmitTestEnv('?product=mastery');
+  const env = createCheckoutSubmitTestEnv('?product=mastery&paymentMode=instalments');
+  const fetchCalls = [];
 
   global.window = env.windowObject;
   global.document = env.documentObject;
-  global.fetch = async (url) => {
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
     if (url === '/api/public-config') {
       return {
         ok: true,
         text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-instalment-session') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/mastery_instalment_123' }),
       };
     }
 
@@ -693,22 +704,21 @@ test('initCheckoutPage redirects mastery instalment selections straight to the h
       };
     },
     async confirmCardPayment() {
-      throw new Error('Card confirmation should not run for hosted instalment redirects.');
+      throw new Error('Card confirmation should not run for instalment checkout submissions.');
     },
   });
 
   try {
     await initCheckoutPage();
 
-    env.paymentModeSlot.listeners.change({
-      target: {
-        closest(selector) {
-          return selector === '.payment-mode-option__input' ? env.instalmentInput : null;
-        },
-      },
+    assert.equal(env.payBtnLabel.textContent, 'Continue to secure instalment checkout');
+
+    await env.form.submitHandler({
+      preventDefault() {},
     });
 
-    assert.equal(env.windowObject.location.href, 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o');
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/mastery_instalment_123');
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;

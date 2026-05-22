@@ -936,16 +936,18 @@
       }
     }
 
+    const hideCardUi = selection.paymentMode !== 'full';
+
     if (cardWrap) {
-      cardWrap.hidden = selection.paymentMode === 'afterpay';
+      cardWrap.hidden = hideCardUi;
     }
 
     if (selection.paymentRequest && paymentRequestButton) {
-      paymentRequestButton.hidden = selection.paymentMode === 'afterpay';
+      paymentRequestButton.hidden = hideCardUi;
     }
 
     if (selection.paymentRequest && paymentRequestSeparator) {
-      paymentRequestSeparator.hidden = selection.paymentMode === 'afterpay';
+      paymentRequestSeparator.hidden = hideCardUi;
     }
 
     if (payButtonLabel) {
@@ -1000,9 +1002,6 @@
       if (!input) return;
 
       selection.paymentMode = options.includes(input.value) ? input.value : 'full';
-      if (selection.paymentMode === 'instalments' && redirectToInstalmentCheckout(selection)) {
-        return;
-      }
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
@@ -1369,7 +1368,9 @@
     }
 
     const selection = getInitialSelection(productSlug, product);
-    selection.paymentMode = 'full';
+    const requestedPaymentMode = String(params.get('paymentMode') || params.get('payment_mode') || '').trim().toLowerCase();
+    const paymentModeOptions = getPaymentModeOptions(productSlug);
+    selection.paymentMode = paymentModeOptions.includes(requestedPaymentMode) ? requestedPaymentMode : 'full';
 
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
@@ -1497,10 +1498,6 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-
-      if (selection.paymentMode === 'instalments' && redirectToInstalmentCheckout(selection)) {
-        return;
-      }
 
       const validation = validateForm();
       if (!validation.ok) {
