@@ -17,6 +17,8 @@ const {
   resolveCheckoutPurchase,
   buildPaymentIntentIdempotencyKey,
 } = require('./_lib/products.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
+const logPurchaseEvent = require('./_lib/_purchase-log.js');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
@@ -261,6 +263,11 @@ async function createPaymentIntentHandler(req, res) {
     return res.status(400).json({ error: customer.error });
   }
 
+  const rl = await checkRateLimit(req, { bucket: 'payment', email: customer.email });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
+  }
+
   if (!process.env.STRIPE_SECRET_KEY) {
     return res.status(500).json({ error: 'Missing STRIPE_SECRET_KEY environment variable' });
   }
@@ -335,6 +342,19 @@ async function createPaymentIntentHandler(req, res) {
         },
       });
     }
+
+    await logPurchaseEvent({
+      eventType: 'payment_intent.created',
+      provider: 'stripe',
+      paymentId: intent.id,
+      productSlug: purchase.baseSlug,
+      upsellSlug: purchase.upsellSlug || '',
+      customerEmail: customer.email,
+      customerName: customer.customerName,
+      amountCents: finalAmount,
+      currency: 'aud',
+      outcome: 'success',
+    });
 
     res.status(200).json({ clientSecret: intent.client_secret });
   } catch (err) {

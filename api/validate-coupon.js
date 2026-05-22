@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
@@ -65,6 +66,11 @@ async function validateCouponHandler(req, res) {
 
   if (!slug) {
     return res.status(400).json({ error: 'Missing product slug.' });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'coupon' });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {

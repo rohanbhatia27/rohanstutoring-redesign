@@ -5,6 +5,7 @@ const {
   resolvePayPalPurchaseFromBody,
   validateCompletedPayPalOrder,
 } = require('./_lib/_paypal-order-validation.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
 
 const { isAllowedOrigin } = createPaymentIntentHandler;
 
@@ -39,6 +40,11 @@ async function capturePayPalOrderHandler(req, res) {
   }
 
   const { purchase, customer } = resolved;
+
+  const rl = await checkRateLimit(req, { bucket: 'payment', email: customer.email });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
+  }
 
   try {
     const accessToken = await getPayPalAccessToken();

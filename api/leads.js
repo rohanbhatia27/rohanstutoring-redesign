@@ -2,6 +2,7 @@
 
 const createPaymentIntentHandler = require('./create-payment-intent.js');
 const { syncQuizLead } = require('./_lib/_kit.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
 const {
   getFreeResource,
   submitKitResourceLead,
@@ -23,9 +24,12 @@ function normaliseQuizLead(body) {
   return { firstName: firstName.slice(0, 120), email, outcome };
 }
 
-async function handleQuizLead(body, res) {
+async function handleQuizLead(body, res, req) {
   const lead = normaliseQuizLead(body);
   if (lead.error) return res.status(400).json({ error: lead.error });
+
+  const rl = await checkRateLimit(req, { bucket: 'leads', email: lead.email });
+  if (rl.limited) return res.status(429).json({ error: rl.message });
 
   try {
     await syncQuizLead(lead);
@@ -49,9 +53,12 @@ function normaliseResourceLead(body) {
   return { resourceKey, firstName, email };
 }
 
-async function handleResourceLead(body, res) {
+async function handleResourceLead(body, res, req) {
   const lead = normaliseResourceLead(body);
   if (lead.error) return res.status(400).json({ error: lead.error });
+
+  const rl = await checkRateLimit(req, { bucket: 'leads', email: lead.email });
+  if (rl.limited) return res.status(429).json({ error: rl.message });
 
   try {
     const result = await submitKitResourceLead(lead);
@@ -100,9 +107,9 @@ async function leadsHandler(req, res) {
 
   // Route by payload shape: quiz has `outcome`, resource has `resourceKey`
   if (body.resourceKey !== undefined) {
-    return handleResourceLead(body, res);
+    return handleResourceLead(body, res, req);
   }
-  return handleQuizLead(body, res);
+  return handleQuizLead(body, res, req);
 }
 
 leadsHandler.normaliseQuizLead = normaliseQuizLead;

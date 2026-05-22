@@ -1,6 +1,7 @@
 const Stripe = require('stripe');
 const createPaymentIntentHandler = require('./create-payment-intent.js');
 const { CATALOG } = require('./_lib/catalog.server.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
 
 // Derived from catalog — edit js/catalog.js instead.
 const ELIGIBLE_INSTALMENT_PRODUCTS = new Set(
@@ -204,6 +205,11 @@ async function createInstalmentSessionHandler(req, res) {
   const customer = createPaymentIntentHandler.normaliseCustomerDetails(body);
   if (customer.error) {
     return res.status(400).json({ error: customer.error });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'payment', email: customer.email });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
   }
 
   const sessionOrigin = getSessionOrigin(body.origin, origin);

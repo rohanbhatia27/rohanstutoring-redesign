@@ -5,6 +5,7 @@ const {
   formatPayPalAmount,
   getPayPalPurchaseCustomId,
 } = require('./_lib/_paypal-order-validation.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
 
 const { isAllowedOrigin, resolveCheckoutPurchase, normaliseCustomerDetails } = createPaymentIntentHandler;
 
@@ -32,6 +33,11 @@ async function createPayPalOrderHandler(req, res) {
   const customer = normaliseCustomerDetails(body);
   if (customer.error) {
     return res.status(400).json({ error: customer.error });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'payment', email: customer.email });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
   }
 
   const amountValue = formatPayPalAmount(purchase.amount);

@@ -8,6 +8,7 @@ const {
   buildEssayUploadUrl,
 } = require('./_essay-upload.js');
 const sendFulfillmentAlert = require('./_fulfillment-alerts.js');
+const logPurchaseEvent = require('./_purchase-log.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
 let alertFn = sendFulfillmentAlert;
@@ -295,6 +296,17 @@ async function fulfillPaymentIntent(options) {
   const customerEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
   const customerName = String(metadata.customer_name || '').trim();
 
+  const logBase = {
+    provider: 'stripe',
+    paymentId: paymentIntent.id,
+    productSlug: baseSlug,
+    upsellSlug,
+    customerEmail,
+    customerName,
+    amountCents: currentPaymentIntent.amount || null,
+    currency: currentPaymentIntent.currency || 'aud',
+  };
+
   if (customerEmail) {
     try {
       const driveResult = await shareProductAccess({
@@ -314,11 +326,15 @@ async function fulfillPaymentIntent(options) {
           drive_share_permission_id: driveResult.permissionId || '',
           ...essayUploadMetadata,
         });
+
+        await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'success' });
       } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
         console.warn(`[fulfill-payment-intent] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
+        await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'skipped', meta: { reason: driveResult.reason } });
       }
     } catch (driveErr) {
       console.error('[fulfill-payment-intent] Google Drive sharing failed:', driveErr.message);
+      await logPurchaseEvent({ ...logBase, eventType: 'drive_share.failed', outcome: 'failure', errorMessage: driveErr.message });
       await safeAlert({
         baseSlug,
         upsellSlug,
@@ -332,8 +348,10 @@ async function fulfillPaymentIntent(options) {
 
     try {
       await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
+      await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: 'success' });
     } catch (emailErr) {
       console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
+      await logPurchaseEvent({ ...logBase, eventType: 'email.failed', outcome: 'failure', errorMessage: emailErr.message });
       await safeAlert({
         baseSlug,
         upsellSlug,
@@ -359,9 +377,13 @@ async function fulfillPaymentIntent(options) {
           kit_purchase_tagged_at: requestedAt,
           ...essayUploadMetadata,
         });
+        await logPurchaseEvent({ ...logBase, eventType: 'kit_tag.success', outcome: 'success' });
+      } else if (kitResult && kitResult.skipped) {
+        await logPurchaseEvent({ ...logBase, eventType: 'kit_tag.success', outcome: 'skipped' });
       }
     } catch (kitErr) {
       console.error('[fulfill-payment-intent] Kit purchase sync failed:', kitErr.message);
+      await logPurchaseEvent({ ...logBase, eventType: 'kit_tag.failed', outcome: 'failure', errorMessage: kitErr.message });
       await safeAlert({
         baseSlug,
         upsellSlug,
@@ -375,6 +397,8 @@ async function fulfillPaymentIntent(options) {
   } else {
     console.warn('[fulfill-payment-intent] No customer email found — skipping confirmation email');
   }
+
+  await logPurchaseEvent({ ...logBase, eventType: 'stripe.fulfilled', outcome: 'success' });
 
   return {
     alreadyFulfilled: false,
