@@ -1,4 +1,4 @@
-const createPaymentIntentHandler = require('./create-payment-intent.js');
+const createPaymentIntentHandler = require('./create-checkout.js');
 
 function isAllowedOrigin(origin) {
   return createPaymentIntentHandler.isAllowedOrigin(origin);

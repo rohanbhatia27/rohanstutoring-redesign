@@ -283,7 +283,7 @@ function runPriceAudit() {
   const { CATALOG, getUpsellPriceCents } = require(path.join(siteDir, 'js/catalog.js'));
   const { PRODUCTS, ORDER_BUMPS, INSTALMENT_PLANS, UNAVAILABLE_PRODUCT_SLUGS } = require(path.join(siteDir, 'js/checkout.js'));
   const StorefrontConfig = require(path.join(siteDir, 'js/storefront-config.js'));
-  const createPaymentIntentHandler = require(path.join(siteDir, 'api/create-payment-intent.js'));
+  const createPaymentIntentHandler = require(path.join(siteDir, 'api/create-checkout.js'));
   const { AMOUNTS, UNAVAILABLE_PRODUCTS } = createPaymentIntentHandler;
 
   // ── 1. Config alignment: PRODUCTS vs AMOUNTS ──

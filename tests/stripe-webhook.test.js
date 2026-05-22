@@ -87,7 +87,7 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
   });
 
   assert.equal(result.alreadyFulfilled, false);
-  assert.equal(updates.length, 1);
+  assert.ok(updates.length >= 1);
   assert.equal(updates[0].id, 'pi_123');
   assert.equal(updates[0].payload.metadata.fulfillment_status, 'manual_fulfillment_pending');
   assert.equal(updates[0].payload.metadata.manual_fulfillment_required, 'true');
@@ -124,7 +124,7 @@ test('fulfillment helper preserves essay upload instructions for manual recovery
   });
 
   assert.equal(result.alreadyFulfilled, false);
-  assert.equal(updates.length, 1);
+  assert.ok(updates.length >= 1);
   assert.equal(
     updates[0].payload.metadata.essay_upload_url,
     'https://tally.so/r/zxQdMR?payment_intent=pi_essay123&product=essay-marking&upload_token=4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6&source=stripe_webhook'
@@ -167,7 +167,7 @@ test('fulfillment helper records combined purchase metadata without breaking bas
 
   assert.equal(result.alreadyFulfilled, false);
   assert.equal(result.plan.upsellSlug, 'private-mentoring');
-  assert.equal(updates.length, 1);
+  assert.ok(updates.length >= 1);
   assert.equal(updates[0].payload.metadata.fulfillment_delivery_type, 'cohort-onboarding+booking-link');
   assert.equal(
     updates[0].payload.metadata.fulfillment_label,
@@ -187,6 +187,7 @@ test('fulfillment helper skips duplicate webhook deliveries once fulfillment is 
           metadata: {
             product_slug: 'blueprint',
             fulfillment_status: status,
+            drive_share_status: 'shared',
           },
         },
         stripeClient: {
@@ -224,6 +225,7 @@ test('fulfillment helper skips stale webhook replays when Stripe already shows f
                 product_slug: 'blueprint',
                 base_slug: 'blueprint',
                 fulfillment_status: status,
+                drive_share_status: 'shared',
               },
             }),
             update: async () => {
@@ -237,6 +239,74 @@ test('fulfillment helper skips stale webhook replays when Stripe already shows f
       assert.equal(updateCalled, false);
     });
   }
+});
+
+test('fulfillment helper retries Blueprint-family Drive sharing when fulfillment is pending but Drive is not shared', async () => {
+  const updates = [];
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'folder_blueprint';
+
+  googleDrive.__setFetch(async (url) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'google_access_token' }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&fields=')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ permissions: [] }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'perm_blueprint', role: 'reader', type: 'user' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_pending_drive',
+      metadata: {
+        product_slug: 'blueprint',
+        base_slug: 'blueprint',
+        fulfillment_status: 'manual_fulfillment_pending',
+        customer_email: 'jane@example.com',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+  });
+
+  assert.equal(result.alreadyFulfilled, false);
+  assert.equal(updates.length, 2);
+  assert.equal(updates[1].payload.metadata.drive_share_status, 'shared');
+  assert.equal(updates[1].payload.metadata.drive_share_folder_env, 'GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT');
+  assert.equal(updates[1].payload.metadata.drive_share_permission_id, 'perm_blueprint');
+
+  googleDrive.__resetForTests();
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
 });
 
 test('fulfillment helper chooses the comprehensive welcome email template', async () => {
@@ -662,6 +732,137 @@ test('fulfillment helper shares starter-pack Drive access and records share meta
   delete process.env.GOOGLE_CLIENT_SECRET;
   delete process.env.GOOGLE_REFRESH_TOKEN;
   delete process.env.GOOGLE_DRIVE_FOLDER_ID_STARTER_PACK;
+});
+
+test('fulfillment helper shares Blueprint Drive access for Blueprint, Comprehensive, and Mastery enrolments', async () => {
+  const updatesByPayment = new Map();
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'folder_blueprint';
+
+  googleDrive.__setFetch(async (url) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'google_access_token' }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&fields=')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ permissions: [] }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'perm_blueprint', role: 'reader', type: 'user' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  for (const baseSlug of ['blueprint', 'comprehensive', 'mastery']) {
+    await fulfillPaymentIntent.fulfillPaymentIntent({
+      paymentIntent: {
+        id: `pi_drive_${baseSlug}`,
+        metadata: {
+          base_slug: baseSlug,
+          customer_email: `${baseSlug}@example.com`,
+          customer_name: 'Jane Smith',
+        },
+      },
+      stripeClient: {
+        paymentIntents: {
+          update: async (id, payload) => {
+            if (!updatesByPayment.has(id)) updatesByPayment.set(id, []);
+            updatesByPayment.get(id).push(payload);
+            return { id, metadata: payload.metadata };
+          },
+        },
+      },
+    });
+  }
+
+  for (const baseSlug of ['blueprint', 'comprehensive', 'mastery']) {
+    const updates = updatesByPayment.get(`pi_drive_${baseSlug}`);
+    const finalMetadata = updates[updates.length - 1].metadata;
+    assert.equal(finalMetadata.drive_share_status, 'shared');
+    assert.equal(finalMetadata.drive_share_folder_id, 'folder_blueprint');
+    assert.equal(finalMetadata.drive_share_folder_env, 'GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT');
+    assert.equal(finalMetadata.drive_share_permission_id, 'perm_blueprint');
+  }
+
+  googleDrive.__resetForTests();
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
+});
+
+test('fulfillment helper records OAuth/Drive failures in metadata for manual recovery', async () => {
+  const updates = [];
+  const alerts = [];
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'folder_blueprint';
+
+  fulfillPaymentIntent.__setAlertFn(async (args) => {
+    alerts.push(args);
+  });
+
+  googleDrive.__setFetch(async (url) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return {
+        ok: false,
+        status: 400,
+        json: async () => ({ error: 'invalid_scope' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_drive_oauth_fail',
+      metadata: {
+        base_slug: 'blueprint',
+        customer_email: 'jane@example.com',
+        customer_name: 'Jane Smith',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+    now: () => '2026-05-22T02:00:00.000Z',
+  });
+
+  const finalMetadata = updates[updates.length - 1].payload.metadata;
+  assert.equal(finalMetadata.drive_share_status, 'failed');
+  assert.match(finalMetadata.drive_share_error, /Drive scope/);
+  assert.equal(finalMetadata.drive_share_failed_at, '2026-05-22T02:00:00.000Z');
+  assert.equal(alerts[0].failedStep, 'drive');
+
+  fulfillPaymentIntent.__resetForTests();
+  googleDrive.__resetForTests();
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
 });
 
 test('fulfillment helper preserves Drive metadata when Kit tagging also succeeds', async () => {

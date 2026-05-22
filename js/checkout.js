@@ -214,10 +214,10 @@
         clearCardError();
 
         const payload = buildCheckoutPayload(selection, validation);
-        const response = await fetch('/api/create-paypal-order', {
+        const response = await fetch('/api/paypal-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, action: 'create' }),
         });
         const result = await parseApiResponse(response);
         if (!result.ok || !result.data.orderID) {
@@ -245,10 +245,11 @@
         }
 
         try {
-          const captureResponse = await fetch('/api/capture-paypal-order', {
+          const captureResponse = await fetch('/api/paypal-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              action: 'capture',
               orderID: data.orderID,
               slug: selection.apiSlug,
               upsellSlug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
@@ -1226,10 +1227,10 @@
           billingDetails: { name: payerName, email: payerEmail, phone: payerPhone, address: { line1: '' } },
         });
 
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch('/api/create-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, mode: 'one_off' }),
         });
 
         const resultPayload = await parseApiResponse(response);
@@ -1520,10 +1521,10 @@
         const payload = buildCheckoutPayload(selection, validation);
 
         if (selection.paymentMode === 'instalments') {
-          const response = await fetch('/api/create-instalment-session', {
+          const response = await fetch('/api/create-checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ ...payload, mode: 'instalment' }),
           });
           const resultPayload = await parseApiResponse(response);
           if (!resultPayload.ok || !resultPayload.data.url) {
@@ -1537,10 +1538,10 @@
         }
 
         if (selection.paymentMode === 'afterpay') {
-          const response = await fetch('/api/create-instalment-session', {
+          const response = await fetch('/api/create-checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ ...payload, mode: 'instalment' }),
           });
           const resultPayload = await parseApiResponse(response);
           if (!resultPayload.ok || !resultPayload.data.url) {
@@ -1551,10 +1552,10 @@
           return;
         }
 
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch('/api/create-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, mode: 'one_off' }),
         });
 
         const resultPayload = await parseApiResponse(response);

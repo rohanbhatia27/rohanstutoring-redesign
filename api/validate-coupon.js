@@ -1,5 +1,5 @@
 const Stripe = require('stripe');
-const createPaymentIntentHandler = require('./create-payment-intent.js');
+const createPaymentIntentHandler = require('./create-checkout.js');
 const { checkRateLimit } = require('./_lib/_rate-limit.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);

@@ -1,6 +1,6 @@
 'use strict';
 
-const createPaymentIntentHandler = require('./create-payment-intent.js');
+const createPaymentIntentHandler = require('./create-checkout.js');
 const { syncQuizLead } = require('./_lib/_kit.js');
 const { checkRateLimit } = require('./_lib/_rate-limit.js');
 const {

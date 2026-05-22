@@ -159,6 +159,26 @@ function needsStarterPackAutomation(metadata, baseSlug) {
   ) || metadata.kit_purchase_tag_status !== 'tagged';
 }
 
+function productRequiresDriveAccess(baseSlug) {
+  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
+  return Boolean(entry && entry.driveFolderSlug);
+}
+
+function hasCompletedDriveShare(metadata) {
+  return (
+    metadata.drive_share_status === 'shared' ||
+    metadata.drive_share_status === 'already_shared'
+  );
+}
+
+function needsDriveAutomation(metadata, baseSlug) {
+  return productRequiresDriveAccess(baseSlug) && !hasCompletedDriveShare(metadata);
+}
+
+function needsAutomationRetry(metadata, baseSlug) {
+  return needsDriveAutomation(metadata, baseSlug) || needsStarterPackAutomation(metadata, baseSlug);
+}
+
 function buildFulfillmentMetadata({
   metadata,
   baseSlug,
@@ -212,7 +232,7 @@ async function fulfillPaymentIntent(options) {
   if (
     finalFulfillmentStatuses.has(metadata.fulfillment_status) &&
     !forceAutomation &&
-    !needsStarterPackAutomation(metadata, baseSlug)
+    !needsAutomationRetry(metadata, baseSlug)
   ) {
     return {
       alreadyFulfilled: true,
@@ -330,10 +350,36 @@ async function fulfillPaymentIntent(options) {
         await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'success' });
       } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
         console.warn(`[fulfill-payment-intent] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
+        await updateFulfillmentMetadata({
+          drive_share_status: 'missing_folder_mapping',
+          drive_share_folder_env: driveResult.folderEnvName || '',
+          drive_share_error: `Missing ${driveResult.folderEnvName || 'Google Drive folder'} environment variable`,
+          drive_share_failed_at: requestedAt,
+          ...essayUploadMetadata,
+        });
         await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'skipped', meta: { reason: driveResult.reason } });
+        await safeAlert({
+          baseSlug,
+          upsellSlug,
+          customerEmail,
+          provider: 'stripe',
+          paymentId: paymentIntent.id,
+          failedStep: 'drive',
+          errorMessage: `Missing ${driveResult.folderEnvName || 'Google Drive folder'} environment variable`,
+        });
       }
     } catch (driveErr) {
       console.error('[fulfill-payment-intent] Google Drive sharing failed:', driveErr.message);
+      try {
+        await updateFulfillmentMetadata({
+          drive_share_status: 'failed',
+          drive_share_error: String(driveErr.message || driveErr).slice(0, 480),
+          drive_share_failed_at: requestedAt,
+          ...essayUploadMetadata,
+        });
+      } catch (metadataErr) {
+        console.error('[fulfill-payment-intent] Could not record Drive failure metadata:', metadataErr.message);
+      }
       await logPurchaseEvent({ ...logBase, eventType: 'drive_share.failed', outcome: 'failure', errorMessage: driveErr.message });
       await safeAlert({
         baseSlug,
@@ -498,6 +544,8 @@ async function fulfillInstalmentCheckout({ session }) {
 
 fulfillPaymentIntent.getFulfillmentPlan = getFulfillmentPlan;
 fulfillPaymentIntent.needsStarterPackAutomation = needsStarterPackAutomation;
+fulfillPaymentIntent.productRequiresDriveAccess = productRequiresDriveAccess;
+fulfillPaymentIntent.needsDriveAutomation = needsDriveAutomation;
 fulfillPaymentIntent.buildEssayUploadToken = buildEssayUploadToken;
 fulfillPaymentIntent.buildEssayUploadUrl = buildEssayUploadUrl;
 fulfillPaymentIntent.sendConfirmationEmail = sendConfirmationEmail;

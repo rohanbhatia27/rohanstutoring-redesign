@@ -1,5 +1,6 @@
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 const OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 const { SERVER_CATALOG } = require('./catalog.server.js');
 
 let fetchImpl = (...args) => fetch(...args);
@@ -43,7 +44,10 @@ async function getDriveAccessToken() {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.access_token) {
     const reason = payload.error_description || payload.error || 'Unknown token error';
-    throw new Error(`Google OAuth token request failed (${response.status}): ${reason}`);
+    const scopeHint = /invalid_scope|insufficient|scope/i.test(reason)
+      ? ` Re-authorise GOOGLE_REFRESH_TOKEN with the Drive scope: ${DRIVE_SCOPE}.`
+      : '';
+    throw new Error(`Google OAuth token request failed (${response.status}): ${reason}.${scopeHint}`);
   }
 
   return payload.access_token;
@@ -62,7 +66,10 @@ async function driveRequest(path, { method = 'GET', accessToken, body } = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const reason = payload?.error?.message || payload?.error_description || 'Unknown Drive error';
-    throw new Error(`Google Drive request failed (${response.status}): ${reason}`);
+    const scopeHint = response.status === 403 && /insufficient|scope|permission|access/i.test(reason)
+      ? ` Ensure GOOGLE_REFRESH_TOKEN belongs to an account with access to the folder and includes ${DRIVE_SCOPE}.`
+      : '';
+    throw new Error(`Google Drive request failed (${response.status}): ${reason}.${scopeHint}`);
   }
 
   return payload;
@@ -141,6 +148,7 @@ async function shareProductAccess({ baseSlug, email }) {
 }
 
 module.exports = {
+  DRIVE_SCOPE,
   buildFolderEnvName,
   getDriveAccessToken,
   shareFolderWithUser,

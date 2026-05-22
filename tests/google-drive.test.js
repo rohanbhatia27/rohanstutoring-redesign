@@ -61,3 +61,66 @@ test('shareProductAccess refreshes an access token and grants folder access', as
   delete process.env.GOOGLE_REFRESH_TOKEN;
   delete process.env.GOOGLE_DRIVE_FOLDER_ID_STARTER_PACK;
 });
+
+test('shareProductAccess maps Blueprint-family enrolments to the Blueprint Drive folder', async () => {
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'folder_blueprint';
+
+  const permissionCreates = [];
+
+  googleDrive.__setFetch(async (url, options) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'google_access_token' }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&fields=')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ permissions: [] }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+      permissionCreates.push(JSON.parse(options.body));
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: `perm_${permissionCreates.length}`, role: 'reader', type: 'user' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  for (const baseSlug of ['blueprint', 'comprehensive', 'mastery']) {
+    const result = await googleDrive.shareProductAccess({
+      baseSlug,
+      email: `${baseSlug}@example.com`,
+    });
+
+    assert.equal(result.skipped, false);
+    assert.equal(result.folderEnvName, 'GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT');
+    assert.equal(result.folderId, 'folder_blueprint');
+    assert.equal(result.role, 'reader');
+  }
+
+  assert.deepEqual(permissionCreates.map((body) => body.emailAddress), [
+    'blueprint@example.com',
+    'comprehensive@example.com',
+    'mastery@example.com',
+  ]);
+  assert.deepEqual(new Set(permissionCreates.map((body) => body.role)), new Set(['reader']));
+
+  googleDrive.__resetForTests();
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
+});

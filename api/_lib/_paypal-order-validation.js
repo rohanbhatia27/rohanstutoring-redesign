@@ -1,4 +1,4 @@
-const createPaymentIntentHandler = require('../create-payment-intent.js');
+const createPaymentIntentHandler = require('../create-checkout.js');
 
 const PAYPAL_CURRENCY = 'AUD';
 const PAYPAL_ORDER_ID_PATTERN = /^[A-Z0-9]{8,32}$/;

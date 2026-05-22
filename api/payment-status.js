@@ -2,7 +2,7 @@
 
 const Stripe = require('stripe');
 const { PAYPAL_API, getPayPalAccessToken } = require('./_lib/_paypal.js');
-const createPaymentIntentHandler = require('./create-payment-intent.js');
+const createPaymentIntentHandler = require('./create-checkout.js');
 const {
   isValidPayPalOrderId,
   validateCompletedPayPalOrder,

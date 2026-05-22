@@ -1,6 +1,6 @@
 const Stripe = require('stripe');
 const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
-const createPaymentIntentHandler = require('./create-payment-intent.js');
+const createCheckoutHandler = require('./create-checkout.js');
 const paymentIntentStatusHandler = require('./payment-status.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
@@ -17,10 +17,10 @@ function getRequestToken(req) {
   ).trim();
 }
 
-async function retryFulfillmentHandler(req, res) {
+async function handleRetryFulfillment(req, res) {
   const origin = req.headers.origin || '';
 
-  if (!createPaymentIntentHandler.isAllowedOrigin(origin)) {
+  if (!createCheckoutHandler.isAllowedOrigin(origin)) {
     return res.status(403).json({ error: 'Origin not allowed' });
   }
 
@@ -63,10 +63,10 @@ async function retryFulfillmentHandler(req, res) {
             if (subMeta.customer_email) patch.customer_email = subMeta.customer_email;
             if (subMeta.customer_name) patch.customer_name = subMeta.customer_name;
             await stripeClient.paymentIntents.update(paymentIntentId, { metadata: patch });
-            console.log(`[retry-fulfillment] Patched PI ${paymentIntentId} with slug '${resolvedSlug}' from subscription`);
+            console.log(`[admin:retry-fulfillment] Patched PI ${paymentIntentId} with slug '${resolvedSlug}' from subscription`);
           }
         } catch (subErr) {
-          console.error('[retry-fulfillment] Could not resolve subscription slug:', subErr.message);
+          console.error('[admin:retry-fulfillment] Could not resolve subscription slug:', subErr.message);
         }
       }
     }
@@ -83,17 +83,52 @@ async function retryFulfillmentHandler(req, res) {
       productSlug: result.plan?.productSlug || '',
     });
   } catch (error) {
-    console.error('[retry-fulfillment] Retry failed:', error.message);
+    console.error('[admin:retry-fulfillment] Retry failed:', error.message);
     return res.status(500).json({ error: 'Fulfillment retry failed.' });
   }
 }
 
-retryFulfillmentHandler.__setStripeFactory = (value) => {
+function handleStripeHealth(req, res) {
+  const key = String(process.env.STRIPE_SECRET_KEY || '').trim();
+  if (!key) {
+    return res.status(500).json({
+      ok: false,
+      stripeConfigured: false,
+      error: 'STRIPE_SECRET_KEY is missing',
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    stripeConfigured: true,
+    service: 'rohanstutoring-site',
+  });
+}
+
+async function adminHandler(req, res) {
+  const action = String(
+    (req.body && typeof req.body === 'object' ? req.body.action : '') ||
+    (req.query ? req.query.action : '') ||
+    ''
+  ).trim();
+
+  if (action === 'retryFulfillment') {
+    return handleRetryFulfillment(req, res);
+  }
+
+  if (action === 'stripeHealth' || (!action && req.method === 'GET')) {
+    return handleStripeHealth(req, res);
+  }
+
+  return res.status(400).json({ ok: false, error: 'Unknown admin action' });
+}
+
+adminHandler.__setStripeFactory = (value) => {
   stripeFactory = value;
 };
 
-retryFulfillmentHandler.__resetForTests = () => {
+adminHandler.__resetForTests = () => {
   stripeFactory = (secretKey) => Stripe(secretKey);
 };
 
-module.exports = retryFulfillmentHandler;
+module.exports = adminHandler;

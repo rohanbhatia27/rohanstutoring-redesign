@@ -41,10 +41,12 @@ const {
   initCheckoutPage,
   initSuccessPage,
 } = require('../js/checkout.js');
-const createPaymentIntentHandler = require('../api/create-payment-intent.js');
-const createInstalmentSessionHandler = require('../api/create-instalment-session.js');
-const createPayPalOrderHandler = require('../api/create-paypal-order.js');
-const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
+const createCheckoutHandler = require('../api/create-checkout.js');
+const createPaymentIntentHandler = createCheckoutHandler;
+const createInstalmentSessionHandler = createCheckoutHandler;
+const payPalOrderHandler = require('../api/paypal-order.js');
+const createPayPalOrderHandler = payPalOrderHandler;
+const capturePayPalOrderHandler = payPalOrderHandler;
 const paypalOrderStatusHandler = require('../api/payment-status.js');
 const paypalWebhookHandler = require('../api/paypal-webhook.js');
 const paypalValidation = require('../api/_lib/_paypal-order-validation.js');
@@ -617,7 +619,7 @@ test('initCheckoutPage honours paymentMode=instalments links and submits through
       };
     }
 
-    if (url === '/api/create-instalment-session') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/instalment_123' }),
@@ -652,7 +654,7 @@ test('initCheckoutPage honours paymentMode=instalments links and submits through
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmCardPaymentCalled, false);
     assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/instalment_123');
   } finally {
@@ -683,7 +685,7 @@ test('initCheckoutPage honours mastery instalment links and submits through the 
       };
     }
 
-    if (url === '/api/create-instalment-session') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/mastery_instalment_123' }),
@@ -717,7 +719,7 @@ test('initCheckoutPage honours mastery instalment links and submits through the 
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/mastery_instalment_123');
   } finally {
     global.window = previousWindow;
@@ -766,7 +768,7 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
       };
     }
 
-    if (url === '/api/create-instalment-session') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/afterpay_123' }),
@@ -807,7 +809,7 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmCardPaymentCalled, false);
     assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/afterpay_123');
   } finally {
@@ -987,7 +989,7 @@ test('initCheckoutPage keeps full-pay submissions on the payment-intent card flo
       };
     }
 
-    if (url === '/api/create-payment-intent') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ clientSecret: 'pi_secret_123' }),
@@ -1025,7 +1027,7 @@ test('initCheckoutPage keeps full-pay submissions on the payment-intent card flo
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-payment-intent'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmedPayments.length, 1);
     assert.equal(confirmedPayments[0].clientSecret, 'pi_secret_123');
     assert.match(env.windowObject.location.href, /\/checkout\/success\?product=advanced&payment_intent=pi_123/);
@@ -1058,7 +1060,7 @@ test('initCheckoutPage blocks checkout submission until terms are accepted', asy
       };
     }
 
-    if (url === '/api/create-payment-intent') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ clientSecret: 'pi_secret_123' }),
@@ -1097,7 +1099,7 @@ test('initCheckoutPage blocks checkout submission until terms are accepted', asy
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-payment-intent'), false);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), false);
     assert.equal(confirmedPayments.length, 0);
   } finally {
     global.window = previousWindow;
@@ -1793,6 +1795,7 @@ test('instalment session handler rejects invalid payment modes', async () => {
     method: 'POST',
     headers: { origin: 'https://rohanstutoring.com' },
     body: {
+      mode: 'instalment',
       slug: 'comprehensive',
       paymentMode: 'full',
       customerName: 'Jane Smith',
