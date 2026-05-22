@@ -45,6 +45,32 @@ async function retryFulfillmentHandler(req, res) {
   try {
     const stripeClient = stripeFactory(process.env.STRIPE_SECRET_KEY);
     const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
+
+    // Subscription PIs have no slug metadata — resolve it from the subscription before fulfilling.
+    if (paymentIntent.invoice) {
+      const piMeta = paymentIntent.metadata || {};
+      if (!piMeta.base_slug && !piMeta.product_slug) {
+        try {
+          const invoice = await stripeClient.invoices.retrieve(paymentIntent.invoice, {
+            expand: ['subscription'],
+          });
+          const subMeta = (invoice.subscription && typeof invoice.subscription === 'object')
+            ? invoice.subscription.metadata || {}
+            : {};
+          const resolvedSlug = subMeta.base_slug || subMeta.product_slug;
+          if (resolvedSlug) {
+            const patch = { base_slug: resolvedSlug };
+            if (subMeta.customer_email) patch.customer_email = subMeta.customer_email;
+            if (subMeta.customer_name) patch.customer_name = subMeta.customer_name;
+            await stripeClient.paymentIntents.update(paymentIntentId, { metadata: patch });
+            console.log(`[retry-fulfillment] Patched PI ${paymentIntentId} with slug '${resolvedSlug}' from subscription`);
+          }
+        } catch (subErr) {
+          console.error('[retry-fulfillment] Could not resolve subscription slug:', subErr.message);
+        }
+      }
+    }
+
     const result = await fulfillPaymentIntent({
       paymentIntent,
       stripeClient,
