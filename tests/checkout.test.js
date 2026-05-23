@@ -55,6 +55,15 @@ const publicConfigHandler = require('../api/public-config.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
 const validateCouponHandler = require('../api/validate-coupon.js');
 
+test('legacy checkout API route files remain as compatibility shims', () => {
+  assert.equal(require('../api/create-payment-intent.js'), createCheckoutHandler);
+  assert.equal(require('../api/create-instalment-session.js'), createCheckoutHandler);
+  assert.equal(require('../api/create-paypal-order.js'), payPalOrderHandler);
+  assert.equal(require('../api/capture-paypal-order.js'), payPalOrderHandler);
+  assert.equal(typeof require('../api/stripe-health.js'), 'function');
+  assert.equal(typeof require('../api/retry-fulfillment.js'), 'function');
+});
+
 function createJsonResponseRecorder() {
   return {
     statusCode: 200,

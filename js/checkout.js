@@ -234,7 +234,7 @@
           return;
         }
 
-        if (typeof window.posthog !== 'undefined') {
+        if (window.posthog && typeof window.posthog.capture === 'function') {
           window.posthog.capture('checkout_payment_submitted', {
             product: selection.pageSlug,
             total: selection.price,
@@ -969,7 +969,7 @@
     const url = getInstalmentRedirectUrl(selection);
     if (!url) return false;
 
-    if (typeof window.posthog !== 'undefined') {
+    if (window.posthog && typeof window.posthog.capture === 'function') {
       window.posthog.capture('checkout_instalment_redirected', {
         product: selection.pageSlug,
         total: selection.price,
@@ -1042,7 +1042,7 @@
       updateSelectionPrice(selection);
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
-      if (typeof window.posthog !== 'undefined') {
+      if (window.posthog && typeof window.posthog.capture === 'function') {
         window.posthog.capture('checkout_order_bump_toggled', {
           product: selection.pageSlug,
           upsell_slug: selection.upsell ? selection.upsell.slug : null,
@@ -1211,7 +1211,7 @@
         return;
       }
 
-      if (typeof window.posthog !== 'undefined') {
+      if (window.posthog && typeof window.posthog.capture === 'function') {
         window.posthog.capture('checkout_payment_submitted', {
           product: selection.pageSlug,
           total: selection.price,
@@ -1508,7 +1508,7 @@
 
       setLoading(true, selection);
 
-      if (typeof window.posthog !== 'undefined') {
+      if (window.posthog && typeof window.posthog.capture === 'function') {
         window.posthog.capture('checkout_payment_submitted', {
           product: selection.pageSlug,
           total: selection.price,
@@ -1689,7 +1689,7 @@
               items,
             });
           }
-          if (typeof window.posthog !== 'undefined') {
+          if (window.posthog && typeof window.posthog.capture === 'function') {
             const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
             window.posthog.capture('checkout_completed', {
               transaction_id: paypalOrderId,
@@ -1764,7 +1764,7 @@
             items,
           });
         }
-        if (typeof window.posthog !== 'undefined') {
+        if (window.posthog && typeof window.posthog.capture === 'function') {
           const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
           window.posthog.capture('checkout_completed', {
             transaction_id: paymentIntentId,
@@ -1874,7 +1874,7 @@
         if (typeof window.gtag === 'function') {
           window.gtag('event', 'essay_upload_started');
         }
-        if (typeof window.posthog !== 'undefined') {
+        if (window.posthog && typeof window.posthog.capture === 'function') {
           window.posthog.capture('essay_upload_started');
         }
       });
