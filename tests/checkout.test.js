@@ -55,13 +55,29 @@ const publicConfigHandler = require('../api/public-config.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
 const validateCouponHandler = require('../api/validate-coupon.js');
 
-test('legacy checkout API route files remain as compatibility shims', () => {
-  assert.equal(require('../api/create-payment-intent.js'), createCheckoutHandler);
-  assert.equal(require('../api/create-instalment-session.js'), createCheckoutHandler);
-  assert.equal(require('../api/create-paypal-order.js'), payPalOrderHandler);
-  assert.equal(require('../api/capture-paypal-order.js'), payPalOrderHandler);
-  assert.equal(typeof require('../api/stripe-health.js'), 'function');
-  assert.equal(typeof require('../api/retry-fulfillment.js'), 'function');
+test('legacy checkout compatibility route files are removed', () => {
+  const legacyRoutes = [
+    'create-payment-intent.js',
+    'create-instalment-session.js',
+    'create-paypal-order.js',
+    'capture-paypal-order.js',
+    'stripe-health.js',
+    'retry-fulfillment.js',
+  ];
+
+  for (const route of legacyRoutes) {
+    assert.equal(
+      fs.existsSync(path.join(__dirname, '..', 'api', route)),
+      false,
+      `${route} should be deleted; its behaviour now lives in create-checkout.js / paypal-order.js / admin.js`
+    );
+  }
+});
+
+test('checkout consolidation keeps the merged handlers callable', () => {
+  assert.equal(typeof createCheckoutHandler, 'function');
+  assert.equal(typeof payPalOrderHandler, 'function');
+  assert.equal(typeof require('../api/admin.js'), 'function');
 });
 
 function createJsonResponseRecorder() {

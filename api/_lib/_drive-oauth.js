@@ -50,7 +50,7 @@ function getBaseUrl(req) {
 function getRedirectUri(req) {
   const configured = getOptionalEnv('GOOGLE_DRIVE_REDIRECT_URI');
   if (configured) return configured;
-  return `${getBaseUrl(req)}/api/drive-oauth-callback`;
+  return `${getBaseUrl(req)}/api/admin?action=driveOAuthCallback`;
 }
 
 function getStateSecret() {
