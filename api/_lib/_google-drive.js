@@ -158,7 +158,7 @@ async function shareFolderWithUser({ folderId, email, accessToken }) {
   }
 
   const data = await driveRequest(
-    `/files/${encodeURIComponent(folderId)}/permissions?supportsAllDrives=true&sendNotificationEmail=true&fields=id,emailAddress,role,type`,
+    `/files/${encodeURIComponent(folderId)}/permissions?supportsAllDrives=true&sendNotificationEmail=false&fields=id,emailAddress,role,type`,
     {
       method: 'POST',
       accessToken,

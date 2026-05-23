@@ -9,6 +9,7 @@ const {
 } = require('./_essay-upload.js');
 const sendFulfillmentAlert = require('./_fulfillment-alerts.js');
 const logPurchaseEvent = require('./_purchase-log.js');
+const sendFulfillmentEmail = require('./_send-fulfillment-email.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
 let alertFn = sendFulfillmentAlert;
@@ -162,6 +163,11 @@ function needsStarterPackAutomation(metadata, baseSlug) {
 function productRequiresDriveAccess(baseSlug) {
   const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
   return Boolean(entry && entry.driveFolderSlug);
+}
+
+function productUsesBlueprintDrive(baseSlug) {
+  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
+  return Boolean(entry && entry.driveFolderSlug === 'blueprint');
 }
 
 function hasCompletedDriveShare(metadata) {
@@ -348,6 +354,49 @@ async function fulfillPaymentIntent(options) {
         });
 
         await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'success' });
+
+        if (productUsesBlueprintDrive(baseSlug)) {
+          const driveFolderUrl = String(process.env.BLUEPRINT_DRIVE_URL || '').trim();
+          const firstName = (customerName || '').split(' ')[0] || 'there';
+          try {
+            const emailResult = await sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl });
+            if (emailResult.skipped) {
+              await updateFulfillmentMetadata({
+                blueprint_access_email_status: 'skipped',
+                ...essayUploadMetadata,
+              });
+            } else {
+              await updateFulfillmentMetadata({
+                blueprint_access_email_status: 'sent',
+                blueprint_access_email_sent_at: now(),
+                ...essayUploadMetadata,
+              });
+            }
+            await logPurchaseEvent({ ...logBase, eventType: 'blueprint_access_email.sent', outcome: emailResult.skipped ? 'skipped' : 'success' });
+            console.log(`[fulfill-payment-intent] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
+          } catch (emailErr) {
+            console.error('[fulfill-payment-intent] Blueprint access email failed:', emailErr.message);
+            try {
+              await updateFulfillmentMetadata({
+                blueprint_access_email_status: 'failed',
+                blueprint_access_email_error: String(emailErr.message || emailErr).slice(0, 480),
+                ...essayUploadMetadata,
+              });
+            } catch (metadataErr) {
+              console.error('[fulfill-payment-intent] Could not record Blueprint email failure metadata:', metadataErr.message);
+            }
+            await logPurchaseEvent({ ...logBase, eventType: 'blueprint_access_email.failed', outcome: 'failure', errorMessage: emailErr.message });
+            await safeAlert({
+              baseSlug,
+              upsellSlug,
+              customerEmail,
+              provider: 'stripe',
+              paymentId: paymentIntent.id,
+              failedStep: 'blueprint_access_email',
+              errorMessage: emailErr.message,
+            });
+          }
+        }
       } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
         console.warn(`[fulfill-payment-intent] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
         await updateFulfillmentMetadata({
@@ -487,6 +536,26 @@ async function fulfillInstalmentCheckout({ session }) {
       console.log(
         `[fulfill-instalment-checkout] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
       );
+
+      if (productUsesBlueprintDrive(baseSlug)) {
+        const driveFolderUrl = String(process.env.BLUEPRINT_DRIVE_URL || '').trim();
+        const firstName = (customerName || '').split(' ')[0] || 'there';
+        try {
+          const emailResult = await sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl });
+          console.log(`[fulfill-instalment-checkout] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
+        } catch (emailErr) {
+          console.error('[fulfill-instalment-checkout] Blueprint access email failed:', emailErr.message);
+          await safeAlert({
+            baseSlug,
+            upsellSlug,
+            customerEmail,
+            provider: 'stripe',
+            paymentId: instalmentSessionId,
+            failedStep: 'blueprint_access_email',
+            errorMessage: emailErr.message,
+          });
+        }
+      }
     }
   } catch (driveErr) {
     console.error('[fulfill-instalment-checkout] Google Drive sharing failed:', driveErr.message);
