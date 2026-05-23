@@ -356,7 +356,9 @@ function buildInstalmentSessionPayload({
       metadata,
       ...(addInvoiceItems ? { add_invoice_items: addInvoiceItems } : {}),
     },
-    ...(promotionCodeId ? { discounts: [{ promotion_code: promotionCodeId }] } : {}),
+    ...(promotionCodeId
+      ? { discounts: [{ promotion_code: promotionCodeId }] }
+      : { allow_promotion_codes: true }),
   };
 }
 
