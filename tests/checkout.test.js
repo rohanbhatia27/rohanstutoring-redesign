@@ -473,7 +473,7 @@ test('getInstalmentPlanSummary adds the comprehensive mentoring bump to the firs
   assert.equal(summary.futurePaymentAmount, 499);
 });
 
-test('getInstalmentPlanSummary applies coupon discounts to the due-today amount only', () => {
+test('getInstalmentPlanSummary ignores coupon discounts for instalment due-today amounts', () => {
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.paymentMode = 'instalments';
   selection.couponDiscount = { type: 'fixed', value: 150 };
@@ -481,7 +481,7 @@ test('getInstalmentPlanSummary applies coupon discounts to the due-today amount 
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 349);
+  assert.equal(summary.dueToday, 499);
   assert.equal(summary.futurePaymentAmount, 499);
 });
 
@@ -2761,6 +2761,33 @@ test('validate coupon handler returns a clean fixed-amount label for eligible pr
   }
 });
 
+test('validate coupon handler rejects instalment coupon attempts with a pay-in-full message', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        code: 'WEBINAR200',
+        slug: 'comprehensive',
+        paymentMode: 'instalments',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await validateCouponHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      valid: false,
+      error: 'Discount codes only apply to pay-in-full checkout.',
+    });
+  } finally {
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
 test('payment intent handler rejects high-ticket-only coupons for lower-ticket products', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 
@@ -2822,7 +2849,7 @@ test('payment intent status handler origin allow-list matches checkout endpoint'
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://evil.example.com'), false);
 });
 
-test('instalment session handler applies promotion-code discounts for eligible high-ticket products', async () => {
+test('instalment session handler ignores coupon codes and still creates a full-price checkout session', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
 
@@ -2877,11 +2904,10 @@ test('instalment session handler applies promotion-code discounts for eligible h
 
     assert.equal(res.statusCode, 200);
     assert.equal(createdSessions.length, 1);
-    assert.deepEqual(createdSessions[0].discounts, [
-      { promotion_code: 'promo_high_ticket_123' },
-    ]);
-    assert.equal(createdSessions[0].metadata.coupon_code, 'ROHAN150');
-    assert.equal(createdSessions[0].subscription_data.metadata.coupon_code, 'ROHAN150');
+    assert.equal(createdSessions[0].discounts, undefined);
+    assert.equal(createdSessions[0].allow_promotion_codes, false);
+    assert.equal(createdSessions[0].metadata.coupon_code, undefined);
+    assert.equal(createdSessions[0].subscription_data.metadata.coupon_code, undefined);
     assert.equal(res.body.url, 'https://checkout.stripe.test/session_456');
   } finally {
     createInstalmentSessionHandler.__resetForTests();

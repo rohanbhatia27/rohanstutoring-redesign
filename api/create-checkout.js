@@ -155,12 +155,30 @@ async function getValidatedCouponDetails(stripe, {
     }
 
     let discountAmount = 0;
+    let discountValue;
 
-    if (coupon.percent_off) {
+    const slug = normaliseSlug(productSlug).toLowerCase();
+    const metaAmountKey = `amount_${slug.replace(/-/g, '_')}`;
+    const metaAmountCents = coupon.metadata && coupon.metadata[metaAmountKey]
+      ? parseInt(coupon.metadata[metaAmountKey], 10)
+      : NaN;
+
+    if (!isNaN(metaAmountCents) && metaAmountCents > 0) {
+      discountAmount = Math.min(metaAmountCents, baseAmount);
+      discountValue = { type: 'fixed', value: discountAmount / 100 };
+    } else if (coupon.percent_off) {
       discountAmount = Math.round(baseAmount * coupon.percent_off / 100);
+      discountValue = { type: 'percent', value: coupon.percent_off };
     } else if (coupon.amount_off) {
       discountAmount = Math.min(coupon.amount_off, baseAmount);
+      discountValue = { type: 'fixed', value: coupon.amount_off / 100 };
+    } else {
+      discountValue = { type: 'fixed', value: 0 };
     }
+
+    const label = discountValue.type === 'fixed'
+      ? `$${Number.isInteger(discountValue.value) ? discountValue.value.toLocaleString() : discountValue.value.toFixed(2)} Off`
+      : formatCouponLabel(coupon, code);
 
     return {
       valid: true,
@@ -168,10 +186,8 @@ async function getValidatedCouponDetails(stripe, {
       coupon,
       couponId: coupon.id || '',
       promotionCodeId: promoCode.id || '',
-      label: formatCouponLabel(coupon, code),
-      discount: coupon.percent_off
-        ? { type: 'percent', value: coupon.percent_off }
-        : { type: 'fixed', value: coupon.amount_off / 100 },
+      label,
+      discount: discountValue,
       discountAmount,
     };
   } catch (err) {
@@ -319,8 +335,6 @@ function buildInstalmentSessionPayload({
   customer,
   origin,
   recurringPriceId,
-  couponCode,
-  promotionCodeId,
 }) {
   const addInvoiceItems = buildAddInvoiceItems(slug, upsellSlug);
   const metadata = {
@@ -334,10 +348,6 @@ function buildInstalmentSessionPayload({
 
   if (upsellSlug) {
     metadata.upsell_slug = upsellSlug;
-  }
-
-  if (couponCode) {
-    metadata.coupon_code = couponCode;
   }
 
   return {
@@ -356,9 +366,7 @@ function buildInstalmentSessionPayload({
       metadata,
       ...(addInvoiceItems ? { add_invoice_items: addInvoiceItems } : {}),
     },
-    ...(promotionCodeId
-      ? { discounts: [{ promotion_code: promotionCodeId }] }
-      : { allow_promotion_codes: true }),
+    allow_promotion_codes: false,
   };
 }
 
@@ -591,24 +599,12 @@ async function handleInstalmentCheckout(req, res, body, origin) {
         return res.status(500).json({ error: `Missing ${PRICE_ENV_KEYS[checkoutRequest.slug]} environment variable` });
       }
 
-      const couponCode = String(body.couponCode || '').trim();
-      const couponDetails = await getValidatedCouponDetails(stripe, {
-        couponCode,
-        productSlug: checkoutRequest.slug,
-        baseAmount: AMOUNTS[checkoutRequest.slug],
-      });
-      if (couponCode && !couponDetails.valid) {
-        return res.status(400).json({ error: couponDetails.error || 'Coupon code not found or expired.' });
-      }
-
       sessionPayload = buildInstalmentSessionPayload({
         slug: checkoutRequest.slug,
         upsellSlug: checkoutRequest.upsellSlug,
         customer,
         origin: sessionOrigin,
         recurringPriceId,
-        couponCode: couponDetails.valid ? couponDetails.code : '',
-        promotionCodeId: couponDetails.valid ? couponDetails.promotionCodeId : '',
       });
     }
 

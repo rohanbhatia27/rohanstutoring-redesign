@@ -60,12 +60,20 @@ async function validateCouponHandler(req, res) {
 
   const code = String(body.code || '').trim().toUpperCase();
   const slug = String(body.slug || '').trim();
+  const paymentMode = String(body.paymentMode || '').trim().toLowerCase();
   if (!code) {
     return res.status(200).json({ valid: false, error: 'Please enter a coupon code.' });
   }
 
   if (!slug) {
     return res.status(400).json({ error: 'Missing product slug.' });
+  }
+
+  if (paymentMode === 'instalments') {
+    return res.status(200).json({
+      valid: false,
+      error: 'Discount codes only apply to pay-in-full checkout.',
+    });
   }
 
   const rl = await checkRateLimit(req, { bucket: 'coupon' });

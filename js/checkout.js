@@ -293,7 +293,7 @@
     const upsellToday = selection?.pageSlug === 'comprehensive' && selection.upsellSelected && selection.upsell
       ? selection.upsell.price
       : 0;
-    const couponToday = selection?.couponAmount || 0;
+    const couponToday = selection?.paymentMode === 'instalments' ? 0 : (selection?.couponAmount || 0);
     const dueTodayBeforeDiscount = plan.firstPayment + upsellToday;
 
     return {
@@ -1003,6 +1003,10 @@
       if (!input) return;
 
       selection.paymentMode = options.includes(input.value) ? input.value : 'full';
+      if (selection.paymentMode === 'instalments' && typeof selection.rejectInstalmentCoupon === 'function') {
+        selection.rejectInstalmentCoupon();
+        return;
+      }
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
@@ -1142,9 +1146,10 @@
   }
 
   function buildCheckoutPayload(selection, validation) {
+    const paymentMode = ['instalments', 'afterpay'].includes(selection.paymentMode) ? selection.paymentMode : 'full';
     const payload = {
       slug: selection.apiSlug,
-      paymentMode: ['instalments', 'afterpay'].includes(selection.paymentMode) ? selection.paymentMode : 'full',
+      paymentMode,
       primaryProduct: {
         pageSlug: selection.pageSlug,
         slug: selection.apiSlug,
@@ -1158,7 +1163,7 @@
       upsellSlug: null,
       upsellPrice: null,
       upsellSelected: false,
-      couponCode: selection.couponCode || null,
+      couponCode: paymentMode === 'instalments' ? null : (selection.couponCode || null),
     };
 
     if (selection.upsell && selection.upsellSelected) {
@@ -1280,6 +1285,43 @@
 
     if (!toggle || !form || !input || !applyBtn) return;
 
+    function setCouponFeedback(message, type) {
+      if (!feedback) return;
+      feedback.textContent = message;
+      feedback.className = `checkout-coupon__feedback checkout-coupon__feedback--${type}`;
+      feedback.hidden = false;
+    }
+
+    function resetCouponControls() {
+      input.disabled = false;
+      applyBtn.disabled = false;
+      applyBtn.textContent = 'Apply';
+    }
+
+    function clearCouponState(options = {}) {
+      const preserveFeedback = Boolean(options.preserveFeedback);
+      selection.couponCode = null;
+      selection.couponDiscount = null;
+      selection.couponAmount = 0;
+      updateSelectionPrice(selection);
+      syncSelectionUI(selection);
+      setPayButtonReady(selection, Boolean(selection.checkoutReady));
+      input.value = '';
+      resetCouponControls();
+      if (!preserveFeedback && feedback) {
+        feedback.textContent = '';
+        feedback.hidden = true;
+      }
+    }
+
+    function rejectInstalmentCoupon() {
+      clearCouponState({ preserveFeedback: true });
+      setCouponFeedback('Discount codes only apply to pay-in-full checkout.', 'error');
+    }
+
+    selection.clearCouponState = clearCouponState;
+    selection.rejectInstalmentCoupon = rejectInstalmentCoupon;
+
     toggle.addEventListener('click', () => {
       const isOpen = !form.hidden;
       form.hidden = isOpen;
@@ -1290,6 +1332,11 @@
     async function applyCoupon() {
       const code = input.value.trim().toUpperCase();
       if (!code) return;
+
+      if (selection.paymentMode === 'instalments') {
+        rejectInstalmentCoupon();
+        return;
+      }
 
       applyBtn.disabled = true;
       applyBtn.textContent = 'Checking...';
@@ -1302,16 +1349,13 @@
           body: JSON.stringify({
             code,
             slug: selection.apiSlug,
+            paymentMode: selection.paymentMode,
           }),
         });
         const result = await parseApiResponse(response);
 
         if (!result.ok || !result.data.valid) {
-          if (feedback) {
-            feedback.textContent = (result.data && result.data.error) || 'Invalid or expired coupon code.';
-            feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--error';
-            feedback.hidden = false;
-          }
+          setCouponFeedback((result.data && result.data.error) || 'Invalid or expired coupon code.', 'error');
           applyBtn.disabled = false;
           applyBtn.textContent = 'Apply';
           return;
@@ -1323,19 +1367,11 @@
         syncSelectionUI(selection);
         setPayButtonReady(selection, Boolean(selection.checkoutReady));
 
-        if (feedback) {
-          feedback.textContent = result.data.label || code;
-          feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--success';
-          feedback.hidden = false;
-        }
+        setCouponFeedback(result.data.label || code, 'success');
         input.disabled = true;
         applyBtn.textContent = 'Applied';
       } catch (err) {
-        if (feedback) {
-          feedback.textContent = 'Could not validate coupon. Please try again.';
-          feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--error';
-          feedback.hidden = false;
-        }
+        setCouponFeedback('Could not validate coupon. Please try again.', 'error');
         applyBtn.disabled = false;
         applyBtn.textContent = 'Apply';
       }
