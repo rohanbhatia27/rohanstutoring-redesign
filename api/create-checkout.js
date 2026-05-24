@@ -310,12 +310,12 @@ function getSessionOrigin(bodyOrigin, requestOrigin) {
   return candidateOrigin;
 }
 
-function buildAddInvoiceItems(slug, upsellSlug, upsellQuantity = 1) {
-  if (!upsellSlug) return undefined;
+function buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity = 1) {
+  if (!upsellSlug) return [];
   const upsellEntry = CATALOG[upsellSlug];
-  if (!upsellEntry) return undefined;
+  if (!upsellEntry) return [];
   const upsellCents = getUpsellAmount(slug, upsellSlug);
-  if (!upsellCents) return undefined;
+  if (!upsellCents) return [];
   const quantity = Math.max(1, Math.floor(Number(upsellQuantity) || 1));
 
   return [
@@ -342,7 +342,7 @@ function buildInstalmentSessionPayload({
   couponCode = '',
   discountAmount = 0,
 }) {
-  const addInvoiceItems = buildAddInvoiceItems(slug, upsellSlug, upsellQuantity);
+  const oneTimeLineItems = buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity);
   const plan = CATALOG[slug] && CATALOG[slug].instalment ? CATALOG[slug].instalment.plan : null;
   const discountPerPayment = plan && discountAmount > 0
     ? Math.floor(discountAmount / plan.count)
@@ -396,11 +396,10 @@ function buildInstalmentSessionPayload({
     success_url: `${origin}/checkout/success?product=${slug}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout/?product=${slug}`,
     customer_email: customer.email,
-    line_items: [lineItem],
+    line_items: [lineItem, ...oneTimeLineItems],
     metadata,
     subscription_data: {
       metadata,
-      ...(addInvoiceItems ? { add_invoice_items: addInvoiceItems } : {}),
     },
     allow_promotion_codes: false,
   };

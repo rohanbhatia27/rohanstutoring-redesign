@@ -313,14 +313,37 @@ function scrollToBlock(target) {
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) Object.assign(state, JSON.parse(raw));
+    if (!raw) return;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+
+    state.answers = parsed.answers && typeof parsed.answers === 'object' && !Array.isArray(parsed.answers)
+      ? parsed.answers
+      : {};
+    state.index = Number.isInteger(parsed.index) ? parsed.index : 0;
+    state.completed = Boolean(parsed.completed);
+    state.outcomeId = typeof parsed.outcomeId === 'string' ? parsed.outcomeId : null;
+    state.unlocked = Boolean(parsed.unlocked);
   } catch (e) { /* ignore */ }
 }
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      answers: state.answers,
+      index: state.index,
+      completed: state.completed,
+      outcomeId: state.outcomeId,
+      unlocked: state.unlocked,
+    }));
   } catch (e) { /* quota, ignore */ }
+}
+
+function clearStateStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) { /* ignore */ }
 }
 
 function resetState() {
@@ -570,6 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         track('quiz_email_captured', { outcome: state.outcomeId });
         unlockResult();
+        clearStateStorage();
       } else {
         showError('Something went wrong. Try again or email hello@rohanstutoring.com.');
       }

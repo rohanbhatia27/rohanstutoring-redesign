@@ -1960,7 +1960,7 @@ test('instalment session handler rejects whitespace-only Stripe secret keys', as
   }
 });
 
-test('instalment session handler creates a subscription checkout session with first-invoice add-on only', async () => {
+test('instalment session handler creates a subscription checkout session with first-checkout add-on only', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
 
@@ -2000,9 +2000,12 @@ test('instalment session handler creates a subscription checkout session with fi
     assert.equal(createdSessions[0].success_url, 'https://rohanstutoring.com/checkout/success?product=comprehensive&session_id={CHECKOUT_SESSION_ID}');
     assert.equal(createdSessions[0].cancel_url, 'https://rohanstutoring.com/checkout/?product=comprehensive');
     assert.equal(createdSessions[0].customer_email, 'jane@example.com');
-    assert.equal(createdSessions[0].line_items.length, 1);
+    assert.equal(createdSessions[0].line_items.length, 2);
     assert.equal(createdSessions[0].line_items[0].price, 'price_comp_123');
     assert.equal(createdSessions[0].line_items[0].quantity, 1);
+    assert.equal(createdSessions[0].line_items[1].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].line_items[1].price_data.product_data.name, 'Single session');
+    assert.equal(createdSessions[0].line_items[1].quantity, 1);
     assert.deepEqual(createdSessions[0].metadata, {
       product_slug: 'comprehensive',
       base_slug: 'comprehensive',
@@ -2021,8 +2024,7 @@ test('instalment session handler creates a subscription checkout session with fi
       customer_phone: '+61 400 111 222',
       upsell_slug: 'mentoring-single',
     });
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items.length, 1);
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items, undefined);
     assert.equal(res.body.url, 'https://checkout.stripe.test/session_123');
   } finally {
     createInstalmentSessionHandler.__resetForTests();
@@ -2031,7 +2033,7 @@ test('instalment session handler creates a subscription checkout session with fi
   }
 });
 
-test('instalment session handler creates mastery add-on invoice items with selected quantity', async () => {
+test('instalment session handler creates mastery add-on line items with selected quantity', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
 
@@ -2068,9 +2070,10 @@ test('instalment session handler creates mastery add-on invoice items with selec
 
     assert.equal(res.statusCode, 200);
     assert.equal(createdSessions[0].line_items[0].price, 'price_mastery_123');
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items.length, 1);
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].price_data.unit_amount, 9900);
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].quantity, 5);
+    assert.equal(createdSessions[0].line_items.length, 2);
+    assert.equal(createdSessions[0].line_items[1].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].line_items[1].quantity, 5);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items, undefined);
     assert.equal(createdSessions[0].metadata.upsell_quantity, '5');
     assert.equal(res.body.url, 'https://checkout.stripe.test/mastery_session_123');
   } finally {
