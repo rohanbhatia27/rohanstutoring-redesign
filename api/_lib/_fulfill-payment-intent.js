@@ -75,7 +75,7 @@ function buildCourseWelcomeHtml(firstName, startLine) {
         <tr><td style="padding:36px 32px 28px;">
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hey ${esc(firstName)},</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Good to see your enrolment come through. I'm excited to have you in the cohort.</p>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">You should have just received a separate email with your link to access Rohan's GAMSAT Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">${startLine} I'll be in touch with more details before then.</p>
           <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Talk soon,</p>
           <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan</p>
@@ -110,13 +110,13 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
       to: customerEmail,
       subject: variant.subject,
       html: buildCourseWelcomeHtml(firstName, variant.startLine),
-      text: `Hey ${firstName},\n\nGood to see your enrolment come through. I'm excited to have you in the cohort.\n\nYou should have just received a separate email with your link to access the Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.\n\n${variant.startLine} I'll be in touch with more details before then.\n\nTalk soon,\n\nRohan`,
+      text: `Hey ${firstName},\n\nGood to see your enrolment come through. I'm excited to have you in the cohort.\n\nYou should have just received a separate email with your link to access Rohan's GAMSAT Blueprint library via Google Drive. If you haven't seen it yet, just reply to this email and let me know.\n\n${variant.startLine} I'll be in touch with more details before then.\n\nTalk soon,\n\nRohan`,
     };
   } else {
     emailOptions = {
       from: 'hello@rohanstutoring.com',
       to: customerEmail,
-      subject: `Payment confirmed — ${productLine}`,
+      subject: `Payment confirmed: ${productLine}`,
       html: buildConfirmationHtml(firstName, productLine),
       text: `Hi ${firstName},\n\nWe've received your payment for ${productLine}. Your content will be sent to this email address within 24 hours.\n\nIf you have any questions, contact us at hello@rohanstutoring.com.\n\nRohan's GAMSAT`,
     };
@@ -225,7 +225,7 @@ async function fulfillPaymentIntent(options) {
   }
 
   const currentPaymentIntent = stripeClient.paymentIntents.retrieve
-    ? await stripeClient.paymentIntents.retrieve(paymentIntent.id)
+    ? await stripeClient.paymentIntents.retrieve(paymentIntent.id, { expand: ['charges'] })
     : paymentIntent;
 
   let metadata = currentPaymentIntent.metadata && typeof currentPaymentIntent.metadata === 'object'
@@ -320,7 +320,8 @@ async function fulfillPaymentIntent(options) {
   }
 
   const customerEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
-  const customerName = String(metadata.customer_name || '').trim();
+  const stripeBillingName = String(currentPaymentIntent.charges?.data?.[0]?.billing_details?.name || '').trim();
+  const customerName = String(stripeBillingName || metadata.customer_name || '').trim();
 
   const logBase = {
     provider: 'stripe',

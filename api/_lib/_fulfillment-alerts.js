@@ -31,7 +31,7 @@ function buildAlertHtml({ baseSlug, upsellSlug, customerEmail, provider, payment
     <tr><td align="center">
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
         <tr><td style="background:#7f1d1d;padding:28px 32px;">
-          <p style="margin:0;color:#fca5a5;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT — INTERNAL ALERT</p>
+          <p style="margin:0;color:#fca5a5;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT: INTERNAL ALERT</p>
         </td></tr>
         <tr><td style="padding:36px 32px 28px;">
           <h2 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#7f1d1d;">Fulfillment step failed</h2>
@@ -69,7 +69,7 @@ async function sendFulfillmentAlert({
 
   try {
     const resend = resendFactory(apiKey);
-    const subject = `[FULFILLMENT ALERT] ${failedStep} failed — ${baseSlug}${upsellSlug ? '+' + upsellSlug : ''} (${provider})`;
+    const subject = `[FULFILLMENT ALERT] ${failedStep} failed: ${baseSlug}${upsellSlug ? '+' + upsellSlug : ''} (${provider})`;
     const textBody = [
       'Fulfillment step failed after a successful payment.',
       '',
