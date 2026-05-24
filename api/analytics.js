@@ -276,11 +276,11 @@ async function buildDashboard(propertyId, accessToken, days) {
   const winners = enriched
     .filter((p) => p.conv >= 5 && p.views < 500)
     .slice(0, 4)
-    .map((p) => ({ label: p.title, metric: `${p.conv}% conv · ${p.views} views` }));
+    .map((p) => ({ label: p.title, metric: `${p.conv}% conv  ${p.views} views` }));
   const traps = enriched
     .filter((p) => p.views > 300 && p.conv < 2)
     .slice(0, 4)
-    .map((p) => ({ label: p.title, metric: `${p.views} views · ${p.conv}% conv` }));
+    .map((p) => ({ label: p.title, metric: `${p.views} views  ${p.conv}% conv` }));
 
   // ---- Tracking gaps (events that are missing from the period's data) ----
   const seen = new Set(evRowsCurr.map((r) => r.eventName));
@@ -335,14 +335,14 @@ function buildDigestEmail(data, weekLabel) {
   const topPages = data.pages.slice(0, 5).map((p) =>
     `<tr>
       <td style="padding:8px 0;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:12px">${p.title}</td>
-      <td style="padding:8px 0;border-bottom:1px solid #1e293b;font-size:12px;text-align:right;color:#f1f5f9">${p.views} views · ${p.conv}% conv</td>
+      <td style="padding:8px 0;border-bottom:1px solid #1e293b;font-size:12px;text-align:right;color:#f1f5f9">${p.views} views  ${p.conv}% conv</td>
     </tr>`
   ).join('');
 
   const topSources = data.sources.slice(0, 4).map((s) =>
     `<tr>
       <td style="padding:8px 0;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:12px">${s.name}</td>
-      <td style="padding:8px 0;border-bottom:1px solid #1e293b;font-size:12px;text-align:right;color:#f1f5f9">${s.sessions} sessions · ${s.eng}% engaged</td>
+      <td style="padding:8px 0;border-bottom:1px solid #1e293b;font-size:12px;text-align:right;color:#f1f5f9">${s.sessions} sessions  ${s.eng}% engaged</td>
     </tr>`
   ).join('');
 

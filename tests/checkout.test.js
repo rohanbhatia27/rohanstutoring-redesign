@@ -277,7 +277,7 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
     upsell: {
       slug: 'essay-collection',
       title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
+      description: '25 essays scored 80+  Immediate access',
       price: 79,
       badge: 'Optional add-on',
     },
@@ -310,7 +310,7 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.deepEqual(getOrderBumpConfig('advanced'), {
     slug: 'essay-collection',
     title: 'Add the Essay Collection',
-    description: '25 essays scored 80+ · Immediate access',
+    description: '25 essays scored 80+  Immediate access',
     price: 79,
     badge: 'Optional add-on',
   });
@@ -373,7 +373,7 @@ test('comprehensive checkout summary uses the May 2026 course title without coho
   const markup = renderSummaryMarkup(PRODUCTS.comprehensive, getInitialSelection('comprehensive', PRODUCTS.comprehensive));
 
   assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(May 2026 Start\)/);
-  assert.doesNotMatch(markup, /24 live classes · 50\+ hrs content · September cohort/);
+  assert.doesNotMatch(markup, /24 live classes  50\+ hrs content  September cohort/);
 });
 
 test('checkout page uses local payment provider logo assets', () => {

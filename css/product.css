@@ -1126,7 +1126,7 @@
   padding-left: 16px;
   position: relative;
 }
-.themes-col li::before { content: '·'; position: absolute; left: 0; color: var(--blue); font-weight: 700; }
+.themes-col li::before { content: ''; position: absolute; left: 0; color: var(--blue); font-weight: 700; }
 
 @media (max-width: 540px) {
   .themes-grid { grid-template-columns: 1fr; }

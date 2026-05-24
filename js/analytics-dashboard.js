@@ -129,15 +129,15 @@
       ],
 
       winners: [
-        { label: 'S1 Mini Mock landing',          metric: '11.8% conv · 9% traffic' },
-        { label: 'Checkout page',                  metric: '23% conv · 1.4% traffic' },
-        { label: '/blog/ → "GAMSAT timing" post',  metric: '8.6% conv · 1.1% traffic' },
+        { label: 'S1 Mini Mock landing',          metric: '11.8% conv  9% traffic' },
+        { label: 'Checkout page',                  metric: '23% conv  1.4% traffic' },
+        { label: '/blog/ → "GAMSAT timing" post',  metric: '8.6% conv  1.1% traffic' },
       ],
 
       traps: [
-        { label: 'Free Resources Hub',            metric: '11% traffic · 2.1% conv' },
-        { label: '/blog/ — top SEO post',          metric: '6% traffic · 0.9% conv' },
-        { label: 'About page',                     metric: '4% traffic · 0.4% conv' },
+        { label: 'Free Resources Hub',            metric: '11% traffic  2.1% conv' },
+        { label: '/blog/ — top SEO post',          metric: '6% traffic  0.9% conv' },
+        { label: 'About page',                     metric: '4% traffic  0.4% conv' },
       ],
 
       // Tracking events that should exist but aren't reliably firing yet.
@@ -167,7 +167,7 @@
                       : 'metric__delta--flat';
       const arrow = delta > 1 ? '▲' : delta < -1 ? '▼' : '–';
       const strategySessionBadge = isStrategySession
-        ? `<div class="metric__annotation">+${STRATEGY_SESSION_MANUAL} pre-tracking &middot; Resitter's Workshop · 24 May · 50/100 spots</div>`
+        ? `<div class="metric__annotation">+${STRATEGY_SESSION_MANUAL} pre-tracking &middot; Resitter's Workshop  24 May  50/100 spots</div>`
         : '';
       return `
         <div class="metric">
@@ -225,7 +225,7 @@
     const totalPrev = sum(data.trendPrev);
     const delta = pctDelta(total, totalPrev);
     document.getElementById('trendSummary').textContent =
-      `${fmt(total)} visitors · ${delta >= 0 ? '+' : ''}${delta}% vs previous`;
+      `${fmt(total)} visitors  ${delta >= 0 ? '+' : ''}${delta}% vs previous`;
     document.getElementById('trendNote').textContent = delta >= 5
       ? 'Trajectory looks healthy. Double down on the channel driving growth — see Traffic sources.'
       : delta <= -5
@@ -415,7 +415,7 @@
     renderConnectionStatus(source, error);
 
     const today = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-    updated.textContent = `${source === 'live' ? 'Live GA4' : 'Mock data'} · ${today}`;
+    updated.textContent = `${source === 'live' ? 'Live GA4' : 'Mock data'}  ${today}`;
   }
 
   function renderConnectionStatus(source, error) {
