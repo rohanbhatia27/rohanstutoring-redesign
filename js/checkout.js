@@ -281,6 +281,15 @@
     return { ...bump };
   }
 
+  function getUpsellQuantity(selection) {
+    if (!selection?.upsellSelected || !selection.upsell) return 0;
+    if (!selection.upsell.quantityEnabled) return 1;
+
+    const minQuantity = Math.max(1, Number(selection.upsell.minQuantity) || 1);
+    const quantity = Math.floor(Number(selection.upsellQuantity) || minQuantity);
+    return Math.max(minQuantity, quantity);
+  }
+
   function getPaymentModeOptions(productSlug) {
     if (PRODUCTS[productSlug]?.afterpay) return ['full', 'afterpay'];
     return INSTALMENT_PLANS[productSlug] ? ['full', 'instalments'] : ['full'];
@@ -290,18 +299,27 @@
     const plan = INSTALMENT_PLANS[selection?.pageSlug];
     if (!plan) return null;
 
-    const upsellToday = selection?.pageSlug === 'comprehensive' && selection.upsellSelected && selection.upsell
-      ? selection.upsell.price
+    const upsellToday = selection?.upsellSelected && selection.upsell
+      ? selection.upsell.price * getUpsellQuantity(selection)
       : 0;
-    const couponToday = selection?.paymentMode === 'instalments' ? 0 : (selection?.couponAmount || 0);
+    const instalmentCouponAmount = selection?.paymentMode === 'instalments'
+      ? (selection?.couponAmount || 0)
+      : 0;
+    const instalmentDiscountPerPayment = instalmentCouponAmount > 0
+      ? Math.floor((instalmentCouponAmount / plan.count) * 100) / 100
+      : 0;
+    const couponToday = selection?.paymentMode === 'instalments'
+      ? instalmentDiscountPerPayment
+      : (selection?.couponAmount || 0);
     const dueTodayBeforeDiscount = plan.firstPayment + upsellToday;
+    const futurePaymentAmount = Math.max(0, plan.recurringPayment - instalmentDiscountPerPayment);
 
     return {
       dueToday: Math.max(0, dueTodayBeforeDiscount - couponToday),
       dueTodayBeforeDiscount,
-      futurePaymentAmount: plan.recurringPayment,
+      futurePaymentAmount,
       futurePaymentCount: plan.count - 1,
-      futurePaymentCopy: `Then ${plan.count - 1} monthly payments of $${fmtPrice(plan.recurringPayment)}`,
+      futurePaymentCopy: `Then ${plan.count - 1} monthly payments of $${fmtPrice(futurePaymentAmount)}`,
     };
   }
 
@@ -388,7 +406,9 @@
   }
 
   function updateSelectionPrice(selection) {
-    const upsellPrice = selection.upsellSelected && selection.upsell ? selection.upsell.price : 0;
+    const upsellPrice = selection.upsellSelected && selection.upsell
+      ? selection.upsell.price * getUpsellQuantity(selection)
+      : 0;
     const subtotal = selection.basePrice + upsellPrice;
     let couponAmount = 0;
     if (selection.couponDiscount) {
@@ -406,9 +426,26 @@
   function buildOrderBumpMarkup(orderBump, selection) {
     if (!orderBump) return '';
     const priceMarkup = orderBump.priceWas
-      ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}</span></span>`
-      : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}</span>`;
+      ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}${orderBump.quantityEnabled ? ' each' : ''}</span></span>`
+      : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}${orderBump.quantityEnabled ? ' each' : ''}</span>`;
     const variantClass = orderBump.slug === 'essay-pack-10' ? ' checkout-upsell--essay-pack' : '';
+    const quantity = Math.max(Number(orderBump.minQuantity) || 1, Math.floor(Number(selection.upsellQuantity) || Number(orderBump.minQuantity) || 1));
+    const quantityMarkup = orderBump.quantityEnabled
+      ? `
+          <span class="checkout-upsell__quantity">
+            <span class="checkout-upsell__quantity-label">${escapeText(orderBump.quantityLabel || 'Quantity')}</span>
+            <input
+              class="checkout-upsell__quantity-input"
+              id="order-bump-quantity"
+              type="number"
+              min="${Number(orderBump.minQuantity) || 1}"
+              step="1"
+              value="${quantity}"
+              inputmode="numeric"
+            >
+          </span>
+        `
+      : '';
 
     return `
       <div class="checkout-upsell checkout-upsell--order-bump${variantClass}${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
@@ -424,6 +461,7 @@
             <span class="checkout-upsell__eyebrow">${orderBump.badge}</span>
             <strong>${orderBump.title}</strong>
             <span>${orderBump.description}</span>
+            ${quantityMarkup}
           </span>
           ${priceMarkup}
         </label>
@@ -476,6 +514,7 @@
         packageIndex: defaultIndex,
         upsell: orderBump,
         upsellSelected: false,
+        ...(orderBump && orderBump.quantityEnabled ? { upsellQuantity: Math.max(1, Number(orderBump.minQuantity) || 1) } : {}),
         couponCode: null,
         couponDiscount: null,
         couponAmount: 0,
@@ -493,6 +532,7 @@
       packageIndex: null,
       upsell: orderBump,
       upsellSelected: false,
+      ...(orderBump && orderBump.quantityEnabled ? { upsellQuantity: Math.max(1, Number(orderBump.minQuantity) || 1) } : {}),
       couponCode: null,
       couponDiscount: null,
       couponAmount: 0,
@@ -876,6 +916,7 @@
     const totalEl = qs('#summary-total');
     const orderBumpCard = qs('#checkout-order-bump');
     const orderBumpInput = qs('#order-bump-toggle');
+    const orderBumpQuantityInput = qs('#order-bump-quantity');
     const paymentModeOptions = document.querySelectorAll('.payment-mode-option');
     const paymentModeInputs = document.querySelectorAll('.payment-mode-option__input');
     const instalmentSummarySlot = qs('#instalment-summary-slot');
@@ -909,6 +950,13 @@
     }
     if (orderBumpInput) {
       orderBumpInput.checked = Boolean(selection.upsellSelected);
+    }
+    if (orderBumpQuantityInput && selection.upsell?.quantityEnabled) {
+      orderBumpQuantityInput.value = String(getUpsellQuantity({
+        ...selection,
+        upsellSelected: true,
+      }));
+      orderBumpQuantityInput.disabled = !selection.upsellSelected;
     }
 
     document.querySelectorAll('.pkg-option').forEach((option, index) => {
@@ -1003,8 +1051,8 @@
       if (!input) return;
 
       selection.paymentMode = options.includes(input.value) ? input.value : 'full';
-      if (selection.paymentMode === 'instalments' && typeof selection.rejectInstalmentCoupon === 'function') {
-        selection.rejectInstalmentCoupon();
+      if (selection.paymentMode === 'instalments' && typeof selection.clearCouponState === 'function') {
+        selection.clearCouponState();
         return;
       }
       syncSelectionUI(selection);
@@ -1039,10 +1087,17 @@
     if (!selection.upsell) return;
 
     const input = qs('#order-bump-toggle');
+    const quantityInput = qs('#order-bump-quantity');
     if (!input) return;
 
     input.addEventListener('change', () => {
       selection.upsellSelected = input.checked;
+      if (selection.upsell?.quantityEnabled) {
+        selection.upsellQuantity = getUpsellQuantity({
+          ...selection,
+          upsellSelected: true,
+        });
+      }
       updateSelectionPrice(selection);
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
@@ -1054,6 +1109,18 @@
         });
       }
     });
+
+    if (quantityInput && selection.upsell.quantityEnabled) {
+      quantityInput.addEventListener('input', () => {
+        const minQuantity = Math.max(1, Number(selection.upsell.minQuantity) || 1);
+        selection.upsellQuantity = Math.max(minQuantity, Math.floor(Number(quantityInput.value) || minQuantity));
+        selection.upsellSelected = true;
+        input.checked = true;
+        updateSelectionPrice(selection);
+        syncSelectionUI(selection);
+        setPayButtonReady(selection, Boolean(selection.checkoutReady));
+      });
+    }
   }
 
   function renderOrderBump(productSlug, selection) {
@@ -1163,10 +1230,11 @@
       upsellSlug: null,
       upsellPrice: null,
       upsellSelected: false,
-      couponCode: paymentMode === 'instalments' ? null : (selection.couponCode || null),
+      couponCode: selection.couponCode || null,
     };
 
     if (selection.upsell && selection.upsellSelected) {
+      const upsellQuantity = getUpsellQuantity(selection);
       payload.upsell = {
         slug: selection.upsell.slug,
         price: selection.upsell.price,
@@ -1175,6 +1243,10 @@
       payload.upsellSlug = selection.upsell.slug;
       payload.upsellPrice = selection.upsell.price;
       payload.upsellSelected = true;
+      if (selection.upsell.quantityEnabled) {
+        payload.upsell.quantity = upsellQuantity;
+        payload.upsellQuantity = upsellQuantity;
+      }
     }
 
     return payload;
@@ -1314,13 +1386,7 @@
       }
     }
 
-    function rejectInstalmentCoupon() {
-      clearCouponState({ preserveFeedback: true });
-      setCouponFeedback('Discount codes only apply to pay-in-full checkout.', 'error');
-    }
-
     selection.clearCouponState = clearCouponState;
-    selection.rejectInstalmentCoupon = rejectInstalmentCoupon;
 
     toggle.addEventListener('click', () => {
       const isOpen = !form.hidden;
@@ -1332,11 +1398,6 @@
     async function applyCoupon() {
       const code = input.value.trim().toUpperCase();
       if (!code) return;
-
-      if (selection.paymentMode === 'instalments') {
-        rejectInstalmentCoupon();
-        return;
-      }
 
       applyBtn.disabled = true;
       applyBtn.textContent = 'Checking...';

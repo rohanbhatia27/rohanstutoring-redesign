@@ -40,6 +40,12 @@ function normaliseUpsellSlug(body) {
   return normaliseSlug(body.upsellSlug || body.upsell_slug || body.addOnSlug);
 }
 
+function normaliseUpsellQuantity(body) {
+  const rawValue = body.upsellQuantity || body.upsell_quantity || (body.upsell && body.upsell.quantity);
+  const quantity = Math.floor(Number(rawValue) || 1);
+  return Math.max(1, quantity);
+}
+
 function getUpsellAmount(baseSlug, upsellSlug) {
   return getUpsellPriceCents(baseSlug, upsellSlug);
 }
@@ -68,11 +74,13 @@ function resolveCheckoutPurchase(body) {
       baseSlug,
       upsellAmount: 0,
       upsellSlug: '',
+      upsellQuantity: 0,
+      upsellUnitAmount: 0,
     };
   }
 
-  const upsellAmount = getUpsellAmount(baseSlug, upsellSlug);
-  if (!upsellAmount) {
+  const upsellUnitAmount = getUpsellAmount(baseSlug, upsellSlug);
+  if (!upsellUnitAmount) {
     return { error: 'Invalid upsell slug: ' + upsellSlug };
   }
 
@@ -82,13 +90,22 @@ function resolveCheckoutPurchase(body) {
     };
   }
 
-  return {
+  const upsellQuantity = normaliseUpsellQuantity(body);
+  const upsellAmount = upsellUnitAmount * upsellQuantity;
+  const purchase = {
     amount: baseAmount + upsellAmount,
     baseAmount,
     baseSlug,
     upsellAmount,
     upsellSlug,
   };
+
+  if (upsellQuantity > 1) {
+    purchase.upsellQuantity = upsellQuantity;
+    purchase.upsellUnitAmount = upsellUnitAmount;
+  }
+
+  return purchase;
 }
 
 function buildPaymentIntentIdempotencyKey({ customerEmail = '', purchase = {} } = {}) {
@@ -96,14 +113,19 @@ function buildPaymentIntentIdempotencyKey({ customerEmail = '', purchase = {} } 
   const baseSlugPart = String(purchase.baseSlug || '').trim().toLowerCase();
   const upsellSlugPart = String(purchase.upsellSlug || '').trim().toLowerCase();
   const minuteWindow = Math.floor(Date.now() / 60000);
-
-  return [
+  const parts = [
     'pi',
     emailPart || 'anonymous',
     baseSlugPart || 'unknown',
     upsellSlugPart || 'no-upsell',
-    minuteWindow,
-  ].join('-');
+  ];
+
+  if (Number(purchase.upsellQuantity) > 1) {
+    parts.push(String(purchase.upsellQuantity));
+  }
+
+  parts.push(minuteWindow);
+  return parts.join('-');
 }
 
 module.exports = {
@@ -114,6 +136,7 @@ module.exports = {
   ALLOWED_UPSELLS,
   normaliseSlug,
   normaliseUpsellSlug,
+  normaliseUpsellQuantity,
   getUpsellAmount,
   isAllowedUpsellCombination,
   resolveCheckoutPurchase,

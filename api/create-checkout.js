@@ -12,6 +12,7 @@ const {
   ALLOWED_UPSELLS,
   normaliseSlug,
   normaliseUpsellSlug,
+  normaliseUpsellQuantity,
   getUpsellAmount,
   isAllowedUpsellCombination,
   resolveCheckoutPurchase,
@@ -276,6 +277,7 @@ function validateInstalmentRequest(body) {
   const slug = String(body && body.slug ? body.slug : '').trim();
   const paymentMode = String(body && body.paymentMode ? body.paymentMode : '').trim();
   const upsellSlug = normaliseUpsellSlug(body || {});
+  const upsellQuantity = upsellSlug ? normaliseUpsellQuantity(body || {}) : 0;
 
   if (!['instalments', 'afterpay'].includes(paymentMode)) {
     return { error: 'Invalid payment mode.' };
@@ -295,7 +297,7 @@ function validateInstalmentRequest(body) {
     }
   }
 
-  return { slug, paymentMode, upsellSlug };
+  return { slug, paymentMode, upsellSlug, upsellQuantity };
 }
 
 function getSessionOrigin(bodyOrigin, requestOrigin) {
@@ -308,12 +310,13 @@ function getSessionOrigin(bodyOrigin, requestOrigin) {
   return candidateOrigin;
 }
 
-function buildAddInvoiceItems(slug, upsellSlug) {
+function buildAddInvoiceItems(slug, upsellSlug, upsellQuantity = 1) {
   if (!upsellSlug) return undefined;
   const upsellEntry = CATALOG[upsellSlug];
   if (!upsellEntry) return undefined;
   const upsellCents = getUpsellAmount(slug, upsellSlug);
   if (!upsellCents) return undefined;
+  const quantity = Math.max(1, Math.floor(Number(upsellQuantity) || 1));
 
   return [
     {
@@ -324,7 +327,7 @@ function buildAddInvoiceItems(slug, upsellSlug) {
         },
         unit_amount: upsellCents,
       },
-      quantity: 1,
+      quantity,
     },
   ];
 }
@@ -332,11 +335,21 @@ function buildAddInvoiceItems(slug, upsellSlug) {
 function buildInstalmentSessionPayload({
   slug,
   upsellSlug,
+  upsellQuantity,
   customer,
   origin,
   recurringPriceId,
+  couponCode = '',
+  discountAmount = 0,
 }) {
-  const addInvoiceItems = buildAddInvoiceItems(slug, upsellSlug);
+  const addInvoiceItems = buildAddInvoiceItems(slug, upsellSlug, upsellQuantity);
+  const plan = CATALOG[slug] && CATALOG[slug].instalment ? CATALOG[slug].instalment.plan : null;
+  const discountPerPayment = plan && discountAmount > 0
+    ? Math.floor(discountAmount / plan.count)
+    : 0;
+  const discountedRecurringAmount = plan && discountPerPayment > 0
+    ? Math.max(50, Math.round(plan.recurringPayment * 100) - discountPerPayment)
+    : 0;
   const metadata = {
     product_slug: slug,
     base_slug: slug,
@@ -348,19 +361,42 @@ function buildInstalmentSessionPayload({
 
   if (upsellSlug) {
     metadata.upsell_slug = upsellSlug;
+    if (Number(upsellQuantity) > 1) {
+      metadata.upsell_quantity = String(Math.max(1, Math.floor(Number(upsellQuantity) || 1)));
+    }
   }
+
+  if (couponCode && discountAmount > 0) {
+    metadata.coupon_code = couponCode;
+    metadata.discount_amount = String(discountAmount);
+    metadata.discount_per_instalment = String(discountPerPayment);
+  }
+
+  const lineItem = discountedRecurringAmount > 0
+    ? {
+        price_data: {
+          currency: 'aud',
+          product_data: {
+            name: CATALOG[slug].title || CATALOG[slug].name || slug,
+          },
+          recurring: {
+            interval: 'month',
+          },
+          unit_amount: discountedRecurringAmount,
+        },
+        quantity: 1,
+      }
+    : {
+        price: recurringPriceId,
+        quantity: 1,
+      };
 
   return {
     mode: 'subscription',
     success_url: `${origin}/checkout/success?product=${slug}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout/?product=${slug}`,
     customer_email: customer.email,
-    line_items: [
-      {
-        price: recurringPriceId,
-        quantity: 1,
-      },
-    ],
+    line_items: [lineItem],
     metadata,
     subscription_data: {
       metadata,
@@ -458,6 +494,9 @@ async function handleOneOffCheckout(req, res, body) {
 
     if (purchase.upsellSlug) {
       metadata.upsell_slug = purchase.upsellSlug;
+      if (Number(purchase.upsellQuantity) > 1) {
+        metadata.upsell_quantity = String(purchase.upsellQuantity);
+      }
     }
 
     const couponCode = String(body.couponCode || '').trim();
@@ -598,13 +637,42 @@ async function handleInstalmentCheckout(req, res, body, origin) {
       if (!recurringPriceId) {
         return res.status(500).json({ error: `Missing ${PRICE_ENV_KEYS[checkoutRequest.slug]} environment variable` });
       }
+      const couponCode = String(body.couponCode || '').trim();
+      let validatedCode = '';
+      let discountAmount = 0;
+
+      if (couponCode) {
+        if (checkoutRequest.slug !== 'comprehensive') {
+          return res.status(400).json({ error: 'This coupon is not valid for the selected product.' });
+        }
+
+        const couponDetails = await getValidatedCouponDetails(stripe, {
+          couponCode,
+          productSlug: checkoutRequest.slug,
+          baseAmount: AMOUNTS[checkoutRequest.slug] || 0,
+        });
+
+        if (!couponDetails.valid) {
+          return res.status(400).json({ error: couponDetails.error || 'Coupon code not found or expired.' });
+        }
+
+        if (!couponDetails.discount || couponDetails.discount.type !== 'fixed' || couponDetails.discountAmount <= 0) {
+          return res.status(400).json({ error: 'This coupon cannot be applied to instalment checkout.' });
+        }
+
+        validatedCode = couponDetails.code;
+        discountAmount = couponDetails.discountAmount;
+      }
 
       sessionPayload = buildInstalmentSessionPayload({
         slug: checkoutRequest.slug,
         upsellSlug: checkoutRequest.upsellSlug,
+        upsellQuantity: checkoutRequest.upsellQuantity,
         customer,
         origin: sessionOrigin,
         recurringPriceId,
+        couponCode: validatedCode,
+        discountAmount,
       });
     }
 

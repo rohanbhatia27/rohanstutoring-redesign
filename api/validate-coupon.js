@@ -69,10 +69,10 @@ async function validateCouponHandler(req, res) {
     return res.status(400).json({ error: 'Missing product slug.' });
   }
 
-  if (paymentMode === 'instalments') {
+  if (paymentMode === 'instalments' && slug !== 'comprehensive') {
     return res.status(200).json({
       valid: false,
-      error: 'Discount codes only apply to pay-in-full checkout.',
+      error: 'This coupon is not valid for the selected product.',
     });
   }
 
@@ -95,6 +95,13 @@ async function validateCouponHandler(req, res) {
 
     if (!couponDetails.valid) {
       return res.status(200).json({ valid: false, error: couponDetails.error || 'Coupon code not found or expired.' });
+    }
+
+    if (paymentMode === 'instalments' && (!couponDetails.discount || couponDetails.discount.type !== 'fixed')) {
+      return res.status(200).json({
+        valid: false,
+        error: 'This coupon cannot be applied to instalment checkout.',
+      });
     }
 
     return res.status(200).json({

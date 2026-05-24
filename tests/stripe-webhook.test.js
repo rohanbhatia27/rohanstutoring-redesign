@@ -265,7 +265,7 @@ test('fulfillment helper retries Blueprint-family Drive sharing when fulfillment
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       return {
         ok: true,
         status: 200,
@@ -297,10 +297,10 @@ test('fulfillment helper retries Blueprint-family Drive sharing when fulfillment
   });
 
   assert.equal(result.alreadyFulfilled, false);
-  assert.equal(updates.length, 2);
-  assert.equal(updates[1].payload.metadata.drive_share_status, 'shared');
-  assert.equal(updates[1].payload.metadata.drive_share_folder_env, 'GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT');
-  assert.equal(updates[1].payload.metadata.drive_share_permission_id, 'perm_blueprint');
+  const finalMetadata = updates[updates.length - 1].payload.metadata;
+  assert.equal(finalMetadata.drive_share_status, 'shared');
+  assert.equal(finalMetadata.drive_share_folder_env, 'GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT');
+  assert.equal(finalMetadata.drive_share_permission_id, 'perm_blueprint');
 
   googleDrive.__resetForTests();
   delete process.env.GOOGLE_CLIENT_ID;
@@ -692,7 +692,7 @@ test('fulfillment helper shares starter-pack Drive access and records share meta
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       return {
         ok: true,
         status: 200,
@@ -758,7 +758,7 @@ test('fulfillment helper shares Blueprint Drive access for Blueprint, Comprehens
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       return {
         ok: true,
         status: 200,
@@ -891,7 +891,7 @@ test('fulfillment helper preserves Drive metadata when Kit tagging also succeeds
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       return {
         ok: true,
         status: 200,

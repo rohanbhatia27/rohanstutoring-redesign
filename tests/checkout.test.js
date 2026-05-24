@@ -178,6 +178,11 @@ function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
     '#payment-method-toggle': { hidden: true },
     '#tab-card': { addEventListener() {}, classList: { add() {}, remove() {} } },
     '#tab-paypal': { addEventListener() {}, classList: { add() {}, remove() {} } },
+    '#coupon-toggle': { addEventListener() {}, setAttribute() {} },
+    '#coupon-form': { hidden: true },
+    '#coupon-code': { value: '', disabled: false, focus() {}, addEventListener() {} },
+    '#coupon-apply': { disabled: false, textContent: 'Apply', addEventListener() {} },
+    '#coupon-feedback': { textContent: '', hidden: true, className: '' },
   };
 
   return {
@@ -208,6 +213,7 @@ function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
         return [];
       },
     },
+    elements,
   };
 }
 
@@ -309,7 +315,18 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
     badge: 'Optional add-on',
   });
 
-  assert.equal(getOrderBumpConfig('mastery'), null);
+  assert.deepEqual(getOrderBumpConfig('mastery'), {
+    slug: 'mentoring-single',
+    title: 'Add extra 1:1 classes',
+    description: 'Add as many private strategy classes as you want at the Mastery-only rate.',
+    price: 99,
+    priceWas: 119,
+    badge: 'Mastery-only offer',
+    quantityEnabled: true,
+    quantityLabel: 'Extra classes',
+    minQuantity: 1,
+    lockRuntimePrice: true,
+  });
 });
 
 test('catalog integrity: all purchasable slugs have positive priceCents, required fields, and valid upsell targets', () => {
@@ -414,6 +431,20 @@ test('buildOrderBumpMarkup renders the comprehensive enrolment-only discount wit
   assert.match(markup, /\+\$99/);
 });
 
+test('buildOrderBumpMarkup renders quantity controls for the mastery extra class add-on', () => {
+  const selection = getInitialSelection('mastery', PRODUCTS.mastery);
+  selection.upsellSelected = true;
+  selection.upsellQuantity = 4;
+  updateSelectionPrice(selection);
+
+  const markup = buildOrderBumpMarkup(getOrderBumpConfig('mastery'), selection);
+
+  assert.match(markup, /type="number"/);
+  assert.match(markup, /id="order-bump-quantity"/);
+  assert.match(markup, /value="4"/);
+  assert.match(markup, /\+\$99 each/);
+});
+
 test('buildCheckoutAssuranceMarkup renders compact trust proof for the payment step', () => {
   const markup = buildCheckoutAssuranceMarkup();
 
@@ -473,16 +504,17 @@ test('getInstalmentPlanSummary adds the comprehensive mentoring bump to the firs
   assert.equal(summary.futurePaymentAmount, 499);
 });
 
-test('getInstalmentPlanSummary ignores coupon discounts for instalment due-today amounts', () => {
+test('getInstalmentPlanSummary spreads a fixed coupon over comprehensive instalments', () => {
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.paymentMode = 'instalments';
-  selection.couponDiscount = { type: 'fixed', value: 150 };
+  selection.couponDiscount = { type: 'fixed', value: 200 };
   updateSelectionPrice(selection);
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 499);
-  assert.equal(summary.futurePaymentAmount, 499);
+  assert.equal(summary.dueToday, 449);
+  assert.equal(summary.futurePaymentAmount, 449);
+  assert.match(summary.futurePaymentCopy, /\$449/);
 });
 
 test('buildPaymentModeMarkup renders full and instalment options for eligible products', () => {
@@ -1321,6 +1353,7 @@ test('stripe webhook still fulfills payment_intent.succeeded events', async () =
               id: 'pi_test_123',
               metadata: {
                 payment_mode: 'full',
+                product_slug: 'blueprint',
               },
             },
           },
@@ -1689,6 +1722,7 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
 test('buildCheckoutPayload includes paymentMode for instalment submissions', () => {
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.paymentMode = 'instalments';
+  selection.couponCode = 'WEBINAR200';
 
   const payload = buildCheckoutPayload(selection, {
     billingDetails: {
@@ -1699,6 +1733,34 @@ test('buildCheckoutPayload includes paymentMode for instalment submissions', () 
   });
 
   assert.equal(payload.paymentMode, 'instalments');
+  assert.equal(payload.couponCode, 'WEBINAR200');
+});
+
+test('buildCheckoutPayload includes mastery upsell quantity when extra classes are selected', () => {
+  const selection = getInitialSelection('mastery', PRODUCTS.mastery);
+  selection.upsellSelected = true;
+  selection.upsellQuantity = 6;
+  updateSelectionPrice(selection);
+
+  const payload = buildCheckoutPayload(selection, {
+    billingDetails: {
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '+61 400 111 222',
+    },
+  });
+
+  assert.equal(payload.slug, 'mastery');
+  assert.equal(payload.totalAmount, 2843);
+  assert.equal(payload.upsellSlug, 'mentoring-single');
+  assert.equal(payload.upsellPrice, 99);
+  assert.equal(payload.upsellQuantity, 6);
+  assert.deepEqual(payload.upsell, {
+    slug: 'mentoring-single',
+    price: 99,
+    quantity: 6,
+    title: 'Add extra 1:1 classes',
+  });
 });
 
 test('EMAIL_PATTERN rejects obviously malformed addresses', () => {
@@ -1776,6 +1838,23 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       baseSlug: 'comprehensive',
       upsellAmount: 9900,
       upsellSlug: 'mentoring-single',
+    }
+  );
+
+  assert.deepEqual(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'mastery',
+      upsellSlug: 'mentoring-single',
+      upsellQuantity: 6,
+    }),
+    {
+      amount: 284300,
+      baseAmount: 224900,
+      baseSlug: 'mastery',
+      upsellAmount: 59400,
+      upsellSlug: 'mentoring-single',
+      upsellQuantity: 6,
+      upsellUnitAmount: 9900,
     }
   );
 
@@ -1949,6 +2028,55 @@ test('instalment session handler creates a subscription checkout session with fi
     createInstalmentSessionHandler.__resetForTests();
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT;
+  }
+});
+
+test('instalment session handler creates mastery add-on invoice items with selected quantity', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
+
+  const createdSessions = [];
+  createInstalmentSessionHandler.__setStripeFactory(() => ({
+    checkout: {
+      sessions: {
+        create: async (payload) => {
+          createdSessions.push(payload);
+          return { url: 'https://checkout.stripe.test/mastery_session_123' };
+        },
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug: 'mastery',
+        paymentMode: 'instalments',
+        upsellSlug: 'mentoring-single',
+        upsellQuantity: 5,
+        customerName: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+61 400 111 222',
+        origin: 'https://rohanstutoring.com',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createInstalmentSessionHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(createdSessions[0].line_items[0].price, 'price_mastery_123');
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items.length, 1);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].quantity, 5);
+    assert.equal(createdSessions[0].metadata.upsell_quantity, '5');
+    assert.equal(res.body.url, 'https://checkout.stripe.test/mastery_session_123');
+  } finally {
+    createInstalmentSessionHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_PRICE_MASTERY_INSTALMENT;
   }
 });
 
@@ -2761,8 +2889,29 @@ test('validate coupon handler returns a clean fixed-amount label for eligible pr
   }
 });
 
-test('validate coupon handler rejects instalment coupon attempts with a pay-in-full message', async () => {
+test('validate coupon handler accepts fixed comprehensive instalment coupons', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  validateCouponHandler.__setStripeFactory(() => ({
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_webinar_200',
+            coupon: {
+              id: 'coupon_webinar_200',
+              valid: true,
+              amount_off: 20000,
+              metadata: {
+                allowed_products: 'comprehensive',
+              },
+              name: 'Webinar $200 Off',
+            },
+          },
+        ],
+      }),
+    },
+  }));
 
   try {
     const req = {
@@ -2780,10 +2929,13 @@ test('validate coupon handler rejects instalment coupon attempts with a pay-in-f
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, {
-      valid: false,
-      error: 'Discount codes only apply to pay-in-full checkout.',
+      valid: true,
+      code: 'WEBINAR200',
+      discount: { type: 'fixed', value: 200 },
+      label: '$200 Off',
     });
   } finally {
+    validateCouponHandler.__setStripeFactory((secretKey) => require('stripe')(secretKey));
     delete process.env.STRIPE_SECRET_KEY;
   }
 });
@@ -2849,7 +3001,7 @@ test('payment intent status handler origin allow-list matches checkout endpoint'
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://evil.example.com'), false);
 });
 
-test('instalment session handler ignores coupon codes and still creates a full-price checkout session', async () => {
+test('instalment session handler spreads a comprehensive fixed coupon across monthly payments', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
 
@@ -2863,12 +3015,11 @@ test('instalment session handler ignores coupon codes and still creates a full-p
             coupon: {
               id: 'coupon_high_ticket_123',
               valid: true,
-              amount_off: 15000,
+              amount_off: 20000,
               metadata: {
-                allowed_product_group: 'high_ticket',
-                allowed_products: 'comprehensive,mastery',
+                allowed_products: 'comprehensive',
               },
-              name: 'High Ticket $150 Off',
+              name: 'Webinar $200 Off',
             },
           },
         ],
@@ -2891,7 +3042,7 @@ test('instalment session handler ignores coupon codes and still creates a full-p
       body: {
         slug: 'comprehensive',
         paymentMode: 'instalments',
-        couponCode: 'ROHAN150',
+        couponCode: 'WEBINAR200',
         customerName: 'Jane Smith',
         email: 'jane@example.com',
         phone: '+61 400 111 222',
@@ -2906,8 +3057,13 @@ test('instalment session handler ignores coupon codes and still creates a full-p
     assert.equal(createdSessions.length, 1);
     assert.equal(createdSessions[0].discounts, undefined);
     assert.equal(createdSessions[0].allow_promotion_codes, false);
-    assert.equal(createdSessions[0].metadata.coupon_code, undefined);
-    assert.equal(createdSessions[0].subscription_data.metadata.coupon_code, undefined);
+    assert.equal(createdSessions[0].line_items[0].price, undefined);
+    assert.equal(createdSessions[0].line_items[0].price_data.unit_amount, 44900);
+    assert.deepEqual(createdSessions[0].line_items[0].price_data.recurring, { interval: 'month' });
+    assert.equal(createdSessions[0].metadata.coupon_code, 'WEBINAR200');
+    assert.equal(createdSessions[0].metadata.discount_amount, '20000');
+    assert.equal(createdSessions[0].metadata.discount_per_instalment, '5000');
+    assert.equal(createdSessions[0].subscription_data.metadata.coupon_code, 'WEBINAR200');
     assert.equal(res.body.url, 'https://checkout.stripe.test/session_456');
   } finally {
     createInstalmentSessionHandler.__resetForTests();

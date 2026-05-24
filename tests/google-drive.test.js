@@ -30,7 +30,7 @@ test('shareProductAccess refreshes an access token and grants folder access', as
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_123/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       return {
         ok: true,
         status: 200,
@@ -54,7 +54,7 @@ test('shareProductAccess refreshes an access token and grants folder access', as
   assert.equal(calls.length, 3);
   assert.equal(calls[0].url, 'https://oauth2.googleapis.com/token');
   assert.match(calls[1].url, /\/files\/folder_123\/permissions\?supportsAllDrives=true&fields=/);
-  assert.match(calls[2].url, /sendNotificationEmail=true/);
+  assert.match(calls[2].url, /sendNotificationEmail=false/);
 
   googleDrive.__resetForTests();
   delete process.env.GOOGLE_CLIENT_ID;
@@ -88,7 +88,7 @@ test('shareProductAccess maps Blueprint-family enrolments to the Blueprint Drive
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       permissionCreates.push(JSON.parse(options.body));
       return {
         ok: true,
@@ -155,7 +155,7 @@ test('shareProductAccess can use service account credentials instead of a user r
       };
     }
 
-    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=true')) {
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions?supportsAllDrives=true&sendNotificationEmail=false')) {
       return {
         ok: true,
         status: 200,
