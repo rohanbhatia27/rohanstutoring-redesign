@@ -22,7 +22,7 @@
     el.innerHTML =
       '<div class="consent-banner__inner">' +
         '<p class="consent-banner__text">We use analytics cookies to understand how visitors use this site. No data is sold or shared. ' +
-        '<a href="/privacy.html" class="consent-banner__link">Privacy policy</a>.</p>' +
+        '<a href="/privacy" class="consent-banner__link">Privacy policy</a>.</p>' +
         '<div class="consent-banner__actions">' +
           '<button class="consent-banner__btn consent-banner__btn--decline" id="consent-decline" type="button">Decline</button>' +
           '<button class="consent-banner__btn consent-banner__btn--accept" id="consent-accept" type="button">Accept analytics</button>' +

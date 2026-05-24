@@ -8,6 +8,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form || !submitBtn || !submitText || !submitLoading || !success || !error) return;
 
+  const escapeHtml = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const getSafeHref = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (raw.startsWith('/') && !raw.startsWith('//')) {
+      return escapeHtml(raw);
+    }
+
+    try {
+      const parsed = new URL(raw, window.location.origin);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return escapeHtml(parsed.href);
+      }
+    } catch (_) {
+      return '';
+    }
+
+    return '';
+  };
+
   const setLoadingState = (isLoading) => {
     submitBtn.disabled = isLoading;
     submitText.hidden = isLoading;
@@ -66,7 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
       fireLeadEvent(payload.status);
 
       if (payload.status === 'fallback' && payload.fallback && payload.fallback.url) {
-        success.innerHTML = `<strong>S2 Slam System request received.</strong> ${payload.message} <a href="${payload.fallback.url}">${payload.fallback.label || 'Open the backup option'}</a>`;
+        const fallbackHref = getSafeHref(payload.fallback.url);
+        const fallbackLabel = escapeHtml(payload.fallback.label || 'Open the backup option');
+        const message = escapeHtml(payload.message || '');
+        const fallbackLinkHtml = fallbackHref
+          ? ` <a href="${fallbackHref}">${fallbackLabel}</a>`
+          : '';
+        success.innerHTML = `<strong>S2 Slam System request received.</strong> ${message}${fallbackLinkHtml}`;
       } else {
         form.reset();
         success.innerHTML = `<strong>You're in.</strong> Check your inbox for the S2 Slam System, then use the free quiz if you want a course recommendation. <a href="/quiz" class="btn btn--outline">Take the Free Quiz</a>`;

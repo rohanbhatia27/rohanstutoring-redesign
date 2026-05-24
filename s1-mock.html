@@ -20,6 +20,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://app.kit.com">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
@@ -100,9 +101,18 @@
         <div class="mock-page-mockup reveal reveal--delay-3">
           <div class="mock-page-mockup__glow"></div>
           <div class="mock-page-mockup__stack">
-            <img class="mock-page-mockup__img mock-page-mockup__img--left" src="assets/s1-mock-cover.png" alt="" aria-hidden="true" width="596" height="842" loading="eager" decoding="async">
-            <img class="mock-page-mockup__img mock-page-mockup__img--center" src="assets/s1-mock-cover.png" alt="S1 Mini Mock – 25 GAMSAT Questions" width="596" height="842" loading="eager" decoding="async" fetchpriority="high">
-            <img class="mock-page-mockup__img mock-page-mockup__img--right" src="assets/s1-mock-cover.png" alt="" aria-hidden="true" width="596" height="842" loading="eager" decoding="async">
+            <picture>
+              <source srcset="/assets/s1-mock-cover.webp" type="image/webp">
+              <img class="mock-page-mockup__img mock-page-mockup__img--left" src="/assets/s1-mock-cover.png" alt="" aria-hidden="true" width="596" height="842" loading="eager" decoding="async">
+            </picture>
+            <picture>
+              <source srcset="/assets/s1-mock-cover.webp" type="image/webp">
+              <img class="mock-page-mockup__img mock-page-mockup__img--center" src="/assets/s1-mock-cover.png" alt="S1 Mini Mock – 25 GAMSAT Questions" width="596" height="842" loading="eager" decoding="async" fetchpriority="high">
+            </picture>
+            <picture>
+              <source srcset="/assets/s1-mock-cover.webp" type="image/webp">
+              <img class="mock-page-mockup__img mock-page-mockup__img--right" src="/assets/s1-mock-cover.png" alt="" aria-hidden="true" width="596" height="842" loading="eager" decoding="async">
+            </picture>
           </div>
         </div>
 
