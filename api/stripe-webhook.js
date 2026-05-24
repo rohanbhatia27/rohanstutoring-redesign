@@ -105,6 +105,12 @@ async function stripeWebhookHandler(req, res) {
         console.log(`[stripe-webhook] Skipping subscription-linked PI ${pi.id} (invoice: ${pi.invoice})`);
         return res.status(200).json({ received: true });
       }
+      const piMeta = (pi.metadata && typeof pi.metadata === 'object') ? pi.metadata : {};
+      const piSlug = String(piMeta.base_slug || piMeta.product_slug || '').trim();
+      if (!piSlug) {
+        console.log(`[stripe-webhook] Skipping PI ${pi.id} — no product slug in metadata`);
+        return res.status(200).json({ received: true });
+      }
       await fulfillPaymentIntentImpl({
         paymentIntent: pi,
         stripeClient,
