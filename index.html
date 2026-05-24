@@ -24,11 +24,11 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <style>
-    :root{--navy:#080F1A;--blue:#1677BE;--blue-hover:#1a8ce0;--green:#10BF7A;--white:#fff;--off-white:#F4F7FB;--text:#0D1117;--text-muted:#6B7280;--text-light:#C9D5E4;--text-dark-soft:#D7E2EE;--border:rgba(255,255,255,.08);--font-heading:'Figtree',system-ui,sans-serif;--font-sans:'Inter',system-ui,sans-serif;--transition:.3s cubic-bezier(.4,0,.2,1);--header-height:148px}
+    :root{--navy:#080F1A;--blue:#1677BE;--blue-hover:#1a8ce0;--green:#10BF7A;--white:#fff;--off-white:#F4F7FB;--text:#0D1117;--text-muted:#6B7280;--text-light:#C9D5E4;--text-dark-soft:#D7E2EE;--border:rgba(255,255,255,.08);--font-heading:'Figtree',system-ui,sans-serif;--font-sans:'Geist',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--transition:.3s cubic-bezier(.4,0,.2,1);--header-height:148px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth;font-size:16px}
     body{font-family:var(--font-sans);color:var(--text);background:var(--white);-webkit-font-smoothing:antialiased}
@@ -39,7 +39,7 @@
     .nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid transparent}.nav__inner{position:relative;z-index:2;display:flex;align-items:center;gap:32px;max-width:1200px;margin:0 auto;padding:14px 24px}.nav__logo{margin-right:auto}.nav__logo-img{height:120px;width:auto}.nav__links{display:flex;align-items:center;gap:32px}.nav__links a,.nav__dropdown-trigger{font-size:.9rem;font-weight:500;color:var(--text-dark-soft)}.nav__dropdown-wrap{position:relative}.nav__dropdown-trigger{display:flex;align-items:center;gap:5px;padding:0;border:0;background:0;font-family:inherit;cursor:pointer;min-height:44px}.nav__burger{display:none;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:0;border:0;cursor:pointer;width:44px;height:44px;padding:0}.nav__burger span{display:block;width:22px;height:2px;background:var(--white);border-radius:2px}.nav__mobile{display:none}
     .hero{position:relative;min-height:100vh;display:flex;align-items:center;background:var(--navy);overflow:hidden}.hero__bg{position:absolute;inset:0;pointer-events:none}.hero__shader{position:absolute;inset:0;z-index:2;opacity:0;background:transparent}.hero__grain,.hero__orb{display:none!important}.hero__photo-col{position:absolute;top:0;right:0;width:52%;height:100%;z-index:1;pointer-events:none;background:var(--navy);clip-path:inset(0)}.hero__photo{position:absolute;top:0;right:0;height:100%;width:auto;max-width:none;object-fit:contain;object-position:top right;filter:brightness(1.03) contrast(1.16) saturate(1.04) drop-shadow(0 20px 56px rgba(38,108,229,.18));z-index:1}.hero__photo-fade{position:absolute;inset:0;z-index:2;background:linear-gradient(to right,rgba(8,15,26,.96) 0%,rgba(8,15,26,.74) 16%,rgba(8,15,26,.14) 34%,rgba(8,15,26,.02) 46%,transparent 60%)}.hero__inner{position:relative;z-index:3;width:100%;max-width:1200px;margin:0 auto;padding:138px 24px 96px}.hero__content{max-width:min(500px,46vw)}.hero__urgency{display:inline-flex;align-items:center;gap:10px;margin-bottom:22px;color:var(--text-light);font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.hero__urgency-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 6px rgba(16,191,122,.12);flex-shrink:0}.hero__urgency-text{overflow-wrap:anywhere}.hero__headline{max-width:100%;font-size:clamp(2.4rem,4.5vw,4rem);color:var(--white);margin-bottom:20px;line-height:1.05}.hero__sub{max-width:34rem;margin-bottom:28px;font-size:1.08rem;line-height:1.7;color:rgba(255,255,255,.96)}.hero__proof{display:inline-flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:34px;color:var(--off-white)}.hero__proof-item{font-size:.95rem;font-weight:600;letter-spacing:.01em}.hero__proof-separator{width:18px;height:1px;background:rgba(255,255,255,.28)}.hero__ctas{display:flex;gap:14px;flex-wrap:wrap}.hero__ctas .btn{flex:1;min-width:0}.hero__cta-proof{display:none;width:100%;margin:2px 0 0;color:rgba(255,255,255,.68);font-size:.82rem;line-height:1.5}.hero .reveal,.hero .reveal.visible{opacity:1;transform:none;transition:none}
     @media (max-width:860px){:root{--header-height:88px}.nav__links{display:none}.nav__burger{display:flex}.nav__logo-img{height:60px}.hero{min-height:auto}.hero__inner{padding-top:calc(var(--header-height) + 36px);padding-bottom:56px}.hero__content{max-width:100%}.hero__photo-col{display:none}.hero__urgency{margin-bottom:16px;font-size:.74rem;line-height:1.45}.hero__headline{max-width:100%;margin-bottom:18px}.hero__sub{font-size:1rem;margin-bottom:22px}.hero__proof{gap:10px;margin-bottom:28px}.hero__ctas{gap:12px}}
-    @media (max-width:640px){.hero__headline,.hero__sub,.hero__proof{text-align:center}.hero__headline,.hero__sub{margin-left:auto;margin-right:auto}.hero__proof{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:28px;justify-items:center}.hero__proof-separator{display:none}.hero__proof-item{width:100%}.hero__ctas{flex-direction:column;gap:10px}.hero__ctas .btn--lg{width:100%;justify-content:center;padding:15px 20px}.hero__cta-proof{display:block;text-align:center}}
+    @media (max-width:640px){.hero__headline,.hero__sub,.hero__proof{text-align:center}.hero__headline,.hero__sub{margin-left:auto;margin-right:auto}.hero__proof{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:28px}.hero__proof-separator{display:none}.hero__ctas{flex-direction:column;gap:10px}.hero__ctas .btn--lg{width:100%;justify-content:center;padding:15px 20px}.hero__cta-proof{display:block;text-align:center}}
     @media (max-width:480px){.hero__inner{padding-left:20px;padding-right:20px;padding-top:calc(var(--header-height) + 26px);padding-bottom:48px}.hero__headline{max-width:100%;font-size:2.35rem}}
   </style>
   <link rel="stylesheet" href="css/style.css">
@@ -71,15 +71,19 @@
       margin-bottom: 18px;
     }
     .hero__proof-item {
-      padding: 9px 13px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      font-size: 0.86rem;
-      line-height: 1.2;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.82);
     }
     .hero__proof-separator {
-      display: none;
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      flex-shrink: 0;
     }
     .hero__ctas {
       gap: 12px;
@@ -139,9 +143,6 @@
       .hero__headline {
         max-width: 9.5ch;
         font-size: clamp(2.3rem, 10vw, 3rem);
-      }
-      .hero__proof {
-        display: none;
       }
       .hero__sub {
         font-size: 1.04rem;
@@ -408,7 +409,7 @@
     <div class="container">
       <div class="proof__header reveal">
         <span class="label">Results</span>
-        <h2>1,300+ students.<br><em>Real scores. Real acceptances.</em></h2>
+        <h2>1,300+ students.<br><span class="heading-accent">Real scores. Real acceptances.</span></h2>
         <p class="proof__lede">More content isn't the answer. Scores move when students learn to think differently under exam pressure, and that's what we teach.</p>
       </div>
 
@@ -507,7 +508,7 @@
     <div class="container">
       <div class="courses__header reveal">
         <span class="label">The Courses</span>
-        <h2>The big prep companies charge $5,000+.<br><em>Ours start at $599.</em></h2>
+        <h2>The big prep companies charge $5,000+.<br><span class="heading-accent">Ours start at $599.</span></h2>
         <p class="courses__pricing-note">Prices are lower because we're a small team with low overhead and no outside investors. You pay for the teaching, not a brand name.</p>
       </div>
 
@@ -619,7 +620,7 @@
     <div class="container">
       <div class="versus__head reveal">
         <span class="label versus__eyebrow">The Honest Comparison</span>
-        <h2 id="versus-title">Big GAMSAT prep companies charge $5,000+.<br><em>Here's what you actually get for it.</em></h2>
+        <h2 id="versus-title">Big GAMSAT prep companies charge $5,000+.<br><span class="heading-accent">Here's what you actually get for it.</span></h2>
         <p class="versus__lede">A side-by-side look at what you pay for, who teaches you, and the kind of attention you actually receive.</p>
       </div>
 
@@ -721,7 +722,7 @@
     <div class="container">
       <div class="how__header reveal">
         <span class="label">The Approach</span>
-        <h2>You don't improve the GAMSAT<br><em>by studying harder.</em></h2>
+        <h2>You don't improve the GAMSAT<br><span class="heading-accent">by studying harder.</span></h2>
         <p class="how__intro">We find where your marks are leaking, rebuild the scoring logic behind each section, then drill it until it holds under pressure.</p>
       </div>
 

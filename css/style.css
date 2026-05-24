@@ -1,7 +1,7 @@
 /* ============================================
    ROHAN'S GAMSAT — Premium Redesign
    Design: Dark navy authority + electric blue
-   Type:   Figtree (headings)  Inter (body)
+   Type:   Figtree (headings)  Geist (body)
    ============================================ */
 
 /* ---- Custom Properties ---- */
@@ -25,7 +25,7 @@
   --off-white:    #F4F7FB;
   --cream:        #F9F7F3;
   --text:         #0D1117;
-  --text-muted:   #6B7280;
+  --text-muted:   #4B5563;
   --text-light:   #C9D5E4;
   --text-dark-muted: #B8C7D8;
   --text-dark-soft:  #D7E2EE;
@@ -38,7 +38,7 @@
   --premium-ink:  #1A0F00;
 
   --font-heading: 'Figtree', system-ui, sans-serif;
-  --font-sans:  'Inter', system-ui, sans-serif;
+  --font-sans:  'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --radius-sm:  6px;
   --radius-md:  12px;
@@ -107,8 +107,9 @@ h1 { font-size: clamp(2.6rem, 5.5vw, 6rem); font-weight: 700; }
 h2 { font-size: clamp(1.9rem, 3.5vw, 3.25rem); font-weight: 700; }
 h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; }
 p { line-height: 1.7; color: var(--text-muted); }
-em { font-style: italic; color: var(--blue-light); }
+em { font-style: italic; }
 strong { font-weight: 700; color: inherit; }
+.heading-accent { font-style: italic; }
 
 .label {
   display: inline-block;
@@ -191,15 +192,15 @@ strong { font-weight: 700; color: inherit; }
 }
 .btn--white:hover { box-shadow: var(--shadow-lg); }
 .btn--gold {
-  background: linear-gradient(135deg, var(--premium-gold) 0%, var(--premium-gold-deep) 100%);
+  background: var(--premium-gold);
   color: var(--premium-ink);
   border-color: transparent;
-  box-shadow: 0 6px 22px rgba(184, 146, 42, 0.28);
+  box-shadow: 0 4px 16px rgba(184, 146, 42, 0.22);
 }
 .btn--gold:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--premium-gold) 90%, white) 0%, var(--premium-gold) 100%);
-  color: var(--premium-ink);
-  box-shadow: 0 10px 32px rgba(184, 146, 42, 0.34);
+  background: var(--premium-gold-deep);
+  color: var(--white);
+  box-shadow: 0 8px 28px rgba(184, 146, 42, 0.32);
 }
 .btn--nav {
   background: var(--blue);
@@ -891,17 +892,19 @@ body.menu-open .nav::after {
   color: var(--off-white);
 }
 .hero__proof-item {
-  padding: 9px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  line-height: 1.2;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.82);
 }
 .hero__proof-separator {
-  display: none;
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
 }
 
 /* CTAs */
@@ -1011,7 +1014,8 @@ body.menu-open .nav::after {
     font-size: clamp(2.3rem, 10vw, 3rem);
   }
   .hero__proof {
-    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .hero__proof-separator {
     display: none;
@@ -1077,8 +1081,8 @@ body.menu-open .nav::after {
 
 .how__header {
   max-width: 700px;
-  margin: 0 auto 72px;
-  text-align: center;
+  margin: 0 0 72px;
+  text-align: left;
   position: relative;
 }
 .how__header .label {
@@ -1105,8 +1109,8 @@ body.menu-open .nav::after {
 
 .how__item {
   display: flex;
-  gap: 48px;
-  padding: 48px 0;
+  gap: 28px;
+  padding: 40px 0;
   border-bottom: 1px solid var(--border-soft);
   align-items: flex-start;
 }
@@ -1114,14 +1118,15 @@ body.menu-open .nav::after {
 .how__item:last-child { border-bottom: none; }
 
 .how__item-num {
-  font-family: var(--font-heading);
-  font-size: 4rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   font-weight: 700;
+  letter-spacing: 0.12em;
   line-height: 1;
-  color: var(--blue);
+  color: var(--text-muted);
   flex-shrink: 0;
-  width: 72px;
-  padding-top: 4px;
+  width: 32px;
+  padding-top: 6px;
 }
 
 .how__item-body h3 {
@@ -1141,8 +1146,8 @@ body.menu-open .nav::after {
 }
 
 @media (max-width: 640px) {
-  .how__item { gap: 28px; padding: 36px 0; }
-  .how__item-num { font-size: 2.8rem; width: 52px; }
+  .how__item { gap: 20px; padding: 32px 0; }
+  .how__item-num { font-size: 0.68rem; width: 26px; }
   .how__item-body h3 { font-size: 1.1rem; }
 }
 
@@ -1836,11 +1841,9 @@ img[loading="lazy"] {
   background: var(--off-white);
 }
 .resources__header {
-  text-align: center;
+  text-align: left;
   margin-bottom: 56px;
   max-width: 580px;
-  margin-left: auto;
-  margin-right: auto;
 }
 .resources__header .label {
   font-size: 0.82rem;
@@ -2278,7 +2281,7 @@ img[loading="lazy"] {
   font-size: clamp(1.9rem, 3.4vw, 3rem);
   line-height: 1.05;
 }
-.versus__head h2 em { color: var(--blue-light); font-style: italic; }
+.versus__head h2 em { font-style: italic; }
 .versus__lede {
   margin-top: 18px;
   color: var(--text-dark-soft);
