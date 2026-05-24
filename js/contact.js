@@ -11,15 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const success = document.getElementById('formSuccess');
   const error = document.getElementById('formError');
   const errorText = error?.querySelector('.form-error__text');
-  const captcha = form?.querySelector('.cf-turnstile');
   const defaultErrorMessage = errorText?.textContent || 'Something went wrong. Please try again or email us directly.';
 
   if (!form || !submitBtn || !btnText || !btnLoading || !success || !error) return;
-
-  const resetCaptcha = () => {
-    if (!captcha || !captcha.id || !window.turnstile || typeof window.turnstile.reset !== 'function') return;
-    window.turnstile.reset(`#${captcha.id}`);
-  };
 
   const showError = (message) => {
     if (errorText) errorText.textContent = message;
@@ -50,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (response.ok) {
         // Success
         form.reset();
-        resetCaptcha();
         if (typeof window.gtag === 'function') {
           window.gtag('event', 'contact_form_submit');
           window.gtag('event', 'generate_lead', { form_id: 'contact' });
@@ -61,14 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
         success.style.display = 'flex';
         success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else if (response.status === 403 || response.status === 422 || response.status === 429) {
-        resetCaptcha();
         showError('Security check failed. Please refresh and try again.');
       } else {
-        resetCaptcha();
         throw new Error('Server error');
       }
     } catch (err) {
-      resetCaptcha();
       showError(defaultErrorMessage);
     } finally {
       btnText.style.display = 'inline';
