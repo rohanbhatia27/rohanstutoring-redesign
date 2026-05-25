@@ -1,10 +1,42 @@
-const TABLE_URL = `${process.env.SUPABASE_URL}/rest/v1/meeting_notes`;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = String(process.env.SUPABASE_URL || "")
+  .trim()
+  .replace(/\/+$/, "")
+  .replace(/\/rest\/v1$/i, "");
+const TABLE_URL = `${SUPABASE_URL}/rest/v1/meeting_notes`;
+const SERVICE_ROLE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
 function assertSupabaseEnv() {
-  if (!process.env.SUPABASE_URL || !SERVICE_ROLE_KEY) {
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
     throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   }
+}
+
+function getTableUrlInfo(targetUrl = TABLE_URL) {
+  try {
+    const url = new URL(targetUrl);
+    return {
+      host: url.host,
+      path: url.pathname,
+    };
+  } catch {
+    return {
+      host: "",
+      path: "",
+    };
+  }
+}
+
+function getMeetingStoreDebugInfo() {
+  const tableUrl = getTableUrlInfo();
+
+  return {
+    storeMode: "supabase-rest",
+    supabaseUrlConfigured: Boolean(SUPABASE_URL),
+    serviceRoleConfigured: Boolean(SERVICE_ROLE_KEY),
+    tableUrlHost: tableUrl.host,
+    tableUrlPath: tableUrl.path,
+    nodeVersion: process.version,
+  };
 }
 
 function supabaseHeaders(extra = {}) {
@@ -38,9 +70,23 @@ async function requestSupabase(url, options = {}) {
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
 
   if (!response.ok) {
+    const requestUrl = getTableUrlInfo(url);
+    console.error("[meeting-store] Supabase REST error:", {
+      status: response.status,
+      statusText: response.statusText,
+      body: text,
+      requestHost: requestUrl.host,
+      requestPath: requestUrl.path,
+    });
+
     const message = data?.message || data?.hint || text || response.statusText;
     throw new Error(`Supabase REST error (${response.status}): ${message}`);
   }
@@ -186,4 +232,5 @@ module.exports = {
   getMeetingNoteById,
   searchMeetingNotes,
   getLeadContext,
+  getMeetingStoreDebugInfo,
 };

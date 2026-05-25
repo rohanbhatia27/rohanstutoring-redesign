@@ -9,6 +9,7 @@
  * GET  /api/meetings?id=      — full meeting record including transcript
  * GET  /api/meetings?q=       — text search across title/summary/transcript/tags
  * GET  /api/meetings?name=    — lead context profile for a named person
+ * GET  /api/meetings?debug=env — safe storage/env diagnostics
  *
  * Read endpoints require x-api-key header (MEETING_NOTES_API_KEY).
  * Webhook requires x-spellar-secret header or ?secret= query param.
@@ -21,6 +22,7 @@ const {
   getMeetingNoteById,
   searchMeetingNotes,
   getLeadContext,
+  getMeetingStoreDebugInfo,
 } = require('./_lib/_meeting-store.js');
 const { validateApiKey } = require('./_lib/_meeting-auth.js');
 
@@ -103,6 +105,13 @@ async function handleList(req, res) {
   }
 }
 
+async function handleDebugEnv(req, res) {
+  const authError = validateApiKey(req);
+  if (authError) return res.status(authError.status).json({ error: authError.error });
+
+  return res.status(200).json(getMeetingStoreDebugInfo());
+}
+
 async function handleById(req, res) {
   const authError = validateApiKey(req);
   if (authError) return res.status(authError.status).json({ error: authError.error });
@@ -170,8 +179,9 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { id, q, name } = req.query || {};
+  const { id, q, name, debug } = req.query || {};
 
+  if (debug === 'env') return handleDebugEnv(req, res);
   if (id)   return handleById(req, res);
   if (q)    return handleSearch(req, res);
   if (name) return handleLeadContext(req, res);
