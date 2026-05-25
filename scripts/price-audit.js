@@ -36,6 +36,8 @@ const EXTERNAL_STRIPE_LINKS = {
   },
 };
 
+const SOLD_OUT_PAGE_SLUGS = new Set(['comprehensive', 'mastery']);
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /**
@@ -115,6 +117,10 @@ function findProductForPrice(pageProducts, price) {
   return pageProducts.find(function (product) {
     return priceMatchesCatalog(price, product);
   }) || null;
+}
+
+function isPageSoldOutOverride(pageSlug) {
+  return SOLD_OUT_PAGE_SLUGS.has(String(pageSlug || '').trim());
 }
 
 // ─── Page-level checks ──────────────────────────────────────────────────────
@@ -215,6 +221,7 @@ function checkCheckoutLinkTextPrices(html, catalog, errors, fileName) {
 function checkEnrolmentCtaVsAvailability(html, catalog, pageSlug, errors, fileName) {
   const prod = Object.values(catalog).find(p => p.pageSlug === pageSlug || p.slug === pageSlug);
   if (!prod) return;
+  const isAvailableOnPage = prod.available && !isPageSoldOutOverride(pageSlug);
 
   const hasStripeBuy = /buy\.stripe\.com/.test(html);
 
@@ -229,11 +236,19 @@ function checkEnrolmentCtaVsAvailability(html, catalog, pageSlug, errors, fileNa
   }
   const hasAnyCheckout = /\/checkout\/\?product=/.test(html);
 
-  // Purchase CTAs: only clear buy/enrol intent
-  const ctaRe = /\b(?:Enrol(?:\s+Now)?|Secure My Spot|Join Now|Buy Now)\b/i;
-  const hasEnrolCta = ctaRe.test(html);
+  // Purchase CTAs: only clear buy/enrol intent inside clickable controls
+  const ctaTagRe = /<(?:a|button)\b[^>]*>([\s\S]*?)<\/(?:a|button)>/gi;
+  const ctaTextRe = /\b(?:Enrol(?:\s+Now)?|Secure My Spot|Join Now|Buy Now)\b/i;
+  let hasEnrolCta = false;
+  let ctaTagMatch;
+  while ((ctaTagMatch = ctaTagRe.exec(html)) !== null) {
+    if (ctaTextRe.test(stripTags(ctaTagMatch[1]))) {
+      hasEnrolCta = true;
+      break;
+    }
+  }
 
-  if (!prod.available) {
+  if (!isAvailableOnPage) {
     if (hasCheckoutForThis) {
       errors.push('[Enrolment] In ' + fileName + ': ' + prod.slug + ' is unavailable but page links to /checkout/?product=' + prod.slug);
     }
@@ -411,12 +426,12 @@ function runPriceAudit() {
             errors.push('[JSON-LD] In ' + fileName + ': priceCurrency is "' + offer.priceCurrency + '", must be AUD');
           }
           if (offer.availability) {
-            const expectedAvail = matched.available ? 'InStock' : 'SoldOut';
+            const isAvailableOnPage = matched.available && !isPageSoldOutOverride(pageSlug);
             const isSoldOut = offer.availability === 'https://schema.org/SoldOut';
-            if (!matched.available && !isSoldOut) {
+            if (!isAvailableOnPage && !isSoldOut) {
               errors.push('[JSON-LD] In ' + fileName + ': ' + matched.slug + ' is unavailable but availability is not SoldOut');
             }
-            if (matched.available && isSoldOut) {
+            if (isAvailableOnPage && isSoldOut) {
               errors.push('[JSON-LD] In ' + fileName + ': ' + matched.slug + ' is available but availability is SoldOut');
             }
           }

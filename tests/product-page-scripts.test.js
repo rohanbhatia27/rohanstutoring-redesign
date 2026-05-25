@@ -17,17 +17,18 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-test('mastery page instalment links are real hrefs in markup and match shared config', () => {
-  const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
-  const masteryTags = Array.from(html.matchAll(/<a\b[^>]*data-mastery-instalment-link[^>]*>/g));
+test('sold-out flagship pages route visitors to the waitlist instead of checkout', () => {
+  const masteryHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
+  const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.equal(masteryTags.length, 2);
+  assert.match(masteryHtml, /GAMSAT Mastery Program \(Sold Out\)/);
+  assert.match(masteryHtml, /Join the waitlist for the next Mastery cohort/);
+  assert.doesNotMatch(masteryHtml, /data-mastery-instalment-link/);
+  assert.doesNotMatch(masteryHtml, /href="\/checkout\/\?product=mastery/);
 
-  for (const [tag] of masteryTags) {
-    const hrefMatch = tag.match(/\bhref="([^"]+)"/);
-    assert.ok(hrefMatch, 'expected mastery instalment CTA to include an href');
-    assert.equal(hrefMatch[1], storefrontConfig.instalmentLinks.mastery.url);
-  }
+  assert.match(comprehensiveHtml, /GAMSAT Live Comprehensive Course \(Sold Out\)/);
+  assert.match(comprehensiveHtml, /Join the waitlist for the next cohort/);
+  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
 });
 
 test('product hero media keeps eager LCP hints and a shared aspect-ratio fallback', () => {
