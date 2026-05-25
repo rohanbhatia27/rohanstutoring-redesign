@@ -106,22 +106,22 @@ const OUTCOMES = {
     name: 'The Mastery Path',
     teaser: "You've sat this before. You know what doesn't work. The problem is not effort or time. Nobody has looked at your specific score profile and rebuilt your prep around what's actually leaking points. That's what one-to-one coaching is for.",
     planHtml: `
-      <p>After multiple attempts, the bottleneck is rarely content. It's that no one has looked at your specific score profile and rebuilt your prep around the actual gaps. Mastery is one-to-one coaching built around you. Below is the structure we'd work through together over 12 weeks.</p>
-      <h3>Phase 1: Weeks 1 to 4: Diagnose and rebuild foundations</h3>
+      <p>After multiple attempts, the bottleneck is rarely content. It's that no one has looked at your specific score profile and rebuilt your prep around the actual gaps. Mastery is one-to-one coaching built around you. Below is the structure we'd work through together over 10 weeks.</p>
+      <h3>Phase 1: Weeks 1 to 3: Diagnose and rebuild foundations</h3>
       <p class="plan-phase-focus">Weekly focus: one diagnostic mock, targeted weakness work, two essays marked.</p>
       <ol>
         <li>Sit a full timed paper in week 1, then break it down question by question with your tutor.</li>
         <li>Rebuild whichever section is leaking the most points, with structured coaching sessions.</li>
         <li>Establish an essay rhythm: two essays a week, marked, with revision cycles.</li>
       </ol>
-      <h3>Phase 2: Weeks 5 to 9: Volume under pressure</h3>
+      <h3>Phase 2: Weeks 4 to 7: Volume under pressure</h3>
       <p class="plan-phase-focus">Weekly focus: 3 to 4 timed mini-papers, continued essay marking, strategy refinement.</p>
       <ol>
         <li>Shift from learning content to executing under time. Mini-papers daily, full mocks weekly.</li>
         <li>Use 1:1 sessions to autopsy each mock, not just review answers.</li>
         <li>Lock in your S2 template so essays become automatic, not agonising.</li>
       </ol>
-      <h3>Phase 3: Weeks 10 to 12: Sharpen and simulate</h3>
+      <h3>Phase 3: Weeks 8 to 10: Sharpen and simulate</h3>
       <p class="plan-phase-focus">Weekly focus: full mock every week, recovery between, no new content.</p>
       <ol>
         <li>Three full mocks in exam conditions. Stop studying new material.</li>
@@ -135,24 +135,24 @@ const OUTCOMES = {
   COMPREHENSIVE: {
     id: 'COMPREHENSIVE',
     name: 'The Comprehensive Path',
-    teaser: "You've got the time and the hours. The gap is real but closeable. Free resources won't close it. You need live teaching, regular essay feedback, and a structure that keeps you honest across five months.",
+    teaser: "You've got the time and the hours. The gap is real but closeable. Free resources won't close it. You need live teaching, regular essay feedback, and a structure that keeps you honest across ten focused weeks.",
     planHtml: `
-      <p>A 5+ point jump is realistic, but not through self-study alone. Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this exact gap. Here's how your next 12 weeks should look.</p>
-      <h3>Phase 1: Weeks 1 to 4: Build the foundations, section by section</h3>
+      <p>A 5+ point jump is realistic, but not through self-study alone. Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this exact gap. Here's how your next 10 weeks should look.</p>
+      <h3>Phase 1: Weeks 1 to 3: Build the foundations, section by section</h3>
       <p class="plan-phase-focus">Weekly focus: systematic S1 and S3 study, weekly essay, one diagnostic mock.</p>
       <ol>
         <li>Work through S1 humanities methodically, logic, poetry, tone, inference. Two hours a day minimum.</li>
         <li>S3 fundamentals: do not skip chemistry and physics reasoning even if your background is biology.</li>
         <li>Write one essay a week from week one. Do not wait until you feel ready.</li>
       </ol>
-      <h3>Phase 2: Weeks 5 to 9: Apply under pressure, refine the essay</h3>
+      <h3>Phase 2: Weeks 4 to 7: Apply under pressure, refine the essay</h3>
       <p class="plan-phase-focus">Weekly focus: timed section drills daily, two essays a week, weekly full mock.</p>
       <ol>
         <li>Stop doing untimed practice. Every question from here has a clock on it.</li>
         <li>Develop a repeatable S2 structure and commit to it for three weeks before changing anything.</li>
         <li>After each mock, spend as long reviewing as you did sitting it.</li>
       </ol>
-      <h3>Phase 3: Weeks 10 to 12: Exam simulation and taper</h3>
+      <h3>Phase 3: Weeks 8 to 10: Exam simulation and taper</h3>
       <p class="plan-phase-focus">Weekly focus: 2 full mocks per fortnight, targeted weakness patching, no new content.</p>
       <ol>
         <li>Simulate exam day start times. Your brain needs to be sharp at 9am, not 9pm.</li>
@@ -199,22 +199,22 @@ const OUTCOMES = {
     name: "The Beginner's Path",
     teaser: "You're early. That's the best position to be in, as long as you use it. You don't need a full course yet. You need 30 days of real study, a first essay submitted, and a habit that carries you through.",
     planHtml: `
-      <p>The biggest predictor of early GAMSAT success is not IQ or background. It's momentum in the first month. The Essentials Playbook gets you from zero to consistent study in 30 days, including your first essay marked. Here is how the next 12 weeks should look from where you are now.</p>
-      <h3>Phase 1: Weeks 1 to 4: Build the habit, not the knowledge</h3>
+      <p>The biggest predictor of early GAMSAT success is not IQ or background. It's momentum in the first month. The Essentials Playbook gets you from zero to consistent study in 30 days, including your first essay marked. Here is how the next 10 weeks should look from where you are now.</p>
+      <h3>Phase 1: Weeks 1 to 3: Build the habit, not the knowledge</h3>
       <p class="plan-phase-focus">Weekly focus: follow the Playbook's 30-day plan exactly, no improvisation.</p>
       <ol>
         <li>Study every weekday, even if only 30 minutes. Consistency over volume.</li>
         <li>Write and submit your first essay by week 2. It does not matter how it scores.</li>
         <li>Use the free resources on the site to see how the full system fits together.</li>
       </ol>
-      <h3>Phase 2: Weeks 5 to 9: Widen the scope</h3>
+      <h3>Phase 2: Weeks 4 to 7: Widen the scope</h3>
       <p class="plan-phase-focus">Weekly focus: move beyond Playbook basics into full-section study, weekly essay.</p>
       <ol>
         <li>Add a second essay per week. Volume matters now.</li>
         <li>Start timed practice, even if scores drop. Untimed practice is a trap.</li>
         <li>Decide on your next product: Blueprint for self-paced, Comprehensive for live classes.</li>
       </ol>
-      <h3>Phase 3: Weeks 10 to 12: Decide and commit</h3>
+      <h3>Phase 3: Weeks 8 to 10: Decide and commit</h3>
       <p class="plan-phase-focus">Weekly focus: pick your main course and transition in.</p>
       <ol>
         <li>By now you'll know whether you need live teaching or self-paced content.</li>

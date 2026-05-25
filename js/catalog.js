@@ -211,7 +211,7 @@
       tagline: '',
       features: [
         '50+ hours of recorded library content',
-        '24 live coaching classes',
+        '20 live coaching classes',
         'Live essay feedback in every class',
         'Direct access to Rohan',
         '100% refund guarantee',
