@@ -369,10 +369,10 @@ test('renderSummaryMarkup renders standard products with included features', () 
   assert.match(markup, /\$599 AUD/);
 });
 
-test('comprehensive checkout summary uses the May 2026 course title without cohort tagline', () => {
+test('comprehensive checkout summary uses the June 2026 course title without cohort tagline', () => {
   const markup = renderSummaryMarkup(PRODUCTS.comprehensive, getInitialSelection('comprehensive', PRODUCTS.comprehensive));
 
-  assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(May 2026 Start\)/);
+  assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(June 2026 Start\)/);
   assert.doesNotMatch(markup, /24 live classes  50\+ hrs content  September cohort/);
 });
 
@@ -1556,7 +1556,7 @@ test('buildPurchaseItems keeps the comprehensive order bump at the bundled disco
   assert.deepEqual(buildPurchaseItems('comprehensive', 'mentoring-single'), [
     {
       item_id: 'comprehensive',
-      item_name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
+      item_name: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
       price: 1699,
       quantity: 1,
     },

@@ -95,7 +95,7 @@ const SERVER_EXTENSIONS = {
     purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
     cohortEmail: {
       subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-      startLine: 'Our first live class kicks off on Tuesday 26 May at 6pm AEST.',
+      startLine: 'Your June cohort starts on Monday 15 June. You now have immediate access to the course library before Week 1.',
     },
   },
 
@@ -107,7 +107,7 @@ const SERVER_EXTENSIONS = {
     purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
     cohortEmail: {
       subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-      startLine: 'Our first live class kicks off on Tuesday 26 May at 6pm AEST.',
+      startLine: 'Your June cohort starts on Monday 15 June. You now have immediate access to the course library before Week 1.',
     },
   },
 
@@ -119,7 +119,7 @@ const SERVER_EXTENSIONS = {
     purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
     cohortEmail: {
       subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-      startLine: 'Our first live class kicks off on Wednesday 27 May at 7pm AEST.',
+      startLine: 'Your June cohort starts on Monday 15 June. You now have immediate access to the course library before Week 1.',
     },
   },
 

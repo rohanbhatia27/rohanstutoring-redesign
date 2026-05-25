@@ -17,18 +17,19 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-test('sold-out flagship pages route visitors to the waitlist instead of checkout', () => {
+test('flagship course pages route visitors to checkout after enrolments reopen', () => {
   const masteryHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(masteryHtml, /GAMSAT Mastery Program \(Sold Out\)/);
-  assert.match(masteryHtml, /Join the waitlist for the next Mastery cohort/);
-  assert.doesNotMatch(masteryHtml, /data-mastery-instalment-link/);
-  assert.doesNotMatch(masteryHtml, /href="\/checkout\/\?product=mastery/);
+  assert.match(masteryHtml, /New Cohort Starts 15 June/);
+  assert.match(masteryHtml, /href="\/checkout\/\?product=mastery"/);
+  assert.match(masteryHtml, /href="\/checkout\/\?product=mastery(?:&amp;|&)paymentMode=instalments"/);
+  assert.doesNotMatch(masteryHtml, /Sold Out|waitlist|formspree\.io/i);
 
-  assert.match(comprehensiveHtml, /GAMSAT Live Comprehensive Course \(Sold Out\)/);
-  assert.match(comprehensiveHtml, /Join the waitlist for the next cohort/);
-  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
+  assert.match(comprehensiveHtml, /New cohort starts 15 June/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive"/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive(?:&amp;|&)paymentMode=instalments"/);
+  assert.doesNotMatch(comprehensiveHtml, /Sold Out|waitlist|formspree\.io/i);
 });
 
 test('product hero media keeps eager LCP hints and a shared aspect-ratio fallback', () => {
@@ -115,20 +116,13 @@ test('course product pages share the product stylesheet and script shell', () =>
   });
 });
 
-test('comprehensive hero uses an accessible V3 countdown for the live start date', () => {
+test('comprehensive hero uses a June cohort access banner instead of a countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
-  const countdownTag = html.match(/<div\b[^>]*class="hero-v3__countdown[^"]*"[^>]*>/);
 
-  assert.ok(countdownTag, 'expected comprehensive hero to include countdown markup');
-  assert.match(countdownTag[0], /\brole="timer"/);
-  assert.match(countdownTag[0], /\baria-live="polite"/);
-  assert.match(countdownTag[0], /\bdata-countdown-v3\b/);
-  assert.match(countdownTag[0], /\bdata-countdown-v3-target="2026-05-26T18:00:00\+10:00"/);
-  assert.match(html, /Cohort begins in/);
-  assert.match(html, /\bdata-cd-days\b/);
-  assert.match(html, /\bdata-cd-hours\b/);
-  assert.match(html, /\bdata-cd-mins\b/);
-  assert.match(html, /\bdata-cd-secs\b/);
+  assert.match(html, /New cohort starts 15 June/);
+  assert.match(html, /full library before Week 1/);
+  assert.doesNotMatch(html, /\bdata-countdown-v3\b/);
+  assert.doesNotMatch(html, /Cohort begins in/);
 });
 
 test('getCountdownParts returns days, hours, and minutes until 26 May', () => {

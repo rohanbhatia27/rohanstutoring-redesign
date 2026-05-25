@@ -31,83 +31,6 @@
 /* ===== HERO V3 ===== */
 .hero-v3 { padding-top: calc(var(--header-height) + 32px); padding-bottom: 80px; }
 
-.hero-v3__countdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  padding: 12px 22px;
-  margin-bottom: 36px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-}
-.hero-v3__countdown-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-light);
-  padding-right: 18px;
-  border-right: 1px solid var(--border);
-  white-space: nowrap;
-}
-.hero-v3__countdown-pulse {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--blue-light);
-  box-shadow: 0 0 0 0 rgba(100,160,255,0.7);
-  animation: heroV3Pulse 2s infinite;
-  flex-shrink: 0;
-}
-@keyframes heroV3Pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(100,160,255,0.55); }
-  70%  { box-shadow: 0 0 0 9px rgba(100,160,255,0); }
-  100% { box-shadow: 0 0 0 0 rgba(100,160,255,0); }
-}
-.hero-v3__countdown-units {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.hero-v3__countdown-unit {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 44px;
-  line-height: 1;
-}
-.hero-v3__countdown-unit strong {
-  font-size: 1.55rem;
-  font-weight: 700;
-  color: var(--white);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-.hero-v3__countdown-unit small {
-  font-size: 0.62rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-top: 6px;
-}
-.hero-v3__countdown-sep {
-  font-size: 1.4rem;
-  font-weight: 300;
-  color: var(--text-muted);
-  opacity: 0.45;
-  line-height: 1;
-  align-self: flex-start;
-  margin-top: 2px;
-}
-.hero-v3__countdown--complete .hero-v3__countdown-pulse {
-  background: var(--green);
-  animation: none;
-  box-shadow: 0 0 0 3px rgba(16,191,122,0.25);
-}
 .hero-v3__availability {
   display: inline-flex;
   align-items: center;
@@ -379,28 +302,8 @@
 @media (max-width: 960px) {
   .hero-v3__inner { grid-template-columns: 1fr; gap: 40px; }
   .hero-v3__card { max-width: 560px; }
-  .hero-v3__countdown { font-size: 0.76rem; gap: 12px; }
 }
 @media (max-width: 720px) {
-  .hero-v3__countdown {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 14px 18px;
-    width: 100%;
-    max-width: 480px;
-  }
-  .hero-v3__countdown-label {
-    padding-right: 0;
-    border-right: none;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-    width: 100%;
-  }
-  .hero-v3__countdown-units { gap: 8px; width: 100%; justify-content: space-between; }
-  .hero-v3__countdown-unit { min-width: 0; flex: 1; }
-  .hero-v3__countdown-unit strong { font-size: 1.4rem; }
-  .hero-v3__countdown-sep { display: none; }
   .hero-v3__availability {
     width: 100%;
     max-width: 480px;
@@ -427,7 +330,7 @@
     "@context": "https://schema.org",
     "@type": "Course",
     "name": "GAMSAT Live Comprehensive Course",
-    "description": "24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Covers GAMSAT Sections 1 and 2 with small-cohort live instruction starting 26 May 2026.",
+    "description": "24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Covers GAMSAT Sections 1 and 2 with small-cohort live instruction starting 15 June 2026.",
     "url": "https://www.rohanstutoring.com/courses/comprehensive",
     "provider": {
       "@type": "EducationalOrganization",
@@ -439,7 +342,7 @@
       "courseMode": "Blended",
       "courseSchedule": {
         "@type": "Schedule",
-        "startDate": "2026-05-26",
+        "startDate": "2026-06-15",
         "repeatFrequency": "P1W",
         "byDay": ["Tuesday", "Wednesday"]
       },
@@ -454,8 +357,8 @@
         "name": "Standard Price",
         "price": "1699",
         "priceCurrency": "AUD",
-        "availability": "https://schema.org/SoldOut",
-        "url": "https://www.rohanstutoring.com/courses/comprehensive"
+        "availability": "https://schema.org/InStock",
+        "url": "/checkout/?product=comprehensive"
       }
     ]
   }
@@ -551,7 +454,7 @@
         <li><a href="/about">About</a></li>
         <li><a href="/blog">Blog</a></li>
       </ul>
-      <a href="#waitlist" class="btn btn--nav">Join Waitlist</a>
+      <a href="/checkout/?product=comprehensive" class="btn btn--nav">Enrol Now</a>
       <button class="nav__burger" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
     </div>
     <div class="nav__mobile" id="mobileMenu">
@@ -582,7 +485,7 @@
       </div>
       <a href="/about">About</a>
       <a href="/blog">Blog</a>
-      <a href="#waitlist">Join Waitlist</a>
+      <a href="/checkout/?product=comprehensive">Enrol Now</a>
     </div>
   </nav>
 
@@ -591,10 +494,10 @@
   <!-- STICKY CTA BAR -->
   <div class="sticky-bar" id="stickyBar">
     <div class="sticky-bar__inner">
-      <span class="sticky-bar__title">GAMSAT Live Comprehensive Course (Sold Out)</span>
+      <span class="sticky-bar__title">GAMSAT Live Comprehensive Course</span>
       <div class="sticky-bar__right">
         <span class="sticky-bar__price"><strong>$1,699</strong> AUD</span>
-        <a href="#waitlist" class="btn btn--primary">Join Next Cohort Waitlist →</a>
+        <a href="/checkout/?product=comprehensive" class="btn btn--primary">Enrol Now →</a>
       </div>
     </div>
   </div>
@@ -607,30 +510,9 @@
     </div>
     <div class="container">
 
-      <div
-        class="hero-v3__countdown reveal visible"
-        role="timer"
-        aria-live="polite"
-        data-countdown-v3
-        data-countdown-v3-target="2026-05-26T18:00:00+10:00"
-      >
-        <span class="hero-v3__countdown-label">
-          <span class="hero-v3__countdown-pulse" aria-hidden="true"></span>
-          Cohort begins in
-        </span>
-        <div class="hero-v3__countdown-units">
-          <div class="hero-v3__countdown-unit"><strong data-cd-days>00</strong><small>days</small></div>
-          <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
-          <div class="hero-v3__countdown-unit"><strong data-cd-hours>00</strong><small>hrs</small></div>
-          <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
-          <div class="hero-v3__countdown-unit"><strong data-cd-mins>00</strong><small>min</small></div>
-          <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
-          <div class="hero-v3__countdown-unit"><strong data-cd-secs>00</strong><small>sec</small></div>
-        </div>
-      </div>
-      <div class="hero-v3__availability reveal reveal--delay-1 visible" aria-label="September cohort sold out">
+      <div class="hero-v3__availability reveal visible" aria-label="New cohort starts 15 June">
         <span class="hero-v3__availability-dot" aria-hidden="true"></span>
-        September cohort sold out
+        New cohort starts 15 June. Enrol now to get the full library before Week 1.
       </div>
 
       <div class="hero-v3__inner">
@@ -666,17 +548,17 @@
             </div>
           </div>
 
-          <div class="hero-v3__cta reveal reveal--delay-3 visible" id="waitlist">
+          <div class="hero-v3__cta reveal reveal--delay-3 visible" id="enrol-section">
             <div class="hero-v3__cta-row">
-              <a href="/contact" class="btn btn--primary btn--lg hero-v3__cta-primary" id="enrol">
-                Join the waitlist for the next cohort
+              <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg hero-v3__cta-primary" id="enrol">
+                Enrol now  $1,699
               </a>
-              <a href="/courses/blueprint" class="hero-v3__cta-ghost">
-                <span>Need something now? See the Blueprint</span>
+              <a href="/checkout/?product=comprehensive&paymentMode=instalments" class="hero-v3__cta-ghost">
+                <span>Pay in 4  $499/mo</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </a>
             </div>
-            <span class="product-hero__was">This live cohort is sold out. Join the waitlist and we'll let you know as soon as the next intake opens.</span>
+            <span class="product-hero__was">Enrolment includes immediate access to the 50+ hour library before the first live week.</span>
             <a href="#included" class="hero-v3__cta-text">See what's included →</a>
           </div>
         </div>
@@ -845,7 +727,7 @@
             <div class="value-item__num">02</div>
           </div>
           <div class="value-item__body">
-            <h3>24 Live Coaching Classes, Starting 26 May</h3>
+            <h3>24 Live Coaching Classes, Starting 15 June</h3>
             <p>24 live sessions on Zoom, each 1 hour. Tuesdays for S1 at 6pm AEDT, Wednesdays for S2 at 7pm AEDT. Cohort size is capped at 8–12 students, small enough that every session is genuinely interactive. You can ask questions, clear up what's not landing, and leave each session with something concrete.</p>
             <span class="value-item__value">Value: $1,200</span>
           </div>
@@ -901,9 +783,9 @@
             <div class="value-summary__price">
               <span class="value-summary__now">$1,699</span>
             </div>
-            <a href="/contact" class="btn btn--primary btn--lg">Join the Waitlist →</a>
-            <a href="/courses/blueprint" class="cta-instalment">Need a self-paced option? See the Blueprint</a>
-            <p class="value-summary__note">The September live cohort is sold out. We'll reach out when the next intake opens.</p>
+            <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg">Secure My Spot →</a>
+            <a href="/checkout/?product=comprehensive&paymentMode=instalments" class="cta-instalment">or pay $499 × 4 instalments</a>
+            <p class="value-summary__note">New cohort starts 15 June. Enrol now to get the full library before Week 1.</p>
           </div>
         </div>
       </div>
@@ -1045,10 +927,10 @@
     <div class="product-final-cta__bg"><div class="book__orb"></div></div>
     <div class="container">
       <div class="product-final-cta__inner reveal">
-        <h2>This cohort is sold out.<br><em>Join the next one early.</em></h2>
-        <p>If you want live coaching, essay feedback, and small-group accountability, join the waitlist now and we'll let you know first when the next comprehensive intake opens.</p>
-        <a href="/contact" class="btn btn--white btn--lg">Join the Waitlist →</a>
-        <p class="product-final-cta__note">$1,699 AUD  100% refund guarantee  Next cohort updates via email</p>
+        <h2>The new cohort starts<br><em>15 June.</em></h2>
+        <p>Enrol now, get the recorded library immediately, and arrive at Week 1 with the foundations already moving.</p>
+        <a href="/checkout/?product=comprehensive" class="btn btn--white btn--lg">Secure Your Place →</a>
+        <p class="product-final-cta__note">$1,699 AUD  100% refund guarantee  Classes begin 15 June</p>
       </div>
     </div>
   </section>

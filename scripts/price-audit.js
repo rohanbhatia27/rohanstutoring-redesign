@@ -36,8 +36,6 @@ const EXTERNAL_STRIPE_LINKS = {
   },
 };
 
-const SOLD_OUT_PAGE_SLUGS = new Set(['comprehensive', 'mastery']);
-
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /**
@@ -117,10 +115,6 @@ function findProductForPrice(pageProducts, price) {
   return pageProducts.find(function (product) {
     return priceMatchesCatalog(price, product);
   }) || null;
-}
-
-function isPageSoldOutOverride(pageSlug) {
-  return SOLD_OUT_PAGE_SLUGS.has(String(pageSlug || '').trim());
 }
 
 // ─── Page-level checks ──────────────────────────────────────────────────────
@@ -221,7 +215,7 @@ function checkCheckoutLinkTextPrices(html, catalog, errors, fileName) {
 function checkEnrolmentCtaVsAvailability(html, catalog, pageSlug, errors, fileName) {
   const prod = Object.values(catalog).find(p => p.pageSlug === pageSlug || p.slug === pageSlug);
   if (!prod) return;
-  const isAvailableOnPage = prod.available && !isPageSoldOutOverride(pageSlug);
+  const isAvailableOnPage = prod.available;
 
   const hasStripeBuy = /buy\.stripe\.com/.test(html);
 
@@ -426,7 +420,7 @@ function runPriceAudit() {
             errors.push('[JSON-LD] In ' + fileName + ': priceCurrency is "' + offer.priceCurrency + '", must be AUD');
           }
           if (offer.availability) {
-            const isAvailableOnPage = matched.available && !isPageSoldOutOverride(pageSlug);
+            const isAvailableOnPage = matched.available;
             const isSoldOut = offer.availability === 'https://schema.org/SoldOut';
             if (!isAvailableOnPage && !isSoldOut) {
               errors.push('[JSON-LD] In ' + fileName + ': ' + matched.slug + ' is unavailable but availability is not SoldOut');
