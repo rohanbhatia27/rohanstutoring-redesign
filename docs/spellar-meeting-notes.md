@@ -51,7 +51,7 @@ system writes to `site/data/meeting-notes/notes.jsonl`. This file is gitignored.
 2. Set the webhook URL:
 
    ```
-   https://www.rohanstutoring.com/api/spellar/webhook?secret=YOUR_SECRET
+   https://www.rohanstutoring.com/api/meetings?secret=YOUR_SECRET
    ```
 
    Or configure Spellar to send the `x-spellar-secret` header instead of the
@@ -73,7 +73,7 @@ vercel dev
 Then send a test payload:
 
 ```bash
-curl -X POST "http://localhost:3000/api/spellar/webhook?secret=YOUR_LOCAL_SECRET" \
+curl -X POST "http://localhost:3000/api/meetings?secret=YOUR_LOCAL_SECRET" \
   -H "Content-Type: application/json" \
   -d '{
     "id": "test-001",
@@ -117,7 +117,7 @@ curl "http://localhost:3000/api/meetings?person=Sarah" \
 
 ### Get a meeting by ID
 ```bash
-curl "http://localhost:3000/api/meetings/by-id?id=<uuid-or-external-id>" \
+curl "http://localhost:3000/api/meetings?id=<uuid-or-external-id>" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -125,7 +125,7 @@ Returns the full record including transcript and raw_payload.
 
 ### Search
 ```bash
-curl "http://localhost:3000/api/meetings/search?q=gamsat+section+1" \
+curl "http://localhost:3000/api/meetings?q=gamsat+section+1" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -133,7 +133,7 @@ Searches across title, summary, transcript, and tags.
 
 ### Lead context
 ```bash
-curl "http://localhost:3000/api/meetings/lead-context?name=Emily" \
+curl "http://localhost:3000/api/meetings?name=Emily" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
