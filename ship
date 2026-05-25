@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Find the directory that contains this script, then run all git commands from there.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+if [ ! -d ".git" ]; then
+  echo "Error: could not find the Git repo in $SCRIPT_DIR" >&2
+  exit 1
+fi
+
+if [ "$#" -lt 1 ] || [ -z "${1// }" ]; then
+  echo "Usage: ./ship \"commit message\"" >&2
+  exit 1
+fi
+
+COMMIT_MESSAGE="$1"
+
+echo "Checking current git status..."
+git status --short --branch
+echo
+
+if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+  echo "No changes found. Nothing to commit or push."
+  exit 0
+fi
+
+echo "Adding all changed files..."
+git add -A
+
+if git diff --cached --quiet; then
+  echo "No changes to commit after staging. Nothing to do."
+  exit 0
+fi
+
+echo "Creating commit..."
+git commit -m "$COMMIT_MESSAGE"
+
+CURRENT_BRANCH="$(git branch --show-current)"
+if [ -z "$CURRENT_BRANCH" ]; then
+  echo "Error: unable to determine the current branch." >&2
+  exit 1
+fi
+
+echo "Pushing to origin/$CURRENT_BRANCH..."
+git push origin "$CURRENT_BRANCH"
+
+echo "Done. Changes have been committed and pushed."
