@@ -3,6 +3,7 @@ const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 let fulfillPaymentIntentImpl = fulfillPaymentIntent;
+let fulfillInstalmentCheckoutImpl = fulfillPaymentIntent.fulfillInstalmentCheckout;
 const INSTALMENT_WEBHOOK_EVENTS = new Set([
   'checkout.session.completed',
   'invoice.paid',
@@ -65,6 +66,16 @@ async function readRawBody(req) {
   throw new Error('Raw Stripe webhook body unavailable.');
 }
 
+async function pingBetterStackHeartbeat() {
+  const url = String(process.env.BETTER_STACK_PAYMENT_HEARTBEAT_URL || '').trim();
+  if (!url) return;
+  try {
+    await fetch(url);
+  } catch (err) {
+    console.error('Better Stack heartbeat ping failed:', err.message);
+  }
+}
+
 async function stripeWebhookHandler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -89,13 +100,27 @@ async function stripeWebhookHandler(req, res) {
 
   try {
     if (event.type === 'payment_intent.succeeded') {
+      const pi = event.data.object;
+      if (pi.invoice) {
+        console.log(`[stripe-webhook] Skipping subscription-linked PI ${pi.id} (invoice: ${pi.invoice})`);
+        return res.status(200).json({ received: true });
+      }
+      const piMeta = (pi.metadata && typeof pi.metadata === 'object') ? pi.metadata : {};
+      const piSlug = String(piMeta.base_slug || piMeta.product_slug || '').trim();
+      if (!piSlug) {
+        console.log(`[stripe-webhook] Skipping PI ${pi.id} — no product slug in metadata`);
+        return res.status(200).json({ received: true });
+      }
       await fulfillPaymentIntentImpl({
-        paymentIntent: event.data.object,
+        paymentIntent: pi,
         stripeClient,
       });
+      await pingBetterStackHeartbeat();
     } else if (isInstalmentWebhookEvent(event)) {
-      // Instalment billing events are acknowledged for launch, but fulfillment
-      // remains on the existing payment_intent.succeeded path for now.
+      if (event.type === 'checkout.session.completed') {
+        await fulfillInstalmentCheckoutImpl({ session: event.data.object });
+        await pingBetterStackHeartbeat();
+      }
     }
 
     return res.status(200).json({ received: true });
@@ -128,10 +153,14 @@ stripeWebhookHandler.__setStripeFactory = (value) => {
 stripeWebhookHandler.__setFulfillPaymentIntent = (value) => {
   fulfillPaymentIntentImpl = value;
 };
+stripeWebhookHandler.__setFulfillInstalmentCheckout = (value) => {
+  fulfillInstalmentCheckoutImpl = value;
+};
 stripeWebhookHandler.__isInstalmentWebhookEvent = isInstalmentWebhookEvent;
 stripeWebhookHandler.__resetForTests = () => {
   stripeFactory = (secretKey) => Stripe(secretKey);
   fulfillPaymentIntentImpl = fulfillPaymentIntent;
+  fulfillInstalmentCheckoutImpl = fulfillPaymentIntent.fulfillInstalmentCheckout;
 };
 
 module.exports = stripeWebhookHandler;

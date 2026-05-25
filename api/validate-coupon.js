@@ -1,4 +1,6 @@
 const Stripe = require('stripe');
+const createPaymentIntentHandler = require('./create-checkout.js');
+const { checkRateLimit } = require('./_lib/_rate-limit.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
@@ -57,8 +59,26 @@ async function validateCouponHandler(req, res) {
   }
 
   const code = String(body.code || '').trim().toUpperCase();
+  const slug = String(body.slug || '').trim();
+  const paymentMode = String(body.paymentMode || '').trim().toLowerCase();
   if (!code) {
     return res.status(200).json({ valid: false, error: 'Please enter a coupon code.' });
+  }
+
+  if (!slug) {
+    return res.status(400).json({ error: 'Missing product slug.' });
+  }
+
+  if (paymentMode === 'instalments' && slug !== 'comprehensive' && slug !== 'mastery') {
+    return res.status(200).json({
+      valid: false,
+      error: 'This coupon is not valid for the selected product.',
+    });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'coupon' });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -67,23 +87,28 @@ async function validateCouponHandler(req, res) {
 
   try {
     const stripe = stripeFactory(process.env.STRIPE_SECRET_KEY);
-    const result = await stripe.promotionCodes.list({ code, active: true, limit: 1 });
-    const promoCode = result.data[0];
+    const couponDetails = await createPaymentIntentHandler.getValidatedCouponDetails(stripe, {
+      couponCode: code,
+      productSlug: slug,
+      baseAmount: createPaymentIntentHandler.AMOUNTS[slug] || 0,
+    });
 
-    if (!promoCode || !promoCode.coupon || !promoCode.coupon.valid) {
-      return res.status(200).json({ valid: false, error: 'Coupon code not found or expired.' });
+    if (!couponDetails.valid) {
+      return res.status(200).json({ valid: false, error: couponDetails.error || 'Coupon code not found or expired.' });
     }
 
-    const coupon = promoCode.coupon;
-    const discount = coupon.percent_off
-      ? { type: 'percent', value: coupon.percent_off }
-      : { type: 'fixed', value: coupon.amount_off / 100 };
+    if (paymentMode === 'instalments' && (!couponDetails.discount || couponDetails.discount.type !== 'fixed')) {
+      return res.status(200).json({
+        valid: false,
+        error: 'This coupon cannot be applied to instalment checkout.',
+      });
+    }
 
     return res.status(200).json({
       valid: true,
-      code,
-      discount,
-      label: coupon.name || code,
+      code: couponDetails.code,
+      discount: couponDetails.discount,
+      label: couponDetails.label,
     });
   } catch (err) {
     console.error('Coupon validation error:', err.message);

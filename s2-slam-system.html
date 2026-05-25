@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
+  <script src="/js/consent.js"></script>
   <script src="/js/analytics.js" defer></script>
   <script src="/js/posthog-init.js" defer></script>
   <title>Free S2 Slam System | GAMSAT Essay Framework | Rohan's GAMSAT</title>
@@ -23,12 +23,13 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="preconnect" href="https://app.kit.com">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/s2-slam-system.css">
-  <script src="js/main.js" defer></script>
+  <script src="js/main.js?v=20260521-catalog" defer></script>
   <script src="js/s2-slam-system.js" defer></script>
 </head>
 <body>
@@ -55,18 +56,19 @@
 
         <form
           class="slam-lead-form reveal reveal--delay-2"
-          action="https://formspree.io/f/mvzvldzo"
+          action="https://app.kit.com/forms/8526774/subscriptions"
           method="POST"
           id="slamLeadForm"
+          data-resource-key="s2-slam-system"
         >
           <div class="slam-lead-form__row">
             <div class="slam-lead-form__group">
               <label for="slamFirstName" class="slam-lead-form__label--sr">First name</label>
-              <input type="text" id="slamFirstName" name="firstName" placeholder="First name" required autocomplete="given-name">
+              <input type="text" id="slamFirstName" name="fields[first_name]" placeholder="First name" required autocomplete="given-name">
             </div>
             <div class="slam-lead-form__group">
               <label for="slamEmail" class="slam-lead-form__label--sr">Email address</label>
-              <input type="email" id="slamEmail" name="email" placeholder="Email address" required autocomplete="email">
+              <input type="email" id="slamEmail" name="email_address" placeholder="Email address" required autocomplete="email">
             </div>
           </div>
 
@@ -74,12 +76,6 @@
             <label for="slamWebsite">Website</label>
             <input type="text" id="slamWebsite" name="websiteUrl" tabindex="-1" autocomplete="off">
           </div>
-
-          <input type="hidden" name="source" value="s2-slam-system-form">
-          <input type="hidden" name="page" value="s2-slam-system">
-          <input type="hidden" name="resource" value="S2 Slam System">
-          <input type="hidden" name="subject" value="New S2 Slam System lead from rohanstutoring.com">
-
           <button type="submit" class="btn btn--primary btn--lg slam-lead-form__submit" id="slamLeadSubmit">
             <span class="slam-lead-form__submit-text">Send Me the S2 Slam System</span>
             <span class="slam-lead-form__submit-loading" aria-hidden="true" hidden>Sending...</span>
@@ -118,11 +114,16 @@
           <div class="slam-page-mockup__glow"></div>
           <div class="slam-page-mockup__stack">
             <picture class="slam-page-mockup__picture slam-page-mockup__picture--left" aria-hidden="true">
+              <source media="(min-width: 721px)" srcset="assets/free-resources/s2-slam-system-cover.webp" type="image/webp">
               <source media="(min-width: 721px)" srcset="assets/free-resources/s2-slam-system-cover.png">
               <img class="slam-page-mockup__img slam-page-mockup__img--left" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" alt="" width="990" height="1400" loading="lazy" decoding="async">
             </picture>
-            <img class="slam-page-mockup__img slam-page-mockup__img--center" src="assets/free-resources/s2-slam-system-cover.png" alt="The S2 Slam System framework" width="990" height="1400" loading="eager" decoding="async" fetchpriority="high">
+            <picture>
+              <source srcset="assets/free-resources/s2-slam-system-cover.webp" type="image/webp">
+              <img class="slam-page-mockup__img slam-page-mockup__img--center" src="assets/free-resources/s2-slam-system-cover.png" alt="The S2 Slam System framework" width="990" height="1400" loading="eager" decoding="async" fetchpriority="high">
+            </picture>
             <picture class="slam-page-mockup__picture slam-page-mockup__picture--right" aria-hidden="true">
+              <source media="(min-width: 721px)" srcset="assets/free-resources/s2-slam-system-cover.webp" type="image/webp">
               <source media="(min-width: 721px)" srcset="assets/free-resources/s2-slam-system-cover.png">
               <img class="slam-page-mockup__img slam-page-mockup__img--right" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" alt="" width="990" height="1400" loading="lazy" decoding="async">
             </picture>

@@ -498,7 +498,8 @@
   color: var(--co-text-dim);
 }
 
-.checkout-gmail-note {
+.checkout-gmail-note,
+.checkout-field-hint {
   font-family: var(--font-sans);
   font-size: 0.74rem;
   color: var(--co-text-soft);
@@ -1107,6 +1108,43 @@
   line-height: 1.45;
 }
 
+.checkout-upsell__quantity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.checkout-upsell__body .checkout-upsell__quantity-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--co-text);
+}
+
+.checkout-upsell__quantity-input {
+  width: 72px;
+  min-height: 36px;
+  border: 1px solid rgba(184, 148, 42, 0.38);
+  border-radius: 0;
+  background: rgba(7, 12, 22, 0.62);
+  color: var(--co-text);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.checkout-upsell__quantity-input:focus {
+  border-color: var(--co-gold);
+  box-shadow: 0 0 0 3px rgba(184, 148, 42, 0.18);
+}
+
+.checkout-upsell__quantity-input:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
 .checkout-upsell__price {
   font-family: var(--font-sans);
   font-size: 0.9rem;
@@ -1137,6 +1175,18 @@
 
 .checkout-upsell__price-now {
   color: var(--co-gold);
+}
+
+@media (max-width: 560px) {
+  .checkout-upsell__toggle {
+    grid-template-columns: auto 1fr;
+  }
+
+  .checkout-upsell__price {
+    grid-column: 2;
+    justify-self: start;
+    align-items: flex-start;
+  }
 }
 
 /* ── Error state ────────────────────────────────────────────────────────────── */

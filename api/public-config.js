@@ -1,4 +1,4 @@
-const createPaymentIntentHandler = require('./create-payment-intent.js');
+const createPaymentIntentHandler = require('./create-checkout.js');
 
 function isAllowedOrigin(origin) {
   return createPaymentIntentHandler.isAllowedOrigin(origin);
@@ -9,6 +9,17 @@ async function publicConfigHandler(req, res) {
 
   if (origin && !isAllowedOrigin(origin)) {
     return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(204).end();
   }
 
   if (req.method !== 'GET') {

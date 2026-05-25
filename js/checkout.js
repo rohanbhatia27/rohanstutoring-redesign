@@ -1,315 +1,89 @@
 (function (global) {
-  function loadStorefrontConfig() {
-    if (global.StorefrontConfig) return global.StorefrontConfig;
+  function loadProductCatalog() {
+    if (global && global.ProductCatalog) return global.ProductCatalog;
+    if (typeof globalThis !== 'undefined' && globalThis.ProductCatalog) return globalThis.ProductCatalog;
     if (typeof module !== 'undefined' && module.exports) {
-      try {
-        return require('./storefront-config.js');
-      } catch (error) {
-        return null;
-      }
+      try { return require('./catalog.js'); } catch (e) { return null; }
     }
     return null;
   }
 
-  const STOREFRONT_CONFIG = loadStorefrontConfig();
-  const INSTALMENT_LINKS = STOREFRONT_CONFIG?.instalmentLinks || {};
-  const MASTERY_INSTALMENT_URL = INSTALMENT_LINKS.mastery ? INSTALMENT_LINKS.mastery.url : '';
+  const _CAT_MODULE = loadProductCatalog();
+  const _CAT = _CAT_MODULE ? _CAT_MODULE.CATALOG : {};
+  const _getUpsellPriceCents = _CAT_MODULE ? _CAT_MODULE.getUpsellPriceCents : function () { return null; };
+
   const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/zxQdMR';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
-  const UNAVAILABLE_PRODUCT_SLUGS = new Set([
-    's1-rescue-sprint',
-    's2-rescue-sprint',
-  ]);
+
+  // Derived from catalog — edit js/catalog.js to update products, prices, or availability.
+  const UNAVAILABLE_PRODUCT_SLUGS = new Set(
+    Object.keys(_CAT).filter(function (k) { return !_CAT[k].available; })
+  );
+
+  const PRODUCT_IMAGES = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (k) { if (_CAT[k].image) m[k] = _CAT[k].image; });
+    return m;
+  }());
+
+  const MASTERY_INSTALMENT_URL = _CAT.mastery && _CAT.mastery.instalment ? _CAT.mastery.instalment.url : '';
+
+  const PRODUCTS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (slug) {
+      const e = _CAT[slug];
+      const prod = {
+        name: e.title,
+        tagline: e.tagline || '',
+        price: e.priceCents !== null ? e.priceCents / 100 : undefined,
+        features: e.features || [],
+        isDigital: e.isDigital,
+        instalment: e.instalment ? { label: e.instalment.label, url: e.instalment.url } : null,
+        successType: e.successType,
+      };
+      if (e.afterpay) prod.afterpay = true;
+      if (e.hasPkgSelector) {
+        prod.hasPkgSelector = true;
+        prod.packages = (e.packages || []).map(function (pkg) {
+          const pkgEntry = _CAT[pkg.slug];
+          const pkgPrice = pkgEntry ? pkgEntry.priceCents / 100 : 0;
+          return {
+            slug: pkg.slug,
+            label: pkg.label,
+            sub: pkg.sub,
+            price: pkgPrice,
+            priceDisplay: '$' + (Number.isInteger(pkgPrice) ? pkgPrice.toLocaleString() : pkgPrice.toFixed(2)),
+          };
+        });
+      }
+      m[slug] = prod;
+    });
+    return m;
+  }());
+
+  const ORDER_BUMPS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (slug) {
+      const bump = _CAT[slug].orderBump;
+      if (!bump) return;
+      const bumpCents = _getUpsellPriceCents(slug, bump.slug);
+      m[slug] = Object.assign({}, bump, {
+        price: bumpCents !== null ? bumpCents / 100 : bump.price,
+      });
+    });
+    return m;
+  }());
+
+  const INSTALMENT_PLANS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (k) {
+      const inst = _CAT[k].instalment;
+      if (inst && inst.plan) m[k] = inst.plan;
+    });
+    return m;
+  }());
+
   let checkoutConfigPromise = null;
-
-  const PRODUCT_IMAGES = {
-    blueprint:          '../assets/courses/blueprint-course-card.webp',
-    advanced:           '../assets/courses/advanced-course-card.webp',
-    'essay-collection': '../assets/courses/essay-collection-cover.webp',
-    'essay-marking':    '../assets/courses/essay-collection-cover.webp',
-    'essay-pack-10':    '../assets/courses/essay-collection-cover.webp',
-    comprehensive:      '../assets/courses/comprehensive-course-card.webp',
-    mastery:            '../assets/courses/mastery-course-card.webp',
-    's1-rescue-sprint': '../assets/courses/s1-rescue-sprint-hero.webp',
-    's2-rescue-sprint': '../assets/courses/s2-rescue-sprint-hero.webp',
-  };
-
-  // SYNC REQUIRED: These hardcoded prices are fallbacks/display hints.
-  // The actual single source of truth is `AMOUNTS` in `api/create-payment-intent.js`.
-  // At runtime, `checkout.js` fetches `/api/public-config` and overwrites these prices dynamically.
-  const PRODUCTS = {
-    blueprint: {
-      name: "Rohan's Blueprint",
-      tagline: 'Self-paced · Lifetime access · All devices',
-      price: 599,
-      features: [
-        'S1 & S2 Mastery Course (50+ hrs)',
-        'GAMSAT Advanced Series (30 hrs)',
-        'Expert Essay Collection (25 essays)',
-        'Lifetime access · No expiry',
-      ],
-      isDigital: true,
-      afterpay: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    advanced: {
-      name: 'GAMSAT Advanced Series',
-      tagline: '30 hrs of elite-level S1 & S2 strategy · Lifetime access',
-      price: 299,
-      features: [
-        '30 hours of advanced S1 & S2 content',
-        'Elite-level strategy for 70+ scores',
-        'Worked examples across both sections',
-        'Lifetime access · All devices',
-      ],
-      isDigital: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    'essay-collection': {
-      name: 'Expert Essay Collection',
-      tagline: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      features: [
-        '25 genuine GAMSAT essays scored 80+',
-        '24 themes · Task A and Task B',
-        '$3.16 per essay',
-        'Immediate access · All devices',
-      ],
-      isDigital: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    'starter-pack': {
-      name: 'GAMSAT Essentials Playbook',
-      tagline: '30-day kickstart · $150 credit toward a full course',
-      price: 97,
-      features: [
-        '10-hour S1 & S2 Essentials Course',
-        '2 essays marked with detailed feedback',
-        '5 high-scoring model essays',
-        '$150 credit toward a full course',
-      ],
-      isDigital: true,
-      instalment: null,
-      successType: 'digital',
-    },
-    'essay-marking': {
-      name: 'S2 Essay Marking',
-      tagline: '3-day turnaround · Top 1% scorer feedback',
-      price: 34.99,
-      features: [
-        'In-depth corrections on ideas, structure & language',
-        '3-day turnaround',
-        'Feedback from a top 1% GAMSAT scorer',
-        'Send your essay after purchase',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'essay-marking',
-    },
-    'essay-pack-10': {
-      name: 'S2 Essay Marking — 10-Essay Pack',
-      tagline: '10 essays · Submit over time · Top 1% scorer feedback',
-      price: 249,
-      features: [
-        '10 x in-depth essay markings',
-        'Ideas, structure and language corrections',
-        'Exemplars and evidence suggestions',
-        'Submit essays over time via email',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'essay-pack-10',
-    },
-    comprehensive: {
-      name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
-      tagline: '',
-      price: 1549,
-      features: [
-        '50+ hours of recorded library content',
-        '24 live coaching classes',
-        'Live essay feedback in every class',
-        'Direct access to Rohan',
-        '100% refund guarantee',
-      ],
-      isDigital: false,
-      instalment: INSTALMENT_LINKS.comprehensive || null,
-      successType: 'cohort',
-    },
-    's1-comprehensive': {
-      name: 'GAMSAT Section 1 Comprehensive Course (May 2026 Start)',
-      tagline: '',
-      price: 899,
-      features: [
-        'Section 1 live coaching classes',
-        'Recorded strategy library',
-        'Direct access to Rohan',
-        '100% refund guarantee',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    's2-comprehensive': {
-      name: 'GAMSAT Section 2 Comprehensive Course (May 2026 Start)',
-      tagline: '',
-      price: 899,
-      features: [
-        'Section 2 live coaching classes',
-        'Essay feedback and writing frameworks',
-        'Direct access to Rohan',
-        '100% refund guarantee',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    mastery: {
-      name: 'Mastery Program',
-      tagline: 'Private tutorials · Unlimited essay marking · September cohort',
-      price: 2249,
-      features: [
-        'Everything in the Comprehensive Course',
-        '5 × 1:1 private tutorials with Rohan',
-        'Unlimited essay marking',
-        'Monthly 1:1 check-ins',
-        'Personalised study roadmap',
-      ],
-      isDigital: false,
-      instalment: INSTALMENT_LINKS.mastery || null,
-      successType: 'cohort',
-    },
-    's1-rescue-sprint': {
-      name: 'S1 Rescue Sprint',
-      tagline: '3 weeks · Full refund after Week 1 if not satisfied',
-      price: 347,
-      features: [
-        '3-week intensive S1 program',
-        'Live coaching sessions',
-        'Section 1 reasoning frameworks',
-        'Full refund guarantee after Week 1',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    's2-rescue-sprint': {
-      name: 'S2 Rescue Sprint',
-      tagline: '4 weeks · 3 marked essays · Clinic recordings included',
-      price: 199,
-      features: [
-        '4-week S2 writing intensive',
-        '3 marked essays with detailed feedback',
-        'Live essay clinic sessions',
-        'Clinic recordings included',
-      ],
-      isDigital: false,
-      instalment: null,
-      successType: 'cohort',
-    },
-    'private-mentoring': {
-      name: '1:1 Private Mentoring',
-      tagline: 'Top 5% scorers · Flexible scheduling · S1, S2 & S3',
-      isDigital: false,
-      instalment: null,
-      successType: 'mentoring',
-      hasPkgSelector: true,
-      packages: [
-        {
-          slug: 'mentoring-single',
-          label: 'Single session',
-          sub: 'Book one class · S1, S2, or S3',
-          price: 119,
-          priceDisplay: '$119',
-        },
-        {
-          slug: 'mentoring-pack',
-          label: '10-class pack',
-          sub: 'Save $120 · $107/hr',
-          price: 1070,
-          priceDisplay: '$1,070',
-        },
-      ],
-    },
-  };
-
-  const ORDER_BUMPS = {
-    blueprint: {
-      slug: 'essay-pack-10',
-      title: 'Add 10 essay reviews',
-      description: 'Get clear feedback on ideas, structure, and expression across 10 full essays.',
-      price: 249,
-      badge: 'Save $100',
-    },
-    comprehensive: {
-      slug: 'mentoring-single',
-      title: 'Add one 1:1 strategy class',
-      description: 'Private strategy session with a top tutor before classes begin',
-      price: 99,
-      priceWas: 119,
-      badge: 'Enrolment-only offer',
-      lockRuntimePrice: true,
-    },
-    advanced: {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    'starter-pack': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    's1-rescue-sprint': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    's2-rescue-sprint': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    'essay-marking': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-    'private-mentoring': {
-      slug: 'essay-collection',
-      title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
-      price: 79,
-      badge: 'Optional add-on',
-    },
-  };
-
-  const INSTALMENT_PLANS = {
-    comprehensive: {
-      count: 4,
-      firstPayment: 449,
-      recurringPayment: 449,
-      priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
-    },
-    mastery: {
-      count: 4,
-      firstPayment: 649,
-      recurringPayment: 649,
-      priceEnvKey: 'STRIPE_PRICE_MASTERY_INSTALMENT',
-    },
-  };
 
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
@@ -440,10 +214,10 @@
         clearCardError();
 
         const payload = buildCheckoutPayload(selection, validation);
-        const response = await fetch('/api/create-paypal-order', {
+        const response = await fetch('/api/paypal-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, action: 'create' }),
         });
         const result = await parseApiResponse(response);
         if (!result.ok || !result.data.orderID) {
@@ -460,7 +234,7 @@
           return;
         }
 
-        if (typeof window.posthog !== 'undefined') {
+        if (window.posthog && typeof window.posthog.capture === 'function') {
           window.posthog.capture('checkout_payment_submitted', {
             product: selection.pageSlug,
             total: selection.price,
@@ -471,15 +245,17 @@
         }
 
         try {
-          const captureResponse = await fetch('/api/capture-paypal-order', {
+          const captureResponse = await fetch('/api/paypal-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              action: 'capture',
               orderID: data.orderID,
               slug: selection.apiSlug,
               upsellSlug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
               customerName: validation.billingDetails.name,
               email: validation.billingDetails.email,
+              phone: validation.billingDetails.phone,
             }),
           });
           const result = await parseApiResponse(captureResponse);
@@ -505,6 +281,15 @@
     return { ...bump };
   }
 
+  function getUpsellQuantity(selection) {
+    if (!selection?.upsellSelected || !selection.upsell) return 0;
+    if (!selection.upsell.quantityEnabled) return 1;
+
+    const minQuantity = Math.max(1, Number(selection.upsell.minQuantity) || 1);
+    const quantity = Math.floor(Number(selection.upsellQuantity) || minQuantity);
+    return Math.max(minQuantity, quantity);
+  }
+
   function getPaymentModeOptions(productSlug) {
     if (PRODUCTS[productSlug]?.afterpay) return ['full', 'afterpay'];
     return INSTALMENT_PLANS[productSlug] ? ['full', 'instalments'] : ['full'];
@@ -514,16 +299,36 @@
     const plan = INSTALMENT_PLANS[selection?.pageSlug];
     if (!plan) return null;
 
-    const upsellToday = selection?.pageSlug === 'comprehensive' && selection.upsellSelected && selection.upsell
-      ? selection.upsell.price
+    const upsellToday = selection?.upsellSelected && selection.upsell
+      ? selection.upsell.price * getUpsellQuantity(selection)
       : 0;
+    const instalmentCouponAmount = selection?.paymentMode === 'instalments'
+      ? (selection?.couponAmount || 0)
+      : 0;
+    const instalmentDiscountPerPayment = instalmentCouponAmount > 0
+      ? Math.floor((instalmentCouponAmount / plan.count) * 100) / 100
+      : 0;
+    const couponToday = selection?.paymentMode === 'instalments'
+      ? instalmentDiscountPerPayment
+      : (selection?.couponAmount || 0);
+    const dueTodayBeforeDiscount = plan.firstPayment + upsellToday;
+    const futurePaymentAmount = Math.max(0, plan.recurringPayment - instalmentDiscountPerPayment);
 
     return {
-      dueToday: plan.firstPayment + upsellToday,
-      futurePaymentAmount: plan.recurringPayment,
+      dueToday: Math.max(0, dueTodayBeforeDiscount - couponToday),
+      dueTodayBeforeDiscount,
+      futurePaymentAmount,
       futurePaymentCount: plan.count - 1,
-      futurePaymentCopy: `Then ${plan.count - 1} monthly payments of $${fmtPrice(plan.recurringPayment)}`,
+      futurePaymentCopy: `Then ${plan.count - 1} monthly payments of $${fmtPrice(futurePaymentAmount)}`,
     };
+  }
+
+  function getSummaryTotal(selection) {
+    if (selection?.paymentMode === 'instalments') {
+      return getInstalmentPlanSummary(selection)?.dueToday ?? selection?.price ?? 0;
+    }
+
+    return selection?.price ?? 0;
   }
 
   function buildPaymentModeMarkup(productSlug, selection) {
@@ -601,7 +406,9 @@
   }
 
   function updateSelectionPrice(selection) {
-    const upsellPrice = selection.upsellSelected && selection.upsell ? selection.upsell.price : 0;
+    const upsellPrice = selection.upsellSelected && selection.upsell
+      ? selection.upsell.price * getUpsellQuantity(selection)
+      : 0;
     const subtotal = selection.basePrice + upsellPrice;
     let couponAmount = 0;
     if (selection.couponDiscount) {
@@ -619,9 +426,26 @@
   function buildOrderBumpMarkup(orderBump, selection) {
     if (!orderBump) return '';
     const priceMarkup = orderBump.priceWas
-      ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}</span></span>`
-      : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}</span>`;
+      ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}${orderBump.quantityEnabled ? ' each' : ''}</span></span>`
+      : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}${orderBump.quantityEnabled ? ' each' : ''}</span>`;
     const variantClass = orderBump.slug === 'essay-pack-10' ? ' checkout-upsell--essay-pack' : '';
+    const quantity = Math.max(Number(orderBump.minQuantity) || 1, Math.floor(Number(selection.upsellQuantity) || Number(orderBump.minQuantity) || 1));
+    const quantityMarkup = orderBump.quantityEnabled
+      ? `
+          <span class="checkout-upsell__quantity">
+            <span class="checkout-upsell__quantity-label">${escapeText(orderBump.quantityLabel || 'Quantity')}</span>
+            <input
+              class="checkout-upsell__quantity-input"
+              id="order-bump-quantity"
+              type="number"
+              min="${Number(orderBump.minQuantity) || 1}"
+              step="1"
+              value="${quantity}"
+              inputmode="numeric"
+            >
+          </span>
+        `
+      : '';
 
     return `
       <div class="checkout-upsell checkout-upsell--order-bump${variantClass}${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
@@ -637,6 +461,7 @@
             <span class="checkout-upsell__eyebrow">${orderBump.badge}</span>
             <strong>${orderBump.title}</strong>
             <span>${orderBump.description}</span>
+            ${quantityMarkup}
           </span>
           ${priceMarkup}
         </label>
@@ -689,6 +514,7 @@
         packageIndex: defaultIndex,
         upsell: orderBump,
         upsellSelected: false,
+        ...(orderBump && orderBump.quantityEnabled ? { upsellQuantity: Math.max(1, Number(orderBump.minQuantity) || 1) } : {}),
         couponCode: null,
         couponDiscount: null,
         couponAmount: 0,
@@ -706,6 +532,7 @@
       packageIndex: null,
       upsell: orderBump,
       upsellSelected: false,
+      ...(orderBump && orderBump.quantityEnabled ? { upsellQuantity: Math.max(1, Number(orderBump.minQuantity) || 1) } : {}),
       couponCode: null,
       couponDiscount: null,
       couponAmount: 0,
@@ -893,7 +720,7 @@
 
   async function fetchPaymentIntentStatus(paymentIntentId) {
     const response = await global.fetch(
-      `/api/payment-intent-status?payment_intent=${encodeURIComponent(paymentIntentId)}`
+      `/api/payment-status?payment_intent=${encodeURIComponent(paymentIntentId)}`
     );
     const result = await parseApiResponse(response);
 
@@ -906,7 +733,7 @@
 
   async function fetchCheckoutSessionStatus(sessionId) {
     const response = await global.fetch(
-      `/api/payment-intent-status?session_id=${encodeURIComponent(sessionId)}`
+      `/api/payment-status?session_id=${encodeURIComponent(sessionId)}`
     );
     const result = await parseApiResponse(response);
 
@@ -929,7 +756,7 @@
     if (packageSlug) params.set('package', String(packageSlug).trim());
     if (upsellSlug) params.set('upsell', String(upsellSlug).trim());
 
-    const response = await global.fetch(`/api/paypal-order-status?${params.toString()}`);
+    const response = await global.fetch(`/api/payment-status?${params.toString()}`);
     const result = await parseApiResponse(response);
     if (!result.ok) {
       throw new Error(result.data.error || 'We could not verify this PayPal payment.');
@@ -958,6 +785,7 @@
   }
 
   function renderSummaryMarkup(product, selection) {
+    const summaryTotal = getSummaryTotal(selection);
     const pageSlug = selection && selection.pageSlug;
     const imgSrc = pageSlug && PRODUCT_IMAGES[pageSlug];
     const imgHtml = imgSrc
@@ -999,7 +827,7 @@
         </div>
         <div class="summary-total-row">
           <span>Total due today</span>
-          <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
+          <span id="summary-total">$${fmtPrice(summaryTotal)} AUD</span>
         </div>
         <p class="summary-note">Booking link sent to your email after payment</p>
       `;
@@ -1023,7 +851,7 @@
       </div>
       <div class="summary-total-row">
         <span>Total due today</span>
-        <span id="summary-total">$${fmtPrice(selection.price)} AUD</span>
+        <span id="summary-total">$${fmtPrice(summaryTotal)} AUD</span>
       </div>
     `;
   }
@@ -1088,6 +916,7 @@
     const totalEl = qs('#summary-total');
     const orderBumpCard = qs('#checkout-order-bump');
     const orderBumpInput = qs('#order-bump-toggle');
+    const orderBumpQuantityInput = qs('#order-bump-quantity');
     const paymentModeOptions = document.querySelectorAll('.payment-mode-option');
     const paymentModeInputs = document.querySelectorAll('.payment-mode-option__input');
     const instalmentSummarySlot = qs('#instalment-summary-slot');
@@ -1096,7 +925,7 @@
     const paymentRequestButton = qs('#payment-request-button');
     const paymentRequestSeparator = qs('#payment-request-separator');
 
-    if (totalEl) totalEl.textContent = `$${fmtPrice(selection.price)} AUD`;
+    if (totalEl) totalEl.textContent = `$${fmtPrice(getSummaryTotal(selection))} AUD`;
 
     const discountRow = qs('#summary-discount-row');
     const discountAmountEl = qs('#summary-discount-amount');
@@ -1121,6 +950,13 @@
     }
     if (orderBumpInput) {
       orderBumpInput.checked = Boolean(selection.upsellSelected);
+    }
+    if (orderBumpQuantityInput && selection.upsell?.quantityEnabled) {
+      orderBumpQuantityInput.value = String(getUpsellQuantity({
+        ...selection,
+        upsellSelected: true,
+      }));
+      orderBumpQuantityInput.disabled = !selection.upsellSelected;
     }
 
     document.querySelectorAll('.pkg-option').forEach((option, index) => {
@@ -1149,21 +985,49 @@
       }
     }
 
+    const hideCardUi = selection.paymentMode !== 'full';
+
     if (cardWrap) {
-      cardWrap.hidden = selection.paymentMode === 'afterpay';
+      cardWrap.hidden = hideCardUi;
     }
 
     if (selection.paymentRequest && paymentRequestButton) {
-      paymentRequestButton.hidden = selection.paymentMode === 'afterpay';
+      paymentRequestButton.hidden = hideCardUi;
     }
 
     if (selection.paymentRequest && paymentRequestSeparator) {
-      paymentRequestSeparator.hidden = selection.paymentMode === 'afterpay';
+      paymentRequestSeparator.hidden = hideCardUi;
     }
 
     if (payButtonLabel) {
       payButtonLabel.textContent = getPrimaryButtonLabel(selection);
     }
+  }
+
+  function getInstalmentRedirectUrl(selection) {
+    if (selection?.paymentMode !== 'instalments') return '';
+
+    const product = PRODUCTS[selection.pageSlug];
+    const url = product?.instalment?.url;
+
+    return typeof url === 'string' ? url.trim() : '';
+  }
+
+  function redirectToInstalmentCheckout(selection) {
+    const url = getInstalmentRedirectUrl(selection);
+    if (!url) return false;
+
+    if (window.posthog && typeof window.posthog.capture === 'function') {
+      window.posthog.capture('checkout_instalment_redirected', {
+        product: selection.pageSlug,
+        total: selection.price,
+        upsell_selected: selection.upsellSelected,
+        upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
+      });
+    }
+
+    window.location.href = url;
+    return true;
   }
 
   function setupPaymentMode(productSlug, selection) {
@@ -1187,6 +1051,10 @@
       if (!input) return;
 
       selection.paymentMode = options.includes(input.value) ? input.value : 'full';
+      if (selection.paymentMode === 'instalments' && typeof selection.clearCouponState === 'function') {
+        selection.clearCouponState();
+        return;
+      }
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
     });
@@ -1219,14 +1087,21 @@
     if (!selection.upsell) return;
 
     const input = qs('#order-bump-toggle');
+    const quantityInput = qs('#order-bump-quantity');
     if (!input) return;
 
     input.addEventListener('change', () => {
       selection.upsellSelected = input.checked;
+      if (selection.upsell?.quantityEnabled) {
+        selection.upsellQuantity = getUpsellQuantity({
+          ...selection,
+          upsellSelected: true,
+        });
+      }
       updateSelectionPrice(selection);
       syncSelectionUI(selection);
       setPayButtonReady(selection, Boolean(selection.checkoutReady));
-      if (typeof window.posthog !== 'undefined') {
+      if (window.posthog && typeof window.posthog.capture === 'function') {
         window.posthog.capture('checkout_order_bump_toggled', {
           product: selection.pageSlug,
           upsell_slug: selection.upsell ? selection.upsell.slug : null,
@@ -1234,6 +1109,18 @@
         });
       }
     });
+
+    if (quantityInput && selection.upsell.quantityEnabled) {
+      quantityInput.addEventListener('input', () => {
+        const minQuantity = Math.max(1, Number(selection.upsell.minQuantity) || 1);
+        selection.upsellQuantity = Math.max(minQuantity, Math.floor(Number(quantityInput.value) || minQuantity));
+        selection.upsellSelected = true;
+        input.checked = true;
+        updateSelectionPrice(selection);
+        syncSelectionUI(selection);
+        setPayButtonReady(selection, Boolean(selection.checkoutReady));
+      });
+    }
   }
 
   function renderOrderBump(productSlug, selection) {
@@ -1284,15 +1171,17 @@
     const firstNameInput = qs('#first-name');
     const lastNameInput = qs('#last-name');
     const emailInput = qs('#email');
+    const phoneInput = qs('#phone');
     const addressInput = qs('#billing-address');
     const termsInput = qs('#terms-accepted');
 
     const firstName = firstNameInput?.value.trim() || '';
     const lastName = lastNameInput?.value.trim() || '';
     const email = emailInput?.value.trim() || '';
+    const phone = phoneInput?.value.trim() || '';
     const address = addressInput?.value.trim() || '';
 
-    if (!firstName || !lastName || !email || !address) {
+    if (!firstName || !lastName || !email || !phone || !address) {
       return { ok: false, error: 'Please fill in all fields.' };
     }
 
@@ -1309,6 +1198,7 @@
       billingDetails: {
         name: `${firstName} ${lastName}`,
         email,
+        phone,
         address: { line1: address },
       },
     };
@@ -1318,13 +1208,15 @@
     return {
       email: validation.billingDetails.email,
       customerName: validation.billingDetails.name,
+      phone: validation.billingDetails.phone,
     };
   }
 
   function buildCheckoutPayload(selection, validation) {
+    const paymentMode = ['instalments', 'afterpay'].includes(selection.paymentMode) ? selection.paymentMode : 'full';
     const payload = {
       slug: selection.apiSlug,
-      paymentMode: ['instalments', 'afterpay'].includes(selection.paymentMode) ? selection.paymentMode : 'full',
+      paymentMode,
       primaryProduct: {
         pageSlug: selection.pageSlug,
         slug: selection.apiSlug,
@@ -1333,6 +1225,7 @@
       totalAmount: selection.price,
       customerName: validation.billingDetails.name,
       email: validation.billingDetails.email,
+      phone: validation.billingDetails.phone,
       upsell: null,
       upsellSlug: null,
       upsellPrice: null,
@@ -1341,6 +1234,7 @@
     };
 
     if (selection.upsell && selection.upsellSelected) {
+      const upsellQuantity = getUpsellQuantity(selection);
       payload.upsell = {
         slug: selection.upsell.slug,
         price: selection.upsell.price,
@@ -1349,6 +1243,10 @@
       payload.upsellSlug = selection.upsell.slug;
       payload.upsellPrice = selection.upsell.price;
       payload.upsellSelected = true;
+      if (selection.upsell.quantityEnabled) {
+        payload.upsell.quantity = upsellQuantity;
+        payload.upsellQuantity = upsellQuantity;
+      }
     }
 
     return payload;
@@ -1365,6 +1263,7 @@
       total: { label: product.name, amount: Math.round(selection.price * 100) },
       requestPayerName: true,
       requestPayerEmail: true,
+      requestPayerPhone: true,
     });
 
     const canMakePayment = await paymentRequest.canMakePayment();
@@ -1381,14 +1280,15 @@
     paymentRequest.on('paymentmethod', async (ev) => {
       const payerName = ev.payerName || '';
       const payerEmail = ev.payerEmail || '';
+      const payerPhone = ev.payerPhone || '';
 
-      if (!payerEmail) {
+      if (!payerEmail || !payerPhone) {
         ev.complete('fail');
-        showCardError('Could not retrieve your email. Please pay by card below.');
+        showCardError('Could not retrieve your phone number. Please pay by card below.');
         return;
       }
 
-      if (typeof window.posthog !== 'undefined') {
+      if (window.posthog && typeof window.posthog.capture === 'function') {
         window.posthog.capture('checkout_payment_submitted', {
           product: selection.pageSlug,
           total: selection.price,
@@ -1401,13 +1301,13 @@
       try {
         const payload = buildCheckoutPayload(selection, {
           ok: true,
-          billingDetails: { name: payerName, email: payerEmail, address: { line1: '' } },
+          billingDetails: { name: payerName, email: payerEmail, phone: payerPhone, address: { line1: '' } },
         });
 
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch('/api/create-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, mode: 'one_off' }),
         });
 
         const resultPayload = await parseApiResponse(response);
@@ -1457,6 +1357,37 @@
 
     if (!toggle || !form || !input || !applyBtn) return;
 
+    function setCouponFeedback(message, type) {
+      if (!feedback) return;
+      feedback.textContent = message;
+      feedback.className = `checkout-coupon__feedback checkout-coupon__feedback--${type}`;
+      feedback.hidden = false;
+    }
+
+    function resetCouponControls() {
+      input.disabled = false;
+      applyBtn.disabled = false;
+      applyBtn.textContent = 'Apply';
+    }
+
+    function clearCouponState(options = {}) {
+      const preserveFeedback = Boolean(options.preserveFeedback);
+      selection.couponCode = null;
+      selection.couponDiscount = null;
+      selection.couponAmount = 0;
+      updateSelectionPrice(selection);
+      syncSelectionUI(selection);
+      setPayButtonReady(selection, Boolean(selection.checkoutReady));
+      input.value = '';
+      resetCouponControls();
+      if (!preserveFeedback && feedback) {
+        feedback.textContent = '';
+        feedback.hidden = true;
+      }
+    }
+
+    selection.clearCouponState = clearCouponState;
+
     toggle.addEventListener('click', () => {
       const isOpen = !form.hidden;
       form.hidden = isOpen;
@@ -1476,16 +1407,16 @@
         const response = await fetch('/api/validate-coupon', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
+          body: JSON.stringify({
+            code,
+            slug: selection.apiSlug,
+            paymentMode: selection.paymentMode,
+          }),
         });
         const result = await parseApiResponse(response);
 
         if (!result.ok || !result.data.valid) {
-          if (feedback) {
-            feedback.textContent = (result.data && result.data.error) || 'Invalid or expired coupon code.';
-            feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--error';
-            feedback.hidden = false;
-          }
+          setCouponFeedback((result.data && result.data.error) || 'Invalid or expired coupon code.', 'error');
           applyBtn.disabled = false;
           applyBtn.textContent = 'Apply';
           return;
@@ -1497,23 +1428,11 @@
         syncSelectionUI(selection);
         setPayButtonReady(selection, Boolean(selection.checkoutReady));
 
-        const discountText = result.data.discount.type === 'percent'
-          ? `${result.data.discount.value}% off`
-          : `$${fmtPrice(result.data.discount.value)} off`;
-
-        if (feedback) {
-          feedback.textContent = `${result.data.label || code} applied — ${discountText}`;
-          feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--success';
-          feedback.hidden = false;
-        }
+        setCouponFeedback(result.data.label || code, 'success');
         input.disabled = true;
         applyBtn.textContent = 'Applied';
       } catch (err) {
-        if (feedback) {
-          feedback.textContent = 'Could not validate coupon. Please try again.';
-          feedback.className = 'checkout-coupon__feedback checkout-coupon__feedback--error';
-          feedback.hidden = false;
-        }
+        setCouponFeedback('Could not validate coupon. Please try again.', 'error');
         applyBtn.disabled = false;
         applyBtn.textContent = 'Apply';
       }
@@ -1547,10 +1466,20 @@
     }
 
     const selection = getInitialSelection(productSlug, product);
-    selection.paymentMode = 'full';
+    const requestedPaymentMode = String(params.get('paymentMode') || params.get('payment_mode') || '').trim().toLowerCase();
+    const paymentModeOptions = getPaymentModeOptions(productSlug);
+    selection.paymentMode = paymentModeOptions.includes(requestedPaymentMode) ? requestedPaymentMode : 'full';
 
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'begin_checkout', {
+        currency: 'AUD',
+        value: selection.price,
+        items: [{ item_id: productSlug, item_name: product.name, price: selection.price, quantity: 1 }],
+      });
+    }
 
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
@@ -1676,7 +1605,7 @@
 
       setLoading(true, selection);
 
-      if (typeof window.posthog !== 'undefined') {
+      if (window.posthog && typeof window.posthog.capture === 'function') {
         window.posthog.capture('checkout_payment_submitted', {
           product: selection.pageSlug,
           total: selection.price,
@@ -1689,10 +1618,10 @@
         const payload = buildCheckoutPayload(selection, validation);
 
         if (selection.paymentMode === 'instalments') {
-          const response = await fetch('/api/create-instalment-session', {
+          const response = await fetch('/api/create-checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ ...payload, mode: 'instalment' }),
           });
           const resultPayload = await parseApiResponse(response);
           if (!resultPayload.ok || !resultPayload.data.url) {
@@ -1706,10 +1635,10 @@
         }
 
         if (selection.paymentMode === 'afterpay') {
-          const response = await fetch('/api/create-instalment-session', {
+          const response = await fetch('/api/create-checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ ...payload, mode: 'instalment' }),
           });
           const resultPayload = await parseApiResponse(response);
           if (!resultPayload.ok || !resultPayload.data.url) {
@@ -1720,10 +1649,10 @@
           return;
         }
 
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch('/api/create-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, mode: 'one_off' }),
         });
 
         const resultPayload = await parseApiResponse(response);
@@ -1857,7 +1786,7 @@
               items,
             });
           }
-          if (typeof window.posthog !== 'undefined') {
+          if (window.posthog && typeof window.posthog.capture === 'function') {
             const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
             window.posthog.capture('checkout_completed', {
               transaction_id: paypalOrderId,
@@ -1932,7 +1861,7 @@
             items,
           });
         }
-        if (typeof window.posthog !== 'undefined') {
+        if (window.posthog && typeof window.posthog.capture === 'function') {
           const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
           window.posthog.capture('checkout_completed', {
             transaction_id: paymentIntentId,
@@ -1949,11 +1878,13 @@
   }
 
   const exported = {
-    STOREFRONT_CONFIG,
     MASTERY_INSTALMENT_URL,
     TALLY_ESSAY_FORM_URL,
     EMAIL_PATTERN,
     PRODUCTS,
+    ORDER_BUMPS,
+    INSTALMENT_PLANS,
+    UNAVAILABLE_PRODUCT_SLUGS,
     fmtPrice,
     getPayButtonLabel,
     getPrimaryButtonLabel,
@@ -1987,6 +1918,8 @@
     buildOrderBumpMarkup,
     buildCheckoutAssuranceMarkup,
     buildInstalmentLinkMarkup,
+    getInstalmentRedirectUrl,
+    redirectToInstalmentCheckout,
     getSuccessActionMarkup,
     renderSuccessAction,
     initCheckoutPage,
@@ -2038,7 +1971,7 @@
         if (typeof window.gtag === 'function') {
           window.gtag('event', 'essay_upload_started');
         }
-        if (typeof window.posthog !== 'undefined') {
+        if (window.posthog && typeof window.posthog.capture === 'function') {
           window.posthog.capture('essay_upload_started');
         }
       });

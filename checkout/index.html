@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
+  <script>if(location.hostname==='rohanstutoring.com')location.replace('https://www.rohanstutoring.com'+location.pathname+location.search+location.hash);</script>
+  <script src="/js/consent.js"></script>
   <script src="/js/analytics.js" defer></script>
   <script src="/js/posthog-init.js" defer></script>
   <meta name="robots" content="noindex, nofollow">
@@ -14,7 +15,12 @@
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://js.stripe.com">
+  <link rel="preconnect" href="https://www.paypal.com">
+  <link rel="preconnect" href="https://www.paypalobjects.com">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/checkout.css">
   <script src="https://js.stripe.com/v3/"></script>
@@ -66,6 +72,11 @@
             <label class="checkout-label" for="email">Email address</label>
             <input class="checkout-input" id="email" type="email" autocomplete="email" required>
             <p class="checkout-gmail-note" id="gmail-note" hidden></p>
+          </div>
+
+          <div class="checkout-field">
+            <label class="checkout-label" for="phone">Phone number</label>
+            <input class="checkout-input" id="phone" type="tel" autocomplete="tel" required>
           </div>
 
           <div class="checkout-field">
@@ -130,7 +141,7 @@
             <input class="checkout-consent__input" id="terms-accepted" type="checkbox" required>
             <span class="checkout-consent__control" aria-hidden="true"></span>
             <span class="checkout-consent__copy">
-              I agree to the <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>, including the applicable payment, access, refund, and data-handling terms for this product.
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including the applicable payment, access, refund, and data-handling terms for this product.
             </span>
           </label>
 
@@ -154,6 +165,7 @@
   </footer>
 
   <script src="../js/storefront-config.js"></script>
-  <script src="../js/checkout.js"></script>
-</body>
-</html>
+  <script src="/js/catalog.js?v=20260524-mastery-upsell"></script>
+  <script src="../js/checkout.js?v=20260524-mastery-upsell"></script>
+  </body>
+  </html>

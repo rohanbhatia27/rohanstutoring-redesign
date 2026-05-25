@@ -2,12 +2,12 @@
   const StorefrontConfig = Object.freeze({
     instalmentLinks: Object.freeze({
       comprehensive: Object.freeze({
-        label: 'or pay $449 × 4 instalments →',
-        url: 'https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m',
+        label: 'or pay $499 × 4 instalments →',
+        url: '/checkout/?product=comprehensive&paymentMode=instalments',
       }),
       mastery: Object.freeze({
         label: 'or pay $649 × 4 instalments →',
-        url: 'https://buy.stripe.com/cNi8wP53m5o69Wt7MoeEo0o',
+        url: '/checkout/?product=mastery&paymentMode=instalments',
       }),
     }),
   });

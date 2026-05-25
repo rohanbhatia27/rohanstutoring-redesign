@@ -238,7 +238,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   if (!args.inputFile) {
-    console.error('Usage: node scripts/redirect-audit.js <input-file> [--output=redirect-report.csv] [--origin=https://www.rohanstutoring.com] [--max-hops=5]');
+    console.error('Usage: node scripts/redirect-audit.js <input-file> [--output=tmp/audit/report.csv] [--origin=https://www.rohanstutoring.com] [--max-hops=5]');
     process.exitCode = 1;
     return;
   }

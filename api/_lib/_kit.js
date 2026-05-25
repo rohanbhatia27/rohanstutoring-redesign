@@ -6,14 +6,7 @@ const QUIZ_OUTCOME_TAG_ENV = {
   COMPREHENSIVE: 'KIT_TAG_ID_QUIZ_COMPREHENSIVE',
   MASTERY_CALL: 'KIT_TAG_ID_QUIZ_MASTERY',
 };
-
-const PURCHASE_TAG_ENV = {
-  blueprint: 'KIT_TAG_ID_PURCHASED_BLUEPRINT',
-  comprehensive: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
-  's1-comprehensive': 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
-  's2-comprehensive': 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
-  'starter-pack': 'KIT_TAG_ID_PURCHASED_ESSENTIALS_PLAYBOOK',
-};
+const { SERVER_CATALOG } = require('./catalog.server.js');
 
 let fetchImpl = (...args) => fetch(...args);
 
@@ -139,7 +132,8 @@ async function syncQuizLead({ email, firstName = '', outcome = '' }) {
 }
 
 async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
-  const purchaseTagEnv = PURCHASE_TAG_ENV[String(baseSlug || '').trim()];
+  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
+  const purchaseTagEnv = entry ? entry.purchaseTagEnv : null;
 
   if (!purchaseTagEnv) {
     return { skipped: true, reason: 'unsupported_product' };

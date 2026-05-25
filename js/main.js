@@ -286,79 +286,6 @@ function initMain() {
     reveals.forEach((el) => revealObserver.observe(el));
   }
 
-  /* ---- Student type selector tabs ---- */
-  const tabs = Array.from(document.querySelectorAll('.selector__tab'));
-  const panels = Array.from(document.querySelectorAll('.selector__panel'));
-
-  if (tabs.length && panels.length) {
-    const activateTab = (nextTab, { focus = false } = {}) => {
-      tabs.forEach((tab) => {
-        const isSelected = tab === nextTab;
-        const panelId = tab.getAttribute('aria-controls');
-        const panel = panelId ? document.getElementById(panelId) : null;
-
-        tab.classList.toggle('selector__tab--active', isSelected);
-        tab.setAttribute('aria-selected', String(isSelected));
-        tab.setAttribute('tabindex', isSelected ? '0' : '-1');
-
-        if (panel) {
-          panel.classList.toggle('selector__panel--active', isSelected);
-          panel.hidden = !isSelected;
-          panel.setAttribute('aria-hidden', String(!isSelected));
-        }
-      });
-
-      if (focus) {
-        nextTab.focus();
-      }
-    };
-
-    const moveTabFocus = (currentIndex, direction) => {
-      const lastIndex = tabs.length - 1;
-      let nextIndex = currentIndex;
-
-      if (direction === 'next') {
-        nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
-      } else if (direction === 'prev') {
-        nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
-      } else if (direction === 'first') {
-        nextIndex = 0;
-      } else if (direction === 'last') {
-        nextIndex = lastIndex;
-      }
-
-      activateTab(tabs[nextIndex], { focus: true });
-    };
-
-    const initiallySelectedTab = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') || tabs[0];
-    activateTab(initiallySelectedTab);
-
-    tabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => activateTab(tab));
-      tab.addEventListener('keydown', (event) => {
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-          event.preventDefault();
-          moveTabFocus(index, 'next');
-        }
-
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-          event.preventDefault();
-          moveTabFocus(index, 'prev');
-        }
-
-        if (event.key === 'Home') {
-          event.preventDefault();
-          moveTabFocus(index, 'first');
-        }
-
-        if (event.key === 'End') {
-          event.preventDefault();
-          moveTabFocus(index, 'last');
-        }
-      });
-    });
-  }
-
   /* ---- FAQ smooth open/close ---- */
   document.querySelectorAll('.faq__item').forEach(item => {
     item.addEventListener('toggle', () => {
@@ -411,14 +338,6 @@ function initMain() {
 
     if (contextualParams) {
       Object.assign(params, contextualParams);
-    }
-
-    if (params.journey === 'homepage_comparison') {
-      const activeComparisonTab = document.querySelector('.selector__tab[aria-selected="true"]');
-      const activeStudentType = activeComparisonTab?.dataset.tab;
-      if (activeStudentType) {
-        params.active_student_type = activeStudentType;
-      }
     }
 
     return params;
@@ -512,7 +431,7 @@ function initMain() {
     'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
     'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
     'essay-pack-10':   { name: 'S2 Essay Marking — 10-Essay Pack',   price: 249 },
-    comprehensive:     { name: 'Comprehensive Course',               price: 1549 },
+    comprehensive:     { name: 'Comprehensive Course',               price: 1699 },
     mastery:           { name: 'Mastery Program',                    price: 2249 },
     'private-mentoring':{ name: 'Private Mentoring',                 price: null },
   };
@@ -544,6 +463,18 @@ function initMain() {
     if (!shouldTrackNewsletterSignup(form)) return;
     track('newsletter_signup', { method: 'convertkit' });
   }, { capture: true });
+
+  /* ---- Analytics: Calendly link clicks ---- */
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href*="calendly.com/rohansgamsat"]');
+    if (!link) return;
+    const href = link.href || '';
+    if (href.includes('the-2026-gamsat-resitter-s-workshop')) {
+      track('strategy_session_signup', { method: 'calendly_click', url: href });
+    } else if (href.includes('gamsat-strategy-consultation')) {
+      track('strategy_call_click', { method: 'calendly_click', url: href });
+    }
+  });
 }
 
 if (typeof document !== 'undefined') {

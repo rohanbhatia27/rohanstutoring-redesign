@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
+  <script src="/js/consent.js"></script>
   <script src="/js/analytics.js" defer></script>
   <script src="/js/posthog-init.js" defer></script>
   <title>GAMSAT Preparation Courses | Live & Self-Paced | Rohan's Tutoring</title>
@@ -24,9 +24,9 @@
   <!-- Fonts: Figtree -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/product.css">
   <link rel="stylesheet" href="css/courses.css">
@@ -127,7 +127,6 @@
             </div>
             <div class="hero-promo-card__body">
               <div class="hero-promo-card__badges">
-                <span class="badge badge--sale">Save $150 Early Bird</span>
                 <span class="badge badge--live">Live Classes</span>
               </div>
               <h3>GAMSAT Live Comprehensive Course</h3>
@@ -140,8 +139,7 @@
               </div>
               <div class="hero-promo-card__footer">
                 <div class="hero-promo-card__price">
-                  <span class="price-was">$1,699</span>
-                  <span class="price-now">$1,549</span>
+                  <span class="price-now">$1,699</span>
                 </div>
                 <span class="hero-promo-card__cta">Enrol Now →</span>
               </div>
@@ -252,14 +250,17 @@
 
           <a href="/courses/s1-comprehensive" class="course-tile">
             <div class="course-tile__image">
-              <img src="/assets/courses/s1-comprehensive-card.png" alt="Section 1 Comprehensive Course" width="960" height="540" loading="lazy" decoding="async">
+              <picture>
+                <source type="image/webp" srcset="/assets/courses/s1-comprehensive-card.webp">
+                <img src="/assets/courses/s1-comprehensive-card.png" alt="Section 1 Comprehensive Course" width="960" height="540" loading="lazy" decoding="async">
+              </picture>
             </div>
             <div class="course-tile__body">
-              <span class="course-tile__tag">Live · Starts 26 May</span>
+              <span class="course-tile__tag">Live  Starts 26 May</span>
               <h3>Section 1 Comprehensive Course</h3>
               <p>12 live S1 classes, 250+ targeted questions, 50+ hour library, refund guarantee. Tuesdays 6pm AEDT.</p>
               <div class="course-tile__footer">
-                <span class="course-tile__price">$899</span>
+                <span class="course-tile__price">$999</span>
                 <span class="course-tile__cta">View Course →</span>
               </div>
             </div>
@@ -267,21 +268,24 @@
 
           <a href="/courses/s2-comprehensive" class="course-tile">
             <div class="course-tile__image">
-              <img src="/assets/courses/s2-comprehensive-card.png" alt="Section 2 Comprehensive Course" width="960" height="540" loading="lazy" decoding="async">
+              <picture>
+                <source type="image/webp" srcset="/assets/courses/s2-comprehensive-card.webp">
+                <img src="/assets/courses/s2-comprehensive-card.png" alt="Section 2 Comprehensive Course" width="960" height="540" loading="lazy" decoding="async">
+              </picture>
             </div>
             <div class="course-tile__body">
-              <span class="course-tile__tag">Live · Starts 27 May</span>
+              <span class="course-tile__tag">Live  Starts 27 May</span>
               <h3>Section 2 Comprehensive Course</h3>
               <p>12 live S2 classes, live essay feedback, 50+ hour library, refund guarantee. Wednesdays 7pm AEDT.</p>
               <div class="course-tile__footer">
-                <span class="course-tile__price">$899</span>
+                <span class="course-tile__price">$999</span>
                 <span class="course-tile__cta">View Course →</span>
               </div>
             </div>
           </a>
 
         </div>
-        <p style="text-align:center; margin-top:18px; font-size:0.9rem; color:var(--text-muted);">Sitting both sections? <a href="/courses/comprehensive" style="color:var(--blue); font-weight:600;">Take the full Comprehensive Course →</a> and save $249.</p>
+        <p style="text-align:center; margin-top:18px; font-size:0.9rem; color:var(--text-muted);">Sitting both sections? <a href="/courses/comprehensive" style="color:var(--blue); font-weight:600;">Take the full Comprehensive Course →</a> and save $299.</p>
       </div>
 
     </div>
@@ -424,6 +428,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js" defer></script>
+  <script src="js/main.js?v=20260521-catalog" defer></script>
 </body>
 </html>

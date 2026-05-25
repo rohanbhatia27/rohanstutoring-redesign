@@ -41,21 +41,54 @@ const {
   initCheckoutPage,
   initSuccessPage,
 } = require('../js/checkout.js');
-const createPaymentIntentHandler = require('../api/create-payment-intent.js');
-const createInstalmentSessionHandler = require('../api/create-instalment-session.js');
-const createPayPalOrderHandler = require('../api/create-paypal-order.js');
-const capturePayPalOrderHandler = require('../api/capture-paypal-order.js');
-const paypalOrderStatusHandler = require('../api/paypal-order-status.js');
+const createCheckoutHandler = require('../api/create-checkout.js');
+const createPaymentIntentHandler = createCheckoutHandler;
+const createInstalmentSessionHandler = createCheckoutHandler;
+const payPalOrderHandler = require('../api/paypal-order.js');
+const createPayPalOrderHandler = payPalOrderHandler;
+const capturePayPalOrderHandler = payPalOrderHandler;
+const paypalOrderStatusHandler = require('../api/payment-status.js');
 const paypalWebhookHandler = require('../api/paypal-webhook.js');
 const paypalValidation = require('../api/_lib/_paypal-order-validation.js');
-const paymentIntentStatusHandler = require('../api/payment-intent-status.js');
+const paymentIntentStatusHandler = require('../api/payment-status.js');
 const publicConfigHandler = require('../api/public-config.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
+const validateCouponHandler = require('../api/validate-coupon.js');
+
+test('legacy checkout compatibility route files are removed', () => {
+  const legacyRoutes = [
+    'create-payment-intent.js',
+    'create-instalment-session.js',
+    'create-paypal-order.js',
+    'capture-paypal-order.js',
+    'stripe-health.js',
+    'retry-fulfillment.js',
+  ];
+
+  for (const route of legacyRoutes) {
+    assert.equal(
+      fs.existsSync(path.join(__dirname, '..', 'api', route)),
+      false,
+      `${route} should be deleted; its behaviour now lives in create-checkout.js / paypal-order.js / admin.js`
+    );
+  }
+});
+
+test('checkout consolidation keeps the merged handlers callable', () => {
+  assert.equal(typeof createCheckoutHandler, 'function');
+  assert.equal(typeof payPalOrderHandler, 'function');
+  assert.equal(typeof require('../api/admin.js'), 'function');
+});
 
 function createJsonResponseRecorder() {
   return {
     statusCode: 200,
     body: null,
+    headers: {},
+    setHeader(name, value) {
+      this.headers[String(name).toLowerCase()] = value;
+      return this;
+    },
     status(code) {
       this.statusCode = code;
       return this;
@@ -136,6 +169,7 @@ function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
         return true;
       },
     },
+    '#phone': { value: '+61 400 111 222' },
     '#billing-address': { value: '123 Test Street' },
     '#terms-accepted': { checked: true },
     '#gmail-note': { hidden: true },
@@ -144,6 +178,11 @@ function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
     '#payment-method-toggle': { hidden: true },
     '#tab-card': { addEventListener() {}, classList: { add() {}, remove() {} } },
     '#tab-paypal': { addEventListener() {}, classList: { add() {}, remove() {} } },
+    '#coupon-toggle': { addEventListener() {}, setAttribute() {} },
+    '#coupon-form': { hidden: true },
+    '#coupon-code': { value: '', disabled: false, focus() {}, addEventListener() {} },
+    '#coupon-apply': { disabled: false, textContent: 'Apply', addEventListener() {} },
+    '#coupon-feedback': { textContent: '', hidden: true, className: '' },
   };
 
   return {
@@ -174,6 +213,7 @@ function createCheckoutSubmitTestEnv(productSearch = '?product=comprehensive') {
         return [];
       },
     },
+    elements,
   };
 }
 
@@ -205,6 +245,7 @@ test('create-payment-intent accepts s1-comprehensive and s2-comprehensive', asyn
         slug,
         email: 'jane@example.com',
         customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
       },
     };
     const res = createJsonResponseRecorder();
@@ -236,7 +277,7 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
     upsell: {
       slug: 'essay-collection',
       title: 'Add the Essay Collection',
-      description: '25 essays scored 80+ · Immediate access',
+      description: '25 essays scored 80+  Immediate access',
       price: 79,
       badge: 'Optional add-on',
     },
@@ -269,38 +310,55 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.deepEqual(getOrderBumpConfig('advanced'), {
     slug: 'essay-collection',
     title: 'Add the Essay Collection',
-    description: '25 essays scored 80+ · Immediate access',
+    description: '25 essays scored 80+  Immediate access',
     price: 79,
     badge: 'Optional add-on',
   });
 
-  assert.equal(getOrderBumpConfig('mastery'), null);
+  assert.deepEqual(getOrderBumpConfig('mastery'), {
+    slug: 'mentoring-single',
+    title: 'Add extra 1:1 classes',
+    description: 'Add as many private strategy classes as you want at the Mastery-only rate.',
+    price: 99,
+    priceWas: 119,
+    badge: 'Mastery-only offer',
+    quantityEnabled: true,
+    quantityLabel: 'Extra classes',
+    minQuantity: 1,
+    lockRuntimePrice: true,
+  });
 });
 
-test('checkout product prices stay in sync with payment-intent amounts', () => {
-  const apiAmountsByPageSlug = {
-    blueprint: createPaymentIntentHandler.AMOUNTS.blueprint,
-    advanced: createPaymentIntentHandler.AMOUNTS.advanced,
-    'essay-collection': createPaymentIntentHandler.AMOUNTS['essay-collection'],
-    'essay-marking': createPaymentIntentHandler.AMOUNTS['essay-marking'],
-    'essay-pack-10': createPaymentIntentHandler.AMOUNTS['essay-pack-10'],
-    'starter-pack': createPaymentIntentHandler.AMOUNTS['starter-pack'],
-    comprehensive: createPaymentIntentHandler.AMOUNTS.comprehensive,
-    mastery: createPaymentIntentHandler.AMOUNTS.mastery,
-    'private-mentoring-single': createPaymentIntentHandler.AMOUNTS['mentoring-single'],
-    'private-mentoring-pack': createPaymentIntentHandler.AMOUNTS['mentoring-pack'],
-  };
+test('catalog integrity: all purchasable slugs have positive priceCents, required fields, and valid upsell targets', () => {
+  const { CATALOG } = require('../js/catalog.js');
+  const REQUIRED_FIELDS = ['slug', 'name', 'title', 'available', 'successType', 'isDigital'];
 
-  assert.equal(PRODUCTS.blueprint.price * 100, apiAmountsByPageSlug.blueprint);
-  assert.equal(PRODUCTS.advanced.price * 100, apiAmountsByPageSlug.advanced);
-  assert.equal(PRODUCTS['essay-collection'].price * 100, apiAmountsByPageSlug['essay-collection']);
-  assert.equal(PRODUCTS['essay-marking'].price * 100, apiAmountsByPageSlug['essay-marking']);
-  assert.equal(PRODUCTS['essay-pack-10'].price * 100, apiAmountsByPageSlug['essay-pack-10']);
-  assert.equal(PRODUCTS['starter-pack'].price * 100, apiAmountsByPageSlug['starter-pack']);
-  assert.equal(PRODUCTS.comprehensive.price * 100, apiAmountsByPageSlug.comprehensive);
-  assert.equal(PRODUCTS.mastery.price * 100, apiAmountsByPageSlug.mastery);
-  assert.equal(PRODUCTS['private-mentoring'].packages[0].price * 100, apiAmountsByPageSlug['private-mentoring-single']);
-  assert.equal(PRODUCTS['private-mentoring'].packages[1].price * 100, apiAmountsByPageSlug['private-mentoring-pack']);
+  Object.entries(CATALOG).forEach(([slug, entry]) => {
+    REQUIRED_FIELDS.forEach((field) => {
+      assert.notEqual(entry[field], undefined, `${slug} missing field: ${field}`);
+    });
+
+    if (entry.priceCents !== null) {
+      assert.ok(entry.priceCents > 0, `${slug} priceCents must be positive`);
+    }
+
+    (entry.allowedUpsells || []).forEach((upsellSlug) => {
+      assert.ok(CATALOG[upsellSlug], `${slug} upsell target '${upsellSlug}' does not exist in catalog`);
+      assert.ok(CATALOG[upsellSlug].priceCents > 0, `${slug} upsell target '${upsellSlug}' has no price`);
+    });
+
+    Object.keys(entry.upsellPriceOverrides || {}).forEach((upsellSlug) => {
+      assert.ok(
+        (entry.allowedUpsells || []).includes(upsellSlug),
+        `${slug} has upsellPriceOverride for '${upsellSlug}' but it's not in allowedUpsells`
+      );
+    });
+
+    if (entry.orderBump) {
+      assert.ok(entry.orderBump.slug, `${slug} orderBump missing slug`);
+      assert.ok(CATALOG[entry.orderBump.slug], `${slug} orderBump target '${entry.orderBump.slug}' does not exist`);
+    }
+  });
 });
 
 test('renderSummaryMarkup renders standard products with included features', () => {
@@ -315,7 +373,7 @@ test('comprehensive checkout summary uses the May 2026 course title without coho
   const markup = renderSummaryMarkup(PRODUCTS.comprehensive, getInitialSelection('comprehensive', PRODUCTS.comprehensive));
 
   assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(May 2026 Start\)/);
-  assert.doesNotMatch(markup, /24 live classes · 50\+ hrs content · September cohort/);
+  assert.doesNotMatch(markup, /24 live classes  50\+ hrs content  September cohort/);
 });
 
 test('checkout page uses local payment provider logo assets', () => {
@@ -373,6 +431,20 @@ test('buildOrderBumpMarkup renders the comprehensive enrolment-only discount wit
   assert.match(markup, /\+\$99/);
 });
 
+test('buildOrderBumpMarkup renders quantity controls for the mastery extra class add-on', () => {
+  const selection = getInitialSelection('mastery', PRODUCTS.mastery);
+  selection.upsellSelected = true;
+  selection.upsellQuantity = 4;
+  updateSelectionPrice(selection);
+
+  const markup = buildOrderBumpMarkup(getOrderBumpConfig('mastery'), selection);
+
+  assert.match(markup, /type="number"/);
+  assert.match(markup, /id="order-bump-quantity"/);
+  assert.match(markup, /value="4"/);
+  assert.match(markup, /\+\$99 each/);
+});
+
 test('buildCheckoutAssuranceMarkup renders compact trust proof for the payment step', () => {
   const markup = buildCheckoutAssuranceMarkup();
 
@@ -387,7 +459,7 @@ test('buildInstalmentLinkMarkup renders instalment plans as a deliberate checkou
 
   assert.match(markup, /checkout-instalment-link__eyebrow/);
   assert.match(markup, /Pay in 4 instalments/);
-  assert.match(markup, /\$449 × 4 instalments/);
+  assert.match(markup, /\$499 × 4 instalments/);
   assert.match(markup, /Opens secure Stripe instalment checkout/);
 });
 
@@ -415,8 +487,8 @@ test('getInstalmentPlanSummary returns first payment and future monthly copy for
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 449);
-  assert.equal(summary.futurePaymentAmount, 449);
+  assert.equal(summary.dueToday, 499);
+  assert.equal(summary.futurePaymentAmount, 499);
   assert.match(summary.futurePaymentCopy, /3 monthly payments/);
 });
 
@@ -428,8 +500,21 @@ test('getInstalmentPlanSummary adds the comprehensive mentoring bump to the firs
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 548);
+  assert.equal(summary.dueToday, 598);
+  assert.equal(summary.futurePaymentAmount, 499);
+});
+
+test('getInstalmentPlanSummary spreads a fixed coupon over comprehensive instalments', () => {
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  selection.paymentMode = 'instalments';
+  selection.couponDiscount = { type: 'fixed', value: 200 };
+  updateSelectionPrice(selection);
+
+  const summary = getInstalmentPlanSummary(selection);
+
+  assert.equal(summary.dueToday, 449);
   assert.equal(summary.futurePaymentAmount, 449);
+  assert.match(summary.futurePaymentCopy, /\$449/);
 });
 
 test('buildPaymentModeMarkup renders full and instalment options for eligible products', () => {
@@ -570,12 +655,12 @@ test('initCheckoutPage keeps the pay button disabled until checkout is ready', a
   }
 });
 
-test('initCheckoutPage routes instalment submissions to the hosted checkout session URL', async () => {
+test('initCheckoutPage honours paymentMode=instalments links and submits through the instalment session API', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;
   const previousFetch = global.fetch;
   const previousStripe = global.Stripe;
-  const env = createCheckoutSubmitTestEnv();
+  const env = createCheckoutSubmitTestEnv('?product=comprehensive&paymentMode=instalments');
   const fetchCalls = [];
   let confirmCardPaymentCalled = false;
 
@@ -591,10 +676,10 @@ test('initCheckoutPage routes instalment submissions to the hosted checkout sess
       };
     }
 
-    if (url === '/api/create-instalment-session') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
-        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/session_123' }),
+        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/instalment_123' }),
       };
     }
 
@@ -620,21 +705,79 @@ test('initCheckoutPage routes instalment submissions to the hosted checkout sess
   try {
     await initCheckoutPage();
 
-    env.paymentModeSlot.listeners.change({
-      target: {
-        closest(selector) {
-          return selector === '.payment-mode-option__input' ? env.instalmentInput : null;
-        },
-      },
-    });
+    assert.equal(env.payBtnLabel.textContent, 'Continue to secure instalment checkout');
 
     await env.form.submitHandler({
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmCardPaymentCalled, false);
-    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/session_123');
+    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/instalment_123');
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('initCheckoutPage honours mastery instalment links and submits through the instalment session API', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const env = createCheckoutSubmitTestEnv('?product=mastery&paymentMode=instalments');
+  const fetchCalls = [];
+
+  global.window = env.windowObject;
+  global.document = env.documentObject;
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
+    if (url === '/api/public-config') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-checkout') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/mastery_instalment_123' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  };
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on() {},
+          };
+        },
+      };
+    },
+    async confirmCardPayment() {
+      throw new Error('Card confirmation should not run for instalment checkout submissions.');
+    },
+  });
+
+  try {
+    await initCheckoutPage();
+
+    assert.equal(env.payBtnLabel.textContent, 'Continue to secure instalment checkout');
+
+    await env.form.submitHandler({
+      preventDefault() {},
+    });
+
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
+    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/mastery_instalment_123');
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -682,7 +825,7 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
       };
     }
 
-    if (url === '/api/create-instalment-session') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/afterpay_123' }),
@@ -723,7 +866,7 @@ test('initCheckoutPage routes Blueprint Afterpay submissions to the hosted After
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-instalment-session'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmCardPaymentCalled, false);
     assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/afterpay_123');
   } finally {
@@ -757,6 +900,7 @@ test('instalment session handler creates a one-time Blueprint Afterpay Checkout 
       paymentMode: 'afterpay',
       email: 'jane@example.com',
       customerName: 'Jane Smith',
+      phone: '+61 400 111 222',
       origin: 'https://rohanstutoring.com',
     },
   };
@@ -902,7 +1046,7 @@ test('initCheckoutPage keeps full-pay submissions on the payment-intent card flo
       };
     }
 
-    if (url === '/api/create-payment-intent') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ clientSecret: 'pi_secret_123' }),
@@ -940,7 +1084,7 @@ test('initCheckoutPage keeps full-pay submissions on the payment-intent card flo
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-payment-intent'), true);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmedPayments.length, 1);
     assert.equal(confirmedPayments[0].clientSecret, 'pi_secret_123');
     assert.match(env.windowObject.location.href, /\/checkout\/success\?product=advanced&payment_intent=pi_123/);
@@ -973,7 +1117,7 @@ test('initCheckoutPage blocks checkout submission until terms are accepted', asy
       };
     }
 
-    if (url === '/api/create-payment-intent') {
+    if (url === '/api/create-checkout') {
       return {
         ok: true,
         text: async () => JSON.stringify({ clientSecret: 'pi_secret_123' }),
@@ -1012,7 +1156,7 @@ test('initCheckoutPage blocks checkout submission until terms are accepted', asy
       preventDefault() {},
     });
 
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-payment-intent'), false);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), false);
     assert.equal(confirmedPayments.length, 0);
   } finally {
     global.window = previousWindow;
@@ -1209,6 +1353,7 @@ test('stripe webhook still fulfills payment_intent.succeeded events', async () =
               id: 'pi_test_123',
               metadata: {
                 payment_mode: 'full',
+                product_slug: 'blueprint',
               },
             },
           },
@@ -1412,7 +1557,7 @@ test('buildPurchaseItems keeps the comprehensive order bump at the bundled disco
     {
       item_id: 'comprehensive',
       item_name: 'GAMSAT S1 & S2 Comprehensive Course (May 2026 Start)',
-      price: 1549,
+      price: 1699,
       quantity: 1,
     },
     {
@@ -1525,25 +1670,28 @@ test('getCustomerPayload returns email and full name for API submission', () => 
     billingDetails: {
       email: 'jane@example.com',
       name: 'Jane Smith',
+      phone: '+61 400 111 222',
     },
   });
 
   assert.deepEqual(payload, {
     email: 'jane@example.com',
     customerName: 'Jane Smith',
+    phone: '+61 400 111 222',
   });
 });
 
 test('buildCheckoutPayload includes the primary slug and optional upsell fields', () => {
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.upsellSelected = true;
-  selection.basePrice = 1549;
-  selection.price = 1648;
+  selection.basePrice = 1699;
+  selection.price = 1798;
 
   const payload = buildCheckoutPayload(selection, {
     billingDetails: {
       name: 'Jane Smith',
       email: 'jane@example.com',
+      phone: '+61 400 111 222',
     },
   });
 
@@ -1553,11 +1701,12 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
     primaryProduct: {
       pageSlug: 'comprehensive',
       slug: 'comprehensive',
-      price: 1549,
+      price: 1699,
     },
-    totalAmount: 1648,
+    totalAmount: 1798,
     customerName: 'Jane Smith',
     email: 'jane@example.com',
+    phone: '+61 400 111 222',
     upsell: {
       slug: 'mentoring-single',
       price: 99,
@@ -1573,15 +1722,45 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
 test('buildCheckoutPayload includes paymentMode for instalment submissions', () => {
   const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
   selection.paymentMode = 'instalments';
+  selection.couponCode = 'WEBINAR200';
 
   const payload = buildCheckoutPayload(selection, {
     billingDetails: {
       name: 'Jane Smith',
       email: 'jane@example.com',
+      phone: '+61 400 111 222',
     },
   });
 
   assert.equal(payload.paymentMode, 'instalments');
+  assert.equal(payload.couponCode, 'WEBINAR200');
+});
+
+test('buildCheckoutPayload includes mastery upsell quantity when extra classes are selected', () => {
+  const selection = getInitialSelection('mastery', PRODUCTS.mastery);
+  selection.upsellSelected = true;
+  selection.upsellQuantity = 6;
+  updateSelectionPrice(selection);
+
+  const payload = buildCheckoutPayload(selection, {
+    billingDetails: {
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '+61 400 111 222',
+    },
+  });
+
+  assert.equal(payload.slug, 'mastery');
+  assert.equal(payload.totalAmount, 2843);
+  assert.equal(payload.upsellSlug, 'mentoring-single');
+  assert.equal(payload.upsellPrice, 99);
+  assert.equal(payload.upsellQuantity, 6);
+  assert.deepEqual(payload.upsell, {
+    slug: 'mentoring-single',
+    price: 99,
+    quantity: 6,
+    title: 'Add extra 1:1 classes',
+  });
 });
 
 test('EMAIL_PATTERN rejects obviously malformed addresses', () => {
@@ -1614,10 +1793,12 @@ test('payment intent handler validates customer details before Stripe call', () 
     createPaymentIntentHandler.normaliseCustomerDetails({
       email: 'jane@example.com',
       customerName: 'Jane Smith',
+      phone: '+61 400 111 222',
     }),
     {
       email: 'jane@example.com',
       customerName: 'Jane Smith',
+      phone: '+61 400 111 222',
     }
   );
 
@@ -1625,6 +1806,7 @@ test('payment intent handler validates customer details before Stripe call', () 
     createPaymentIntentHandler.normaliseCustomerDetails({
       email: 'not-an-email',
       customerName: 'Jane Smith',
+      phone: '+61 400 111 222',
     }).error,
     'Please enter a valid email address.'
   );
@@ -1651,11 +1833,28 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       upsellSlug: 'mentoring-single',
     }),
     {
-      amount: 164800,
-      baseAmount: 154900,
+      amount: 179800,
+      baseAmount: 169900,
       baseSlug: 'comprehensive',
       upsellAmount: 9900,
       upsellSlug: 'mentoring-single',
+    }
+  );
+
+  assert.deepEqual(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'mastery',
+      upsellSlug: 'mentoring-single',
+      upsellQuantity: 6,
+    }),
+    {
+      amount: 284300,
+      baseAmount: 224900,
+      baseSlug: 'mastery',
+      upsellAmount: 59400,
+      upsellSlug: 'mentoring-single',
+      upsellQuantity: 6,
+      upsellUnitAmount: 9900,
     }
   );
 
@@ -1684,6 +1883,7 @@ test('instalment session handler rejects unsupported product slugs', async () =>
       paymentMode: 'instalments',
       customerName: 'Jane Smith',
       email: 'jane@example.com',
+      phone: '+61 400 111 222',
     },
   };
   const res = createJsonResponseRecorder();
@@ -1699,10 +1899,12 @@ test('instalment session handler rejects invalid payment modes', async () => {
     method: 'POST',
     headers: { origin: 'https://rohanstutoring.com' },
     body: {
+      mode: 'instalment',
       slug: 'comprehensive',
       paymentMode: 'full',
       customerName: 'Jane Smith',
       email: 'jane@example.com',
+      phone: '+61 400 111 222',
     },
   };
   const res = createJsonResponseRecorder();
@@ -1740,6 +1942,7 @@ test('instalment session handler rejects whitespace-only Stripe secret keys', as
         paymentMode: 'instalments',
         customerName: 'Jane Smith',
         email: 'jane@example.com',
+        phone: '+61 400 111 222',
         origin: 'https://rohanstutoring.com',
       },
     };
@@ -1757,7 +1960,7 @@ test('instalment session handler rejects whitespace-only Stripe secret keys', as
   }
 });
 
-test('instalment session handler creates a subscription checkout session with first-invoice add-on only', async () => {
+test('instalment session handler creates a subscription checkout session with first-checkout add-on only', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
 
@@ -1783,6 +1986,7 @@ test('instalment session handler creates a subscription checkout session with fi
         upsellSlug: 'mentoring-single',
         customerName: 'Jane Smith',
         email: 'jane@example.com',
+        phone: '+61 400 111 222',
         origin: 'https://rohanstutoring.com',
       },
     };
@@ -1796,15 +2000,19 @@ test('instalment session handler creates a subscription checkout session with fi
     assert.equal(createdSessions[0].success_url, 'https://rohanstutoring.com/checkout/success?product=comprehensive&session_id={CHECKOUT_SESSION_ID}');
     assert.equal(createdSessions[0].cancel_url, 'https://rohanstutoring.com/checkout/?product=comprehensive');
     assert.equal(createdSessions[0].customer_email, 'jane@example.com');
-    assert.equal(createdSessions[0].line_items.length, 1);
+    assert.equal(createdSessions[0].line_items.length, 2);
     assert.equal(createdSessions[0].line_items[0].price, 'price_comp_123');
     assert.equal(createdSessions[0].line_items[0].quantity, 1);
+    assert.equal(createdSessions[0].line_items[1].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].line_items[1].price_data.product_data.name, 'Single session');
+    assert.equal(createdSessions[0].line_items[1].quantity, 1);
     assert.deepEqual(createdSessions[0].metadata, {
       product_slug: 'comprehensive',
       base_slug: 'comprehensive',
       payment_mode: 'instalments',
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
+      customer_phone: '+61 400 111 222',
       upsell_slug: 'mentoring-single',
     });
     assert.deepEqual(createdSessions[0].subscription_data.metadata, {
@@ -1813,15 +2021,65 @@ test('instalment session handler creates a subscription checkout session with fi
       payment_mode: 'instalments',
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
+      customer_phone: '+61 400 111 222',
       upsell_slug: 'mentoring-single',
     });
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items.length, 1);
-    assert.equal(createdSessions[0].subscription_data.add_invoice_items[0].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items, undefined);
     assert.equal(res.body.url, 'https://checkout.stripe.test/session_123');
   } finally {
     createInstalmentSessionHandler.__resetForTests();
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT;
+  }
+});
+
+test('instalment session handler creates mastery add-on line items with selected quantity', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
+
+  const createdSessions = [];
+  createInstalmentSessionHandler.__setStripeFactory(() => ({
+    checkout: {
+      sessions: {
+        create: async (payload) => {
+          createdSessions.push(payload);
+          return { url: 'https://checkout.stripe.test/mastery_session_123' };
+        },
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug: 'mastery',
+        paymentMode: 'instalments',
+        upsellSlug: 'mentoring-single',
+        upsellQuantity: 5,
+        customerName: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+61 400 111 222',
+        origin: 'https://rohanstutoring.com',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createInstalmentSessionHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(createdSessions[0].line_items[0].price, 'price_mastery_123');
+    assert.equal(createdSessions[0].line_items.length, 2);
+    assert.equal(createdSessions[0].line_items[1].price_data.unit_amount, 9900);
+    assert.equal(createdSessions[0].line_items[1].quantity, 5);
+    assert.equal(createdSessions[0].subscription_data.add_invoice_items, undefined);
+    assert.equal(createdSessions[0].metadata.upsell_quantity, '5');
+    assert.equal(res.body.url, 'https://checkout.stripe.test/mastery_session_123');
+  } finally {
+    createInstalmentSessionHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_PRICE_MASTERY_INSTALMENT;
   }
 });
 
@@ -1969,6 +2227,7 @@ test('PayPal capture handler rejects completed orders with mismatched amounts', 
         slug: 'blueprint',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
       },
     };
     const res = createJsonResponseRecorder();
@@ -2035,6 +2294,7 @@ test('PayPal capture handler accepts only validated completed checkout orders', 
         slug: 'blueprint',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
       },
     };
     const res = createJsonResponseRecorder();
@@ -2160,7 +2420,7 @@ test('fetchPayPalOrderStatus verifies PayPal success through the API endpoint', 
   global.fetch = async (url) => {
     assert.equal(
       String(url),
-      '/api/paypal-order-status?paypal_order=ORDER123&product=private-mentoring&package=mentoring-pack&upsell=essay-collection'
+      '/api/payment-status?paypal_order=ORDER123&product=private-mentoring&package=mentoring-pack&upsell=essay-collection'
     );
 
     return {
@@ -2446,6 +2706,7 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
         upsellSlug: 'mentoring-single',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
       },
     };
     const res = createJsonResponseRecorder();
@@ -2455,7 +2716,7 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, { clientSecret: 'pi_secret_123' });
     assert.equal(createPayloads.length, 1);
-    assert.equal(createPayloads[0].amount, 164800);
+    assert.equal(createPayloads[0].amount, 179800);
     assert.equal(createPayloads[0].description, "Rohan's GAMSAT - comprehensive + mentoring-single");
     assert.deepEqual(createPayloads[0].metadata, {
       product_slug: 'comprehensive',
@@ -2463,6 +2724,7 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
       upsell_slug: 'mentoring-single',
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
+      customer_phone: '+61 400 111 222',
     });
   } finally {
     createPaymentIntentHandler.__resetForTests();
@@ -2502,6 +2764,7 @@ test('payment intent handler persists essay upload recovery metadata after creat
         slug: 'essay-marking',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
       },
     };
     const res = createJsonResponseRecorder();
@@ -2529,11 +2792,287 @@ test('payment intent handler persists essay upload recovery metadata after creat
   }
 });
 
+test('validate coupon handler rejects high-ticket-only coupons for lower-ticket products', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  validateCouponHandler.__setStripeFactory(() => ({
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_high_ticket_123',
+            coupon: {
+              id: 'coupon_high_ticket_123',
+              valid: true,
+              amount_off: 15000,
+              metadata: {
+                allowed_product_group: 'high_ticket',
+                allowed_products: 'comprehensive,mastery',
+              },
+              name: 'High Ticket $150 Off',
+            },
+          },
+        ],
+      }),
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        code: 'ROHAN150',
+        slug: 'blueprint',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await validateCouponHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      valid: false,
+      error: 'This coupon is not valid for the selected product.',
+    });
+  } finally {
+    validateCouponHandler.__setStripeFactory((secretKey) => require('stripe')(secretKey));
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
+test('validate coupon handler returns a clean fixed-amount label for eligible products', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  validateCouponHandler.__setStripeFactory(() => ({
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_high_ticket_123',
+            coupon: {
+              id: 'coupon_high_ticket_123',
+              valid: true,
+              amount_off: 15000,
+              metadata: {
+                allowed_product_group: 'high_ticket',
+                allowed_products: 'comprehensive,mastery',
+              },
+              name: 'High Ticket 150 Off',
+            },
+          },
+        ],
+      }),
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        code: 'ESSENTIALS150',
+        slug: 'comprehensive',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await validateCouponHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      valid: true,
+      code: 'ESSENTIALS150',
+      discount: { type: 'fixed', value: 150 },
+      label: '$150 Off',
+    });
+  } finally {
+    validateCouponHandler.__setStripeFactory((secretKey) => require('stripe')(secretKey));
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
+test('validate coupon handler accepts fixed comprehensive instalment coupons', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  validateCouponHandler.__setStripeFactory(() => ({
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_webinar_200',
+            coupon: {
+              id: 'coupon_webinar_200',
+              valid: true,
+              amount_off: 20000,
+              metadata: {
+                allowed_products: 'comprehensive',
+              },
+              name: 'Webinar $200 Off',
+            },
+          },
+        ],
+      }),
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        code: 'WEBINAR200',
+        slug: 'comprehensive',
+        paymentMode: 'instalments',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await validateCouponHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, {
+      valid: true,
+      code: 'WEBINAR200',
+      discount: { type: 'fixed', value: 200 },
+      label: '$200 Off',
+    });
+  } finally {
+    validateCouponHandler.__setStripeFactory((secretKey) => require('stripe')(secretKey));
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
+test('payment intent handler rejects high-ticket-only coupons for lower-ticket products', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      create: async () => ({ client_secret: 'pi_secret_should_not_exist' }),
+    },
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_high_ticket_123',
+            coupon: {
+              id: 'coupon_high_ticket_123',
+              valid: true,
+              amount_off: 15000,
+              metadata: {
+                allowed_product_group: 'high_ticket',
+                allowed_products: 'comprehensive,mastery',
+              },
+              name: 'High Ticket $150 Off',
+            },
+          },
+        ],
+      }),
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug: 'blueprint',
+        couponCode: 'ROHAN150',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createPaymentIntentHandler(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, {
+      error: 'This coupon is not valid for the selected product.',
+    });
+  } finally {
+    createPaymentIntentHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
 test('payment intent status handler origin allow-list matches checkout endpoint', () => {
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://preview-build.vercel.app'), false);
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://evil.example.com'), false);
+});
+
+test('instalment session handler spreads a comprehensive fixed coupon across monthly payments', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT = 'price_comp_123';
+
+  const createdSessions = [];
+  createInstalmentSessionHandler.__setStripeFactory(() => ({
+    promotionCodes: {
+      list: async () => ({
+        data: [
+          {
+            id: 'promo_high_ticket_123',
+            coupon: {
+              id: 'coupon_high_ticket_123',
+              valid: true,
+              amount_off: 20000,
+              metadata: {
+                allowed_products: 'comprehensive',
+              },
+              name: 'Webinar $200 Off',
+            },
+          },
+        ],
+      }),
+    },
+    checkout: {
+      sessions: {
+        create: async (payload) => {
+          createdSessions.push(payload);
+          return { url: 'https://checkout.stripe.test/session_456' };
+        },
+      },
+    },
+  }));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug: 'comprehensive',
+        paymentMode: 'instalments',
+        couponCode: 'WEBINAR200',
+        customerName: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+61 400 111 222',
+        origin: 'https://rohanstutoring.com',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createInstalmentSessionHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(createdSessions.length, 1);
+    assert.equal(createdSessions[0].discounts, undefined);
+    assert.equal(createdSessions[0].allow_promotion_codes, false);
+    assert.equal(createdSessions[0].line_items[0].price, undefined);
+    assert.equal(createdSessions[0].line_items[0].price_data.unit_amount, 44900);
+    assert.deepEqual(createdSessions[0].line_items[0].price_data.recurring, { interval: 'month' });
+    assert.equal(createdSessions[0].metadata.coupon_code, 'WEBINAR200');
+    assert.equal(createdSessions[0].metadata.discount_amount, '20000');
+    assert.equal(createdSessions[0].metadata.discount_per_instalment, '5000');
+    assert.equal(createdSessions[0].subscription_data.metadata.coupon_code, 'WEBINAR200');
+    assert.equal(res.body.url, 'https://checkout.stripe.test/session_456');
+  } finally {
+    createInstalmentSessionHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_PRICE_COMPREHENSIVE_INSTALMENT;
+  }
 });
 
 test('payment intent status handler validates Stripe payment-intent IDs', () => {
@@ -2623,6 +3162,7 @@ test('payment intent handler sends Stripe idempotency keys for retries in the sa
         upsellSlug: 'mentoring-single',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
       },
     };
     const res = createJsonResponseRecorder();

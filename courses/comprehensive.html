@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
+  <script src="/js/consent.js"></script>
   <script src="/js/analytics.js" defer></script>
   <script src="/js/posthog-init.js" defer></script>
   <title>GAMSAT Live Comprehensive Course | Rohan's GAMSAT</title>
@@ -16,329 +16,18 @@
   <meta property="og:type" content="product">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="GAMSAT Live Comprehensive Course: Make September 2026 Your Final Sitting">
-  <meta name="twitter:description" content="24 live classes, essay feedback, 50+ hours of content, 100% refund guarantee. From $1,549 AUD.">
+  <meta name="twitter:description" content="24 live classes, essay feedback, 50+ hours of content, 100% refund guarantee. $1,699 AUD.">
   <meta name="twitter:image" content="https://www.rohanstutoring.com/assets/rohan/rohan-square-background.webp">
   <link rel="icon" href="../assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-.sticky-bar {
-position: fixed;
-top: 0; left: 0; right: 0;
-z-index: 200;
-background: var(--navy-mid);
-border-bottom: 1px solid var(--border);
-padding: 12px 24px;
-transform: translateY(-100%);
-transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-backdrop-filter: blur(16px);
-}
-.sticky-bar.visible { transform: translateY(0); }
-.sticky-bar__inner {
-max-width: 1200px;
-margin: 0 auto;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 16px;
-}
-.sticky-bar__title {
-font-size: 0.9rem;
-font-weight: 600;
-color: var(--white);
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-}
-.sticky-bar__right {
-display: flex;
-align-items: center;
-gap: 16px;
-flex-shrink: 0;
-}
-.sticky-bar__price {
-font-size: 0.95rem;
-color: var(--text-light);
-}
-.sticky-bar__price strong { color: var(--white); }
-.product-hero {
-position: relative;
-padding: calc(var(--header-height) + 12px) 0 56px;
-overflow: hidden;
-}
-.product-hero--dark { background: var(--navy); }
-.product-hero__bg {
-position: absolute;
-inset: 0;
-pointer-events: none;
-}
-.product-hero__inner {
-position: relative;
-z-index: 2;
-display: grid;
-grid-template-columns: 1fr 480px;
-gap: 52px;
-align-items: flex-start;
-}
-.product-hero__badges {
-display: flex;
-gap: 10px;
-flex-wrap: wrap;
-margin-bottom: 20px;
-}
-.badge {
-display: inline-flex;
-align-items: center;
-gap: 6px;
-font-size: 0.75rem;
-font-weight: 700;
-letter-spacing: 0.06em;
-padding: 5px 12px;
-border-radius: 100px;
-}
-.badge--live { background: rgba(239,68,68,0.15); color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
-.badge--sale { background: rgba(245,197,24,0.15); color: #FCD34D; border: 1px solid rgba(245,197,24,0.3); }
-.badge--green { background: rgba(16,191,122,0.15); color: var(--green); border: 1px solid rgba(16,191,122,0.3); }
-.badge--soldout { background: rgba(107,114,128,0.1); color: #9CA3AF; border: 1px solid rgba(107,114,128,0.25); }
-.product-hero h1 {
-color: var(--white);
-margin-bottom: 16px;
-font-size: clamp(2.5rem, 5vw, 4.5rem);
-}
-.product-hero__sub {
-color: var(--text-light);
-font-size: 1.1rem;
-max-width: 520px;
-margin-bottom: 20px;
-line-height: 1.7;
-}
-.product-hero__proof {
-display: flex;
-gap: 10px;
-flex-wrap: wrap;
-margin-top: 24px;
-margin-bottom: 0;
-}
-.proof-pill {
-background: rgba(255,255,255,0.06);
-border: 1px solid var(--border);
-color: var(--text-light);
-padding: 6px 14px;
-border-radius: 100px;
-font-size: 0.82rem;
-font-weight: 500;
-}
-.proof-pill strong { color: var(--green); }
-.product-hero__checklist {
-display: flex;
-flex-direction: column;
-gap: 8px;
-margin-bottom: 36px;
-}
-.product-hero__checklist span {
-font-size: 0.9rem;
-color: var(--text-light);
-display: flex;
-align-items: center;
-gap: 8px;
-}
-.product-hero__cta { display: flex; flex-direction: column; gap: 10px; }
-.product-hero__was {
-font-size: 0.82rem;
-color: var(--white);
-text-align: center;
-}
-.product-hero__secondary-link {
-align-self: center;
-font-size: 0.92rem;
-font-weight: 600;
-color: var(--blue-light);
-text-decoration: none;
-transition: color var(--transition), transform var(--transition);
-}
-.product-hero__secondary-link:hover {
-color: var(--white);
-transform: translateY(-1px);
-}
-.product-hero__card {
-background: var(--navy-light);
-border: 1px solid var(--border);
-border-radius: var(--radius-xl);
-overflow: hidden;
-}
-.product-hero__card img {
-width: 100%;
-height: auto;
-aspect-ratio: auto var(--product-hero-media-ratio, 16 / 10);
-display: block;
-border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-}
-.product-hero__card-details {
-padding: 24px;
-display: flex;
-flex-direction: column;
-gap: 12px;
-}
-.product-hero__card-details--solo {
-border-radius: var(--radius-xl);
-padding: 32px;
-gap: 16px;
-}
-.detail-row {
-display: flex;
-justify-content: space-between;
-align-items: center;
-gap: 16px;
-padding-bottom: 12px;
-border-bottom: 1px solid var(--border);
-}
-.detail-row:last-child { border-bottom: none; padding-bottom: 0; }
-.detail-row span { font-size: 0.85rem; color: var(--text-muted); }
-.detail-row strong { font-size: 0.875rem; color: var(--white); text-align: right; }
-.bundle-card {
-padding: 28px;
-display: flex;
-flex-direction: column;
-gap: 20px;
-}
-.bundle-card__eyebrow {
-font-size: 0.7rem;
-font-weight: 600;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-color: var(--blue);
-margin: 0;
-}
-.bundle-items {
-display: flex;
-flex-direction: column;
-gap: 0;
-}
-.bundle-item {
-display: grid;
-grid-template-columns: 32px 1fr auto;
-align-items: center;
-gap: 12px;
-padding: 14px 0;
-border-bottom: 1px solid var(--border);
-}
-.bundle-item:last-child { border-bottom: none; }
-.bundle-item__icon { font-size: 1.25rem; text-align: center; }
-.bundle-item__body { display: flex; flex-direction: column; gap: 2px; }
-.bundle-item__body strong { font-size: 0.82rem; color: var(--white); font-weight: 600; line-height: 1.3; }
-.bundle-item__body span { font-size: 0.73rem; color: #9CA3AF; line-height: 1.4; }
-.bundle-item__value {
-font-size: 0.8rem;
-font-weight: 600;
-color: var(--text-muted);
-white-space: nowrap;
-}
-.bundle-card__pricing {
-background: rgba(255,255,255,0.04);
-border: 1px solid var(--border);
-border-radius: var(--radius-lg);
-padding: 16px 18px;
-display: flex;
-flex-direction: column;
-gap: 8px;
-}
-.bundle-card__price-row {
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-.bundle-card__total-label { font-size: 0.8rem; color: var(--text-muted); }
-.bundle-card__total-was {
-font-size: 0.85rem;
-color: var(--text-muted);
-text-decoration: line-through;
-}
-.bundle-card__price-row--main { margin-top: 2px; }
-.bundle-card__your-price { font-size: 0.9rem; color: var(--white); font-weight: 600; }
-.bundle-card__price {
-font-size: 1.75rem;
-font-weight: 700;
-color: var(--white);
-line-height: 1;
-}
-.bundle-card__price small { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
-.bundle-card__guarantee {
-font-size: 0.75rem;
-color: var(--text-muted);
-text-align: center;
-margin: 0;
-}
-.product-hero__team {
-display: flex;
-align-items: flex-start;
-}
-.team__grid--hero {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 16px;
-width: 100%;
-}
-.team__grid--hero .team__card {
-background: var(--navy-light);
-border: 1px solid var(--border);
-border-radius: var(--radius-lg);
-overflow: hidden;
-transition: transform var(--transition), box-shadow var(--transition);
-}
-.team__grid--hero .team__card:hover {
-transform: translateY(-4px);
-box-shadow: var(--shadow-md);
-}
-.team__grid--hero .team__card-img {
-aspect-ratio: 1;
-overflow: hidden;
-}
-.team__grid--hero .team__card-img img {
-width: 100%; height: 100%;
-object-fit: cover;
-object-position: top center;
-transition: transform 0.5s ease;
-}
-.team__grid--hero .team__card:hover .team__card-img img { transform: scale(1.03); }
-.team__grid--hero .team__card-info {
-padding: 18px;
-}
-.team__grid--hero .team__card-info h3 { color: var(--white); margin-bottom: 4px; font-size: 1rem; }
-.team__grid--hero .team__card-role {
-display: block;
-font-size: 0.75rem;
-font-weight: 700;
-color: var(--blue-light);
-letter-spacing: 0.05em;
-margin-bottom: 6px;
-}
-.team__grid--hero .team__card-info p { font-size: 0.8rem; color: var(--text-muted); }
-.team__grid--hero .team__card-tags {
-display: flex;
-gap: 5px;
-flex-wrap: wrap;
-margin-top: 8px;
-}
-.team__grid--hero .team__card-tags span {
-font-size: 0.68rem;
-font-weight: 600;
-background: rgba(100,160,255,0.12);
-color: var(--blue-light);
-padding: 2px 9px;
-border-radius: 100px;
-}
-@media (max-width: 960px) {
-.product-hero__inner { grid-template-columns: 1fr; }
-.product-hero__card { max-width: 480px; }
-.product-hero__team { width: 100%; max-width: 560px; }
-}
-
 /* ===== HERO V3 ===== */
 .hero-v3 { padding-top: calc(var(--header-height) + 32px); padding-bottom: 80px; }
 
@@ -418,6 +107,29 @@ border-radius: 100px;
   background: var(--green);
   animation: none;
   box-shadow: 0 0 0 3px rgba(16,191,122,0.25);
+}
+.hero-v3__availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  margin: -20px 0 34px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.18);
+}
+.hero-v3__availability-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue-light);
+  box-shadow: 0 0 0 4px rgba(100,160,255,0.16);
+  flex-shrink: 0;
 }
 
 .hero-v3__inner {
@@ -689,6 +401,12 @@ border-radius: 100px;
   .hero-v3__countdown-unit { min-width: 0; flex: 1; }
   .hero-v3__countdown-unit strong { font-size: 1.4rem; }
   .hero-v3__countdown-sep { display: none; }
+  .hero-v3__availability {
+    width: 100%;
+    max-width: 480px;
+    justify-content: center;
+    margin-top: -22px;
+  }
 }
 @media (max-width: 640px) {
   .hero-v3 { padding-bottom: 56px; }
@@ -700,7 +418,7 @@ border-radius: 100px;
   .hero-v3__card { padding: 24px; }
   .hero-v3__card-guarantees { grid-template-columns: 1fr; }
 }
-  </style>
+</style>
   <link rel="stylesheet" href="../css/product.css">
 
   <!-- Schema markup -->
@@ -733,15 +451,6 @@ border-radius: 100px;
     "offers": [
       {
         "@type": "Offer",
-        "name": "Early Bird",
-        "price": "1549",
-        "priceCurrency": "AUD",
-        "priceValidUntil": "2026-05-15",
-        "availability": "https://schema.org/LimitedAvailability",
-        "url": "/checkout/?product=comprehensive"
-      },
-      {
-        "@type": "Offer",
         "name": "Standard Price",
         "price": "1699",
         "priceCurrency": "AUD",
@@ -756,6 +465,14 @@ border-radius: 100px;
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How long is each class, and when do they run?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Each session is 1 hour. Section 1 runs Tuesdays at 6pm AEDT and Section 2 runs Wednesdays at 7pm AEDT. Both sections are covered every week throughout the 12-week program."
+        }
+      },
       {
         "@type": "Question",
         "name": "What if I miss a class?",
@@ -876,7 +593,7 @@ border-radius: 100px;
     <div class="sticky-bar__inner">
       <span class="sticky-bar__title">GAMSAT Live Comprehensive Course</span>
       <div class="sticky-bar__right">
-        <span class="sticky-bar__price"><s>$1,699</s> <strong>$1,549</strong> AUD</span>
+        <span class="sticky-bar__price"><strong>$1,699</strong> AUD</span>
         <a href="/checkout/?product=comprehensive" class="btn btn--primary">Enrol Now →</a>
       </div>
     </div>
@@ -910,6 +627,10 @@ border-radius: 100px;
           <span class="hero-v3__countdown-sep" aria-hidden="true">:</span>
           <div class="hero-v3__countdown-unit"><strong data-cd-secs>00</strong><small>sec</small></div>
         </div>
+      </div>
+      <div class="hero-v3__availability reveal reveal--delay-1 visible" aria-label="Only 5 spots left in this cohort">
+        <span class="hero-v3__availability-dot" aria-hidden="true"></span>
+        Only 5 spots left
       </div>
 
       <div class="hero-v3__inner">
@@ -948,11 +669,10 @@ border-radius: 100px;
           <div class="hero-v3__cta reveal reveal--delay-3 visible">
             <div class="hero-v3__cta-row">
               <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg hero-v3__cta-primary" id="enrol">
-                Enrol now · $1,549
-                <span class="hero-v3__cta-save">Save $150 · Early bird</span>
+                Enrol now  $1,699
               </a>
-              <a href="https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m" class="hero-v3__cta-ghost">
-                <span>Pay in 4 · $449/mo</span>
+              <a href="/checkout/?product=comprehensive&paymentMode=instalments" class="hero-v3__cta-ghost">
+                <span>Pay in 4  $499/mo</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </a>
             </div>
@@ -965,7 +685,7 @@ border-radius: 100px;
             <img src="/assets/courses/comprehensive-course-card.webp" alt="GAMSAT Live Comprehensive Course" width="960" height="540" loading="eager" fetchpriority="high">
           </div>
           <div class="hero-v3__card-head">
-            <span class="hero-v3__card-eyebrow">12 weeks · 24 live classes</span>
+            <span class="hero-v3__card-eyebrow">12 weeks  24 live classes</span>
             <h2>What the twelve weeks actually look like.</h2>
           </div>
           <ol class="hero-v3__roadmap">
@@ -1125,7 +845,7 @@ border-radius: 100px;
           </div>
           <div class="value-item__body">
             <h3>24 Live Coaching Classes, Starting 26 May</h3>
-            <p>Not a passive lecture. You're in a small cohort, coached through the material in real time. Tuesdays for S1 at 6pm, Wednesdays for S2 at 7pm AEDT. You can ask questions, clear up what's not landing, and leave each session with something concrete.</p>
+            <p>24 live sessions on Zoom, each 1 hour. Tuesdays for S1 at 6pm AEDT, Wednesdays for S2 at 7pm AEDT. Cohort size is capped at 8–12 students, small enough that every session is genuinely interactive. You can ask questions, clear up what's not landing, and leave each session with something concrete.</p>
             <span class="value-item__value">Value: $1,200</span>
           </div>
         </div>
@@ -1147,7 +867,7 @@ border-radius: 100px;
           </div>
           <div class="value-item__body">
             <h3>Live Essay Feedback: The Kind That Actually Changes Scores</h3>
-            <p>You submit an essay, you get it back with real feedback: line-level notes that point to the exact thinking holding your score down. Not "lacks depth." Roheed used this to go from 51 to 85 in one sitting.</p>
+            <p>Every S2 class includes live essay feedback. You also get one full written feedback submission per month where Rohan marks your essay in detail — line-level notes that point to the exact thinking holding your score down. Not "lacks depth." Roheed used this to go from 51 to 85 in one sitting.</p>
             <span class="value-item__value">Value: $200</span>
           </div>
         </div>
@@ -1158,7 +878,7 @@ border-radius: 100px;
           </div>
           <div class="value-item__body">
             <h3>Direct Access to Rohan Throughout the Course</h3>
-            <p>No support ticket queue, no Facebook group with thousands of people you've never met. You can reach Rohan directly: the person who built the frameworks, scored in the top 1%, and is now in his third year at USyd.</p>
+            <p>No support ticket queue, no Facebook group with thousands of people you've never met. You can reach Rohan directly: the person who built the frameworks, scored in the top 1%, and is now in his third year at USyd. There's also a fortnightly open Q&A where you can bring anything — essay drafts, passages you're stuck on, strategy questions — and get answers directly.</p>
             <span class="value-item__value">Value: $999</span>
           </div>
         </div>
@@ -1174,18 +894,14 @@ border-radius: 100px;
             <div class="value-summary__row"><span>250+ S1 Questions</span><span>$149</span></div>
             <div class="value-summary__row"><span>Live Essay Feedback</span><span>$200</span></div>
             <div class="value-summary__row"><span>Direct Access to Rohan</span><span>$999</span></div>
-            <div class="value-summary__row value-summary__row--bonus"><span>Onboarding Call (early bird)</span><span>$119</span></div>
-            <div class="value-summary__row value-summary__row--bonus"><span>Expert Essay Collection (early bird)</span><span>$79</span></div>
-            <div class="value-summary__row value-summary__total"><span>Total Value</span><span>$3,045</span></div>
+            <div class="value-summary__row value-summary__total"><span>Total Value</span><span>$2,847</span></div>
           </div>
           <div class="value-summary__cta">
             <div class="value-summary__price">
-              <span class="value-summary__was">Was $1,699</span>
-              <span class="value-summary__now">$1,549</span>
-              <span class="value-summary__label">Early bird price</span>
+              <span class="value-summary__now">$1,699</span>
             </div>
             <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg">Secure My Spot →</a>
-            <a href="https://buy.stripe.com/8x25kDeDWdUC2u1eaMeEo0m" class="cta-instalment">or pay $449 × 4 instalments</a>
+            <a href="/checkout/?product=comprehensive&paymentMode=instalments" class="cta-instalment">or pay $499 × 4 instalments</a>
             <p class="value-summary__note">Spots are limited. Cohort kept intentionally small.</p>
           </div>
         </div>
@@ -1222,7 +938,7 @@ border-radius: 100px;
           <div class="product-proof__context">Medicine Admission</div>
           <div class="product-proof__score">USYD ✓</div>
           <p class="product-proof__result">Got into the University of Sydney Medical program on her first GAMSAT attempt.</p>
-          <cite class="product-proof__cite">Beth · USyd Medicine</cite>
+          <cite class="product-proof__cite">Beth  USyd Medicine</cite>
         </div>
 
       </div>
@@ -1296,6 +1012,10 @@ border-radius: 100px;
       </div>
       <div class="faq__list">
         <details class="faq__item reveal">
+          <summary>How long is each class, and when do they run?</summary>
+          <div class="faq__answer"><p>Each session is 1 hour. Section 1 runs Tuesdays at 6pm AEDT and Section 2 runs Wednesdays at 7pm AEDT. Both sections are covered every week throughout the 12-week program.</p></div>
+        </details>
+        <details class="faq__item reveal">
           <summary>Are the live classes recorded?</summary>
           <div class="faq__answer"><p>Yes. Every class is recorded and shared via Google Drive shortly after the session ends. You can revisit any class at any time throughout the program. That said, attending live gives you something recordings can't replicate: the ability to ask questions, get real-time feedback, and leave each session with something concrete.</p></div>
         </details>
@@ -1324,11 +1044,10 @@ border-radius: 100px;
     <div class="product-final-cta__bg"><div class="book__orb"></div></div>
     <div class="container">
       <div class="product-final-cta__inner reveal">
-        <span class="label" style="color:var(--blue-light)">Early bird pricing for the next 5 enrolments</span>
         <h2>September 2026 is closer<br><em>than you think.</em></h2>
         <p>The students who do well don't wait until they feel ready. Don't reach exam week wishing you'd started sooner.</p>
         <a href="/checkout/?product=comprehensive" class="btn btn--white btn--lg">Secure Your Place →</a>
-        <p class="product-final-cta__note">$1,549 AUD early bird · 100% refund guarantee · Classes start 26 May</p>
+        <p class="product-final-cta__note">$1,699 AUD  100% refund guarantee  Classes start 26 May</p>
       </div>
     </div>
   </section>
@@ -1360,7 +1079,7 @@ border-radius: 100px;
     </div>
   </footer>
 
-  <script src="../js/main.js" defer></script>
+  <script src="../js/main.js?v=20260521-catalog" defer></script>
   <script src="../js/product.js" defer></script>
 </body>
 </html>

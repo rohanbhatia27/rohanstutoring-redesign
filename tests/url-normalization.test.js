@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -104,6 +105,21 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
 
   for (const rule of expected) {
     assert.ok(redirects.includes(rule), `Missing redirect: ${rule}`);
+  }
+});
+
+test('vercel cron targets are tracked API routes', () => {
+  const config = JSON.parse(read('vercel.json'));
+  const trackedFiles = new Set(
+    execFileSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean)
+  );
+
+  for (const cron of config.crons || []) {
+    const pathname = String(cron.path || '').split('?')[0];
+    const routeFile = pathname.replace(/^\/+/, '') + '.js';
+    assert.ok(trackedFiles.has(routeFile), `Vercel cron target is not tracked: ${cron.path}`);
   }
 });
 

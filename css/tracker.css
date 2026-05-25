@@ -175,6 +175,19 @@
   text-align: center;
 }
 
+.tracker-form__success {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-align: center;
+  padding: 16px 0;
+}
+
+.tracker-form__success a {
+  color: var(--blue-light);
+  font-weight: 700;
+}
+
 /* ---- Section Scaffolding ---- */
 .tracker-section {
   padding: 96px 0;

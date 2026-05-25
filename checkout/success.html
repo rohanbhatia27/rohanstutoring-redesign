@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1KDZ561ZE"></script>
+  <script>if(location.hostname==='rohanstutoring.com')location.replace('https://www.rohanstutoring.com'+location.pathname+location.search+location.hash);</script>
+  <script src="/js/consent.js"></script>
   <script src="/js/analytics.js" defer></script>
   <script src="/js/posthog-init.js" defer></script>
   <meta name="robots" content="noindex, nofollow">
@@ -14,7 +15,12 @@
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://js.stripe.com">
+  <link rel="preconnect" href="https://www.paypal.com">
+  <link rel="preconnect" href="https://www.paypalobjects.com">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/checkout.css">
   <script src="https://js.stripe.com/v3/"></script>
@@ -42,6 +48,7 @@
     <p><a href="/contact">Contact</a></p>
   </footer>
 
-  <script src="../js/checkout.js"></script>
+  <script src="/js/catalog.js?v=20260523-checkout"></script>
+  <script src="../js/checkout.js?v=20260523-checkout"></script>
 </body>
 </html>
