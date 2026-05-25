@@ -69,7 +69,7 @@ async function validateCouponHandler(req, res) {
     return res.status(400).json({ error: 'Missing product slug.' });
   }
 
-  if (paymentMode === 'instalments' && slug !== 'comprehensive') {
+  if (paymentMode === 'instalments' && slug !== 'comprehensive' && slug !== 'mastery') {
     return res.status(200).json({
       valid: false,
       error: 'This coupon is not valid for the selected product.',

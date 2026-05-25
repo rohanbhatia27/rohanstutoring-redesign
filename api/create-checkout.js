@@ -641,7 +641,7 @@ async function handleInstalmentCheckout(req, res, body, origin) {
       let discountAmount = 0;
 
       if (couponCode) {
-        if (checkoutRequest.slug !== 'comprehensive') {
+        if (checkoutRequest.slug !== 'comprehensive' && checkoutRequest.slug !== 'mastery') {
           return res.status(400).json({ error: 'This coupon is not valid for the selected product.' });
         }
 
