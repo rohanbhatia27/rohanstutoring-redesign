@@ -1,6 +1,23 @@
 'use strict';
 
-const { exchangeCodeForTokens, verifyState } = require('../../_lib/_gmail-oauth.js');
+const gmailOAuth = require('../_lib/_gmail-oauth.js');
+
+function getExpectedToken() {
+  return String(
+    process.env.ENQUIRY_AUTOMATION_TOKEN ||
+    process.env.FULFILLMENT_RETRY_TOKEN ||
+    ''
+  ).trim();
+}
+
+function getRequestToken(req) {
+  return String(
+    req.headers['x-enquiry-automation-token'] ||
+    req.query?.token ||
+    req.body?.token ||
+    ''
+  ).trim();
+}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -22,9 +39,32 @@ function sendHtml(res, statusCode, body) {
   res.end(body);
 }
 
-async function gmailOAuthCallbackHandler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
+async function handleStart(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
+  const expectedToken = getExpectedToken();
+  if (!expectedToken || getRequestToken(req) !== expectedToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    return res.status(200).json({
+      authUrl: gmailOAuth.buildAuthUrl(req),
+      redirectUri: gmailOAuth.getRedirectUri(req),
+      instructions: [
+        'Add the redirectUri to your Google OAuth client if needed.',
+        'Open authUrl while signed into the Gmail account where drafts should be created.',
+        'After the callback, copy the refresh token into GMAIL_REFRESH_TOKEN in Vercel.',
+      ],
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+async function handleCallback(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -35,7 +75,7 @@ async function gmailOAuthCallbackHandler(req, res) {
   }
 
   const state = String(req.query?.state || '').trim();
-  if (!verifyState(state)) {
+  if (!gmailOAuth.verifyState(state)) {
     return sendText(res, 401, 'Invalid or expired OAuth state. Start the Gmail OAuth flow again.');
   }
 
@@ -45,7 +85,7 @@ async function gmailOAuthCallbackHandler(req, res) {
   }
 
   try {
-    const tokens = await exchangeCodeForTokens(req, code);
+    const tokens = await gmailOAuth.exchangeCodeForTokens(req, code);
     if (!tokens.refresh_token) {
       return sendHtml(
         res,
@@ -70,4 +110,24 @@ async function gmailOAuthCallbackHandler(req, res) {
   }
 }
 
-module.exports = gmailOAuthCallbackHandler;
+async function gmailOAuthHandler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+
+  const action = String(req.query?.action || '').trim().toLowerCase();
+  if (action === 'start') {
+    return handleStart(req, res);
+  }
+  if (action === 'callback') {
+    return handleCallback(req, res);
+  }
+
+  if (req.query?.code || req.query?.state) {
+    return handleCallback(req, res);
+  }
+
+  return handleStart(req, res);
+}
+
+module.exports = Object.assign(gmailOAuthHandler, {
+  ...gmailOAuth,
+});

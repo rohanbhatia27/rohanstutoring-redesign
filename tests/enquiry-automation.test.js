@@ -9,6 +9,7 @@ const enquiryOffers = require('../api/_lib/_enquiry-offers.js');
 const enquiryPipeline = require('../api/_lib/_enquiry-pipeline.js');
 const gmailDrafts = require('../api/_lib/_gmail-drafts.js');
 const gmailOAuth = require('../api/_lib/_gmail-oauth.js');
+const gmailOAuthHandler = require('../api/gmail/oauth.js');
 const aiEnquiry = require('../api/_lib/_openai-enquiry.js');
 
 function createJsonResponseRecorder() {
@@ -248,6 +249,59 @@ test('gmail OAuth helper builds a compose-scoped auth URL', () => {
   assert.equal(url.searchParams.get('scope'), 'https://www.googleapis.com/auth/gmail.compose');
   assert.equal(url.searchParams.get('redirect_uri'), 'https://www.rohanstutoring.com/api/gmail/oauth/callback');
 
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GMAIL_REDIRECT_URI;
+});
+
+test('gmail OAuth handler serves start and callback actions from one route', async () => {
+  process.env.ENQUIRY_AUTOMATION_TOKEN = 'automation_secret';
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GMAIL_REDIRECT_URI = 'https://www.rohanstutoring.com/api/gmail/oauth/callback';
+
+  gmailOAuth.__setFetch(async (url, options) => {
+    assert.equal(url, 'https://oauth2.googleapis.com/token');
+    const body = new URLSearchParams(options.body);
+    assert.equal(body.get('client_id'), 'google_client_id');
+    assert.equal(body.get('client_secret'), 'google_client_secret');
+    assert.equal(body.get('redirect_uri'), 'https://www.rohanstutoring.com/api/gmail/oauth/callback');
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ refresh_token: 'gmail_refresh_token_123' }),
+    };
+  });
+
+  const startReq = {
+    method: 'GET',
+    headers: { 'x-enquiry-automation-token': 'automation_secret', host: 'www.rohanstutoring.com' },
+    query: { action: 'start' },
+  };
+  const startRes = createJsonResponseRecorder();
+  await gmailOAuthHandler(startReq, startRes);
+
+  assert.equal(startRes.statusCode, 200);
+  assert.match(startRes.body.authUrl, /accounts\.google\.com/);
+  assert.equal(startRes.body.redirectUri, 'https://www.rohanstutoring.com/api/gmail/oauth/callback');
+
+  const callbackReq = {
+    method: 'GET',
+    headers: { host: 'www.rohanstutoring.com' },
+    query: {
+      action: 'callback',
+      code: 'auth_code_123',
+      state: gmailOAuth.buildState(),
+    },
+  };
+  const callbackRes = createJsonResponseRecorder();
+  await gmailOAuthHandler(callbackReq, callbackRes);
+
+  assert.equal(callbackRes.statusCode, 200);
+  assert.match(callbackRes.body, /gmail_refresh_token_123/);
+
+  gmailOAuth.__resetForTests();
+  delete process.env.ENQUIRY_AUTOMATION_TOKEN;
   delete process.env.GOOGLE_CLIENT_ID;
   delete process.env.GOOGLE_CLIENT_SECRET;
   delete process.env.GMAIL_REDIRECT_URI;

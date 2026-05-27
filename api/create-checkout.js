@@ -684,7 +684,145 @@ async function handleInstalmentCheckout(req, res, body, origin) {
   }
 }
 
+async function handlePublicConfig(req, res) {
+  const origin = req.headers.origin || '';
+
+  if (origin && !isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(204).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const publishableKey = String(process.env.STRIPE_PUBLISHABLE_KEY || '').trim();
+  if (!publishableKey) {
+    return res.status(500).json({ error: 'Missing STRIPE_PUBLISHABLE_KEY environment variable' });
+  }
+
+  const amounts = {};
+  for (const [key, value] of Object.entries(AMOUNTS || {})) {
+    amounts[key] = value / 100;
+  }
+
+  const posthogPublicKey = String(process.env.POSTHOG_PUBLIC_KEY || '').trim();
+  const posthogHost = String(process.env.POSTHOG_HOST || '').trim();
+  const paypalClientId = String(process.env.PAYPAL_CLIENT_ID || '').trim();
+
+  return res.status(200).json({
+    stripePublishableKey: publishableKey,
+    amounts,
+    posthogPublicKey,
+    posthogHost,
+    paypalClientId,
+  });
+}
+
+async function handleValidateCoupon(req, res, body) {
+  const origin = req.headers.origin || '';
+
+  if (!isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const payload = body && typeof body === 'object' ? body : null;
+  if (!payload) {
+    return res.status(400).json({ error: 'Missing request body' });
+  }
+
+  const code = String(payload.code || '').trim().toUpperCase();
+  const slug = String(payload.slug || '').trim();
+  const paymentMode = String(payload.paymentMode || '').trim().toLowerCase();
+  if (!code) {
+    return res.status(200).json({ valid: false, error: 'Please enter a coupon code.' });
+  }
+
+  if (!slug) {
+    return res.status(400).json({ error: 'Missing product slug.' });
+  }
+
+  if (paymentMode === 'instalments' && slug !== 'comprehensive' && slug !== 'mastery') {
+    return res.status(200).json({
+      valid: false,
+      error: 'This coupon is not valid for the selected product.',
+    });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'coupon' });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(500).json({ error: 'Configuration error.' });
+  }
+
+  try {
+    const stripe = stripeFactory(process.env.STRIPE_SECRET_KEY);
+    const couponDetails = await getValidatedCouponDetails(stripe, {
+      couponCode: code,
+      productSlug: slug,
+      baseAmount: AMOUNTS[slug] || 0,
+    });
+
+    if (!couponDetails.valid) {
+      return res.status(200).json({ valid: false, error: couponDetails.error || 'Coupon code not found or expired.' });
+    }
+
+    if (paymentMode === 'instalments' && (!couponDetails.discount || couponDetails.discount.type !== 'fixed')) {
+      return res.status(200).json({
+        valid: false,
+        error: 'This coupon cannot be applied to instalment checkout.',
+      });
+    }
+
+    return res.status(200).json({
+      valid: true,
+      code: couponDetails.code,
+      discount: couponDetails.discount,
+      label: couponDetails.label,
+    });
+  } catch (err) {
+    console.error('Coupon validation error:', err.message);
+    return res.status(500).json({ error: 'Could not validate coupon. Please try again.' });
+  }
+}
+
 async function createCheckoutHandler(req, res) {
+  const action = String(
+    (req.query && req.query.action) ||
+    (req.body && typeof req.body === 'object' ? req.body.action : '') ||
+    ''
+  ).trim();
+
+  if (action === 'publicConfig') {
+    return handlePublicConfig(req, res);
+  }
+
+  if (action === 'validateCoupon') {
+    return handleValidateCoupon(req, res, req.body);
+  }
+
   const origin = req.headers.origin || '';
 
   if (!isAllowedOrigin(origin)) {

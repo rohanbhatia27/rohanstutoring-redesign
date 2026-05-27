@@ -2,6 +2,7 @@ const Stripe = require('stripe');
 const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 const createCheckoutHandler = require('./create-checkout.js');
 const paymentIntentStatusHandler = require('./payment-status.js');
+const { shareProductAccess } = require('./_lib/_google-drive.js');
 const {
   buildAuthUrl,
   driveHealth,
@@ -220,6 +221,33 @@ async function handleDriveOAuthCallback(req, res) {
   }
 }
 
+async function handleTestDriveShare(req, res) {
+  const token = String(
+    req.headers['x-test-token'] ||
+    req.headers['x-fulfillment-retry-token'] ||
+    req.query?.token ||
+    req.body?.token ||
+    ''
+  ).trim();
+
+  const expectedToken = String(process.env.FULFILLMENT_RETRY_TOKEN || '').trim();
+  if (!expectedToken || token !== expectedToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const email = String(req.body?.email || req.query?.email || '').trim();
+  if (!email) {
+    return res.status(400).json({ error: 'Missing email param' });
+  }
+
+  try {
+    const result = await shareProductAccess({ baseSlug: 'blueprint', email });
+    return res.status(200).json({ ok: !result.skipped, ...result });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
 async function adminHandler(req, res) {
   const action = String(
     (req.body && typeof req.body === 'object' ? req.body.action : '') ||
@@ -237,6 +265,10 @@ async function adminHandler(req, res) {
 
   if (action === 'driveOAuthCallback') {
     return handleDriveOAuthCallback(req, res);
+  }
+
+  if (action === 'testDriveShare') {
+    return handleTestDriveShare(req, res);
   }
 
   if (action === 'stripeHealth' || (!action && req.method === 'GET')) {

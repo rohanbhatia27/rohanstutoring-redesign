@@ -51,9 +51,9 @@ const paypalOrderStatusHandler = require('../api/payment-status.js');
 const paypalWebhookHandler = require('../api/paypal-webhook.js');
 const paypalValidation = require('../api/_lib/_paypal-order-validation.js');
 const paymentIntentStatusHandler = require('../api/payment-status.js');
-const publicConfigHandler = require('../api/public-config.js');
 const stripeWebhookHandler = require('../api/stripe-webhook.js');
-const validateCouponHandler = require('../api/validate-coupon.js');
+const publicConfigHandler = createCheckoutHandler;
+const validateCouponHandler = createCheckoutHandler;
 
 test('legacy checkout compatibility route files are removed', () => {
   const legacyRoutes = [
@@ -2821,6 +2821,7 @@ test('validate coupon handler rejects high-ticket-only coupons for lower-ticket 
     const req = {
       method: 'POST',
       headers: { origin: 'https://rohanstutoring.com' },
+      query: { action: 'validateCoupon' },
       body: {
         code: 'ROHAN150',
         slug: 'blueprint',
@@ -2870,6 +2871,7 @@ test('validate coupon handler returns a clean fixed-amount label for eligible pr
     const req = {
       method: 'POST',
       headers: { origin: 'https://rohanstutoring.com' },
+      query: { action: 'validateCoupon' },
       body: {
         code: 'ESSENTIALS150',
         slug: 'comprehensive',
@@ -2920,6 +2922,7 @@ test('validate coupon handler accepts fixed comprehensive instalment coupons', a
     const req = {
       method: 'POST',
       headers: { origin: 'https://rohanstutoring.com' },
+      query: { action: 'validateCoupon' },
       body: {
         code: 'WEBINAR200',
         slug: 'comprehensive',
@@ -3180,10 +3183,10 @@ test('payment intent handler sends Stripe idempotency keys for retries in the sa
 });
 
 test('public config handler origin allow-list matches checkout endpoint', () => {
-  assert.equal(publicConfigHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
-  assert.equal(publicConfigHandler.isAllowedOrigin('https://preview-build.vercel.app'), false);
-  assert.equal(publicConfigHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
-  assert.equal(publicConfigHandler.isAllowedOrigin('https://evil.example.com'), false);
+  assert.equal(createCheckoutHandler.isAllowedOrigin('https://rohanstutoring.com'), true);
+  assert.equal(createCheckoutHandler.isAllowedOrigin('https://preview-build.vercel.app'), false);
+  assert.equal(createCheckoutHandler.isAllowedOrigin('http://127.0.0.1:3000'), true);
+  assert.equal(createCheckoutHandler.isAllowedOrigin('https://evil.example.com'), false);
 });
 
 test('public config handler allows same-site browser requests without an origin header', async () => {
@@ -3193,6 +3196,7 @@ test('public config handler allows same-site browser requests without an origin 
   const req = {
     method: 'GET',
     headers: {},
+    query: { action: 'publicConfig' },
   };
   const res = createJsonResponseRecorder();
 

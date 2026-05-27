@@ -54,6 +54,20 @@
       ]
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/public-config",
+      "destination": "/api/create-checkout?action=publicConfig"
+    },
+    {
+      "source": "/api/validate-coupon",
+      "destination": "/api/create-checkout?action=validateCoupon"
+    },
+    {
+      "source": "/api/test-drive-share",
+      "destination": "/api/admin?action=testDriveShare"
+    }
+  ],
   "redirects": [
     {
       "source": "/book",

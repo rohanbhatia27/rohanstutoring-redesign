@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const driveOAuth = require('../api/_lib/_drive-oauth.js');
 const adminHandler = require('../api/admin.js');
+const googleDrive = require('../api/_lib/_google-drive.js');
 
 function createResponseRecorder() {
   return {
@@ -120,4 +121,56 @@ test('Drive OAuth callback exchanges code and displays a new refresh token', asy
   delete process.env.GOOGLE_CLIENT_ID;
   delete process.env.GOOGLE_CLIENT_SECRET;
   delete process.env.GOOGLE_DRIVE_REDIRECT_URI;
+});
+
+test('Admin test-drive-share action shares Blueprint access for a verified admin token', async () => {
+  process.env.FULFILLMENT_RETRY_TOKEN = 'retry_secret';
+  process.env.GOOGLE_CLIENT_ID = 'google_client_id';
+  process.env.GOOGLE_CLIENT_SECRET = 'google_client_secret';
+  process.env.GOOGLE_REFRESH_TOKEN = 'google_refresh_token';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'folder_blueprint';
+
+  googleDrive.__setFetch(async (url) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'access_token_123' }),
+      };
+    }
+
+    if (url.includes('/drive/v3/files/folder_blueprint/permissions')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'perm_123', role: 'reader', emailAddress: 'jane@example.com' }),
+      };
+    }
+
+    throw new Error(`Unexpected URL: ${url}`);
+  });
+
+  const req = {
+    method: 'POST',
+    headers: { 'x-test-token': 'retry_secret' },
+    query: {
+      action: 'testDriveShare',
+      email: 'jane@example.com',
+    },
+  };
+  const res = createResponseRecorder();
+
+  await adminHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.skipped, false);
+  assert.equal(res.body.folderId, 'folder_blueprint');
+
+  googleDrive.__resetForTests();
+  delete process.env.FULFILLMENT_RETRY_TOKEN;
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
 });

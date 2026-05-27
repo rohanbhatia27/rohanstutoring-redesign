@@ -1,49 +1,14 @@
-const createPaymentIntentHandler = require('./create-checkout.js');
+const createCheckoutHandler = require('./create-checkout.js');
 
-function isAllowedOrigin(origin) {
-  return createPaymentIntentHandler.isAllowedOrigin(origin);
+function publicConfigHandler(req, res) {
+  req.query = {
+    ...(req.query || {}),
+    action: 'publicConfig',
+  };
+
+  return createCheckoutHandler(req, res);
 }
 
-async function publicConfigHandler(req, res) {
-  const origin = req.headers.origin || '';
-
-  if (origin && !isAllowedOrigin(origin)) {
-    return res.status(403).json({ error: 'Origin not allowed' });
-  }
-
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-  }
-
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(204).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const publishableKey = String(process.env.STRIPE_PUBLISHABLE_KEY || '').trim();
-  if (!publishableKey) {
-    return res.status(500).json({ error: 'Missing STRIPE_PUBLISHABLE_KEY environment variable' });
-  }
-
-  const amountsCents = createPaymentIntentHandler.AMOUNTS || {};
-  const amounts = {};
-  for (const [key, value] of Object.entries(amountsCents)) {
-    amounts[key] = value / 100;
-  }
-
-  const posthogPublicKey = String(process.env.POSTHOG_PUBLIC_KEY || '').trim();
-  const posthogHost = String(process.env.POSTHOG_HOST || '').trim();
-  const paypalClientId = String(process.env.PAYPAL_CLIENT_ID || '').trim();
-
-  return res.status(200).json({ stripePublishableKey: publishableKey, amounts, posthogPublicKey, posthogHost, paypalClientId });
-}
-
-publicConfigHandler.isAllowedOrigin = isAllowedOrigin;
+publicConfigHandler.isAllowedOrigin = createCheckoutHandler.isAllowedOrigin;
 
 module.exports = publicConfigHandler;
