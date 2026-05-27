@@ -1,11 +1,5 @@
 {
   "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/api/spellar/webhook",
-      "destination": "/api/meetings"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
