@@ -650,6 +650,33 @@
     return items;
   }
 
+  function getPurchaseValue(items) {
+    return items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined;
+  }
+
+  function trackMetaPurchaseOnce(transactionId, items) {
+    if (typeof window.fbq !== 'function') return;
+
+    const safeId = String(transactionId || '').trim();
+    if (!safeId) return;
+
+    const key = 'meta_purchase_' + safeId;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch (error) {
+      // sessionStorage may be unavailable in private mode
+    }
+
+    window.fbq('track', 'Purchase', {
+      value: getPurchaseValue(items),
+      currency: 'AUD',
+      content_ids: items.map((item) => item.item_id).filter(Boolean),
+      content_type: 'product',
+      num_items: items.length,
+    });
+  }
+
   function buildEssayUploadUrl({
     paymentIntentId = '',
     productSlug = 'essay-marking',
@@ -1481,6 +1508,17 @@
       });
     }
 
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'InitiateCheckout', {
+        content_ids: [productSlug],
+        content_name: product.name,
+        content_type: 'product',
+        value: selection.price,
+        currency: 'AUD',
+        num_items: 1,
+      });
+    }
+
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
     maybeShowGmailNote(product);
@@ -1785,6 +1823,7 @@
               value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
               items,
             });
+            trackMetaPurchaseOnce(paypalOrderId, items);
           }
           if (window.posthog && typeof window.posthog.capture === 'function') {
             const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
@@ -1860,6 +1899,7 @@
             value: items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined,
             items,
           });
+          trackMetaPurchaseOnce(paymentIntentId, items);
         }
         if (window.posthog && typeof window.posthog.capture === 'function') {
           const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
