@@ -373,7 +373,7 @@ test('comprehensive checkout summary uses the June 2026 course title without coh
   const markup = renderSummaryMarkup(PRODUCTS.comprehensive, getInitialSelection('comprehensive', PRODUCTS.comprehensive));
 
   assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(June 2026 Start\)/);
-  assert.doesNotMatch(markup, /24 live classes  50\+ hrs content  September cohort/);
+  assert.doesNotMatch(markup, /live classes  50\+ hrs content  September cohort/);
 });
 
 test('checkout page uses local payment provider logo assets', () => {

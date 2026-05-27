@@ -13,7 +13,7 @@ Sequence goal: move qualified quiz leads from "I need a serious plan" to enrolme
 Source facts used from the site:
 
 - 12 weeks
-- 24 live classes
+- 20 live classes
 - 50+ hours of recorded teaching
 - Weekly live structure across S1 and S2
 - Tuesdays 6pm, currently described on the site as AEDT
@@ -79,7 +79,7 @@ You have enough runway to make real movement before the exam. A quick PDF or a f
 
 The gap is closeable. But it needs structure.
 
-The Comprehensive Course is built for that middle zone where you are serious, but not quite where you want to be yet. You get 12 weeks of live coaching, 24 live classes, 50+ hours of recorded teaching, monthly essay feedback from Rohan, and small, focused classes where you can actually ask questions.
+The Comprehensive Course is built for that middle zone where you are serious, but not quite where you want to be yet. You get 12 weeks of live coaching, 20 live classes, 50+ hours of recorded teaching, monthly essay feedback from Rohan, and small, focused classes where you can actually ask questions.
 
 The point is not to drown you in more content.
 
@@ -323,7 +323,7 @@ That is what the course is for.
 
 12 weeks.
 
-24 live classes.
+20 live classes.
 
 50+ hours of recorded teaching.
 

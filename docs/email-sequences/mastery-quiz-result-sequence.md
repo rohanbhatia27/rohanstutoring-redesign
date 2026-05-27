@@ -115,7 +115,7 @@ Hi {{ subscriber.first_name | default: "there" }},
 
 Mastery is not just the Comprehensive Course with a fancier name.
 
-The Comprehensive Course is the foundation: 24 live S1 and S2 classes, a 50+ hour Blueprint library, targeted S1 questions, live essay work, the Expert Essay Collection, and direct support throughout the program.
+The Comprehensive Course is the foundation: 20 live S1 and S2 classes, a 50+ hour Blueprint library, targeted S1 questions, live essay work, the Expert Essay Collection, and direct support throughout the program.
 
 For a lot of students, that is enough.
 
@@ -301,7 +301,7 @@ And you probably know, deep down, whether another self-guided attempt is going t
 
 Mastery is for the student who wants the full program and the private layer around it:
 
-24 live S1 and S2 classes.
+20 live S1 and S2 classes.
 
 5 one-to-one tutorials.
 
