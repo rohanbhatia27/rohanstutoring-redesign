@@ -10,7 +10,8 @@
     pending: stored === null,
   };
 
-  if (!window.__analyticsConsent.pending) return;
+  // Only skip the banner when analytics consent was already granted.
+  if (window.__analyticsConsent.granted) return;
 
   function buildBanner() {
     if (document.getElementById(BANNER_ID)) return;

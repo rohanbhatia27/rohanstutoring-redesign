@@ -1,5 +1,6 @@
 (function () {
-  var PIXEL_ID = '1547122119792751';
+  // Landing Page Pixel — matches Kit/CAPI and Events Manager website attribution.
+  var PIXEL_ID = '1314887683673629';
   var shouldLoadWhenIdle = !!(document.currentScript && document.currentScript.dataset.load === 'idle');
 
   var PRODUCT_VIEW_CONTENT = {
@@ -53,22 +54,28 @@
   function loadMetaPixelScript() {
     if (window.fbq) return;
 
-    !(function (f, b, e, v, n, t, s) {
-      if (f.fbq) return;
-      n = f.fbq = function () {
-        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-      };
-      if (!f._fbq) f._fbq = n;
-      n.push = n;
-      n.loaded = !0;
-      n.version = '2.0';
-      n.queue = [];
-      t = b.createElement(e);
-      t.async = !0;
-      t.src = 'https://connect.facebook.net/en_US/fbevents.js';
-      s = b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t, s);
-    })(window, document, 'script');
+    var n = (window.fbq = function () {
+      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+    });
+    if (!window._fbq) window._fbq = n;
+    n.push = n;
+    n.loaded = true;
+    n.version = '2.0';
+    n.queue = [];
+
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+    var head = document.head || document.getElementsByTagName('head')[0];
+    if (head) {
+      head.appendChild(script);
+      return;
+    }
+
+    var firstScript = document.getElementsByTagName('script')[0];
+    if (firstScript && firstScript.parentNode) {
+      firstScript.parentNode.insertBefore(script, firstScript);
+    }
   }
 
   function getProductSlugFromPath() {
