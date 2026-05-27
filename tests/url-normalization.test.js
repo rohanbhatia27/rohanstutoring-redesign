@@ -269,6 +269,11 @@ test('CSP allows GA script and collection endpoints without unsafe inline script
   assert.match(csp, /frame-src[^;]*https:\/\/\*\.paypal\.com/);
   assert.match(csp, /img-src[^;]*https:\/\/\*\.paypal\.com/);
   assert.match(csp, /img-src[^;]*https:\/\/\*\.paypalobjects\.com/);
+  assert.match(csp, /script-src[^;]*https:\/\/connect\.facebook\.net/);
+  assert.match(csp, /img-src[^;]*https:\/\/www\.facebook\.com/);
+  assert.match(csp, /img-src[^;]*https:\/\/connect\.facebook\.net/);
+  assert.match(csp, /connect-src[^;]*https:\/\/www\.facebook\.com/);
+  assert.match(csp, /connect-src[^;]*https:\/\/connect\.facebook\.net/);
   assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
 });
 
