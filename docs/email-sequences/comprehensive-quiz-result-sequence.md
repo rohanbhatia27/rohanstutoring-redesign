@@ -20,7 +20,7 @@ Source facts used from the site:
 - Wednesdays 7pm, currently described on the site as AEDT
 - Monthly written essay feedback from Rohan
 - Fortnightly open Q&A
-- Small cohort, capped at 8 to 12 students
+- Small, focused classes
 - $1,699 AUD
 - 100% refund guarantee if the student attends at least 80% of classes and does not feel at least twice as confident by the end
 - Current page copy says classes start 26 May and the course is aimed at September 2026
@@ -79,7 +79,7 @@ You have enough runway to make real movement before the exam. A quick PDF or a f
 
 The gap is closeable. But it needs structure.
 
-The Comprehensive Course is built for that middle zone where you are serious, but not quite where you want to be yet. You get 12 weeks of live coaching, 24 live classes, 50+ hours of recorded teaching, monthly essay feedback from Rohan, and a small cohort where you can actually ask questions.
+The Comprehensive Course is built for that middle zone where you are serious, but not quite where you want to be yet. You get 12 weeks of live coaching, 24 live classes, 50+ hours of recorded teaching, monthly essay feedback from Rohan, and small, focused classes where you can actually ask questions.
 
 The point is not to drown you in more content.
 
@@ -287,7 +287,7 @@ Another few months of prep. Another exam fee. Another cycle of wondering whether
 
 That is the thing we are trying to prevent.
 
-Comprehensive gives you live teaching, a weekly structure, essay feedback, recorded content, direct support, and a small cohort. It is built to make the next few months less random.
+Comprehensive gives you live teaching, a weekly structure, essay feedback, recorded content, direct support, and small, focused classes. It is built to make the next few months less random.
 
 There is also a guarantee.
 
