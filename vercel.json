@@ -66,6 +66,14 @@
     {
       "source": "/api/test-drive-share",
       "destination": "/api/admin?action=testDriveShare"
+    },
+    {
+      "source": "/api/gmail/oauth/start",
+      "destination": "/api/gmail/oauth?action=start"
+    },
+    {
+      "source": "/api/gmail/oauth/callback",
+      "destination": "/api/gmail/oauth?action=callback"
     }
   ],
   "redirects": [
