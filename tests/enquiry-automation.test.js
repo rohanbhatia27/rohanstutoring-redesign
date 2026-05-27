@@ -43,6 +43,15 @@ function buildSignature(secret, timestamp, rawBody) {
   return `t=${timestamp},v1=${digest}`;
 }
 
+function restoreEnv(name, value) {
+  if (value === undefined) {
+    delete process.env[name];
+    return;
+  }
+
+  process.env[name] = value;
+}
+
 test('enquiry offer router sends urgent, high-friction leads to a consult path', () => {
   const route = enquiryOffers.routeRecommendedOffer({
     leadType: 'student',
@@ -70,6 +79,64 @@ test('enquiry offer router sends essay-specific, lower-friction leads to essay s
 
   assert.equal(route.offerKey, 'essayMarking');
   assert.match(route.url, /\/courses\/essay-marking$/);
+});
+
+test('previewDraft skips AI classification for sensitive enquiries', async () => {
+  const previousProvider = process.env.AI_PROVIDER;
+  const previousKey = process.env.DEEPSEEK_API_KEY;
+  process.env.AI_PROVIDER = 'deepseek';
+  process.env.DEEPSEEK_API_KEY = 'deepseek_test_key';
+
+  let aiCalled = false;
+  aiEnquiry.__setFetch(async () => {
+    aiCalled = true;
+    return { ok: true, json: async () => ({}) };
+  });
+
+  const result = await enquiryPipeline.previewDraft({
+    enquiry: {
+      name: 'Concerned Student',
+      email: 'student@example.com',
+      message: 'I am really angry and want a refund. This feels like a legal issue.',
+    },
+  });
+
+  assert.equal(aiCalled, false);
+  assert.equal(result.classification.manualReview, true);
+  assert.equal(result.recommendedOffer.key, 'manualReview');
+
+  restoreEnv('AI_PROVIDER', previousProvider);
+  restoreEnv('DEEPSEEK_API_KEY', previousKey);
+  aiEnquiry.__resetForTests();
+});
+
+test('previewDraft skips AI classification for short vague enquiries', async () => {
+  const previousProvider = process.env.AI_PROVIDER;
+  const previousKey = process.env.DEEPSEEK_API_KEY;
+  process.env.AI_PROVIDER = 'deepseek';
+  process.env.DEEPSEEK_API_KEY = 'deepseek_test_key';
+
+  let aiCalled = false;
+  aiEnquiry.__setFetch(async () => {
+    aiCalled = true;
+    return { ok: true, json: async () => ({}) };
+  });
+
+  const result = await enquiryPipeline.previewDraft({
+    enquiry: {
+      name: 'Ari',
+      email: 'ari@example.com',
+      message: 'Need help',
+    },
+  });
+
+  assert.equal(aiCalled, false);
+  assert.equal(result.classification.recommendedPath, 'clarifying_reply');
+  assert.equal(result.emailDraft.recommendedCta, 'clarifyingReply');
+
+  restoreEnv('AI_PROVIDER', previousProvider);
+  restoreEnv('DEEPSEEK_API_KEY', previousKey);
+  aiEnquiry.__resetForTests();
 });
 
 test('gmail draft helper refreshes an access token and creates a draft message', async () => {
@@ -370,4 +437,242 @@ test('AI enquiry helper supports DeepSeek chat completions for structured classi
   delete process.env.AI_PROVIDER;
   delete process.env.DEEPSEEK_API_KEY;
   delete process.env.DEEPSEEK_MODEL;
+});
+
+test('DeepSeek classifier and draft calls use separate model settings', async () => {
+  const previousProvider = process.env.AI_PROVIDER;
+  const previousClassifier = process.env.DEEPSEEK_CLASSIFIER_MODEL;
+  const previousDraft = process.env.DEEPSEEK_DRAFT_MODEL;
+  const previousKey = process.env.DEEPSEEK_API_KEY;
+
+  process.env.AI_PROVIDER = 'deepseek';
+  process.env.DEEPSEEK_API_KEY = 'deepseek_test_key';
+  process.env.DEEPSEEK_CLASSIFIER_MODEL = 'deepseek-v4-flash';
+  process.env.DEEPSEEK_DRAFT_MODEL = 'deepseek-v4-pro';
+
+  const seenModels = [];
+  aiEnquiry.__setFetch(async (url, options) => {
+    const body = JSON.parse(options.body);
+    seenModels.push(body.model);
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [{
+          message: {
+            content: seenModels.length === 1
+              ? JSON.stringify({
+                  leadType: 'student',
+                  studentStage: 'gamsat_candidate',
+                  examContext: 'self_study',
+                  subjectNeed: 'general_gamsat',
+                  urgency: 'low',
+                  buyerIntent: 'comparing_options',
+                  emotionalState: 'ambitious',
+                  recommendedPath: 'blueprint',
+                  recommendedNextStep: 'course page',
+                  manualReview: false,
+                  confidence: 0.88,
+                  reasoningSummary: 'Structured self-study enquiry.',
+                })
+              : JSON.stringify({
+                  subject: 'Re: GAMSAT support',
+                  body: 'Hi Sam,\n\nThanks for reaching out. Based on what you shared, I would start with the Blueprint.\n\nWarmly,\nRohan',
+                  recommendedCta: 'blueprint',
+                  confidence: 0.88,
+                  reviewNotes: 'Clear self-study fit.',
+                }),
+          },
+        }],
+      }),
+    };
+  });
+
+  const enquiry = {
+    name: 'Sam',
+    email: 'sam@example.com',
+    message: 'I am comparing options for GAMSAT study structure and want help deciding where to start.',
+  };
+
+  const classification = await aiEnquiry.classifyEnquiry({ enquiry, offers: enquiryOffers.OFFERS });
+  await aiEnquiry.generateReplyDraft({
+    enquiry,
+    classification,
+    recommendedOffer: enquiryOffers.OFFERS.blueprint,
+  });
+
+  assert.deepEqual(seenModels, ['deepseek-v4-flash', 'deepseek-v4-pro']);
+
+  restoreEnv('AI_PROVIDER', previousProvider);
+  restoreEnv('DEEPSEEK_CLASSIFIER_MODEL', previousClassifier);
+  restoreEnv('DEEPSEEK_DRAFT_MODEL', previousDraft);
+  restoreEnv('DEEPSEEK_API_KEY', previousKey);
+  aiEnquiry.__resetForTests();
+});
+
+test('classifier sends compact routing payload without offer URLs', async () => {
+  const previousProvider = process.env.AI_PROVIDER;
+  const previousKey = process.env.DEEPSEEK_API_KEY;
+  process.env.AI_PROVIDER = 'deepseek';
+  process.env.DEEPSEEK_API_KEY = 'deepseek_test_key';
+
+  let userContent = '';
+  aiEnquiry.__setFetch(async (url, options) => {
+    const body = JSON.parse(options.body);
+    userContent = body.messages[1].content;
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [{
+          message: {
+            content: JSON.stringify({
+              leadType: 'student',
+              studentStage: 'gamsat_candidate',
+              examContext: 'self_study',
+              subjectNeed: 'general_gamsat',
+              urgency: 'low',
+              buyerIntent: 'comparing_options',
+              emotionalState: 'ambitious',
+              recommendedPath: 'blueprint',
+              recommendedNextStep: 'course page',
+              manualReview: false,
+              confidence: 0.88,
+              reasoningSummary: 'Structured self-study enquiry.',
+            }),
+          },
+        }],
+      }),
+    };
+  });
+
+  await aiEnquiry.classifyEnquiry({
+    enquiry: {
+      name: 'Sam Example',
+      email: 'sam@example.com',
+      subject: 'GAMSAT help',
+      message: 'I want a structured way to prepare for the GAMSAT and compare options.',
+      irrelevantInternalField: 'this should not be sent',
+    },
+    offers: enquiryOffers.OFFERS,
+  });
+
+  assert.doesNotMatch(userContent, /https?:\/\//);
+  assert.doesNotMatch(userContent, /irrelevantInternalField/);
+  assert.doesNotMatch(userContent, /\n\s{2,}"/);
+
+  restoreEnv('AI_PROVIDER', previousProvider);
+  restoreEnv('DEEPSEEK_API_KEY', previousKey);
+  aiEnquiry.__resetForTests();
+});
+
+test('DeepSeek requests include output token caps by purpose', async () => {
+  const previousProvider = process.env.AI_PROVIDER;
+  const previousKey = process.env.DEEPSEEK_API_KEY;
+  process.env.AI_PROVIDER = 'deepseek';
+  process.env.DEEPSEEK_API_KEY = 'deepseek_test_key';
+
+  const seenCaps = [];
+  aiEnquiry.__setFetch(async (url, options) => {
+    const body = JSON.parse(options.body);
+    seenCaps.push(body.max_tokens);
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [{
+          message: {
+            content: seenCaps.length === 1
+              ? JSON.stringify({
+                  leadType: 'student',
+                  studentStage: 'gamsat_candidate',
+                  examContext: 'self_study',
+                  subjectNeed: 'general_gamsat',
+                  urgency: 'low',
+                  buyerIntent: 'comparing_options',
+                  emotionalState: 'ambitious',
+                  recommendedPath: 'blueprint',
+                  recommendedNextStep: 'course page',
+                  manualReview: false,
+                  confidence: 0.88,
+                  reasoningSummary: 'Structured self-study enquiry.',
+                })
+              : JSON.stringify({
+                  subject: 'Re: GAMSAT support',
+                  body: 'Hi Sam,\n\nThanks for reaching out. Based on what you shared, I would start with the Blueprint.\n\nWarmly,\nRohan',
+                  recommendedCta: 'blueprint',
+                  confidence: 0.88,
+                  reviewNotes: 'Clear self-study fit.',
+                }),
+          },
+        }],
+      }),
+    };
+  });
+
+  const enquiry = {
+    name: 'Sam',
+    email: 'sam@example.com',
+    message: 'I am comparing options for GAMSAT study structure and want help deciding where to start.',
+  };
+  const classification = await aiEnquiry.classifyEnquiry({ enquiry, offers: enquiryOffers.OFFERS });
+  await aiEnquiry.generateReplyDraft({
+    enquiry,
+    classification,
+    recommendedOffer: enquiryOffers.OFFERS.blueprint,
+  });
+
+  assert.deepEqual(seenCaps, [350, 700]);
+
+  restoreEnv('AI_PROVIDER', previousProvider);
+  restoreEnv('DEEPSEEK_API_KEY', previousKey);
+  aiEnquiry.__resetForTests();
+});
+
+test('draft prompt asks for concise premium replies', async () => {
+  const previousProvider = process.env.AI_PROVIDER;
+  const previousKey = process.env.DEEPSEEK_API_KEY;
+  process.env.AI_PROVIDER = 'deepseek';
+  process.env.DEEPSEEK_API_KEY = 'deepseek_test_key';
+
+  let systemContent = '';
+  aiEnquiry.__setFetch(async (url, options) => {
+    const body = JSON.parse(options.body);
+    systemContent = body.messages[0].content;
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [{
+          message: {
+            content: JSON.stringify({
+              subject: 'Re: GAMSAT support',
+              body: 'Hi Sam,\n\nThanks for reaching out. Based on what you shared, I would start with the Blueprint.\n\nWarmly,\nRohan',
+              recommendedCta: 'blueprint',
+              confidence: 0.88,
+              reviewNotes: 'Clear self-study fit.',
+            }),
+          },
+        }],
+      }),
+    };
+  });
+
+  await aiEnquiry.generateReplyDraft({
+    enquiry: {
+      name: 'Sam',
+      email: 'sam@example.com',
+      message: 'I am comparing options for GAMSAT study structure.',
+    },
+    classification: {
+      recommendedPath: 'blueprint',
+      confidence: 0.88,
+      manualReview: false,
+    },
+    recommendedOffer: enquiryOffers.OFFERS.blueprint,
+  });
+
+  assert.match(systemContent, /160-240 words/);
+  assert.match(systemContent, /one CTA/i);
+  assert.match(systemContent, /short paragraphs/i);
+
+  restoreEnv('AI_PROVIDER', previousProvider);
+  restoreEnv('DEEPSEEK_API_KEY', previousKey);
+  aiEnquiry.__resetForTests();
 });

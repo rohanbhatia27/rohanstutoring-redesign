@@ -99,6 +99,28 @@ function fallbackClassification(enquiry) {
   };
 }
 
+function getLocalClassification(enquiry) {
+  const message = String(enquiry.message || '').toLowerCase();
+  const service = String(enquiry.service || '').toLowerCase();
+
+  const sensitive = /(refund|complaint|lawyer|legal|depressed|self-harm|suicid|angry|scam)/.test(message);
+  if (sensitive) return fallbackClassification(enquiry);
+
+  const compactMessage = message.replace(/\s+/g, ' ').trim();
+  if (compactMessage.length < 24) return fallbackClassification(enquiry);
+
+  const essayOnly = /(essay|essays|section 2|s2)/.test(message);
+  const urgent = /(urgent|asap|soon|trial|book|booking|availability|consult|call)/.test(message);
+  const resit = /(resit|re-sit|sat the gamsat before|again|another sitting|second attempt|third attempt)/.test(message);
+
+  if (essayOnly && !urgent && !resit) return fallbackClassification(enquiry);
+  if ((urgent || resit || service.includes('1-1')) && compactMessage.length < 280) {
+    return fallbackClassification(enquiry);
+  }
+
+  return null;
+}
+
 function buildSubjectLine(enquiry, emailDraft) {
   const preferred = String(emailDraft.subject || '').trim();
   if (preferred) return preferred;
@@ -169,11 +191,14 @@ function buildFallbackDraft({ enquiry, recommendedOffer, classification }) {
 }
 
 async function buildPreview({ enquiry }) {
-  let classification;
-  try {
-    classification = await classifyEnquiry({ enquiry, offers: OFFERS });
-  } catch (error) {
-    classification = fallbackClassification(enquiry);
+  let classification = getLocalClassification(enquiry);
+
+  if (!classification) {
+    try {
+      classification = await classifyEnquiry({ enquiry, offers: OFFERS });
+    } catch (error) {
+      classification = fallbackClassification(enquiry);
+    }
   }
 
   const recommendedOffer = routeRecommendedOffer(classification);

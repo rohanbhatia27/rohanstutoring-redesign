@@ -26,12 +26,28 @@ function requireApiKey(provider) {
   return key;
 }
 
-function getModel(provider) {
+function getModel(provider, purpose = 'draft') {
   if (provider === 'deepseek') {
-    return getOptionalEnv('DEEPSEEK_MODEL') || 'deepseek-v4-flash';
+    if (purpose === 'classification') {
+      return getOptionalEnv('DEEPSEEK_CLASSIFIER_MODEL') || 'deepseek-v4-flash';
+    }
+
+    return getOptionalEnv('DEEPSEEK_DRAFT_MODEL') || getOptionalEnv('DEEPSEEK_MODEL') || 'deepseek-v4-pro';
   }
 
-  return getOptionalEnv('OPENAI_ENQUIRY_MODEL') || 'gpt-4.1-mini';
+  if (purpose === 'classification') {
+    return getOptionalEnv('OPENAI_CLASSIFIER_MODEL') || getOptionalEnv('OPENAI_ENQUIRY_MODEL') || 'gpt-4.1-mini';
+  }
+
+  return getOptionalEnv('OPENAI_DRAFT_MODEL') || getOptionalEnv('OPENAI_ENQUIRY_MODEL') || 'gpt-4.1-mini';
+}
+
+function getOutputTokenCap(purpose) {
+  if (purpose === 'classification') {
+    return Number(getOptionalEnv('AI_CLASSIFIER_MAX_TOKENS')) || 350;
+  }
+
+  return Number(getOptionalEnv('AI_DRAFT_MAX_TOKENS')) || 700;
 }
 
 function getOutputText(payload) {
@@ -57,6 +73,42 @@ function getDeepSeekMessageContent(payload) {
   const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
   const content = choice && choice.message ? choice.message.content : '';
   return typeof content === 'string' ? content.trim() : '';
+}
+
+function compactEnquiry(enquiry = {}) {
+  return {
+    name: String(enquiry.firstName || enquiry.name || '').trim(),
+    email: String(enquiry.email || '').trim(),
+    subject: String(enquiry.subject || '').trim(),
+    service: String(enquiry.service || '').trim(),
+    source: String(enquiry.source || '').trim(),
+    message: String(enquiry.message || '').trim().slice(0, 2500),
+  };
+}
+
+function compactClassification(classification = {}) {
+  return {
+    leadType: classification.leadType,
+    studentStage: classification.studentStage,
+    subjectNeed: classification.subjectNeed,
+    urgency: classification.urgency,
+    buyerIntent: classification.buyerIntent,
+    emotionalState: classification.emotionalState,
+    recommendedPath: classification.recommendedPath,
+    recommendedNextStep: classification.recommendedNextStep,
+    manualReview: classification.manualReview,
+    confidence: classification.confidence,
+    reasoningSummary: classification.reasoningSummary,
+  };
+}
+
+function compactOfferForDraft(offer = {}) {
+  return {
+    key: offer.key,
+    name: offer.name,
+    cta: offer.cta,
+    url: offer.url,
+  };
 }
 
 function validateType(value, expectedType) {
@@ -101,7 +153,7 @@ function validateStructuredOutput(payload, schema) {
   return payload;
 }
 
-async function requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaName, schema }) {
+async function requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaName, schema, purpose }) {
   const response = await fetchImpl(OPENAI_RESPONSES_URL, {
     method: 'POST',
     headers: {
@@ -109,7 +161,7 @@ async function requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaN
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: getModel('openai'),
+      model: getModel('openai', purpose),
       input: [
         { role: 'system', content: [{ type: 'input_text', text: systemPrompt }] },
         { role: 'user', content: [{ type: 'input_text', text: userPrompt }] },
@@ -122,6 +174,7 @@ async function requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaN
           schema,
         },
       },
+      max_output_tokens: getOutputTokenCap(purpose),
     }),
   });
 
@@ -140,7 +193,7 @@ async function requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaN
   return validateStructuredOutput(JSON.parse(outputText), schema);
 }
 
-async function requestDeepSeekStructuredOutput({ systemPrompt, userPrompt, schemaName, schema }) {
+async function requestDeepSeekStructuredOutput({ systemPrompt, userPrompt, schemaName, schema, purpose }) {
   const schemaPrompt = [
     `Return only one valid JSON object for ${schemaName}.`,
     'Do not include markdown, code fences, or commentary.',
@@ -155,12 +208,13 @@ async function requestDeepSeekStructuredOutput({ systemPrompt, userPrompt, schem
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: getModel('deepseek'),
+      model: getModel('deepseek', purpose),
       messages: [
         { role: 'system', content: `${systemPrompt} ${schemaPrompt}`.trim() },
         { role: 'user', content: userPrompt },
       ],
       response_format: { type: 'json_object' },
+      max_tokens: getOutputTokenCap(purpose),
     }),
   });
 
@@ -179,13 +233,13 @@ async function requestDeepSeekStructuredOutput({ systemPrompt, userPrompt, schem
   return validateStructuredOutput(JSON.parse(outputText), schema);
 }
 
-async function requestStructuredOutput({ systemPrompt, userPrompt, schemaName, schema }) {
+async function requestStructuredOutput({ systemPrompt, userPrompt, schemaName, schema, purpose }) {
   const provider = getAiProvider();
   if (provider === 'deepseek') {
-    return requestDeepSeekStructuredOutput({ systemPrompt, userPrompt, schemaName, schema });
+    return requestDeepSeekStructuredOutput({ systemPrompt, userPrompt, schemaName, schema, purpose });
   }
 
-  return requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaName, schema });
+  return requestOpenAiStructuredOutput({ systemPrompt, userPrompt, schemaName, schema, purpose });
 }
 
 function buildClassifierSchema() {
@@ -248,20 +302,23 @@ async function classifyEnquiry({ enquiry, offers }) {
   ].join(' ');
 
   const userPrompt = JSON.stringify({
-    enquiry,
-    offers: Object.values(offers).map((offer) => ({
-      key: offer.key,
-      name: offer.name,
-      cta: offer.cta,
-      url: offer.url,
-    })),
-  }, null, 2);
+    enquiry: compactEnquiry(enquiry),
+    allowedPaths: [
+      'private_mentoring',
+      'blueprint',
+      'essay_marking',
+      'lead_magnet',
+      'clarifying_reply',
+      'manual_review',
+    ],
+  });
 
   return requestStructuredOutput({
     systemPrompt,
     userPrompt,
     schemaName: 'lead_classification',
     schema: buildClassifierSchema(),
+    purpose: 'classification',
   });
 }
 
@@ -271,21 +328,24 @@ async function generateReplyDraft({ enquiry, classification, recommendedOffer })
     'Voice: warm, direct, calm, confident, human, helpful before salesy.',
     'Avoid hype, scarcity pressure, corporate phrasing, long paragraphs, and overpromising.',
     'Acknowledge the actual concern, validate it briefly, diagnose what likely matters, recommend one next step, explain why, give one low-friction CTA, and close warmly.',
+    'Keep the body to 160-240 words unless the enquiry is unusually complex.',
+    'Use short paragraphs, one clear recommendation, and one CTA link.',
     'If confidence is below 0.85, ask 1-2 short clarifying questions and keep the recommendation cautious.',
     'Never claim availability or outcomes you cannot know.',
   ].join(' ');
 
   const userPrompt = JSON.stringify({
-    enquiry,
-    classification,
-    recommendedOffer,
-  }, null, 2);
+    enquiry: compactEnquiry(enquiry),
+    classification: compactClassification(classification),
+    recommendedOffer: compactOfferForDraft(recommendedOffer),
+  });
 
   return requestStructuredOutput({
     systemPrompt,
     userPrompt,
     schemaName: 'enquiry_email_draft',
     schema: buildDraftSchema(),
+    purpose: 'draft',
   });
 }
 
