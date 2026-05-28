@@ -12,6 +12,7 @@ const {
   ALLOWED_UPSELLS,
   normaliseSlug,
   normaliseUpsellSlug,
+  normaliseUpsellSlug2,
   normaliseUpsellQuantity,
   getUpsellAmount,
   isAllowedUpsellCombination,
@@ -277,6 +278,7 @@ function validateInstalmentRequest(body) {
   const slug = String(body && body.slug ? body.slug : '').trim();
   const paymentMode = String(body && body.paymentMode ? body.paymentMode : '').trim();
   const upsellSlug = normaliseUpsellSlug(body || {});
+  const upsellSlug2 = normaliseUpsellSlug2(body || {});
   const upsellQuantity = upsellSlug ? normaliseUpsellQuantity(body || {}) : 0;
 
   if (!['instalments', 'afterpay'].includes(paymentMode)) {
@@ -297,7 +299,13 @@ function validateInstalmentRequest(body) {
     }
   }
 
-  return { slug, paymentMode, upsellSlug, upsellQuantity };
+  if (upsellSlug2) {
+    if (!isAllowedUpsellCombination(slug, upsellSlug2)) {
+      return { error: `Invalid upsell combination: ${slug} + ${upsellSlug2}` };
+    }
+  }
+
+  return { slug, paymentMode, upsellSlug, upsellSlug2, upsellQuantity };
 }
 
 function getSessionOrigin(bodyOrigin, requestOrigin) {
@@ -310,31 +318,47 @@ function getSessionOrigin(bodyOrigin, requestOrigin) {
   return candidateOrigin;
 }
 
-function buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity = 1) {
-  if (!upsellSlug) return [];
-  const upsellEntry = CATALOG[upsellSlug];
-  if (!upsellEntry) return [];
-  const upsellCents = getUpsellAmount(slug, upsellSlug);
-  if (!upsellCents) return [];
-  const quantity = Math.max(1, Math.floor(Number(upsellQuantity) || 1));
+function buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity = 1, upsellSlug2 = '') {
+  const items = [];
 
-  return [
-    {
-      price_data: {
-        currency: 'aud',
-        product_data: {
-          name: upsellEntry.title || upsellEntry.name,
+  if (upsellSlug) {
+    const upsellEntry = CATALOG[upsellSlug];
+    const upsellCents = upsellEntry ? getUpsellAmount(slug, upsellSlug) : null;
+    if (upsellCents) {
+      const quantity = Math.max(1, Math.floor(Number(upsellQuantity) || 1));
+      items.push({
+        price_data: {
+          currency: 'aud',
+          product_data: { name: upsellEntry.title || upsellEntry.name },
+          unit_amount: upsellCents,
         },
-        unit_amount: upsellCents,
-      },
-      quantity,
-    },
-  ];
+        quantity,
+      });
+    }
+  }
+
+  if (upsellSlug2) {
+    const upsell2Entry = CATALOG[upsellSlug2];
+    const upsell2Cents = upsell2Entry ? getUpsellAmount(slug, upsellSlug2) : null;
+    if (upsell2Cents) {
+      items.push({
+        price_data: {
+          currency: 'aud',
+          product_data: { name: upsell2Entry.title || upsell2Entry.name },
+          unit_amount: upsell2Cents,
+        },
+        quantity: 1,
+      });
+    }
+  }
+
+  return items;
 }
 
 function buildInstalmentSessionPayload({
   slug,
   upsellSlug,
+  upsellSlug2,
   upsellQuantity,
   customer,
   origin,
@@ -342,7 +366,7 @@ function buildInstalmentSessionPayload({
   couponCode = '',
   discountAmount = 0,
 }) {
-  const oneTimeLineItems = buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity);
+  const oneTimeLineItems = buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity, upsellSlug2);
   const plan = CATALOG[slug] && CATALOG[slug].instalment ? CATALOG[slug].instalment.plan : null;
   const discountPerPayment = plan && discountAmount > 0
     ? Math.floor(discountAmount / plan.count)
@@ -364,6 +388,10 @@ function buildInstalmentSessionPayload({
     if (Number(upsellQuantity) > 1) {
       metadata.upsell_quantity = String(Math.max(1, Math.floor(Number(upsellQuantity) || 1)));
     }
+  }
+
+  if (upsellSlug2) {
+    metadata.upsell_slug_2 = upsellSlug2;
   }
 
   if (couponCode && discountAmount > 0) {
@@ -425,6 +453,10 @@ function buildAfterpaySessionPayload({
     metadata.upsell_slug = purchase.upsellSlug;
   }
 
+  if (purchase.upsellSlug2) {
+    metadata.upsell_slug_2 = purchase.upsellSlug2;
+  }
+
   if (couponCode) {
     metadata.coupon_code = couponCode;
   }
@@ -441,9 +473,10 @@ function buildAfterpaySessionPayload({
         price_data: {
           currency: 'aud',
           product_data: {
-            name: purchase.upsellSlug
-              ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
-              : `Rohan's GAMSAT - ${purchase.baseSlug}`,
+            name: (() => {
+              const parts = [purchase.upsellSlug, purchase.upsellSlug2].filter(Boolean).join(' + ');
+              return parts ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${parts}` : `Rohan's GAMSAT - ${purchase.baseSlug}`;
+            })(),
           },
           unit_amount: finalAmount,
         },
@@ -453,9 +486,10 @@ function buildAfterpaySessionPayload({
     metadata,
     payment_intent_data: {
       receipt_email: customer.email,
-      description: purchase.upsellSlug
-        ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
-        : `Rohan's GAMSAT - ${purchase.baseSlug}`,
+      description: (() => {
+        const parts = [purchase.upsellSlug, purchase.upsellSlug2].filter(Boolean).join(' + ');
+        return parts ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${parts}` : `Rohan's GAMSAT - ${purchase.baseSlug}`;
+      })(),
       metadata,
     },
   };
@@ -498,6 +532,10 @@ async function handleOneOffCheckout(req, res, body) {
       }
     }
 
+    if (purchase.upsellSlug2) {
+      metadata.upsell_slug_2 = purchase.upsellSlug2;
+    }
+
     const couponCode = String(body.couponCode || '').trim();
     const { discountAmount, couponCode: validatedCode, error: couponError } = await applyCouponDiscount(
       stripe,
@@ -515,12 +553,13 @@ async function handleOneOffCheckout(req, res, body) {
       metadata.discount_amount = String(discountAmount);
     }
 
+    const upsellDesc = [purchase.upsellSlug, purchase.upsellSlug2].filter(Boolean).join(' + ');
     const intent = await stripe.paymentIntents.create({
       amount: finalAmount,
       currency: 'aud',
       receipt_email: customer.email,
-      description: purchase.upsellSlug
-        ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${purchase.upsellSlug}`
+      description: upsellDesc
+        ? `Rohan's GAMSAT - ${purchase.baseSlug} + ${upsellDesc}`
         : `Rohan's GAMSAT - ${purchase.baseSlug}`,
       metadata,
     }, {
@@ -666,6 +705,7 @@ async function handleInstalmentCheckout(req, res, body, origin) {
       sessionPayload = buildInstalmentSessionPayload({
         slug: checkoutRequest.slug,
         upsellSlug: checkoutRequest.upsellSlug,
+        upsellSlug2: checkoutRequest.upsellSlug2,
         upsellQuantity: checkoutRequest.upsellQuantity,
         customer,
         origin: sessionOrigin,

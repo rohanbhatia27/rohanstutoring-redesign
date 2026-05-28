@@ -282,6 +282,8 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
       badge: 'Optional add-on',
     },
     upsellSelected: false,
+    secondUpsell: null,
+    secondUpsellSelected: false,
     couponCode: null,
     couponDiscount: null,
     couponAmount: 0,
@@ -290,17 +292,19 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
 
 test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.deepEqual(getOrderBumpConfig('blueprint'), {
-    slug: 'essay-pack-10',
-    title: 'Add 10 essay reviews',
-    description: 'Get clear feedback on ideas, structure, and expression across 10 full essays.',
-    price: 249,
-    badge: 'Save $100',
+    slug: 'mentoring-single',
+    title: 'Add one 1:1 Strategy Class with a Top GAMSAT Tutor',
+    description: 'A private 1-hour session with a top GAMSAT tutor to build a personalised study plan, target your weak areas, and answer any questions about the Blueprint.',
+    price: 99,
+    priceWas: 119,
+    badge: 'Blueprint-only offer',
+    lockRuntimePrice: true,
   });
 
   assert.deepEqual(getOrderBumpConfig('comprehensive'), {
     slug: 'mentoring-single',
-    title: 'Add one 1:1 strategy class',
-    description: 'Private strategy session with a top tutor before classes begin',
+    title: 'Add one 1:1 Strategy Class With Rohan',
+    description: 'A private 1-hour session with Rohan before the course begins. Build your study plan, target your weak areas, and go into Week 1 with a clear direction.',
     price: 99,
     priceWas: 119,
     badge: 'Enrolment-only offer',
@@ -1562,7 +1566,7 @@ test('buildPurchaseItems keeps the comprehensive order bump at the bundled disco
     },
     {
       item_id: 'mentoring-single',
-      item_name: 'Add one 1:1 strategy class',
+      item_name: 'Add one 1:1 Strategy Class With Rohan',
       price: 99,
       quantity: 1,
     },
@@ -1710,11 +1714,13 @@ test('buildCheckoutPayload includes the primary slug and optional upsell fields'
     upsell: {
       slug: 'mentoring-single',
       price: 99,
-      title: 'Add one 1:1 strategy class',
+      title: 'Add one 1:1 Strategy Class With Rohan',
     },
     upsellSlug: 'mentoring-single',
     upsellPrice: 99,
     upsellSelected: true,
+    upsell2: null,
+    upsellSlug2: null,
     couponCode: null,
   });
 });

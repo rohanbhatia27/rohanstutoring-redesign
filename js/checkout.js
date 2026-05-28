@@ -74,6 +74,19 @@
     return m;
   }());
 
+  const SECOND_ORDER_BUMPS = (function () {
+    const m = {};
+    Object.keys(_CAT).forEach(function (slug) {
+      const bump = _CAT[slug].secondOrderBump;
+      if (!bump) return;
+      const bumpCents = _getUpsellPriceCents(slug, bump.slug);
+      m[slug] = Object.assign({}, bump, {
+        price: bumpCents !== null ? bumpCents / 100 : bump.price,
+      });
+    });
+    return m;
+  }());
+
   const INSTALMENT_PLANS = (function () {
     const m = {};
     Object.keys(_CAT).forEach(function (k) {
@@ -281,6 +294,13 @@
     return { ...bump };
   }
 
+  function getSecondOrderBumpConfig(pageSlug) {
+    const bump = SECOND_ORDER_BUMPS[pageSlug];
+    if (!bump) return null;
+
+    return { ...bump };
+  }
+
   function getUpsellQuantity(selection) {
     if (!selection?.upsellSelected || !selection.upsell) return 0;
     if (!selection.upsell.quantityEnabled) return 1;
@@ -409,7 +429,10 @@
     const upsellPrice = selection.upsellSelected && selection.upsell
       ? selection.upsell.price * getUpsellQuantity(selection)
       : 0;
-    const subtotal = selection.basePrice + upsellPrice;
+    const secondUpsellPrice = selection.secondUpsellSelected && selection.secondUpsell
+      ? selection.secondUpsell.price
+      : 0;
+    const subtotal = selection.basePrice + upsellPrice + secondUpsellPrice;
     let couponAmount = 0;
     if (selection.couponDiscount) {
       if (selection.couponDiscount.type === 'percent') {
@@ -423,24 +446,33 @@
     return selection.price;
   }
 
-  function buildOrderBumpMarkup(orderBump, selection) {
+  function buildOrderBumpMarkup(orderBump, selection, bumpIndex) {
     if (!orderBump) return '';
+    const idx = bumpIndex || 1;
+    const isSecond = idx === 2;
+    const isSelected = isSecond ? Boolean(selection.secondUpsellSelected) : Boolean(selection.upsellSelected);
+    const cardId = isSecond ? 'checkout-order-bump-2' : 'checkout-order-bump';
+    const inputId = isSecond ? 'order-bump-toggle-2' : 'order-bump-toggle';
+    const quantityInputId = isSecond ? 'order-bump-quantity-2' : 'order-bump-quantity';
+    const quantityValue = isSecond
+      ? Math.max(Number(orderBump.minQuantity) || 1, 1)
+      : Math.max(Number(orderBump.minQuantity) || 1, Math.floor(Number(selection.upsellQuantity) || Number(orderBump.minQuantity) || 1));
+
     const priceMarkup = orderBump.priceWas
       ? `<span class="checkout-upsell__price checkout-upsell__price--discounted"><span class="checkout-upsell__price-was">$${fmtPrice(orderBump.priceWas)}</span><span class="checkout-upsell__price-now">+$${fmtPrice(orderBump.price)}${orderBump.quantityEnabled ? ' each' : ''}</span></span>`
       : `<span class="checkout-upsell__price">+$${fmtPrice(orderBump.price)}${orderBump.quantityEnabled ? ' each' : ''}</span>`;
     const variantClass = orderBump.slug === 'essay-pack-10' ? ' checkout-upsell--essay-pack' : '';
-    const quantity = Math.max(Number(orderBump.minQuantity) || 1, Math.floor(Number(selection.upsellQuantity) || Number(orderBump.minQuantity) || 1));
     const quantityMarkup = orderBump.quantityEnabled
       ? `
           <span class="checkout-upsell__quantity">
             <span class="checkout-upsell__quantity-label">${escapeText(orderBump.quantityLabel || 'Quantity')}</span>
             <input
               class="checkout-upsell__quantity-input"
-              id="order-bump-quantity"
+              id="${quantityInputId}"
               type="number"
               min="${Number(orderBump.minQuantity) || 1}"
               step="1"
-              value="${quantity}"
+              value="${quantityValue}"
               inputmode="numeric"
             >
           </span>
@@ -448,13 +480,13 @@
       : '';
 
     return `
-      <div class="checkout-upsell checkout-upsell--order-bump${variantClass}${selection.upsellSelected ? ' checkout-upsell--selected' : ''}" id="checkout-order-bump">
-        <label class="checkout-upsell__toggle" for="order-bump-toggle">
+      <div class="checkout-upsell checkout-upsell--order-bump${variantClass}${isSelected ? ' checkout-upsell--selected' : ''}" id="${cardId}">
+        <label class="checkout-upsell__toggle" for="${inputId}">
           <input
             class="checkout-upsell__input"
-            id="order-bump-toggle"
+            id="${inputId}"
             type="checkbox"
-            ${selection.upsellSelected ? 'checked' : ''}
+            ${isSelected ? 'checked' : ''}
           >
           <span class="checkout-upsell__control" aria-hidden="true"></span>
           <span class="checkout-upsell__body">
@@ -502,6 +534,7 @@
 
   function getInitialSelection(pageSlug, product) {
     const orderBump = getOrderBumpConfig(pageSlug);
+    const secondOrderBump = getSecondOrderBumpConfig(pageSlug);
 
     if (product && product.hasPkgSelector) {
       const defaultIndex = 1;
@@ -514,6 +547,8 @@
         packageIndex: defaultIndex,
         upsell: orderBump,
         upsellSelected: false,
+        secondUpsell: secondOrderBump,
+        secondUpsellSelected: false,
         ...(orderBump && orderBump.quantityEnabled ? { upsellQuantity: Math.max(1, Number(orderBump.minQuantity) || 1) } : {}),
         couponCode: null,
         couponDiscount: null,
@@ -532,6 +567,8 @@
       packageIndex: null,
       upsell: orderBump,
       upsellSelected: false,
+      secondUpsell: secondOrderBump,
+      secondUpsellSelected: false,
       ...(orderBump && orderBump.quantityEnabled ? { upsellQuantity: Math.max(1, Number(orderBump.minQuantity) || 1) } : {}),
       couponCode: null,
       couponDiscount: null,
@@ -986,6 +1023,15 @@
       orderBumpQuantityInput.disabled = !selection.upsellSelected;
     }
 
+    const secondOrderBumpCard = qs('#checkout-order-bump-2');
+    const secondOrderBumpInput = qs('#order-bump-toggle-2');
+    if (secondOrderBumpCard) {
+      secondOrderBumpCard.classList.toggle('checkout-upsell--selected', Boolean(selection.secondUpsellSelected));
+    }
+    if (secondOrderBumpInput) {
+      secondOrderBumpInput.checked = Boolean(selection.secondUpsellSelected);
+    }
+
     document.querySelectorAll('.pkg-option').forEach((option, index) => {
       option.classList.toggle('pkg-option--active', index === selection.packageIndex);
       option.setAttribute('aria-checked', String(index === selection.packageIndex));
@@ -1150,22 +1196,51 @@
     }
   }
 
+  function setupSecondOrderBump(selection) {
+    if (!selection.secondUpsell) return;
+
+    const input = qs('#order-bump-toggle-2');
+    if (!input) return;
+
+    input.addEventListener('change', () => {
+      selection.secondUpsellSelected = input.checked;
+      updateSelectionPrice(selection);
+      syncSelectionUI(selection);
+      setPayButtonReady(selection, Boolean(selection.checkoutReady));
+      if (window.posthog && typeof window.posthog.capture === 'function') {
+        window.posthog.capture('checkout_order_bump_toggled', {
+          product: selection.pageSlug,
+          upsell_slug: selection.secondUpsell ? selection.secondUpsell.slug : null,
+          selected: selection.secondUpsellSelected,
+          bump_index: 2,
+        });
+      }
+    });
+  }
+
   function renderOrderBump(productSlug, selection) {
     const container = qs('#checkout-upsell-slot');
     if (!container) return;
 
     const orderBump = selection.upsell || getOrderBumpConfig(productSlug);
-    if (!orderBump) {
+    const secondOrderBump = selection.secondUpsell || getSecondOrderBumpConfig(productSlug);
+
+    if (!orderBump && !secondOrderBump) {
       container.hidden = true;
       container.innerHTML = '';
       return;
     }
 
-    selection.upsell = orderBump;
+    if (orderBump) selection.upsell = orderBump;
+    if (secondOrderBump) selection.secondUpsell = secondOrderBump;
+
     updateSelectionPrice(selection);
-    container.innerHTML = buildOrderBumpMarkup(orderBump, selection);
+    let markup = orderBump ? buildOrderBumpMarkup(orderBump, selection, 1) : '';
+    if (secondOrderBump) markup += buildOrderBumpMarkup(secondOrderBump, selection, 2);
+    container.innerHTML = markup;
     container.hidden = false;
     setupOrderBump(selection);
+    setupSecondOrderBump(selection);
     syncSelectionUI(selection);
   }
 
@@ -1257,6 +1332,8 @@
       upsellSlug: null,
       upsellPrice: null,
       upsellSelected: false,
+      upsell2: null,
+      upsellSlug2: null,
       couponCode: selection.couponCode || null,
     };
 
@@ -1274,6 +1351,15 @@
         payload.upsell.quantity = upsellQuantity;
         payload.upsellQuantity = upsellQuantity;
       }
+    }
+
+    if (selection.secondUpsell && selection.secondUpsellSelected) {
+      payload.upsell2 = {
+        slug: selection.secondUpsell.slug,
+        price: selection.secondUpsell.price,
+        title: selection.secondUpsell.title,
+      };
+      payload.upsellSlug2 = selection.secondUpsell.slug;
     }
 
     return payload;
@@ -1932,6 +2018,7 @@
     getProductFromSearch,
     getInitialSelection,
     getOrderBumpConfig,
+    getSecondOrderBumpConfig,
     getPaymentModeOptions,
     getInstalmentPlanSummary,
     buildPaymentModeMarkup,

@@ -40,6 +40,10 @@ function normaliseUpsellSlug(body) {
   return normaliseSlug(body.upsellSlug || body.upsell_slug || body.addOnSlug);
 }
 
+function normaliseUpsellSlug2(body) {
+  return normaliseSlug(body.upsellSlug2 || body.upsell_slug_2 || '');
+}
+
 function normaliseUpsellQuantity(body) {
   const rawValue = body.upsellQuantity || body.upsell_quantity || (body.upsell && body.upsell.quantity);
   const quantity = Math.floor(Number(rawValue) || 1);
@@ -57,6 +61,7 @@ function isAllowedUpsellCombination(baseSlug, upsellSlug) {
 function resolveCheckoutPurchase(body) {
   const baseSlug = normaliseSlug(body.slug);
   const upsellSlug = normaliseUpsellSlug(body);
+  const upsellSlug2 = normaliseUpsellSlug2(body);
   const baseAmount = AMOUNTS[baseSlug];
 
   if (!baseAmount) {
@@ -67,7 +72,7 @@ function resolveCheckoutPurchase(body) {
     return { error: 'This product is currently unavailable.' };
   }
 
-  if (!upsellSlug) {
+  if (!upsellSlug && !upsellSlug2) {
     return {
       amount: baseAmount,
       baseAmount,
@@ -79,30 +84,53 @@ function resolveCheckoutPurchase(body) {
     };
   }
 
-  const upsellUnitAmount = getUpsellAmount(baseSlug, upsellSlug);
-  if (!upsellUnitAmount) {
-    return { error: 'Invalid upsell slug: ' + upsellSlug };
+  let totalUpsellAmount = 0;
+  let upsellUnitAmount = 0;
+  let upsellQuantity = 0;
+
+  if (upsellSlug) {
+    upsellUnitAmount = getUpsellAmount(baseSlug, upsellSlug);
+    if (!upsellUnitAmount) {
+      return { error: 'Invalid upsell slug: ' + upsellSlug };
+    }
+    if (baseSlug === upsellSlug || !isAllowedUpsellCombination(baseSlug, upsellSlug)) {
+      return { error: `Invalid upsell combination: ${baseSlug} + ${upsellSlug}` };
+    }
+    upsellQuantity = normaliseUpsellQuantity(body);
+    totalUpsellAmount += upsellUnitAmount * upsellQuantity;
   }
 
-  if (baseSlug === upsellSlug || !isAllowedUpsellCombination(baseSlug, upsellSlug)) {
-    return {
-      error: `Invalid upsell combination: ${baseSlug} + ${upsellSlug}`,
-    };
+  let upsellAmount2 = 0;
+  if (upsellSlug2) {
+    if (upsellSlug2 === upsellSlug) {
+      return { error: 'Duplicate upsell slugs are not allowed' };
+    }
+    upsellAmount2 = getUpsellAmount(baseSlug, upsellSlug2);
+    if (!upsellAmount2) {
+      return { error: 'Invalid upsell slug: ' + upsellSlug2 };
+    }
+    if (baseSlug === upsellSlug2 || !isAllowedUpsellCombination(baseSlug, upsellSlug2)) {
+      return { error: `Invalid upsell combination: ${baseSlug} + ${upsellSlug2}` };
+    }
+    totalUpsellAmount += upsellAmount2;
   }
 
-  const upsellQuantity = normaliseUpsellQuantity(body);
-  const upsellAmount = upsellUnitAmount * upsellQuantity;
   const purchase = {
-    amount: baseAmount + upsellAmount,
+    amount: baseAmount + totalUpsellAmount,
     baseAmount,
     baseSlug,
-    upsellAmount,
-    upsellSlug,
+    upsellAmount: upsellSlug ? upsellUnitAmount * upsellQuantity : 0,
+    upsellSlug: upsellSlug || '',
   };
 
-  if (upsellQuantity > 1) {
+  if (upsellSlug && upsellQuantity > 1) {
     purchase.upsellQuantity = upsellQuantity;
     purchase.upsellUnitAmount = upsellUnitAmount;
+  }
+
+  if (upsellSlug2) {
+    purchase.upsellSlug2 = upsellSlug2;
+    purchase.upsellAmount2 = upsellAmount2;
   }
 
   return purchase;
@@ -136,6 +164,7 @@ module.exports = {
   ALLOWED_UPSELLS,
   normaliseSlug,
   normaliseUpsellSlug,
+  normaliseUpsellSlug2,
   normaliseUpsellQuantity,
   getUpsellAmount,
   isAllowedUpsellCombination,

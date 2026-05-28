@@ -51,7 +51,7 @@
     }
   }
 
-  function loadMetaPixelScript() {
+  function ensureFbqStub() {
     if (window.fbq) return;
 
     var n = (window.fbq = function () {
@@ -62,6 +62,14 @@
     n.loaded = true;
     n.version = '2.0';
     n.queue = [];
+  }
+
+  function loadMetaPixelScript() {
+    ensureFbqStub();
+
+    if (document.querySelector('script[src*="connect.facebook.net/en_US/fbevents.js"]')) {
+      return;
+    }
 
     var script = document.createElement('script');
     script.async = true;
@@ -103,11 +111,16 @@
     });
   }
 
+  function trackMetaPageView() {
+    if (typeof window.fbq !== 'function') return;
+    window.fbq('track', 'PageView');
+    trackViewContentForPath();
+  }
+
   function initMetaPixel() {
     loadMetaPixelScript();
     window.fbq('init', PIXEL_ID);
-    window.fbq('track', 'PageView');
-    trackViewContentForPath();
+    trackMetaPageView();
   }
 
   function initAnalytics() {
@@ -115,12 +128,27 @@
     initMetaPixel();
   }
 
-  var consent = window.__analyticsConsent;
-  if (consent && consent.granted) {
-    initAnalytics();
-  } else if (consent && consent.pending) {
-    window.addEventListener('consentGranted', function () {
+  function bootAnalytics() {
+    var consent = window.__analyticsConsent;
+    if (consent && consent.granted) {
       initAnalytics();
-    }, { once: true });
+    } else if (consent && consent.pending) {
+      window.addEventListener('consentGranted', function () {
+        initAnalytics();
+      }, { once: true });
+    }
   }
+
+  bootAnalytics();
+
+  // Back/forward cache restores the page without re-running scripts — fire PageView again.
+  window.addEventListener('pageshow', function (event) {
+    if (!event.persisted) return;
+    if (!window.__analyticsConsent || !window.__analyticsConsent.granted) return;
+    if (typeof window.fbq !== 'function') {
+      initMetaPixel();
+      return;
+    }
+    trackMetaPageView();
+  });
 })();
