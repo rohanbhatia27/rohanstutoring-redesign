@@ -431,10 +431,14 @@
       const main = document.querySelector('.dash__main');
       main.insertBefore(banner, main.firstChild);
     }
+    if (error) console.error('[dashboard] live GA4 unavailable:', error);
     const isAuth = error && (error.error === 'not_connected' || error.error === 'token_refresh_failed');
-    const reason = isAuth
+    const baseReason = isAuth
       ? (error.message || 'Google Analytics is not connected.')
       : (error && error.message) || 'Showing mock data — live GA4 unavailable.';
+    const reason = !isAuth && error && error.detail
+      ? `${baseReason} (${error.detail})`
+      : baseReason;
     banner.innerHTML = `
       <div>
         <strong>${isAuth ? 'Connect Google Analytics' : 'Showing mock data'}</strong>

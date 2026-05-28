@@ -174,9 +174,12 @@ async function buildDashboard(propertyId, accessToken, days) {
     limit: 200,
   };
 
-  const reports = await runBatchReports(propertyId, accessToken, [
-    reqTrend, reqEvents, reqSources, reqPages, reqTotals, reqMagnetEvents,
+  // GA4 caps batchRunReports at 5 reports per call, so split into two batches.
+  const [batchA, batchB] = await Promise.all([
+    runBatchReports(propertyId, accessToken, [reqTrend, reqEvents, reqSources, reqPages]),
+    runBatchReports(propertyId, accessToken, [reqTotals, reqMagnetEvents]),
   ]);
+  const reports = [...batchA, ...batchB];
 
   const [trendR, eventsR, sourcesR, pagesR, totalsR, magnetEventsR] = reports;
 
