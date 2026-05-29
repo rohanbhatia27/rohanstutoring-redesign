@@ -660,7 +660,7 @@ test('initCheckoutPage keeps the pay button disabled until checkout is ready', a
   }
 });
 
-test('trackGa4BeginCheckoutOnce sends the required GA4 ecommerce payload once per session', () => {
+test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload once per session', () => {
   const previousWindow = global.window;
   const calls = [];
   const storage = new Map();
@@ -680,21 +680,20 @@ test('trackGa4BeginCheckoutOnce sends the required GA4 ecommerce payload once pe
   };
 
   try {
-    assert.equal(trackGa4BeginCheckoutOnce(), true);
-    assert.equal(trackGa4BeginCheckoutOnce(), false);
+    assert.equal(trackGa4BeginCheckoutOnce('mastery', PRODUCTS.mastery), true);
+    assert.equal(trackGa4BeginCheckoutOnce('mastery', PRODUCTS.mastery), false);
     assert.equal(calls.length, 1);
     assert.deepEqual(calls[0], [
       'event',
       'begin_checkout',
       {
         currency: 'AUD',
-        value: 1549,
+        value: 2249,
         items: [
           {
-            item_id: 'comprehensive_course_march_2026',
-            item_name: 'GAMSAT Comprehensive Course',
-            item_category: 'GAMSAT Course',
-            price: 1549,
+            item_id: 'mastery',
+            item_name: 'Mastery Program',
+            price: 2249,
             quantity: 1,
           },
         ],

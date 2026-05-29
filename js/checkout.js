@@ -691,11 +691,15 @@
     return items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined;
   }
 
-  function trackGa4BeginCheckoutOnce() {
+  function trackGa4BeginCheckoutOnce(productSlug, product, selection) {
     if (typeof window === 'undefined') return false;
     if (typeof window.gtag !== 'function') return false;
+    if (!productSlug || !product) return false;
 
-    const key = 'ga4_begin_checkout_comprehensive_course_march_2026';
+    const itemPrice = selection && selection.price !== undefined ? selection.price : product.price;
+    const itemId = selection && selection.packageSlug ? selection.packageSlug : productSlug;
+
+    const key = 'ga4_begin_checkout_' + itemId;
     try {
       if (window.sessionStorage && window.sessionStorage.getItem(key)) return false;
       if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
@@ -705,13 +709,12 @@
 
     window.gtag('event', 'begin_checkout', {
       currency: 'AUD',
-      value: 1549,
+      value: itemPrice,
       items: [
         {
-          item_id: 'comprehensive_course_march_2026',
-          item_name: 'GAMSAT Comprehensive Course',
-          item_category: 'GAMSAT Course',
-          price: 1549,
+          item_id: itemId,
+          item_name: product.name,
+          price: itemPrice,
           quantity: 1,
         },
       ],
@@ -1614,7 +1617,7 @@
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
 
-    trackGa4BeginCheckoutOnce();
+    trackGa4BeginCheckoutOnce(productSlug, product, selection);
 
     if (typeof window.fbq === 'function') {
       window.fbq('track', 'InitiateCheckout', {
