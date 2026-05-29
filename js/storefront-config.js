@@ -6,7 +6,7 @@
         url: '/checkout/?product=comprehensive&paymentMode=instalments',
       }),
       mastery: Object.freeze({
-        label: 'or pay $649 × 4 instalments →',
+        label: 'or pay $699 × 4 instalments →',
         url: '/checkout/?product=mastery&paymentMode=instalments',
       }),
     }),

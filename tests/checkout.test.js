@@ -304,7 +304,7 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.deepEqual(getOrderBumpConfig('comprehensive'), {
     slug: 'mentoring-single',
     title: 'Add one 1:1 Strategy Class With Rohan',
-    description: 'A private 1-hour session with Rohan before the course begins. Build your study plan, target your weak areas, and go into Week 1 with a clear direction.',
+    description: 'A private 40 minute 1:1 session with Rohan before the course begins. Build your study plan, target your weak areas, and go into Week 1 with a clear direction.',
     price: 99,
     priceWas: 119,
     badge: 'Enrolment-only offer',
@@ -1757,7 +1757,7 @@ test('buildCheckoutPayload includes mastery upsell quantity when extra classes a
   });
 
   assert.equal(payload.slug, 'mastery');
-  assert.equal(payload.totalAmount, 2843);
+  assert.equal(payload.totalAmount, 3093);
   assert.equal(payload.upsellSlug, 'mentoring-single');
   assert.equal(payload.upsellPrice, 99);
   assert.equal(payload.upsellQuantity, 6);
@@ -1854,8 +1854,8 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       upsellQuantity: 6,
     }),
     {
-      amount: 284300,
-      baseAmount: 224900,
+      amount: 309300,
+      baseAmount: 249900,
       baseSlug: 'mastery',
       upsellAmount: 59400,
       upsellSlug: 'mentoring-single',
@@ -3185,6 +3185,27 @@ test('payment intent handler sends Stripe idempotency keys for retries in the sa
     Date.now = previousNow;
     createPaymentIntentHandler.__resetForTests();
     delete process.env.STRIPE_SECRET_KEY;
+  }
+});
+
+test('payment intent idempotency keys include the second upsell slug', () => {
+  const previousNow = Date.now;
+  Date.now = () => new Date('2026-05-13T12:34:56.000Z').valueOf();
+
+  try {
+    assert.equal(
+      createCheckoutHandler.buildPaymentIntentIdempotencyKey({
+        customerEmail: 'jane@example.com',
+        purchase: {
+          baseSlug: 'blueprint',
+          upsellSlug: 'mentoring-single',
+          upsellSlug2: 'essay-pack-10',
+        },
+      }),
+      'pi-jane@example.com-blueprint-mentoring-single-essay-pack-10-29644594'
+    );
+  } finally {
+    Date.now = previousNow;
   }
 });
 

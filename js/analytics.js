@@ -9,7 +9,7 @@
     advanced: { content_name: 'GAMSAT Advanced Series', value: 299 },
     's1-comprehensive': { content_name: 'Section 1 Comprehensive Course', value: 999 },
     's2-comprehensive': { content_name: 'Section 2 Comprehensive Course', value: 999 },
-    mastery: { content_name: 'Mastery Program', value: 2249 },
+    mastery: { content_name: 'Mastery Program', value: 2499 },
     'private-mentoring': { content_name: 'Private Mentoring', value: 119 },
     'essay-marking': { content_name: 'Essay Marking', value: 35 },
   };
