@@ -292,5 +292,11 @@
       "destination": "/blog/the-biggest-s2-mistake",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/analytics?action=weekly-insights",
+      "schedule": "0 21 * * 0"
+    }
   ]
 }

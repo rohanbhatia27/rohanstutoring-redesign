@@ -10,6 +10,7 @@ const {
 } = require('./_lib/_ga4-auth.js');
 
 const { Resend } = require('resend');
+const { generateWeeklyInsights, compactDashboard } = require('./_lib/_insights.js');
 
 const GA_API = 'https://analyticsdata.googleapis.com/v1beta';
 
@@ -395,6 +396,42 @@ function buildDigestEmail(data, weekLabel) {
 </html>`;
 }
 
+function buildInsightsEmail(insights, weekLabel) {
+  const prioColor = { high: '#f87171', medium: '#fbbf24', low: '#94a3b8' };
+  const items = (insights.insights || []).map((it, i) => {
+    const prio = String(it.priority || 'medium').toLowerCase();
+    const color = prioColor[prio] || prioColor.medium;
+    return `
+      <div style="margin:0 0 20px;padding:16px;background:#0f172a;border:1px solid #1e293b;border-left:3px solid ${color};border-radius:8px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:15px;font-weight:700;color:#f1f5f9">${i + 1}. ${it.title}</span>
+          <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:${color}">${prio}</span>
+        </div>
+        <p style="margin:8px 0 0;font-size:13px;color:#cbd5e1;line-height:1.5">${it.observation}</p>
+        <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;line-height:1.5"><strong style="color:#6fb6f0">Business read:</strong> ${it.business_mapping}</p>
+        <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;line-height:1.5"><strong style="color:#34d399">Do next:</strong> ${it.recommended_next_step}</p>
+      </div>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a1220;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#f1f5f9">
+<div style="max-width:600px;margin:0 auto;padding:32px 24px">
+  <p style="margin:0 0 4px;font-size:11px;color:#6fb6f0;text-transform:uppercase;letter-spacing:0.08em">Rohan's GAMSAT</p>
+  <h1 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#f1f5f9">Weekly Insights</h1>
+  <p style="margin:0 0 24px;font-size:13px;color:#64748b">${weekLabel} &middot; analysed by DeepSeek</p>
+  <p style="margin:0 0 24px;padding:14px 16px;background:#11203a;border-radius:8px;font-size:14px;color:#e2e8f0;line-height:1.5">${insights.headline || ''}</p>
+  ${items}
+  <p style="margin:24px 0 0;font-size:11px;color:#334155;text-align:center">
+    Rohan's GAMSAT &middot; Weekly insight engine &middot;
+    <a href="https://rohanstutoring.com/analytics-dashboard.html" style="color:#6fb6f0">Open dashboard</a>
+  </p>
+</div>
+</body>
+</html>`;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -492,6 +529,76 @@ module.exports = async function handler(req, res) {
       res.statusCode = 502;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'digest_failed', detail: err.message }));
+    }
+    return;
+  }
+
+  // ---- Weekly DeepSeek insight email (Vercel cron, requires GA4_REFRESH_TOKEN + DEEPSEEK_API_KEY) ----
+  if (action === 'weekly-insights') {
+    const cronHeader = req.headers['x-vercel-cron'];
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = req.headers['authorization'];
+    if (!cronHeader && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
+      res.statusCode = 401;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'unauthorized' }));
+      return;
+    }
+
+    const storedToken = process.env.GA4_REFRESH_TOKEN;
+    const propId = process.env.GA4_PROPERTY_ID;
+    const resendKey = process.env.RESEND_API_KEY;
+    const digestTo = process.env.DIGEST_EMAIL || 'rohanbhatia2709@gmail.com';
+    const missing = [];
+    if (!storedToken) missing.push('GA4_REFRESH_TOKEN');
+    if (!propId) missing.push('GA4_PROPERTY_ID');
+    if (!process.env.DEEPSEEK_API_KEY) missing.push('DEEPSEEK_API_KEY');
+    if (!resendKey) missing.push('RESEND_API_KEY');
+    if (missing.length) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: `Missing env vars: ${missing.join(', ')}` }));
+      return;
+    }
+
+    // ?dryRun=1 returns the insights JSON without emailing — handy for testing.
+    const dryRun = req.query && (req.query.dryRun === '1' || req.query.dryRun === 'true');
+
+    try {
+      const tokenRes = await refreshAccessToken(storedToken);
+      const days = parseRange((req.query && req.query.range) || '30');
+      const data = await buildDashboard(propId, tokenRes.access_token, days);
+      const insights = await generateWeeklyInsights({ data });
+
+      const now = new Date();
+      const weekStart = new Date(now);
+      weekStart.setUTCDate(weekStart.getUTCDate() - days);
+      const fmt = (d) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', timeZone: 'Australia/Sydney' });
+      const weekLabel = `${fmt(weekStart)} – ${fmt(now)}`;
+
+      if (dryRun) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ dryRun: true, week: weekLabel, data: compactDashboard(data), insights }, null, 2));
+        return;
+      }
+
+      const html = buildInsightsEmail(insights, weekLabel);
+      const resend = new Resend(resendKey);
+      await resend.emails.send({
+        from: 'hello@rohanstutoring.com',
+        to: digestTo,
+        subject: `GAMSAT Weekly Insights — ${weekLabel}`,
+        html,
+      });
+
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ sent: true, to: digestTo, week: weekLabel, count: insights.insights.length }));
+    } catch (err) {
+      res.statusCode = 502;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'weekly_insights_failed', detail: err.message }));
     }
     return;
   }
