@@ -1,5 +1,16 @@
 {
   "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/analytics?action=weekly-insights",
+      "schedule": "0 21 * * 0"
+    }
+  ],
+  "functions": {
+    "api/analytics.js": {
+      "includeFiles": "api/_lib/**"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
