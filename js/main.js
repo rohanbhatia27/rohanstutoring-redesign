@@ -107,6 +107,58 @@ function shouldTrackNewsletterSignup(form) {
   return true;
 }
 
+function getCheckoutProductTrackingPayload({
+  href = '',
+  linkText = '',
+  pathname = '',
+  origin = 'https://www.rohanstutoring.com',
+} = {}) {
+  let url;
+
+  try {
+    url = new URL(href, origin);
+  } catch (error) {
+    return null;
+  }
+
+  if (!url.pathname.startsWith('/checkout')) return null;
+
+  const slug = url.searchParams.get('product');
+  const product = GA4_PRODUCTS[slug];
+  if (!slug || !product) return null;
+
+  const paymentMode = url.searchParams.get('paymentMode') || 'full';
+  const cleanText = String(linkText || '').replace(/\s+/g, ' ').trim();
+
+  return {
+    currency: 'AUD',
+    value: product.price,
+    product_slug: slug,
+    payment_mode: paymentMode,
+    cta_text: cleanText,
+    page_path: pathname,
+    destination_path: `${url.pathname}${url.search}`,
+    items: [{
+      item_id: slug,
+      item_name: product.name,
+      price: product.price,
+      quantity: 1,
+    }],
+  };
+}
+
+const GA4_PRODUCTS = {
+  blueprint:         { name: "Rohan's Blueprint",                  price: 599 },
+  advanced:          { name: 'GAMSAT Advanced Series',             price: 299 },
+  'essay-collection':{ name: 'Expert Essay Collection',            price: 79 },
+  'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
+  'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
+  'essay-pack-10':   { name: 'S2 Essay Marking - 10-Essay Pack',   price: 249 },
+  comprehensive:     { name: 'Comprehensive Course',               price: 1699 },
+  mastery:           { name: 'Mastery Program',                    price: 2249 },
+  'private-mentoring':{ name: 'Private Mentoring',                 price: null },
+};
+
 function initMain() {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const track = (event, params = {}) => {
@@ -423,38 +475,23 @@ function initMain() {
     syncFloatingQuizCtaVisibility();
   }
 
-  /* ---- Analytics: Buy Now click (begin_checkout) ---- */
-  const GA4_PRODUCTS = {
-    blueprint:         { name: "Rohan's Blueprint",                  price: 599 },
-    advanced:          { name: 'GAMSAT Advanced Series',             price: 299 },
-    'essay-collection':{ name: 'Expert Essay Collection',            price: 79 },
-    'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
-    'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
-    'essay-pack-10':   { name: 'S2 Essay Marking — 10-Essay Pack',   price: 249 },
-    comprehensive:     { name: 'Comprehensive Course',               price: 1699 },
-    mastery:           { name: 'Mastery Program',                    price: 2249 },
-    'private-mentoring':{ name: 'Private Mentoring',                 price: null },
-  };
-
+  /* ---- Analytics: product CTA click path ---- */
   document.addEventListener('click', (e) => {
     const link = e.target.closest('a[href]');
     if (!link) return;
-    const href = link.getAttribute('href') || '';
-    if (!href.includes('/checkout')) return;
-    const params = new URLSearchParams(href.split('?')[1] || '');
-    const slug = params.get('product');
-    const product = GA4_PRODUCTS[slug];
     if (typeof window.gtag !== 'function') return;
-    window.gtag('event', 'begin_checkout', {
-      currency: 'AUD',
-      value: product ? product.price : undefined,
-      items: [{
-        item_id: slug || 'unknown',
-        item_name: product ? product.name : slug || 'unknown',
-        price: product ? product.price : undefined,
-        quantity: 1,
-      }],
+
+    const payload = getCheckoutProductTrackingPayload({
+      href: link.getAttribute('href') || '',
+      linkText: link.textContent || '',
+      pathname: window.location.pathname,
+      origin: window.location.origin,
     });
+    if (!payload) return;
+
+    window.gtag('event', 'course_cta_click', payload);
+    window.gtag('event', 'add_to_cart', payload);
+    window.gtag('event', 'begin_checkout', payload);
   });
 
   /* ---- Analytics: ConvertKit newsletter signup ---- */
@@ -486,6 +523,7 @@ if (typeof module !== 'undefined' && module.exports) {
     getFloatingQuizCtaRevealThreshold,
     isFloatingQuizCtaAllowedForPage,
     shouldHideFloatingQuizCtaForPath,
+    getCheckoutProductTrackingPayload,
     shouldTrackNewsletterSignup,
   };
 }

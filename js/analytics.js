@@ -111,6 +111,27 @@
     });
   }
 
+  function trackGA4ViewItemForPath() {
+    if (typeof window.gtag !== 'function') return;
+
+    var slug = getProductSlugFromPath();
+    if (!slug) return;
+
+    var product = PRODUCT_VIEW_CONTENT[slug];
+    if (!product) return;
+
+    window.gtag('event', 'view_item', {
+      currency: 'AUD',
+      value: product.value,
+      items: [{
+        item_id: slug,
+        item_name: product.content_name,
+        price: product.value,
+        quantity: 1,
+      }],
+    });
+  }
+
   function trackMetaPageView() {
     if (typeof window.fbq !== 'function') return;
     window.fbq('track', 'PageView');
@@ -125,6 +146,7 @@
 
   function initAnalytics() {
     initGA4();
+    trackGA4ViewItemForPath();
     initMetaPixel();
   }
 

@@ -28,6 +28,7 @@ const {
   getSuccessState,
   isProductAvailable,
   buildPurchaseItems,
+  trackGa4BeginCheckoutOnce,
   buildEssayUploadUrl,
   getApiServerErrorMessage,
   getCheckoutSubmissionErrorMessage,
@@ -304,7 +305,7 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
   assert.deepEqual(getOrderBumpConfig('comprehensive'), {
     slug: 'mentoring-single',
     title: 'Add one 1:1 Strategy Class With Rohan',
-    description: 'A private 1-hour session with Rohan before the course begins. Build your study plan, target your weak areas, and go into Week 1 with a clear direction.',
+    description: 'A private 40 minute 1:1 session with Rohan before the course begins. Build your study plan, target your weak areas, and go into Week 1 with a clear direction.',
     price: 99,
     priceWas: 119,
     badge: 'Enrolment-only offer',
@@ -656,6 +657,72 @@ test('initCheckoutPage keeps the pay button disabled until checkout is ready', a
     global.document = previousDocument;
     global.fetch = previousFetch;
     global.Stripe = previousStripe;
+  }
+});
+
+test('trackGa4BeginCheckoutOnce sends the required GA4 ecommerce payload once per session', () => {
+  const previousWindow = global.window;
+  const calls = [];
+  const storage = new Map();
+
+  global.window = {
+    gtag(...args) {
+      calls.push(args);
+    },
+    sessionStorage: {
+      getItem(key) {
+        return storage.get(key) || null;
+      },
+      setItem(key, value) {
+        storage.set(key, value);
+      },
+    },
+  };
+
+  try {
+    assert.equal(trackGa4BeginCheckoutOnce(), true);
+    assert.equal(trackGa4BeginCheckoutOnce(), false);
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0], [
+      'event',
+      'begin_checkout',
+      {
+        currency: 'AUD',
+        value: 1549,
+        items: [
+          {
+            item_id: 'comprehensive_course_march_2026',
+            item_name: 'GAMSAT Comprehensive Course',
+            item_category: 'GAMSAT Course',
+            price: 1549,
+            quantity: 1,
+          },
+        ],
+      },
+    ]);
+  } finally {
+    global.window = previousWindow;
+  }
+});
+
+test('trackGa4BeginCheckoutOnce does not throw when gtag is missing', () => {
+  const previousWindow = global.window;
+
+  global.window = {
+    sessionStorage: {
+      getItem() {
+        throw new Error('sessionStorage should not be touched without gtag.');
+      },
+      setItem() {
+        throw new Error('sessionStorage should not be touched without gtag.');
+      },
+    },
+  };
+
+  try {
+    assert.equal(trackGa4BeginCheckoutOnce(), false);
+  } finally {
+    global.window = previousWindow;
   }
 });
 

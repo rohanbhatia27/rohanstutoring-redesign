@@ -122,7 +122,7 @@ test('every catalog pageSlug has a corresponding courses/*.html file', () => {
 test('main.js GA4_PRODUCTS prices match catalog priceCents', () => {
   const mainSrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8');
   const blockStart = mainSrc.indexOf('const GA4_PRODUCTS = {');
-  const blockEnd = mainSrc.indexOf('\n  };', blockStart);
+  const blockEnd = mainSrc.indexOf('\n};', blockStart);
   assert.ok(blockStart !== -1 && blockEnd !== -1, 'Could not find GA4_PRODUCTS block in main.js');
   const block = mainSrc.slice(blockStart, blockEnd);
 

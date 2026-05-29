@@ -36,7 +36,7 @@ function isoDaysAgo(days) {
   return d.toISOString().slice(0, 10);
 }
 
-async function runBatchReports(propertyId, accessToken, requests) {
+async function defaultRunBatchReports(propertyId, accessToken, requests) {
   const res = await fetch(`${GA_API}/properties/${propertyId}:batchRunReports`, {
     method: 'POST',
     headers: {
@@ -54,6 +54,8 @@ async function runBatchReports(propertyId, accessToken, requests) {
   const json = await res.json();
   return json.reports || [];
 }
+
+let runBatchReports = defaultRunBatchReports;
 
 function rowsToObjects(report) {
   const dims = (report.dimensionHeaders || []).map((h) => h.name);
@@ -119,7 +121,9 @@ async function buildDashboard(propertyId, accessToken, days) {
     limit: 200,
   };
 
-  // Traffic sources (current period only).
+  // Traffic sources (current period only). The source table uses these rows
+  // for sessions/engagement; lead counts are fetched separately from actual
+  // lead events so "leads" is not dependent on GA4 key-event admin settings.
   const reqSources = {
     dateRanges: [dateRangeCurr],
     dimensions: [{ name: 'sessionSourceMedium' }],
@@ -175,14 +179,47 @@ async function buildDashboard(propertyId, accessToken, days) {
     limit: 200,
   };
 
+  // Lead-magnet page views are fetched separately from the top-pages table.
+  // Otherwise a low-traffic magnet with real signups can be reported as
+  // 0 views simply because it missed the top-page cutoff.
+  const reqMagnetPages = {
+    dateRanges: [dateRangeCurr],
+    dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
+    metrics: [{ name: 'screenPageViews' }],
+    dimensionFilter: {
+      filter: {
+        fieldName: 'pagePath',
+        stringFilter: {
+          matchType: 'PARTIAL_REGEXP',
+          value: 's1-mock|s2-slam-system|section-1-tracker|quote-generator',
+          caseSensitive: false,
+        },
+      },
+    },
+    limit: 100,
+  };
+
+  const reqSourceLeadEvents = {
+    dateRanges: [dateRangeCurr],
+    dimensions: [{ name: 'sessionSourceMedium' }, { name: 'eventName' }],
+    metrics: [{ name: 'eventCount' }],
+    dimensionFilter: {
+      filter: {
+        fieldName: 'eventName',
+        inListFilter: { values: EVENT_BUCKETS.lead.filter(Boolean) },
+      },
+    },
+    limit: 500,
+  };
+
   // GA4 caps batchRunReports at 5 reports per call, so split into two batches.
   const [batchA, batchB] = await Promise.all([
     runBatchReports(propertyId, accessToken, [reqTrend, reqEvents, reqSources, reqPages]),
-    runBatchReports(propertyId, accessToken, [reqTotals, reqMagnetEvents]),
+    runBatchReports(propertyId, accessToken, [reqTotals, reqMagnetEvents, reqMagnetPages, reqSourceLeadEvents]),
   ]);
   const reports = [...batchA, ...batchB];
 
-  const [trendR, eventsR, sourcesR, pagesR, totalsR, magnetEventsR] = reports;
+  const [trendR, eventsR, sourcesR, pagesR, totalsR, magnetEventsR, magnetPagesR, sourceLeadEventsR] = reports;
 
   // ---- Trend (split by dateRange dimension value) ----
   const trendRows = rowsToObjects(trendR);
@@ -213,11 +250,14 @@ async function buildDashboard(propertyId, accessToken, days) {
 
   // ---- Sources ----
   const sourcesRows = rowsToObjects(sourcesR);
+  const sourceLeadRows = rowsToObjects(sourceLeadEventsR);
   const sources = sourcesRows.map((r) => {
     const name = r.sessionSourceMedium || '(direct)';
     const sessions = r.sessions || 0;
     const engRate = sessions ? Math.round((r.engagedSessions / sessions) * 100) : 0;
-    const leadCount = r.keyEvents || 0;
+    const leadCount = sourceLeadRows
+      .filter((leadRow) => (leadRow.sessionSourceMedium || '(direct)') === name)
+      .reduce((s, leadRow) => s + (leadRow.eventCount || 0), 0);
     return {
       name,
       sessions,
@@ -253,6 +293,7 @@ async function buildDashboard(propertyId, accessToken, days) {
   // Uses actual eventCount for lead+download events per page, so this works
   // even if those events aren't marked as key events in GA4 admin.
   const magnetEventRows = rowsToObjects(magnetEventsR);
+  const magnetPageRows = rowsToObjects(magnetPagesR);
   const magnetHints = [
     { name: 'S1 Mini Mock',         match: /s1-mock/i },
     { name: 'S2 Slam System',       match: /s2-slam/i },
@@ -260,8 +301,10 @@ async function buildDashboard(propertyId, accessToken, days) {
     { name: 'Quote Generator',      match: /quote-generator/i },
   ];
   const magnets = magnetHints.map((h) => {
-    const p = pagesRows.find((r) => h.match.test(r.pagePath || ''));
-    const views = p ? p.screenPageViews || 0 : 0;
+    const viewRows = magnetPageRows.filter((r) => h.match.test(r.pagePath || ''));
+    const fallbackPageRows = pagesRows.filter((r) => h.match.test(r.pagePath || ''));
+    const views = (viewRows.length ? viewRows : fallbackPageRows)
+      .reduce((s, r) => s + (r.screenPageViews || 0), 0);
     const signups = magnetEventRows
       .filter((r) => h.match.test(r.pagePath || ''))
       .reduce((s, r) => s + (r.eventCount || 0), 0);
@@ -432,7 +475,7 @@ function buildInsightsEmail(insights, weekLabel) {
 </html>`;
 }
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
   const action = req.query && req.query.action;
@@ -699,4 +742,13 @@ module.exports = async function handler(req, res) {
       detail: err.message,
     }));
   }
+}
+
+module.exports = handler;
+module.exports.__buildDashboardForTests = buildDashboard;
+module.exports.__setRunBatchReports = (value) => {
+  runBatchReports = value;
+};
+module.exports.__resetForTests = () => {
+  runBatchReports = defaultRunBatchReports;
 };

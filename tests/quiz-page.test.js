@@ -30,6 +30,12 @@ test('quiz lead gate submits to the internal Kit sync endpoint and removes webin
   assert.match(quizHtml, /relevant course recommendations/i);
 });
 
+test('quiz email capture fires the canonical GA4 lead event', () => {
+  assert.match(quizJs, /const leadPayload = { form_id: 'quiz', outcome: state\.outcomeId };/);
+  assert.match(quizJs, /track\('generate_lead', leadPayload\);/);
+  assert.match(quizJs, /track\('quiz_email_captured'/);
+});
+
 test('quiz focus styles use a defined shared token', () => {
   assert.doesNotMatch(quizCss, /var\(--electric\)/);
   assert.match(

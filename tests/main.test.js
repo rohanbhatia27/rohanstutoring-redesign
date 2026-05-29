@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  getCheckoutProductTrackingPayload,
   getFloatingQuizCtaRevealThreshold,
   isFloatingQuizCtaAllowedForPage,
   shouldHideFloatingQuizCtaForPath,
@@ -154,4 +155,32 @@ test('newsletter signup analytics still track valid or non-validating forms', ()
 
   assert.equal(shouldTrackNewsletterSignup({}), true);
   assert.equal(shouldTrackNewsletterSignup(null), false);
+});
+
+test('checkout product CTA tracking payload identifies comprehensive course clicks', () => {
+  const payload = getCheckoutProductTrackingPayload({
+    href: '/checkout/?product=comprehensive&paymentMode=instalments',
+    linkText: 'or pay $499 x 4 instalments',
+    pathname: '/courses/comprehensive',
+    origin: 'https://www.rohanstutoring.com',
+  });
+
+  assert.equal(payload.product_slug, 'comprehensive');
+  assert.equal(payload.payment_mode, 'instalments');
+  assert.equal(payload.cta_text, 'or pay $499 x 4 instalments');
+  assert.equal(payload.page_path, '/courses/comprehensive');
+  assert.equal(payload.destination_path, '/checkout/?product=comprehensive&paymentMode=instalments');
+  assert.equal(payload.currency, 'AUD');
+  assert.equal(payload.value, 1699);
+  assert.deepEqual(payload.items, [{
+    item_id: 'comprehensive',
+    item_name: 'Comprehensive Course',
+    price: 1699,
+    quantity: 1,
+  }]);
+});
+
+test('checkout product CTA tracking ignores unknown products and non-checkout links', () => {
+  assert.equal(getCheckoutProductTrackingPayload({ href: '/courses/comprehensive' }), null);
+  assert.equal(getCheckoutProductTrackingPayload({ href: '/checkout/?product=unknown' }), null);
 });

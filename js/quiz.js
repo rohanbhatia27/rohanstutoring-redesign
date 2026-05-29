@@ -591,7 +591,9 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        track('quiz_email_captured', { outcome: state.outcomeId });
+        const leadPayload = { form_id: 'quiz', outcome: state.outcomeId };
+        track('generate_lead', leadPayload);
+        track('quiz_email_captured', leadPayload);
         unlockResult();
         clearStateStorage();
       } else {
