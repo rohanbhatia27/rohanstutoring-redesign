@@ -1,0 +1,227 @@
+/* ============================================
+   Interview Chances Calculator — page styles
+   Reuses tokens from css/style.css
+   ============================================ */
+
+/* ---- Hero ---- */
+.ic-hero {
+  position: relative;
+  background: var(--navy);
+  color: var(--white);
+  padding: calc(var(--header-height) + 64px) 0 80px;
+  overflow: hidden;
+}
+.ic-hero__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 80% at 80% 0%, var(--blue-glow), transparent 70%),
+    radial-gradient(50% 60% at 0% 100%, rgba(124,111,224,0.15), transparent 70%);
+  pointer-events: none;
+}
+.ic-hero__inner {
+  position: relative;
+  max-width: 760px;
+}
+.ic-hero h1 { margin: 16px 0 20px; }
+.ic-hero h1 em { color: var(--blue-light); }
+.ic-hero p { color: var(--text-dark-soft); font-size: 1.125rem; max-width: 640px; }
+
+/* ---- Section wrapper ---- */
+.ic-section {
+  background: var(--off-white);
+  padding: 64px 0 96px;
+}
+
+/* ---- Calculator shell ---- */
+.interview-calc {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---- Form card ---- */
+.interview-calc__form {
+  background: var(--white);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 36px;
+}
+.interview-calc__form-head { margin-bottom: 28px; }
+.interview-calc__form-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.75rem;
+}
+.interview-calc__form-head p { margin-top: 6px; font-size: 0.95rem; }
+.interview-calc__beta {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: var(--blue-accent-soft);
+  border-radius: 999px;
+  padding: 4px 10px;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Groups + grids ---- */
+.interview-calc__group {
+  border: none;
+  margin-bottom: 24px;
+}
+.interview-calc__legend {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding: 0;
+}
+.interview-calc__grid { display: grid; gap: 16px; }
+.interview-calc__grid--three { grid-template-columns: repeat(3, 1fr); }
+.interview-calc__grid--two {
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 24px;
+}
+
+/* ---- Fields ---- */
+.interview-calc__field { display: flex; flex-direction: column; gap: 6px; }
+.interview-calc__field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.interview-calc__field input[type="number"],
+.interview-calc__field select {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.interview-calc__field input[type="number"]:focus,
+.interview-calc__field select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-accent-soft);
+}
+
+/* ---- Rural toggle ---- */
+.interview-calc__field--toggle { margin-bottom: 28px; }
+.interview-calc__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.interview-calc__toggle input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+.interview-calc__hint {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ---- Actions ---- */
+.interview-calc__actions { display: flex; }
+.interview-calc__submit { width: 100%; justify-content: center; }
+
+/* ---- Results ---- */
+.interview-calc__results {
+  margin-top: 28px;
+  background: var(--white);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 28px 32px;
+}
+.interview-calc__headline {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+/* ---- Gated full results ---- */
+.interview-calc__full { margin-top: 20px; position: relative; }
+.interview-calc__full[hidden] { display: none; }
+
+.interview-calc__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.interview-calc__table th,
+.interview-calc__table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.interview-calc__table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.interview-calc__table th:last-child,
+.interview-calc__table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.interview-calc__table tbody tr:last-child td { border-bottom: none; }
+
+/* Locked state, applied when results are gated (wired in later task) */
+.interview-calc__full--locked .interview-calc__table {
+  filter: blur(6px);
+  user-select: none;
+  pointer-events: none;
+}
+.interview-calc__lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+  background: rgba(255,255,255,0.78);
+  border-radius: var(--radius-md);
+}
+
+/* ---- Notes ---- */
+.interview-calc__notes { margin-top: 24px; }
+.interview-calc__disclaimer,
+.interview-calc__attribution {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.interview-calc__attribution { margin-top: 10px; }
+
+/* ---- Mobile ---- */
+@media (max-width: 640px) {
+  .interview-calc__form { padding: 24px; }
+  .interview-calc__grid--three,
+  .interview-calc__grid--two { grid-template-columns: 1fr; }
+  .interview-calc__results { padding: 22px; }
+}

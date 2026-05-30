@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/js/consent.js"></script>
+  <script src="/js/analytics.js" defer></script>
+  <script src="/js/posthog-init.js" defer></script>
+  <title>GAMSAT Interview Chances Calculator | Rohan's GAMSAT</title>
+  <meta name="description" content="Estimate your GEMSAS interview chances across Australian medical schools from your GPA, GAMSAT sections, CASPer, and rural status. A free guidance tool by Rohan's GAMSAT.">
+  <meta property="og:title" content="GAMSAT Interview Chances Calculator | Rohan's GAMSAT">
+  <meta property="og:description" content="Estimate your GEMSAS interview chances across Australian medical schools. A free guidance tool from Rohan's GAMSAT.">
+  <meta property="og:url" content="https://www.rohanstutoring.com/interview-calculator">
+  <link rel="canonical" href="https://www.rohanstutoring.com/interview-calculator">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/interview-calculator.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="/" class="nav__logo">
+        <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="nav__logo-img">
+      </a>
+      <ul class="nav__links">
+        <li><a href="index.html#courses">Courses</a></li>
+        <li><a href="/courses/essay-marking">Essay Marking</a></li>
+        <li class="nav__dropdown-wrap">
+          <button type="button" class="nav__dropdown-trigger" aria-expanded="false" aria-controls="resourcesDropdown" aria-haspopup="true">
+            Free Resources <span class="nav__dropdown-caret">▾</span>
+          </button>
+          <div class="nav__dropdown" id="resourcesDropdown">
+            <a href="/s2-slam-system" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">S2 Slam System</span>
+              <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
+            </a>
+            <a href="/quote-generator" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">S2 Quote Generator</span>
+              <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
+            </a>
+            <a href="/s1-mock" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">S1 Mini Mock</span>
+              <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
+            </a>
+            <a href="/section-1-tracker" class="nav__dropdown-item">
+              <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
+              <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
+            </a>
+          </div>
+        </li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/blog">Blog</a></li>
+      </ul>
+      <button class="nav__burger" aria-label="Menu" id="burger">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav__mobile" id="mobileMenu">
+      <a href="index.html#courses">Courses</a>
+      <a href="/courses/essay-marking">Essay Marking</a>
+      <div class="nav__mobile-group">
+        <button type="button" class="nav__mobile-trigger" aria-expanded="false" aria-controls="mobileResourcesMenu">
+          Free Resources <span class="nav__mobile-trigger-caret">▾</span>
+        </button>
+        <div class="nav__mobile-submenu" id="mobileResourcesMenu" hidden aria-hidden="true">
+          <a href="/s2-slam-system" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">S2 Slam System</span>
+            <span class="nav__dropdown-item-desc">Free essay formula for GAMSAT Section 2</span>
+          </a>
+          <a href="/quote-generator" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">S2 Quote Generator</span>
+            <span class="nav__dropdown-item-desc">Instantly generate GAMSAT-style Section 2 prompts</span>
+          </a>
+          <a href="/s1-mock" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">S1 Mini Mock</span>
+            <span class="nav__dropdown-item-desc">Full mini-mock with passages, questions, and marking guide</span>
+          </a>
+          <a href="/section-1-tracker" class="nav__dropdown-item">
+            <span class="nav__dropdown-item-title">Section 1 Question Tracker</span>
+            <span class="nav__dropdown-item-desc">Track question bank performance and focus where it counts</span>
+          </a>
+        </div>
+      </div>
+      <a href="/about">About</a>
+      <a href="/blog">Blog</a>
+    </div>
+  </nav>
+
+  <main id="main-content">
+
+  <!-- HERO -->
+  <section class="ic-hero">
+    <div class="ic-hero__bg"></div>
+    <div class="container">
+      <div class="ic-hero__inner">
+        <span class="label">Free Guidance Tool</span>
+        <h1>Interview Chances <em>Calculator</em></h1>
+        <p>Enter your GPA, GAMSAT sections, CASPer, and rural status to see a rough estimate of your interview chances across the GEMSAS medical schools. Built to orient your strategy, not to predict outcomes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALCULATOR -->
+  <section class="ic-section">
+    <div class="container">
+
+      <div class="interview-calc">
+
+        <form id="ic-form" class="interview-calc__form" novalidate>
+          <div class="interview-calc__form-head">
+            <h2>Your numbers<span class="interview-calc__beta">Beta</span></h2>
+            <p>All inputs stay in your browser. Nothing is stored on submit.</p>
+          </div>
+
+          <fieldset class="interview-calc__group">
+            <legend class="interview-calc__legend">GAMSAT sections</legend>
+            <div class="interview-calc__grid interview-calc__grid--three">
+              <div class="interview-calc__field">
+                <label for="ic-gamsat-s1">Section 1</label>
+                <input type="number" id="ic-gamsat-s1" name="gamsat-s1" min="0" max="100" step="1" inputmode="numeric" placeholder="e.g. 68">
+              </div>
+              <div class="interview-calc__field">
+                <label for="ic-gamsat-s2">Section 2</label>
+                <input type="number" id="ic-gamsat-s2" name="gamsat-s2" min="0" max="100" step="1" inputmode="numeric" placeholder="e.g. 72">
+              </div>
+              <div class="interview-calc__field">
+                <label for="ic-gamsat-s3">Section 3</label>
+                <input type="number" id="ic-gamsat-s3" name="gamsat-s3" min="0" max="100" step="1" inputmode="numeric" placeholder="e.g. 75">
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="interview-calc__grid interview-calc__grid--two">
+            <div class="interview-calc__field">
+              <label for="ic-gpa">GPA (out of 7)</label>
+              <input type="number" id="ic-gpa" name="gpa" min="0" max="7" step="0.01" inputmode="decimal" placeholder="e.g. 6.50">
+            </div>
+            <div class="interview-calc__field">
+              <label for="ic-casper">CASPer quartile</label>
+              <select id="ic-casper" name="casper">
+                <option value="" selected>Not sat / N/A</option>
+                <option value="1">Quartile 1 (lowest)</option>
+                <option value="2">Quartile 2</option>
+                <option value="3">Quartile 3</option>
+                <option value="4">Quartile 4 (highest)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="interview-calc__field interview-calc__field--toggle">
+            <label class="interview-calc__toggle" for="ic-rural">
+              <input type="checkbox" id="ic-rural" name="rural">
+              <span class="interview-calc__toggle-text">I am eligible for the rural cohort</span>
+            </label>
+            <p class="interview-calc__hint">Rural eligibility uses a separate set of cut-offs at most schools.</p>
+          </div>
+
+          <div class="interview-calc__actions">
+            <button type="submit" class="btn btn--primary interview-calc__submit">Estimate my chances</button>
+          </div>
+        </form>
+
+        <section id="ic-results" class="interview-calc__results" hidden aria-live="polite">
+          <p id="ic-headline" class="interview-calc__headline"></p>
+
+          <div id="ic-results-full" class="interview-calc__full" hidden>
+            <table class="interview-calc__table">
+              <thead>
+                <tr>
+                  <th scope="col">University</th>
+                  <th scope="col">Estimated chance</th>
+                </tr>
+              </thead>
+              <tbody id="ic-results-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="interview-calc__notes">
+          <p class="interview-calc__disclaimer">This is a rough estimate for guidance only. It is not admissions advice and does not predict whether you will receive an interview or offer. Cut-offs shift every cycle and depend on factors this tool cannot see.</p>
+          <p class="interview-calc__attribution">Cut-off data is compiled from publicly shared figures by the r/GAMSAT community. Thanks to everyone who reports their results each cycle.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <img src="assets/logo.webp" alt="Rohan's GAMSAT" class="footer__logo-img">
+          <p>Expert GAMSAT preparation by medical students, for future doctors.</p>
+          <div class="footer__socials">
+            <a href="https://www.instagram.com/rohansgamsat/" aria-label="Instagram">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+            </a>
+            <a href="https://www.youtube.com/@rohan_gamsat" aria-label="YouTube">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" stroke="currentColor" stroke-width="1.8"/><polygon points="10,9 16,12 10,15" fill="currentColor"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer__links">
+          <div class="footer__col">
+            <h3>Courses</h3>
+            <a href="/courses/comprehensive">Comprehensive Course</a>
+            <a href="/courses/blueprint">Rohan's Blueprint</a>
+            <a href="/courses/advanced">Mastery Program</a>
+            <a href="/courses/essay-marking">Essay Marking</a>
+          </div>
+          <div class="footer__col">
+            <h3>Free Resources</h3>
+            <a href="/quote-generator">S2 Quote Generator</a>
+            <a href="/s1-mock">S1 Mini Mock</a>
+            <a href="/section-1-tracker">S1 Question Tracker</a>
+            <a href="/blog">Blog</a>
+          </div>
+          <div class="footer__col">
+            <h3>Our Company</h3>
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
+            <a href="/terms">Terms &amp; Conditions</a>
+            <a href="/privacy">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Rohan's Tutoring. All rights reserved.</p>
+        <p>Built for future doctors in Australia, the UK and Ireland.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js?v=20260521-catalog" defer></script>
+  <script src="js/interview-calculator.js" defer></script>
+</body>
+</html>

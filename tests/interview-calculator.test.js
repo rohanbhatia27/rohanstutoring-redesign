@@ -83,3 +83,16 @@ test('rankUniversities: returns sorted bands per uni', () => {
     assert.ok(result[i - 1].band >= result[i].band, 'sorted descending');
   }
 });
+
+test('page exists with required structure', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'interview-calculator.html'), 'utf8');
+  assert.match(html, /css\/style\.css/, 'loads base stylesheet');
+  assert.match(html, /css\/interview-calculator\.css/, 'loads page stylesheet');
+  assert.match(html, /js\/interview-calculator\.js/, 'loads calculator script');
+  assert.match(html, /id="ic-form"/, 'has the input form');
+  assert.match(html, /id="ic-results"/, 'has results region');
+  assert.match(html, /name="gamsat-s1"|id="ic-gamsat-s1"/, 'has gamsat section input');
+  assert.match(html, /rural/i, 'has rural toggle');
+  assert.match(html, /r\/GAMSAT|community/i, 'shows attribution');
+  assert.match(html, /estimate|not advice|guidance only/i, 'shows disclaimer');
+});
