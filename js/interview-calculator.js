@@ -46,13 +46,53 @@
     return out;
   }
 
+  function renderHeadline(ranked) {
+    if (!ranked || !ranked.length) return 'Enter your scores to see your estimate.';
+    var top = ranked[0];
+    return 'Your strongest interview chance is ' + top.name + ' at about ' + top.band + '%.';
+  }
+
   window.InterviewCalc = {
     round5: round5,
     computeComboScore: computeComboScore,
     mapToBand: mapToBand,
     applyCasper: applyCasper,
-    rankUniversities: rankUniversities
+    rankUniversities: rankUniversities,
+    renderHeadline: renderHeadline
   };
 
-  // DOM wiring (reading inputs, rendering results) is added in a later task.
+  if (typeof document !== 'undefined' && document.getElementById) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('ic-form');
+      if (!form) return;
+      var results = document.getElementById('ic-results');
+      var fullBody = document.getElementById('ic-results-body');
+      var headlineEl = document.getElementById('ic-headline');
+      var dataPromise = fetch('/data/gemsas-cutoffs.json').then(function (r) { return r.json(); });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        dataPromise.then(function (data) {
+          var input = {
+            gpa: parseFloat(document.getElementById('ic-gpa').value),
+            sections: [
+              parseFloat(document.getElementById('ic-gamsat-s1').value),
+              parseFloat(document.getElementById('ic-gamsat-s2').value),
+              parseFloat(document.getElementById('ic-gamsat-s3').value)
+            ],
+            casperQuartile: parseInt(document.getElementById('ic-casper').value, 10) || null,
+            rural: !!(document.getElementById('ic-rural') && document.getElementById('ic-rural').checked)
+          };
+          var ranked = window.InterviewCalc.rankUniversities(input, data);
+          if (results) results.hidden = false;
+          if (headlineEl) headlineEl.textContent = window.InterviewCalc.renderHeadline(ranked);
+          if (fullBody) {
+            fullBody.innerHTML = ranked.map(function (r) {
+              return '<tr><td>' + r.name + '</td><td>' + r.band + '%</td></tr>';
+            }).join('');
+          }
+        });
+      });
+    });
+  }
 })();

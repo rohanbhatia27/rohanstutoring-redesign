@@ -96,3 +96,14 @@ test('page exists with required structure', () => {
   assert.match(html, /r\/GAMSAT|community/i, 'shows attribution');
   assert.match(html, /estimate|not advice|guidance only/i, 'shows disclaimer');
 });
+
+test('renderHeadline returns best uni summary string', () => {
+  const calc = loadCalc();
+  const ranked = [
+    { id: 'uq', name: 'University of Queensland', band: 65 },
+    { id: 'deakin', name: 'Deakin University', band: 40 }
+  ];
+  const headline = calc.renderHeadline(ranked);
+  assert.match(headline, /University of Queensland/);
+  assert.match(headline, /65/);
+});
