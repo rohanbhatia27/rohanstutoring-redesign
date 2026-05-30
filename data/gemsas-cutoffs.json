@@ -1,0 +1,85 @@
+{
+  "source": "r/GAMSAT GEMSAS interview & offer data (community-compiled)",
+  "attribution": "Historical cutoffs compiled by the r/GAMSAT community from GEMSAS interview/offer workbooks (2022-2024 cycles). Rough guidance only, not official admissions data.",
+  "notes": "interviewMin is averaged across the 2022, 2023 and 2024 cycles. offerMin/offerMean are averaged across the 2022 and 2023 cycles (cleanest labelled data). Scores are on the GEMSAS 'combo' scale (~GPA/7 + GAMSAT/100, range ~1.3-1.8). Macquarie makes only full-fee GEMSAS offers and had 0 rural interviews/offers, so its rural figures mirror non-rural and its offer figures use the 2022 cycle only.",
+  "cycles": ["2022", "2023", "2024"],
+  "offerCycles": ["2022", "2023"],
+  "casper": { "gatedQuartileBelow": 2, "penaltyBands": 1 },
+  "excludedUniversities": [
+    { "id": "undf", "name": "University of Notre Dame Fremantle", "reason": "CASPer/portfolio-weighted entry not modellable on the combo scale" },
+    { "id": "unds", "name": "University of Notre Dame Sydney", "reason": "CASPer/portfolio-weighted entry not modellable on the combo scale" },
+    { "id": "uow", "name": "University of Wollongong", "reason": "CASPer/rural-weighted entry not modellable on the combo scale" }
+  ],
+  "universities": [
+    {
+      "id": "anu",
+      "name": "Australian National University",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.6785, "offerMin": 1.6556, "offerMean": 1.7230 },
+        "rural": { "interviewMin": 1.4696, "offerMin": 1.5592, "offerMean": 1.6418 }
+      }
+    },
+    {
+      "id": "deakin",
+      "name": "Deakin University",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.7005, "offerMin": 1.5428, "offerMean": 1.7286 },
+        "rural": { "interviewMin": 1.5533, "offerMin": 1.5032, "offerMean": 1.7143 }
+      }
+    },
+    {
+      "id": "griffith",
+      "name": "Griffith University",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.6507, "offerMin": 1.5646, "offerMean": 1.6870 },
+        "rural": { "interviewMin": 1.4416, "offerMin": 1.4698, "offerMean": 1.5886 }
+      }
+    },
+    {
+      "id": "macquarie",
+      "name": "Macquarie University",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.5806, "offerMin": 1.5971, "offerMean": 1.6677 },
+        "rural": { "interviewMin": 1.5806, "offerMin": 1.5971, "offerMean": 1.6677 }
+      }
+    },
+    {
+      "id": "melbourne",
+      "name": "University of Melbourne",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.5809, "offerMin": 1.6172, "offerMean": 1.7061 },
+        "rural": { "interviewMin": 1.4327, "offerMin": 1.4988, "offerMean": 1.6325 }
+      }
+    },
+    {
+      "id": "uq",
+      "name": "University of Queensland",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.6354, "offerMin": 1.6519, "offerMean": 1.6982 },
+        "rural": { "interviewMin": 1.3690, "offerMin": 1.3545, "offerMean": 1.4889 }
+      }
+    },
+    {
+      "id": "uwa",
+      "name": "University of Western Australia",
+      "usesCasper": false,
+      "weighting": { "gpa": 0.6, "gamsat": 0.4, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.6323, "offerMin": 1.6672, "offerMean": 1.7257 },
+        "rural": { "interviewMin": 1.4613, "offerMin": 1.5008, "offerMean": 1.6125 }
+      }
+    }
+  ]
+}
