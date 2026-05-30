@@ -71,7 +71,7 @@
       var fullBox = document.getElementById('ic-results-full');
       var fullBody = document.getElementById('ic-results-body');
       var headlineEl = document.getElementById('ic-headline');
-      var dataPromise = fetch('/data/gemsas-cutoffs.json').then(function (r) { return r.json(); });
+      var dataPromise = fetch('/data/gemsas-cutoffs.json?v=20260530', { cache: 'no-store' }).then(function (r) { return r.json(); });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();

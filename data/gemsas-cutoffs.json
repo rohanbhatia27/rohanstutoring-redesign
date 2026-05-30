@@ -12,7 +12,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6917, "p50": 1.7227, "p90": 1.7967 },
+        "nonRural": { "interviewMin": 1.6917, "p50": 1.6684, "p90": 1.7967 },
         "rural":    { "interviewMin": 1.4778, "p50": 1.5854, "p90": 1.6379 }
       }
     },
@@ -22,7 +22,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6575, "p50": 1.7186, "p90": 1.7425 },
+        "nonRural": { "interviewMin": 1.6575, "p50": 1.6694, "p90": 1.7425 },
         "rural":    { "interviewMin": 1.5171, "p50": 1.6210, "p90": 1.6985 }
       }
     },
@@ -52,7 +52,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5908, "p50": 1.7035, "p90": 1.7536 },
+        "nonRural": { "interviewMin": 1.5908, "p50": 1.6548, "p90": 1.7536 },
         "rural":    { "interviewMin": 1.4249, "p50": 1.5802, "p90": 1.6870 }
       }
     },
@@ -62,7 +62,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6199, "p50": 1.6686, "p90": 1.7158 },
+        "nonRural": { "interviewMin": 1.6199, "p50": 1.6343, "p90": 1.7158 },
         "rural":    { "interviewMin": 1.5046, "p50": 1.5865, "p90": 1.6600 }
       }
     },
@@ -72,7 +72,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.6, "gamsat": 0.4, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6243, "p50": 1.6502, "p90": 1.6958 },
+        "nonRural": { "interviewMin": 1.6243, "p50": 1.6084, "p90": 1.6958 },
         "rural":    { "interviewMin": 1.4659, "p50": 1.5582, "p90": 1.7007 }
       }
     },
@@ -82,7 +82,7 @@
       "usesCasper": true,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5219, "p50": 1.6043, "p90": 1.6449 },
+        "nonRural": { "interviewMin": 1.5219, "p50": 1.5697, "p90": 1.6449 },
         "rural":    { "interviewMin": 1.5101, "p50": 1.5862, "p90": 1.6544 }
       }
     },
@@ -92,7 +92,7 @@
       "usesCasper": true,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.4803, "p50": 1.6564, "p90": 1.7143 },
+        "nonRural": { "interviewMin": 1.4803, "p50": 1.6226, "p90": 1.7143 },
         "rural":    { "interviewMin": 1.4790, "p50": 1.5439, "p90": 1.5782 }
       }
     },
@@ -102,7 +102,7 @@
       "usesCasper": true,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.4008, "p50": 1.5538, "p90": 1.6194 },
+        "nonRural": { "interviewMin": 1.4008, "p50": 1.5472, "p90": 1.6194 },
         "rural":    { "interviewMin": 1.3461, "p50": 1.5220, "p90": 1.6006 }
       }
     }
