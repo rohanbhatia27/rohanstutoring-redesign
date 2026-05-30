@@ -49,7 +49,8 @@
   function renderHeadline(ranked) {
     if (!ranked || !ranked.length) return 'Enter your scores to see your estimate.';
     var top = ranked[0];
-    return 'Your strongest interview chance is ' + top.name + ' at about ' + top.band + '%.';
+    return 'Your strongest interview chance is <span class="interview-calc__headline-tease">' +
+      top.name + ' at about ' + top.band + '%</span>.';
   }
 
   window.InterviewCalc = {
@@ -86,7 +87,7 @@
           };
           var ranked = window.InterviewCalc.rankUniversities(input, data);
           if (results) results.hidden = false;
-          if (headlineEl) headlineEl.textContent = window.InterviewCalc.renderHeadline(ranked);
+          if (headlineEl) headlineEl.innerHTML = window.InterviewCalc.renderHeadline(ranked);
           if (fullBody) {
             fullBody.innerHTML = ranked.map(function (r) {
               return '<tr><td>' + r.name + '</td><td>' + r.band + '%</td></tr>';
