@@ -13,15 +13,15 @@
     return input.gpa / gpaScale + gamsat / 100;
   }
 
-  // Piecewise-linear: interviewMin -> 15, offerMean -> 50, +0.15 above mean -> 95.
+  // Piecewise-linear: interviewMin -> 15, offerMean -> 75, +0.05 above mean -> 95.
   function mapToBand(score, cutoffs) {
     var low = cutoffs.interviewMin;
     var mid = cutoffs.offerMean;
-    var hi = mid + 0.15;
+    var hi = mid + 0.05;
     var pct;
     if (score <= low) { pct = Math.max(5, 15 - (low - score) * 100); }
-    else if (score <= mid) { pct = 15 + ((score - low) / (mid - low)) * (50 - 15); }
-    else if (score <= hi) { pct = 50 + ((score - mid) / (hi - mid)) * (95 - 50); }
+    else if (score <= mid) { pct = 15 + ((score - low) / (mid - low)) * (75 - 15); }
+    else if (score <= hi) { pct = 75 + ((score - mid) / (hi - mid)) * (95 - 75); }
     else { pct = 95; }
     return round5(pct);
   }
@@ -104,6 +104,7 @@
           successInlineMessage: "You're in. Your full school-by-school breakdown is unlocked below.",
           successCardMessage: "You're in. Your full school-by-school breakdown is unlocked below.",
           onLeadCaptured: function () {
+            if (results) results.classList.add('interview-calc__results--unlocked');
             if (fullBox) fullBox.hidden = false;
           }
         });
