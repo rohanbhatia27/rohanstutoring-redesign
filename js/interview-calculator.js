@@ -13,15 +13,16 @@
     return input.gpa / gpaScale + gamsat / 100;
   }
 
-  // Piecewise-linear: interviewMin -> 15, offerMean -> 75, +0.05 above mean -> 95.
+  // Piecewise-linear: interviewMin -> 15, p50 -> 55, p90 -> 90, above p90 -> 95.
+  // p50 and p90 are the 50th/90th percentiles of the 2025 no-bonus interview pool.
   function mapToBand(score, cutoffs) {
     var low = cutoffs.interviewMin;
-    var mid = cutoffs.offerMean;
-    var hi = mid + 0.05;
+    var mid = cutoffs.p50;
+    var hi  = cutoffs.p90;
     var pct;
-    if (score <= low) { pct = Math.max(5, 15 - (low - score) * 100); }
-    else if (score <= mid) { pct = 15 + ((score - low) / (mid - low)) * (75 - 15); }
-    else if (score <= hi) { pct = 75 + ((score - mid) / (hi - mid)) * (95 - 75); }
+    if (score <= low)  { pct = Math.max(5, 15 - (low - score) * 100); }
+    else if (score <= mid) { pct = 15 + ((score - low) / (mid - low)) * (55 - 15); }
+    else if (score <= hi)  { pct = 55 + ((score - mid) / (hi  - mid)) * (90 - 55); }
     else { pct = 95; }
     return round5(pct);
   }

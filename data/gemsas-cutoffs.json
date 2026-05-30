@@ -1,15 +1,10 @@
 {
   "source": "r/GAMSAT GEMSAS interview & offer data (community-compiled)",
-  "attribution": "Historical cutoffs compiled by the r/GAMSAT community from GEMSAS interview/offer workbooks (2022-2024 cycles). Rough guidance only, not official admissions data.",
-  "notes": "interviewMin is averaged across the 2022, 2023 and 2024 cycles. offerMin/offerMean are averaged across the 2022 and 2023 cycles (cleanest labelled data). Scores are on the GEMSAS 'combo' scale (~GPA/7 + GAMSAT/100, range ~1.3-1.8). Macquarie makes only full-fee GEMSAS offers and had 0 rural interviews/offers, so its rural figures mirror non-rural and its offer figures use the 2022 cycle only.",
-  "cycles": ["2022", "2023", "2024"],
-  "offerCycles": ["2022", "2023"],
+  "attribution": "Cutoffs derived from the GEMSAS Interview Offers 2025 Application Cycle workbook (community-compiled, 2025 cycle) blended with historical averages from the 2022-2024 GEMSAS community workbooks. Rough guidance only, not official admissions data.",
+  "notes": "interviewMin is a 65/35 blend of the observed 2025 minimum (no-bonus, non-rural applicants) and the 2022-2024 historical average. p50 and p90 are the 50th and 90th percentiles of the 2025 no-bonus non-rural interview pool. Rural figures use the same 65/35 blend where 2025 rural data exists; where sample sizes are small or zero, non-rural figures are mirrored. Deakin rural n=0 in 2025 data; Macquarie had no rural interviews in either dataset. Scores are on the GEMSAS combo scale (GPA/7 + GAMSAT_weighted/100).",
+  "cycles": ["2022", "2023", "2024", "2025"],
   "casper": { "gatedQuartileBelow": 2, "penaltyBands": 1 },
-  "excludedUniversities": [
-    { "id": "undf", "name": "University of Notre Dame Fremantle", "reason": "CASPer/portfolio-weighted entry not modellable on the combo scale" },
-    { "id": "unds", "name": "University of Notre Dame Sydney", "reason": "CASPer/portfolio-weighted entry not modellable on the combo scale" },
-    { "id": "uow", "name": "University of Wollongong", "reason": "CASPer/rural-weighted entry not modellable on the combo scale" }
-  ],
+  "excludedUniversities": [],
   "universities": [
     {
       "id": "anu",
@@ -17,8 +12,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6785, "offerMin": 1.6556, "offerMean": 1.7230 },
-        "rural": { "interviewMin": 1.4696, "offerMin": 1.5592, "offerMean": 1.6418 }
+        "nonRural": { "interviewMin": 1.6911, "p50": 1.7298, "p90": 1.7936, "n2025": 16 },
+        "rural":    { "interviewMin": 1.4870, "p50": 1.5929, "p90": 1.6407, "n2025": 6 }
       }
     },
     {
@@ -27,8 +22,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.7005, "offerMin": 1.5428, "offerMean": 1.7286 },
-        "rural": { "interviewMin": 1.5533, "offerMin": 1.5032, "offerMean": 1.7143 }
+        "nonRural": { "interviewMin": 1.6890, "p50": 1.7486, "p90": 1.7666, "n2025": 6 },
+        "rural":    { "interviewMin": 1.6890, "p50": 1.7486, "p90": 1.7666, "n2025": 0 }
       }
     },
     {
@@ -37,8 +32,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6507, "offerMin": 1.5646, "offerMean": 1.6870 },
-        "rural": { "interviewMin": 1.4416, "offerMin": 1.4698, "offerMean": 1.5886 }
+        "nonRural": { "interviewMin": 1.6269, "p50": 1.6801, "p90": 1.7061, "n2025": 48 },
+        "rural":    { "interviewMin": 1.3315, "p50": 1.5704, "p90": 1.6482, "n2025": 20 }
       }
     },
     {
@@ -47,8 +42,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5806, "offerMin": 1.5971, "offerMean": 1.6677 },
-        "rural": { "interviewMin": 1.5806, "offerMin": 1.5971, "offerMean": 1.6677 }
+        "nonRural": { "interviewMin": 1.5540, "p50": 1.6349, "p90": 1.6607, "n2025": 42 },
+        "rural":    { "interviewMin": 1.5540, "p50": 1.6349, "p90": 1.6607, "n2025": 0 }
       }
     },
     {
@@ -57,8 +52,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5809, "offerMin": 1.6172, "offerMean": 1.7061 },
-        "rural": { "interviewMin": 1.4327, "offerMin": 1.4988, "offerMean": 1.6325 }
+        "nonRural": { "interviewMin": 1.5890, "p50": 1.7054, "p90": 1.7498, "n2025": 174 },
+        "rural":    { "interviewMin": 1.4916, "p50": 1.6062, "p90": 1.7101, "n2025": 38 }
       }
     },
     {
@@ -67,8 +62,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6354, "offerMin": 1.6519, "offerMean": 1.6982 },
-        "rural": { "interviewMin": 1.3690, "offerMin": 1.3545, "offerMean": 1.4889 }
+        "nonRural": { "interviewMin": 1.6145, "p50": 1.6786, "p90": 1.7333, "n2025": 108 },
+        "rural":    { "interviewMin": 1.5071, "p50": 1.5844, "p90": 1.6633, "n2025": 8 }
       }
     },
     {
@@ -77,8 +72,38 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.6, "gamsat": 0.4, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6323, "offerMin": 1.6672, "offerMean": 1.7257 },
-        "rural": { "interviewMin": 1.4613, "offerMin": 1.5008, "offerMean": 1.6125 }
+        "nonRural": { "interviewMin": 1.6255, "p50": 1.6471, "p90": 1.6981, "n2025": 76 },
+        "rural":    { "interviewMin": 1.4758, "p50": 1.5555, "p90": 1.7127, "n2025": 12 }
+      }
+    },
+    {
+      "id": "undf",
+      "name": "University of Notre Dame Fremantle",
+      "usesCasper": true,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.5224, "p50": 1.6066, "p90": 1.6396, "n2025": 64 },
+        "rural":    { "interviewMin": 1.5167, "p50": 1.5900, "p90": 1.6633, "n2025": 4 }
+      }
+    },
+    {
+      "id": "unds",
+      "name": "University of Notre Dame Sydney",
+      "usesCasper": true,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.4842, "p50": 1.6571, "p90": 1.7114, "n2025": 138 },
+        "rural":    { "interviewMin": 1.4871, "p50": 1.5500, "p90": 1.5800, "n2025": 6 }
+      }
+    },
+    {
+      "id": "uow",
+      "name": "University of Wollongong",
+      "usesCasper": true,
+      "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
+      "cutoffs": {
+        "nonRural": { "interviewMin": 1.3904, "p50": 1.5391, "p90": 1.6230, "n2025": 80 },
+        "rural":    { "interviewMin": 1.3279, "p50": 1.5307, "p90": 1.6090, "n2025": 44 }
       }
     }
   ]
