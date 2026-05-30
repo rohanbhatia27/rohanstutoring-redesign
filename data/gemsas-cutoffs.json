@@ -1,8 +1,8 @@
 {
   "source": "r/GAMSAT GEMSAS interview & offer data (community-compiled)",
-  "attribution": "Cutoffs blended from two community-compiled GEMSAS workbooks: 2025 Application Cycle (2026 Entry) and 2024 Application Cycle (2025 Entry). Rough guidance only, not official admissions data.",
-  "notes": "interviewMin, p50, and p90 are blended from 2025 (55% weight) and 2024 (35% weight) observed no-bonus non-rural interview pools, with 10% residual weight on the prior estimate. Rural figures use the same blend where both cycles have rural data; where one cycle lacks rural data the other cycle's values are used directly. Scores are on the GEMSAS combo scale (GPA/7 + GAMSAT_weighted/100).",
-  "cycles": ["2024", "2025"],
+  "attribution": "Cutoffs blended from two community-compiled GEMSAS workbooks (2025 and 2024 application cycles) plus a third community dataset (screenshot-extracted, non-rural interview offers). p90 thresholds further validated and updated against two rejection datasets (700 unsuccessful applicants across all universities, 2025-2026 cycles). Rough guidance only, not official admissions data.",
+  "notes": "interviewMin and p50 derived from observed interview pools; p90 validated against rejection data (rejection max and P95 per university/cohort). p90 is set above the 95th percentile of rejection scores so that fewer than 5% of rejections exceed it. UWA nonRural max-rejection outlier (1.833, GPA=7 GAMSAT=83) and UQ rural outlier excluded as anomalous pathway data. Bonuses modelled in calculator: MQ applies +3% per eligible cohort (rural/indigenous/MQ Clinical grad) capped at 5%, applied to raw GPA before combo. Deakin bonuses are additive to the final combo score (deakinGrad +4%, ahpraClinical +4%, workExp +2%, financialDisadvantage +2%, ruralRegional 0-4%) capped at 12% total; ahpraClinical and workExp are mutually exclusive. UQ adjusts GPA: PhD/MPhil/Honours I sets GPA to 7.0; Masters by Research adds 0.2; Honours IIA/IIB/III use midpoints of published ranges (6.75/5.75/4.5). Deakin rural tier breakdown is not publicly documented; users must enter their tier manually. Scores are on the GEMSAS combo scale (GPA/7 + GAMSAT_weighted/100).",
+  "cycles": ["2024", "2025", "2026"],
   "casper": { "gatedQuartileBelow": 2, "penaltyBands": 1 },
   "excludedUniversities": [],
   "universities": [
@@ -12,7 +12,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6917, "p50": 1.6684, "p90": 1.7967 },
+        "nonRural": { "interviewMin": 1.6575, "p50": 1.6890, "p90": 1.7627 },
         "rural":    { "interviewMin": 1.4778, "p50": 1.5854, "p90": 1.6379 }
       }
     },
@@ -22,8 +22,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6575, "p50": 1.6694, "p90": 1.7425 },
-        "rural":    { "interviewMin": 1.5171, "p50": 1.6210, "p90": 1.6985 }
+        "nonRural": { "interviewMin": 1.6284, "p50": 1.6536, "p90": 1.7700 },
+        "rural":    { "interviewMin": 1.4700, "p50": 1.5780, "p90": 1.6483 }
       }
     },
     {
@@ -32,8 +32,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6322, "p50": 1.6753, "p90": 1.7117 },
-        "rural":    { "interviewMin": 1.3442, "p50": 1.5758, "p90": 1.6465 }
+        "nonRural": { "interviewMin": 1.6406, "p50": 1.6766, "p90": 1.7377 },
+        "rural":    { "interviewMin": 1.4047, "p50": 1.5687, "p90": 1.6700 }
       }
     },
     {
@@ -42,7 +42,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5658, "p50": 1.6352, "p90": 1.6585 },
+        "nonRural": { "interviewMin": 1.5905, "p50": 1.6429, "p90": 1.7000 },
         "rural":    { "interviewMin": 1.5658, "p50": 1.6352, "p90": 1.6585 }
       }
     },
@@ -52,8 +52,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5908, "p50": 1.6548, "p90": 1.7536 },
-        "rural":    { "interviewMin": 1.4249, "p50": 1.5802, "p90": 1.6870 }
+        "nonRural": { "interviewMin": 1.6407, "p50": 1.6867, "p90": 1.7600 },
+        "rural":    { "interviewMin": 1.4592, "p50": 1.5981, "p90": 1.7400 }
       }
     },
     {
@@ -62,8 +62,8 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 1], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6199, "p50": 1.6343, "p90": 1.7158 },
-        "rural":    { "interviewMin": 1.5046, "p50": 1.5865, "p90": 1.6600 }
+        "nonRural": { "interviewMin": 1.6098, "p50": 1.6599, "p90": 1.7207 },
+        "rural":    { "interviewMin": 1.4333, "p50": 1.5707, "p90": 1.6901 }
       }
     },
     {
@@ -72,7 +72,7 @@
       "usesCasper": false,
       "weighting": { "gpa": 0.6, "gamsat": 0.4, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.6243, "p50": 1.6084, "p90": 1.6958 },
+        "nonRural": { "interviewMin": 1.6325, "p50": 1.6424, "p90": 1.7061 },
         "rural":    { "interviewMin": 1.4659, "p50": 1.5582, "p90": 1.7007 }
       }
     },
@@ -82,8 +82,8 @@
       "usesCasper": true,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.5219, "p50": 1.5697, "p90": 1.6449 },
-        "rural":    { "interviewMin": 1.5101, "p50": 1.5862, "p90": 1.6544 }
+        "nonRural": { "interviewMin": 1.5298, "p50": 1.6125, "p90": 1.7000 },
+        "rural":    { "interviewMin": 1.4272, "p50": 1.5460, "p90": 1.6488 }
       }
     },
     {
@@ -92,8 +92,8 @@
       "usesCasper": true,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.4803, "p50": 1.6226, "p90": 1.7143 },
-        "rural":    { "interviewMin": 1.4790, "p50": 1.5439, "p90": 1.5782 }
+        "nonRural": { "interviewMin": 1.5281, "p50": 1.6240, "p90": 1.7300 },
+        "rural":    { "interviewMin": 1.4840, "p50": 1.5465, "p90": 1.6600 }
       }
     },
     {
@@ -102,8 +102,8 @@
       "usesCasper": true,
       "weighting": { "gpa": 0.5, "gamsat": 0.5, "sectionWeights": [1, 1, 2], "gpaScale": 7 },
       "cutoffs": {
-        "nonRural": { "interviewMin": 1.4008, "p50": 1.5472, "p90": 1.6194 },
-        "rural":    { "interviewMin": 1.3461, "p50": 1.5220, "p90": 1.6006 }
+        "nonRural": { "interviewMin": 1.3997, "p50": 1.5207, "p90": 1.6300 },
+        "rural":    { "interviewMin": 1.3401, "p50": 1.4668, "p90": 1.5216 }
       }
     }
   ]

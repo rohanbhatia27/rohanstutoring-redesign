@@ -173,6 +173,84 @@
             <p class="interview-calc__hint">Rural eligibility uses a separate set of cut-offs at most schools.</p>
           </div>
 
+          <details class="interview-calc__bonuses">
+            <summary class="interview-calc__bonuses-summary">
+              <span class="interview-calc__bonuses-label">Adjustment bonuses</span>
+              <span class="interview-calc__bonuses-hint">MQ, Deakin &amp; UQ applicants only</span>
+            </summary>
+
+            <div class="interview-calc__bonuses-body">
+
+              <fieldset class="interview-calc__group interview-calc__group--bonus">
+                <legend class="interview-calc__legend">University of Queensland — degree adjustments</legend>
+                <div class="interview-calc__grid interview-calc__grid--two">
+                  <div class="interview-calc__field">
+                    <label for="ic-uq-research">Research degree</label>
+                    <select id="ic-uq-research" name="uq-research">
+                      <option value="">None</option>
+                      <option value="phd_mphil">PhD or MPhil (GPA set to 7.0)</option>
+                      <option value="masters">Masters by Research (GPA +0.2)</option>
+                    </select>
+                  </div>
+                  <div class="interview-calc__field">
+                    <label for="ic-uq-honours">Honours</label>
+                    <select id="ic-uq-honours" name="uq-honours">
+                      <option value="">None / N/A</option>
+                      <option value="class1">Class I (GPA set to 7.0)</option>
+                      <option value="class2a">Class IIA (GPA ~6.75)</option>
+                      <option value="class2b">Class IIB (GPA ~5.75)</option>
+                      <option value="class3">Class III (GPA ~4.5)</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="interview-calc__hint">Honours uses the midpoint of UQ's published range as an estimate. If you know your exact adjusted GPA, enter it directly in the GPA field above instead.</p>
+              </fieldset>
+
+              <fieldset class="interview-calc__group interview-calc__group--bonus">
+                <legend class="interview-calc__legend">Macquarie University — GPA bonus (capped at 5% total)</legend>
+                <div class="interview-calc__bonus-checks">
+                  <label class="interview-calc__toggle">
+                    <input type="checkbox" id="ic-indigenous" name="indigenous">
+                    <span class="interview-calc__toggle-text">Aboriginal or Torres Strait Islander (+3%)</span>
+                  </label>
+                  <label class="interview-calc__toggle">
+                    <input type="checkbox" id="ic-mq-clinical" name="mq-clinical">
+                    <span class="interview-calc__toggle-text">MQ Bachelor of Clinical Science graduate (+3%)</span>
+                  </label>
+                </div>
+                <p class="interview-calc__hint">Rural toggle above also counts as +3% to MQ GPA. The cap means no applicant can receive more than 5% total.</p>
+              </fieldset>
+
+              <fieldset class="interview-calc__group interview-calc__group--bonus">
+                <legend class="interview-calc__legend">Deakin University — combo score bonuses (max 12%)</legend>
+                <div class="interview-calc__bonus-checks">
+                  <label class="interview-calc__toggle">
+                    <input type="checkbox" id="ic-deakin-grad" name="deakin-grad">
+                    <span class="interview-calc__toggle-text">Completed a degree at Deakin (+4%)</span>
+                  </label>
+                  <label class="interview-calc__toggle">
+                    <input type="checkbox" id="ic-ahpra" name="ahpra">
+                    <span class="interview-calc__toggle-text">12+ months AHPRA-registered clinical work (+4%)</span>
+                  </label>
+                  <label class="interview-calc__toggle">
+                    <input type="checkbox" id="ic-workexp" name="workexp">
+                    <span class="interview-calc__toggle-text">2+ years non-clinical work (+2%) — cannot stack with clinical above</span>
+                  </label>
+                  <label class="interview-calc__toggle">
+                    <input type="checkbox" id="ic-financial" name="financial">
+                    <span class="interview-calc__toggle-text">Financial disadvantage / Centrelink support (+2%)</span>
+                  </label>
+                </div>
+                <div class="interview-calc__field interview-calc__field--inline" style="margin-top:16px;">
+                  <label for="ic-deakin-rural">Rural/regional bonus (0–4%)</label>
+                  <input type="number" id="ic-deakin-rural" name="deakin-rural" min="0" max="4" step="1" inputmode="numeric" placeholder="0">
+                </div>
+                <p class="interview-calc__hint">Deakin's rural tier breakdown is not publicly available. Enter your estimated percentage (0–4) or leave blank.</p>
+              </fieldset>
+
+            </div>
+          </details>
+
           <div class="interview-calc__actions">
             <button type="submit" class="btn btn--primary interview-calc__submit">Estimate my chances</button>
           </div>

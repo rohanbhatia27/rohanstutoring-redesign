@@ -136,6 +136,66 @@
   color: var(--text-muted);
 }
 
+/* ---- Bonus adjustments collapsible ---- */
+.interview-calc__bonuses {
+  margin-bottom: 28px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--off-white);
+}
+.interview-calc__bonuses-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.interview-calc__bonuses-summary::-webkit-details-marker { display: none; }
+.interview-calc__bonuses-summary::before {
+  content: '▸';
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.interview-calc__bonuses[open] .interview-calc__bonuses-summary::before {
+  transform: rotate(90deg);
+}
+.interview-calc__bonuses-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.interview-calc__bonuses-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.interview-calc__bonuses-body {
+  padding: 4px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.interview-calc__group--bonus {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 20px;
+  margin-bottom: 0;
+}
+.interview-calc__group--bonus + .interview-calc__group--bonus {
+  margin-top: 20px;
+}
+.interview-calc__bonus-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.interview-calc__field--inline {
+  max-width: 200px;
+}
+
 /* ---- Actions ---- */
 .interview-calc__actions { display: flex; }
 .interview-calc__submit { width: 100%; justify-content: center; }

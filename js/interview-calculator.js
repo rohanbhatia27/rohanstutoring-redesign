@@ -5,12 +5,54 @@
     return Math.max(0, Math.min(100, Math.round(n / 5) * 5));
   }
 
-  function computeComboScore(input, weighting) {
+  // Honours midpoints: UQ publishes ranges; we use the midpoint as an estimate.
+  var UQ_HON_MAP = { class1: 7.0, class2a: 6.75, class2b: 5.75, class3: 4.5 };
+
+  function computeComboScore(input, weighting, uni) {
+    var gpaScale = weighting.gpaScale || 7;
+    var bonuses = (input && input.bonuses) || {};
+    var id = (uni && uni.id) || '';
+    var adjustedGpa = input.gpa;
+
+    // UQ: research degree and honours adjustments to GPA before combo calc.
+    if (id === 'uq') {
+      if (bonuses.uqResearch === 'phd_mphil') {
+        adjustedGpa = 7.0;
+      } else if (bonuses.uqResearch === 'masters') {
+        adjustedGpa = Math.min(gpaScale, adjustedGpa + 0.2);
+      } else if (bonuses.uqHonours && UQ_HON_MAP[bonuses.uqHonours] !== undefined) {
+        adjustedGpa = Math.max(adjustedGpa, UQ_HON_MAP[bonuses.uqHonours]);
+      }
+      adjustedGpa = Math.min(gpaScale, adjustedGpa);
+    }
+
+    // MQ: rural (+3%), indigenous (+3%), MQ Clinical grad (+3%) — capped at 5% total.
+    if (id === 'macquarie') {
+      var mqPct = 0;
+      if (input.rural)           mqPct += 3;
+      if (bonuses.indigenous)    mqPct += 3;
+      if (bonuses.mqClinical)    mqPct += 3;
+      adjustedGpa = Math.min(gpaScale, adjustedGpa * (1 + Math.min(mqPct, 5) / 100));
+    }
+
     var sw = weighting.sectionWeights || [1, 1, 1];
     var swSum = sw[0] + sw[1] + sw[2];
     var gamsat = (input.sections[0] * sw[0] + input.sections[1] * sw[1] + input.sections[2] * sw[2]) / swSum;
-    var gpaScale = weighting.gpaScale || 7;
-    return input.gpa / gpaScale + gamsat / 100;
+    var combo = adjustedGpa / gpaScale + gamsat / 100;
+
+    // Deakin: additive bonuses to the combo score, capped at 12%.
+    if (id === 'deakin') {
+      var deakinBonus = 0;
+      if (bonuses.deakinGrad)           deakinBonus += 4;
+      if (bonuses.ahpraClinical)        deakinBonus += 4;
+      else if (bonuses.workExp)         deakinBonus += 2;
+      if (bonuses.financialDisadvantage) deakinBonus += 2;
+      var ruralPct = Math.max(0, Math.min(4, parseFloat(bonuses.deakinRural) || 0));
+      deakinBonus = Math.min(deakinBonus + ruralPct, 12);
+      combo += deakinBonus / 100;
+    }
+
+    return combo;
   }
 
   // Piecewise-linear: interviewMin -> 15, p50 -> 55, p90 -> 90, above p90 -> 95.
@@ -37,7 +79,7 @@
     var casperGateBelow = (data.casper && data.casper.gatedQuartileBelow) || 2;
     var penaltyBands = (data.casper && data.casper.penaltyBands) || 1;
     var out = data.universities.map(function (uni) {
-      var score = computeComboScore(input, uni.weighting);
+      var score = computeComboScore(input, uni.weighting, uni);
       var band = mapToBand(score, uni.cutoffs[cohort]);
       var penalty = (input.casperQuartile && input.casperQuartile < casperGateBelow) ? penaltyBands : 0;
       band = applyCasper(band, uni, penalty);
@@ -71,20 +113,58 @@
       var fullBox = document.getElementById('ic-results-full');
       var fullBody = document.getElementById('ic-results-body');
       var headlineEl = document.getElementById('ic-headline');
-      var dataPromise = fetch('/data/gemsas-cutoffs.json?v=20260530', { cache: 'no-store' }).then(function (r) { return r.json(); });
+      var dataPromise = fetch('/data/gemsas-cutoffs.json?v=20260531', { cache: 'no-store' }).then(function (r) { return r.json(); });
+
+      ['ic-gamsat-s1', 'ic-gamsat-s2', 'ic-gamsat-s3'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', function () {
+          var v = parseFloat(this.value);
+          if (this.value === '' || isNaN(v)) return;
+          if (v < 0)   this.value = '0';
+          if (v > 100) this.value = '100';
+        });
+      });
+
+      // Deakin AHPRA and non-clinical work are mutually exclusive.
+      var ahpraEl   = document.getElementById('ic-ahpra');
+      var workexpEl = document.getElementById('ic-workexp');
+      if (ahpraEl && workexpEl) {
+        ahpraEl.addEventListener('change', function () {
+          workexpEl.disabled = ahpraEl.checked;
+          if (ahpraEl.checked) workexpEl.checked = false;
+        });
+        workexpEl.addEventListener('change', function () {
+          ahpraEl.disabled = workexpEl.checked;
+          if (workexpEl.checked) ahpraEl.checked = false;
+        });
+      }
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         dataPromise.then(function (data) {
+          function checked(id) { var el = document.getElementById(id); return !!(el && el.checked); }
+          function val(id)     { var el = document.getElementById(id); return el ? el.value : ''; }
           var input = {
-            gpa: parseFloat(document.getElementById('ic-gpa').value),
+            gpa: parseFloat(val('ic-gpa')),
             sections: [
-              parseFloat(document.getElementById('ic-gamsat-s1').value),
-              parseFloat(document.getElementById('ic-gamsat-s2').value),
-              parseFloat(document.getElementById('ic-gamsat-s3').value)
+              parseFloat(val('ic-gamsat-s1')),
+              parseFloat(val('ic-gamsat-s2')),
+              parseFloat(val('ic-gamsat-s3'))
             ],
-            casperQuartile: parseInt(document.getElementById('ic-casper').value, 10) || null,
-            rural: !!(document.getElementById('ic-rural') && document.getElementById('ic-rural').checked)
+            casperQuartile: parseInt(val('ic-casper'), 10) || null,
+            rural: checked('ic-rural'),
+            bonuses: {
+              indigenous:           checked('ic-indigenous'),
+              mqClinical:           checked('ic-mq-clinical'),
+              deakinGrad:           checked('ic-deakin-grad'),
+              ahpraClinical:        checked('ic-ahpra'),
+              workExp:              checked('ic-workexp'),
+              financialDisadvantage: checked('ic-financial'),
+              deakinRural:          parseFloat(val('ic-deakin-rural')) || 0,
+              uqResearch:           val('ic-uq-research') || null,
+              uqHonours:            val('ic-uq-honours') || null
+            }
           };
           var ranked = window.InterviewCalc.rankUniversities(input, data);
           if (results) results.hidden = false;
