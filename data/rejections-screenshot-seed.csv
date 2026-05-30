@@ -1,0 +1,53 @@
+application_cycle,rurality,university_id,university_stream,final_combo,gpa,gamsat,raw_combo,casper,deakin_bonus,anu_bonus,mq_bonus,uow_bonus,notes,outlier,transcription_source
+2024,Non-Rural,anu,,1.68114,6.81,65.75,1.68114,2nd,0,2,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,anu,,1.64710,6.548,62.25,1.64710,4th,0,2,0,0,GAM financial disadvantage,false,screenshot-2024-batch1
+2024,Non-Rural,anu,,1.52150,6.58,61.75,1.52150,3rd,0,2,0,0,Kimberley interview elsewhere,true,screenshot-2024-batch1
+2024,Non-Rural,deakin,,1.71010,6.77,65.5,1.65210,3rd,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,deakin,,1.71035,6.858,63.25,1.68136,3rd,2,0,0,0,First class honours 2% Deakin bonus,false,screenshot-2024-batch1
+2024,Non-Rural,deakin,,1.65750,7.0,65.75,1.65750,2nd,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,griffith,,1.64310,6.931,82.5,1.64310,N/A,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,griffith,,1.64530,6.813,65.5,1.64530,3rd,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,macquarie,,1.62136,6.712,86.25,1.62136,4th,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,melbourne,,1.68286,6.6,75,1.68286,2nd,0,0,0,0,GAM Yes,false,screenshot-2024-batch1
+2024,Non-Rural,uq,gb,1.64530,7.0,94.33,1.64530,N/A,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,uq,gb,1.66610,6.6,95.0,1.66610,2nd,0,0,0,0,,false,screenshot-2024-batch1
+2024,Non-Rural,uow,,1.64970,6.803,86.5,1.64970,3rd,0,0,0,3,,false,screenshot-2024-batch1
+2024,Non-Rural,uow,,1.28571,6.54,61.5,1.28571,3rd,0,0,0,3,,false,screenshot-2024-batch1
+2024,Non-Rural,uow,,1.28571,6.906,74.5,1.28571,1st,0,0,0,3,,false,screenshot-2024-batch1
+2024,Non-Rural,uow,,1.28571,7.0,64.0,1.28571,4th,0,0,0,1,,false,screenshot-2024-batch1
+2024,Non-Rural,uow,,1.28571,6.831,66.25,1.28571,2nd,0,0,0,1,First-class standalone honours,false,screenshot-2024-batch1
+2024,Rural,deakin,,1.61416,6.848,57.75,1.61416,1st,12,0,0,0,,false,screenshot-2024-batch1
+2024,Rural,macquarie,,1.42415,5.838,59.5,1.42415,4th,0,0,0,1,Added 5% rural bonus to UQ,false,screenshot-2024-batch1
+2024,Rural,uq,gb,1.38370,5.838,59.5,1.38370,4th,0,0,0,1,,false,screenshot-2024-batch1
+2023,Non-Rural,anu,,1.77736,6.91,75,1.77736,3rd,0,2,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,anu,,1.73836,6.825,72,1.73836,4th,0,2,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,anu,,1.65928,6.559,66.5,1.65928,2nd,0,2,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,deakin,,1.84991,6.967,71.75,1.84991,4th,8,0,0,0,4% financial disadvantage bonus,false,screenshot-2023-batch1
+2023,Non-Rural,deakin,,1.79821,6.865,80.75,1.79821,N/A,0,0,0,0,above average portfolio,false,screenshot-2023-batch1
+2023,Non-Rural,deakin,,1.75414,6.729,73.5,1.75414,3rd,4,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,deakin,,1.61756,6.6,67.5,1.61756,3rd,0,0,0,0,below average portfolio,false,screenshot-2023-batch1
+2023,Non-Rural,griffith,,1.73179,6.95,77.25,1.73179,4th,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,griffith,,1.68907,6.94,70.75,1.68907,3rd,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,griffith,,1.66143,6.8,69,1.66143,2nd,0,0,0,0,Tier 1 bonus,false,screenshot-2023-batch1
+2023,Non-Rural,macquarie,,1.72229,7.0,70.25,1.72229,3rd,0,0,3,0,B.Biomed graduate,false,screenshot-2023-batch1
+2023,Non-Rural,macquarie,,1.66791,6.64,68.5,1.66791,4th,0,0,3,0,,false,screenshot-2023-batch1
+2023,Non-Rural,macquarie,,1.64179,6.559,66.5,1.64179,2nd,0,0,3,0,,false,screenshot-2023-batch1
+2023,Non-Rural,melbourne,,1.78070,7.0,78,1.78070,4th,0,0,0,0,GAM applicant,false,screenshot-2023-batch1
+2023,Non-Rural,melbourne,,1.67000,7.0,73.33,1.67000,2nd,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,melbourne,,1.57944,6.95,57.33,1.57944,3rd,0,0,0,0,GAM outlier skews data,true,screenshot-2023-batch1
+2023,Non-Rural,undf,,1.67533,6.9,70.67,1.67533,4th,0,0,0,0,Good portfolio,false,screenshot-2023-batch1
+2023,Non-Rural,undf,,1.54911,6.431,64.67,1.54911,4th,0,0,0,0,outlier LL expected interview,true,screenshot-2023-batch1
+2023,Non-Rural,unds,,1.74287,7.0,85.67,1.74287,2nd,0,0,0,0,strong portfolio,false,screenshot-2023-batch1
+2023,Non-Rural,unds,,1.57173,5.476,80,1.57173,4th,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uq,gb,1.73330,7.0,73.33,1.73330,N/A,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uq,gb,1.67220,6.33,67.67,1.67220,N/A,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uq,cq_wb_rmp,1.66670,7.0,66.67,1.66670,N/A,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uq,cq_wb_rmp,1.61527,6.8127,64.33,1.61527,N/A,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uq,dd_mp,1.72000,7.0,72,1.72000,N/A,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uwa,,1.73843,6.917,72.75,1.73843,3rd,0,0,0,0,WA resident,false,screenshot-2023-batch1
+2023,Non-Rural,uwa,,1.73179,6.95,70.75,1.73179,4th,0,0,0,0,,false,screenshot-2023-batch1
+2023,Non-Rural,uow,,1.54071,5.5,73,1.54071,4th,0,0,0,0,decent portfolio,false,screenshot-2023-batch1
+2023,Non-Rural,uow,,1.43071,5.5,64.5,1.43071,3rd,0,0,0,0,below average portfolio,false,screenshot-2023-batch1
+2023,Rural,melbourne,,1.71000,6.79,95,1.71000,2nd,0,0,0,0,GAM mature aged,false,screenshot-2023-batch1
+2023,Rural,uq,gb,1.77000,7.0,84,1.77000,4th,0,0,0,0,Tier 2 rurality,false,screenshot-2023-batch1
+2023,Rural,uow,,1.30000,5.5,52,1.30000,2nd,0,0,0,0,strong portfolio NDIS,false,screenshot-2023-batch1
