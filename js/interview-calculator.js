@@ -66,6 +66,7 @@
       var form = document.getElementById('ic-form');
       if (!form) return;
       var results = document.getElementById('ic-results');
+      var fullBox = document.getElementById('ic-results-full');
       var fullBody = document.getElementById('ic-results-body');
       var headlineEl = document.getElementById('ic-headline');
       var dataPromise = fetch('/data/gemsas-cutoffs.json').then(function (r) { return r.json(); });
@@ -93,6 +94,19 @@
           }
         });
       });
+
+      // Soft email gate: the full breakdown stays hidden until the lead form
+      // succeeds (or falls back), at which point we reveal #ic-results-full.
+      if (typeof window.initFreeResourceForms === 'function') {
+        window.initFreeResourceForms({
+          resourceName: 'Interview Chances Calculator',
+          successInlineMessage: "You're in. Your full school-by-school breakdown is unlocked below.",
+          successCardMessage: "You're in. Your full school-by-school breakdown is unlocked below.",
+          onLeadCaptured: function () {
+            if (fullBox) fullBox.hidden = false;
+          }
+        });
+      }
     });
   }
 })();

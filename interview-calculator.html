@@ -173,6 +173,37 @@
         <section id="ic-results" class="interview-calc__results" hidden aria-live="polite">
           <p id="ic-headline" class="interview-calc__headline"></p>
 
+          <div id="ic-gate" class="interview-calc__gate">
+            <h3 class="interview-calc__gate-heading">See your full school-by-school breakdown</h3>
+            <p class="interview-calc__gate-sub">Enter your email to unlock your estimated chance at every GEMSAS school. Free, no spam.</p>
+            <form
+              action="https://app.kit.com/forms/REPLACE_WITH_KIT_FORM_ID/subscriptions"
+              class="seva-form formkit-form interview-calc__gate-form"
+              method="post"
+              data-resource-key="interview-calculator"
+            >
+              <input
+                type="text"
+                name="fields[first_name]"
+                class="formkit-input"
+                placeholder="First name"
+                aria-label="First name"
+                autocomplete="given-name"
+              >
+              <input
+                type="email"
+                name="email_address"
+                class="formkit-input"
+                placeholder="Email address"
+                aria-label="Email address"
+                required
+                autocomplete="email"
+              >
+              <button type="submit" class="btn btn--primary interview-calc__gate-submit">Unlock my full breakdown</button>
+              <p class="interview-calc__gate-privacy">No spam. Unsubscribe any time.</p>
+            </form>
+          </div>
+
           <div id="ic-results-full" class="interview-calc__full" hidden>
             <table class="interview-calc__table">
               <thead>
@@ -246,6 +277,7 @@
   </footer>
 
   <script src="js/main.js?v=20260521-catalog" defer></script>
+  <script src="js/free-resource-form.js" defer></script>
   <script src="js/interview-calculator.js" defer></script>
 </body>
 </html>

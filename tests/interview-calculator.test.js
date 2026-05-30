@@ -107,3 +107,19 @@ test('renderHeadline returns best uni summary string', () => {
   assert.match(headline, /University of Queensland/);
   assert.match(headline, /65/);
 });
+
+test('page has email soft-gate wired to free-resource-form', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'interview-calculator.html'), 'utf8');
+  assert.match(html, /js\/free-resource-form\.js/, 'loads the lead form script');
+  assert.match(html, /id="ic-results-full"/, 'has the gated full-results container');
+  assert.match(html, /data-free-resource|formkit|tracker-form/i, 'uses the lead form markup hooks');
+  assert.match(html, /data-resource-key="interview-calculator"/, 'declares the calculator resource key');
+});
+
+test('interview-calculator is a registered free resource', () => {
+  const freeResource = require('../api/_lib/_free-resource.js');
+  const resource = freeResource.getFreeResource('interview-calculator');
+  assert.ok(resource, 'resource registered');
+  assert.equal(typeof resource.kitFormId, 'string');
+  assert.ok(resource.kitFormId.length > 0, 'has a Kit form id');
+});

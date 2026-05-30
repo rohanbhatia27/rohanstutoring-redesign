@@ -158,6 +158,61 @@
   line-height: 1.3;
 }
 
+/* ---- Email soft gate ---- */
+.interview-calc__gate {
+  margin-top: 20px;
+  padding: 24px;
+  background: var(--off-white);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+}
+.interview-calc__gate-heading {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.interview-calc__gate-sub {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.interview-calc__gate-form {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.interview-calc__gate-form .formkit-input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.interview-calc__gate-form .formkit-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-accent-soft);
+}
+.interview-calc__gate-submit {
+  grid-column: 1 / -1;
+  width: 100%;
+  justify-content: center;
+}
+.interview-calc__gate-privacy {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 /* ---- Gated full results ---- */
 .interview-calc__full { margin-top: 20px; position: relative; }
 .interview-calc__full[hidden] { display: none; }
@@ -223,4 +278,5 @@
   .interview-calc__grid--three,
   .interview-calc__grid--two { grid-template-columns: 1fr; }
   .interview-calc__results { padding: 22px; }
+  .interview-calc__gate-form { grid-template-columns: 1fr; }
 }

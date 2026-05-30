@@ -27,6 +27,16 @@ const FREE_RESOURCES = {
     backupUrlEnv: 'FREE_RESOURCE_S2_SLAM_SYSTEM_BACKUP_URL',
     backupLabel: 'Open the S2 Slam System backup link',
   },
+  // TODO: replace kitFormId with the real "Interview Chances Calculator" Kit
+  // form ID once the form is created in the Kit dashboard (Kit has no API to
+  // create forms). Until then, signups route through the Resend fallback path.
+  'interview-calculator': {
+    key: 'interview-calculator',
+    name: 'Interview Chances Calculator',
+    kitFormId: 'REPLACE_WITH_KIT_FORM_ID',
+    backupUrlEnv: 'FREE_RESOURCE_INTERVIEW_CALCULATOR_BACKUP_URL',
+    backupLabel: 'Open the calculator results backup link',
+  },
 };
 
 let fetchImpl = (...args) => fetch(...args);
