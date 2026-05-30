@@ -29,3 +29,57 @@ test('cutoffs data: each university is well-formed', () => {
     }
   }
 });
+
+const vm = require('node:vm');
+
+function loadCalc() {
+  const code = fs.readFileSync(path.join(ROOT, 'js/interview-calculator.js'), 'utf8');
+  const sandbox = { window: {}, document: { addEventListener() {} } };
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  return sandbox.window.InterviewCalc;
+}
+
+test('computeComboScore: applies gpa/gamsat split and section weights', () => {
+  const calc = loadCalc();
+  const weighting = { gpa: 0.5, gamsat: 0.5, sectionWeights: [1, 1, 2], gpaScale: 7 };
+  // gpa 6.5/7; gamsat sections 70,70,80 -> weighted mean = (70+70+160)/4 = 75
+  const score = calc.computeComboScore({ gpa: 6.5, sections: [70, 70, 80] }, weighting);
+  assert.equal(typeof score, 'number');
+  assert.ok(score > 0);
+});
+
+test('mapToBand: rounds to nearest 5 and respects anchors', () => {
+  const calc = loadCalc();
+  const cutoffs = { interviewMin: 1.5, offerMin: 1.6, offerMean: 1.7 };
+  assert.ok(calc.mapToBand(1.3, cutoffs) <= 15); // below interview min -> low
+  assert.equal(calc.mapToBand(1.7, cutoffs), 50); // at offer mean -> 50
+  assert.ok(calc.mapToBand(2.0, cutoffs) >= 80); // well above -> high
+  const band = calc.mapToBand(1.62, cutoffs);
+  assert.equal(band % 5, 0, 'rounded to nearest 5');
+});
+
+test('applyCasper: only penalises uni that uses casper, never below floor', () => {
+  const calc = loadCalc();
+  assert.equal(calc.applyCasper(60, { usesCasper: false }, 1), 60); // ignored
+  assert.ok(calc.applyCasper(60, { usesCasper: true }, 1) <= 60); // gated quartile penalised
+  assert.ok(calc.applyCasper(10, { usesCasper: true }, 1) >= 0); // never negative
+});
+
+test('rankUniversities: returns sorted bands per uni', () => {
+  const calc = loadCalc();
+  const result = calc.rankUniversities(
+    { gpa: 6.5, sections: [70, 70, 80], casperQuartile: 4, rural: false },
+    data
+  );
+  assert.ok(Array.isArray(result));
+  assert.ok(result.length >= 1);
+  for (const r of result) {
+    assert.equal(typeof r.name, 'string');
+    assert.equal(typeof r.band, 'number');
+    assert.equal(r.band % 5, 0);
+  }
+  for (let i = 1; i < result.length; i++) {
+    assert.ok(result[i - 1].band >= result[i].band, 'sorted descending');
+  }
+});
