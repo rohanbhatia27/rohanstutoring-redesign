@@ -155,7 +155,7 @@ const GA4_PRODUCTS = {
   'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
   'essay-pack-10':   { name: 'S2 Essay Marking - 10-Essay Pack',   price: 249 },
   comprehensive:     { name: 'Comprehensive Course',               price: 1699 },
-  mastery:           { name: 'Mastery Program',                    price: 2249 },
+  mastery:           { name: 'Mastery Program',                    price: 2499 },
   'private-mentoring':{ name: 'Private Mentoring',                 price: null },
 };
 

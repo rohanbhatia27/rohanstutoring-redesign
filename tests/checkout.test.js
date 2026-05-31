@@ -688,12 +688,12 @@ test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload
       'begin_checkout',
       {
         currency: 'AUD',
-        value: 2249,
+        value: 2499,
         items: [
           {
             item_id: 'mastery',
             item_name: 'Mastery Program',
-            price: 2249,
+            price: 2499,
             quantity: 1,
           },
         ],
@@ -1823,7 +1823,7 @@ test('buildCheckoutPayload includes mastery upsell quantity when extra classes a
   });
 
   assert.equal(payload.slug, 'mastery');
-  assert.equal(payload.totalAmount, 2843);
+  assert.equal(payload.totalAmount, 3093);
   assert.equal(payload.upsellSlug, 'mentoring-single');
   assert.equal(payload.upsellPrice, 99);
   assert.equal(payload.upsellQuantity, 6);
@@ -1920,8 +1920,8 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       upsellQuantity: 6,
     }),
     {
-      amount: 284300,
-      baseAmount: 224900,
+      amount: 309300,
+      baseAmount: 249900,
       baseSlug: 'mastery',
       upsellAmount: 59400,
       upsellSlug: 'mentoring-single',
