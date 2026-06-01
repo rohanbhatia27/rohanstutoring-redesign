@@ -128,7 +128,16 @@ function getCheckoutProductTrackingPayload({
   if (!slug || !product) return null;
 
   const paymentMode = url.searchParams.get('paymentMode') || 'full';
+  const cohort = url.searchParams.get('cohort');
   const cleanText = String(linkText || '').replace(/\s+/g, ' ').trim();
+
+  const item = {
+    item_id: slug,
+    item_name: product.name,
+    price: product.price,
+    quantity: 1,
+  };
+  if (cohort) item.item_variant = 'Cohort ' + cohort;
 
   return {
     currency: 'AUD',
@@ -138,12 +147,7 @@ function getCheckoutProductTrackingPayload({
     cta_text: cleanText,
     page_path: pathname,
     destination_path: `${url.pathname}${url.search}`,
-    items: [{
-      item_id: slug,
-      item_name: product.name,
-      price: product.price,
-      quantity: 1,
-    }],
+    items: [item],
   };
 }
 
@@ -511,6 +515,21 @@ function initMain() {
     } else if (href.includes('gamsat-strategy-consultation')) {
       track('strategy_call_click', { method: 'calendly_click', url: href });
     }
+  });
+
+  /* ---- Analytics: Outbound link clicks ---- */
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    try {
+      const url = new URL(link.href, window.location.href);
+      if (url.hostname === window.location.hostname) return;
+      track('outbound_click', {
+        link_url: url.href,
+        link_domain: url.hostname,
+        link_text: (link.textContent || link.getAttribute('aria-label') || '').trim().slice(0, 100),
+      });
+    } catch (_) {}
   });
 }
 

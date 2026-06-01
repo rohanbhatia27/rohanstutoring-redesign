@@ -180,6 +180,35 @@ test('checkout product CTA tracking payload identifies comprehensive course clic
   }]);
 });
 
+test('checkout product CTA tracking payload passes cohort as item_variant when cohort param is present', () => {
+  const payload = getCheckoutProductTrackingPayload({
+    href: '/checkout/?product=comprehensive&cohort=2',
+    linkText: 'Enrol Now',
+    pathname: '/courses/comprehensive',
+    origin: 'https://www.rohanstutoring.com',
+  });
+
+  assert.equal(payload.product_slug, 'comprehensive');
+  assert.deepEqual(payload.items, [{
+    item_id: 'comprehensive',
+    item_name: 'Comprehensive Course',
+    item_variant: 'Cohort 2',
+    price: 1699,
+    quantity: 1,
+  }]);
+});
+
+test('checkout product CTA tracking payload omits item_variant when cohort param is absent', () => {
+  const payload = getCheckoutProductTrackingPayload({
+    href: '/checkout/?product=comprehensive',
+    linkText: 'Enrol Now',
+    pathname: '/courses/comprehensive',
+    origin: 'https://www.rohanstutoring.com',
+  });
+
+  assert.ok(!('item_variant' in payload.items[0]), 'item_variant should not be set when cohort param absent');
+});
+
 test('checkout product CTA tracking ignores unknown products and non-checkout links', () => {
   assert.equal(getCheckoutProductTrackingPayload({ href: '/courses/comprehensive' }), null);
   assert.equal(getCheckoutProductTrackingPayload({ href: '/checkout/?product=unknown' }), null);
