@@ -140,6 +140,7 @@ function buildPaymentIntentIdempotencyKey({ customerEmail = '', purchase = {} } 
   const emailPart = String(customerEmail || '').trim().toLowerCase();
   const baseSlugPart = String(purchase.baseSlug || '').trim().toLowerCase();
   const upsellSlugPart = String(purchase.upsellSlug || '').trim().toLowerCase();
+  const upsellSlug2Part = String(purchase.upsellSlug2 || '').trim().toLowerCase();
   const minuteWindow = Math.floor(Date.now() / 60000);
   const parts = [
     'pi',
@@ -150,6 +151,10 @@ function buildPaymentIntentIdempotencyKey({ customerEmail = '', purchase = {} } 
 
   if (Number(purchase.upsellQuantity) > 1) {
     parts.push(String(purchase.upsellQuantity));
+  }
+
+  if (upsellSlug2Part) {
+    parts.push(upsellSlug2Part);
   }
 
   parts.push(minuteWindow);
