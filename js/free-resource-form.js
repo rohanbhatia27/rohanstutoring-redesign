@@ -127,6 +127,13 @@
           showSuccess(form, options);
         }
 
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'lead_form_submit', {
+            resource_key: form.getAttribute('data-resource-key') || '',
+            status: payload.status || '',
+          });
+        }
+
         if (typeof options.onLeadCaptured === 'function') {
           options.onLeadCaptured(payload.status, payload);
         }

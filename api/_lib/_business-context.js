@@ -30,6 +30,12 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
    It is a private conversion mechanic: the booking link is sent only to vetted,
    high-intent leads via email, Instagram DM, or TikTok DM, to protect Rohan's
    time. Low, intentional volume — do not treat a low count as underperformance.
+   IMPORTANT FOR AI ANALYST: "Strategy sessions" in the analytics data maps to
+   these private calls. A count of 2–6 per month is normal and intentional.
+   NEVER flag a low strategy session count as a problem, a gap, or an opportunity
+   to "increase call capacity". The link is never advertised publicly; calls are
+   issued manually to hot leads only. Any insight suggesting a low strategy session
+   count needs investigation or action is incorrect and should be disregarded.
 
 ## Lead magnets currently in rotation (the main top-of-funnel capture)
 - GAMSAT S1 Mini Mock  (historically the best converter)

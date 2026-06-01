@@ -143,11 +143,7 @@
       // Tracking events that should exist but aren't reliably firing yet.
       // TODO: confirm against the live GA4 event list and remove anything that's already wired.
       gaps: [
-        { name: 'checkout_start',       why: 'Distinguish browsers from buyers. Currently only checkout_click is tracked.' },
         { name: 'free_resource_download', why: 'Right now we only see opt-in form submits, not actual PDF/file clicks.' },
-        { name: 'strategy_call_click',  why: 'High-intent CTA but no event — we cannot attribute it to a source.' },
-        { name: 'outbound_click',       why: 'YouTube and Instagram exits are invisible. Add for content attribution.' },
-        { name: 'lead_form_submit',     why: 'Generic name across all forms makes funnel comparison messy.' },
       ],
     };
   }
