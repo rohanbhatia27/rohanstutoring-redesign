@@ -1650,6 +1650,23 @@ test('buildPurchaseItems falls back to the default mentoring package when succes
   ]);
 });
 
+test('buildPurchaseItems adds item_variant to base item when cohort is provided', () => {
+  assert.deepEqual(buildPurchaseItems('comprehensive', '', '', '2'), [
+    {
+      item_id: 'comprehensive',
+      item_name: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
+      item_variant: 'Cohort 2',
+      price: 1699,
+      quantity: 1,
+    },
+  ]);
+});
+
+test('buildPurchaseItems omits item_variant when cohort is not provided', () => {
+  const items = buildPurchaseItems('comprehensive', '', '');
+  assert.ok(!('item_variant' in items[0]), 'item_variant should be absent with no cohort');
+});
+
 test('getApiServerErrorMessage explains when HTML is returned instead of JSON', () => {
   const message = getApiServerErrorMessage('<!DOCTYPE html><html><body>404</body></html>');
 

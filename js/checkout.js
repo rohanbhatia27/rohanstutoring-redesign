@@ -647,7 +647,7 @@
     return product.packages[selection.packageIndex] || product.packages[0] || product;
   }
 
-  function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug) {
+  function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug, cohort) {
     const baseProduct = PRODUCTS[baseSlug] || findPackageBySlug(baseSlug) || getDefaultProductVariant(fallbackBaseSlug);
     const contextualOrderBump = (
       (ORDER_BUMPS[baseSlug] && ORDER_BUMPS[baseSlug].slug === upsellSlug && ORDER_BUMPS[baseSlug])
@@ -667,12 +667,14 @@
     const items = [];
 
     if (baseProduct) {
-      items.push({
+      const baseItem = {
         item_id: baseSlug || fallbackBaseSlug,
         item_name: baseProduct.name || baseProduct.label || baseProduct.title || baseSlug || fallbackBaseSlug,
         price: baseProduct.price,
         quantity: 1,
-      });
+      };
+      if (cohort) baseItem.item_variant = 'Cohort ' + cohort;
+      items.push(baseItem);
     }
 
     if (upsellSlug && upsellProduct) {
@@ -691,7 +693,7 @@
     return items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined;
   }
 
-  function trackGa4BeginCheckoutOnce(productSlug, product, selection) {
+  function trackGa4BeginCheckoutOnce(productSlug, product, selection, cohort) {
     if (typeof window === 'undefined') return false;
     if (typeof window.gtag !== 'function') return false;
     if (!productSlug || !product) return false;
@@ -707,17 +709,18 @@
       // sessionStorage can be unavailable in private browsing or locked-down contexts.
     }
 
+    const beginCheckoutItem = {
+      item_id: itemId,
+      item_name: product.name,
+      price: itemPrice,
+      quantity: 1,
+    };
+    if (cohort) beginCheckoutItem.item_variant = 'Cohort ' + cohort;
+
     window.gtag('event', 'begin_checkout', {
       currency: 'AUD',
       value: itemPrice,
-      items: [
-        {
-          item_id: itemId,
-          item_name: product.name,
-          price: itemPrice,
-          quantity: 1,
-        },
-      ],
+      items: [beginCheckoutItem],
     });
     return true;
   }
@@ -1617,7 +1620,7 @@
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
 
-    trackGa4BeginCheckoutOnce(productSlug, product, selection);
+    trackGa4BeginCheckoutOnce(productSlug, product, selection, params.get('cohort') || '');
 
     if (typeof window.fbq === 'function') {
       window.fbq('track', 'InitiateCheckout', {
@@ -1629,6 +1632,26 @@
         num_items: 1,
       });
     }
+
+    (function attachCheckoutStart() {
+      const form = document.getElementById('checkout-form');
+      if (!form) return;
+      form.addEventListener('focusin', function handler() {
+        form.removeEventListener('focusin', handler);
+        if (typeof window.gtag !== 'function') return;
+        const itemPrice = selection.price;
+        const itemId = selection.packageSlug || productSlug;
+        const cohortParam = new URLSearchParams(window.location.search).get('cohort') || '';
+        const checkoutStartPayload = {
+          currency: 'AUD',
+          value: itemPrice,
+          item_id: itemId,
+          item_name: product.name,
+        };
+        if (cohortParam) checkoutStartPayload.item_variant = 'Cohort ' + cohortParam;
+        window.gtag('event', 'checkout_start', checkoutStartPayload);
+      });
+    }());
 
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
@@ -1927,7 +1950,8 @@
             upsellSlug: verifiedUpsellSlug,
           });
           if (typeof window.gtag === 'function') {
-            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
+            const cohort = params.get('cohort') || '';
+            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug, cohort);
             window.gtag('event', 'purchase', {
               transaction_id: paypalOrderId,
               currency: 'AUD',
@@ -2002,7 +2026,8 @@
           uploadToken,
         });
         if (typeof window.gtag === 'function') {
-          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
+          const cohort = params.get('cohort') || '';
+          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug, cohort);
 
           window.gtag('event', 'purchase', {
             transaction_id: paymentIntentId,
