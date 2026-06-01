@@ -1634,7 +1634,7 @@
     }
 
     (function attachCheckoutStart() {
-      const form = document.getElementById('checkout-form');
+      const form = document.querySelector('#checkout-form');
       if (!form) return;
       form.addEventListener('focusin', function handler() {
         form.removeEventListener('focusin', handler);
