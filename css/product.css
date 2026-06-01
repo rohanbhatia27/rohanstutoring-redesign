@@ -2139,7 +2139,7 @@
 
 /* ---- Upsell Band ---- */
 .upsell-band {
-  background: linear-gradient(135deg, rgba(100,160,255,0.10), rgba(16,191,122,0.08));
+  background: var(--navy-mid) linear-gradient(135deg, rgba(100,160,255,0.12), rgba(16,191,122,0.09));
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 56px 0;
