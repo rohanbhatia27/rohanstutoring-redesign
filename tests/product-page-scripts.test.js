@@ -27,8 +27,9 @@ test('flagship course pages route visitors to checkout after enrolments reopen',
   assert.doesNotMatch(masteryHtml, /Sold Out|waitlist|formspree\.io/i);
 
   assert.match(comprehensiveHtml, /New cohort starts 15 June/);
-  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive"/);
-  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive(?:&amp;|&)paymentMode=instalments"/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive(?:[&?][^"]*)?"/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive(?:&amp;|&)paymentMode=instalments(?:[&?][^"]*)?"/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive[^"]*&(?:amp;)?cohort=\d+/);
   assert.doesNotMatch(comprehensiveHtml, /Sold Out|waitlist|formspree\.io/i);
 });
 
