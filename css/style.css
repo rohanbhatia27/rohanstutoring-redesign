@@ -2154,6 +2154,45 @@ img[loading="lazy"] {
 .book__note a { color: var(--blue-light); text-decoration: underline; }
 
 /* ============================================
+   FREE RESOURCE STRIP
+   ============================================ */
+.free-strip {
+  background: var(--navy-mid);
+  border-top: 1px solid var(--border);
+  padding: 18px 0;
+}
+.free-strip__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.free-strip__text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-dark-muted);
+  line-height: 1.4;
+}
+.free-strip__text strong {
+  color: var(--text-dark-soft);
+  font-weight: 600;
+}
+.free-strip__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--blue-light);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.free-strip__link:hover { color: var(--white); }
+
+@media (max-width: 600px) {
+  .free-strip__inner { flex-direction: column; gap: 8px; text-align: center; }
+}
+
+/* ============================================
    FOOTER
    ============================================ */
 .footer {
