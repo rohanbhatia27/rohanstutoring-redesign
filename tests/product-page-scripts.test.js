@@ -117,13 +117,14 @@ test('course product pages share the product stylesheet and script shell', () =>
   });
 });
 
-test('comprehensive hero uses a June cohort access banner instead of a countdown', () => {
+test('comprehensive hero promotes limited June cohort spots with an AEST countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /New cohort starts 15 June/);
+  assert.match(html, /Only 9 spots left/);
+  assert.match(html, /\bdata-countdown-v3\b/);
+  assert.match(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
+  assert.match(html, /Cohort begins in/);
   assert.match(html, /full library before Week 1/);
-  assert.doesNotMatch(html, /\bdata-countdown-v3\b/);
-  assert.doesNotMatch(html, /Cohort begins in/);
 });
 
 test('getCountdownParts returns days, hours, and minutes until 26 May', () => {
