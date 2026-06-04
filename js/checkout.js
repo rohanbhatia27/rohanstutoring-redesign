@@ -256,6 +256,7 @@
             payment_method: 'paypal',
           });
         }
+        trackGa4AddPaymentInfo(selection, 'paypal');
 
         try {
           const captureResponse = await fetch('/api/paypal-order', {
@@ -723,6 +724,30 @@
       items: [beginCheckoutItem],
     });
     return true;
+  }
+
+  // Fires when a customer commits to a payment method (card / wallet / PayPal).
+  // Completes the GA4 funnel between begin_checkout and purchase so the drop-off
+  // between checkout-start and confirmed payment is measurable.
+  function trackGa4AddPaymentInfo(selection, paymentType) {
+    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+    if (!selection) return;
+
+    const product = PRODUCTS[selection.pageSlug];
+    const itemId = selection.apiSlug || selection.pageSlug;
+    const item = {
+      item_id: itemId,
+      item_name: product ? product.name : itemId,
+      price: selection.price,
+      quantity: 1,
+    };
+
+    window.gtag('event', 'add_payment_info', {
+      currency: 'AUD',
+      value: selection.price,
+      payment_type: paymentType || 'card',
+      items: [item],
+    });
   }
 
   function trackMetaPurchaseOnce(transactionId, items) {
@@ -1444,6 +1469,7 @@
           payment_method: canMakePayment.applePay ? 'apple_pay' : 'google_pay',
         });
       }
+      trackGa4AddPaymentInfo(selection, canMakePayment.applePay ? 'apple_pay' : 'google_pay');
 
       try {
         const payload = buildCheckoutPayload(selection, {
@@ -1785,6 +1811,7 @@
           upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
         });
       }
+      trackGa4AddPaymentInfo(selection, selection.paymentMode === 'full' ? 'card' : selection.paymentMode);
 
       try {
         const payload = buildCheckoutPayload(selection, validation);
@@ -2081,6 +2108,7 @@
     isProductAvailable,
     buildPurchaseItems,
     trackGa4BeginCheckoutOnce,
+    trackGa4AddPaymentInfo,
     buildEssayUploadUrl,
     getApiServerErrorMessage,
     getCheckoutSubmissionErrorMessage,

@@ -164,6 +164,62 @@ async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
     tagId: purchasedTagId,
   });
 
+  // Apply a single master "Customer" tag so abandoned-checkout (and any future)
+  // automations can suppress buyers with one rule instead of one per product.
+  const customerTagId = getOptionalEnv('KIT_TAG_ID_CUSTOMER');
+  if (customerTagId) {
+    try {
+      await tagSubscriber({ subscriberId: subscriber.id, tagId: customerTagId });
+    } catch (err) {
+      console.warn('[kit] Customer master tag failed:', err.message);
+    }
+  }
+
+  return { skipped: false, subscriberId: subscriber.id };
+}
+
+// Best-effort capture of someone who reached payment intent but has not (yet)
+// purchased. Tags them so Kit's abandoned-checkout automation can follow up.
+// Never throws on missing config — checkout must never fail because of Kit.
+async function syncCheckoutStartedTag({ baseSlug, email, customerName = '', value = '' }) {
+  if (!isValidEmail(email)) {
+    return { skipped: true, reason: 'missing_email' };
+  }
+
+  const apiKey = getOptionalEnv('KIT_API_KEY');
+  const abandonedTagId = getOptionalEnv('KIT_TAG_ID_CHECKOUT_ABANDONED');
+
+  if (!apiKey || !abandonedTagId) {
+    return { skipped: true, reason: 'missing_kit_config' };
+  }
+
+  const safeBaseSlug = String(baseSlug || '').trim();
+  const entry = SERVER_CATALOG[safeBaseSlug];
+  const productName = entry ? (entry.title || entry.name || '') : '';
+  const resumeSlug = (entry && entry.pageSlug) || safeBaseSlug;
+  const checkoutUrl = resumeSlug
+    ? `https://www.rohanstutoring.com/checkout/?product=${encodeURIComponent(resumeSlug)}`
+    : '';
+
+  const subscriber = await upsertSubscriber({
+    email,
+    firstName: firstNameFromFullName(customerName),
+    fields: {
+      checkout_product: productName,
+      checkout_value: value === '' || value === null || value === undefined ? '' : String(value),
+      checkout_url: checkoutUrl,
+    },
+  });
+
+  if (!subscriber) {
+    throw new Error('Kit subscriber upsert failed');
+  }
+
+  await tagSubscriber({
+    subscriberId: subscriber.id,
+    tagId: abandonedTagId,
+  });
+
   return { skipped: false, subscriberId: subscriber.id };
 }
 
@@ -173,6 +229,7 @@ module.exports = {
   tagSubscriber,
   syncQuizLead,
   syncPurchaseTag,
+  syncCheckoutStartedTag,
   firstNameFromFullName,
   __setFetch: (value) => {
     fetchImpl = value;

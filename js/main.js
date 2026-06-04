@@ -493,9 +493,10 @@ function initMain() {
     });
     if (!payload) return;
 
+    // Funnel stage = intent. begin_checkout deliberately fires later, once the
+    // checkout page actually loads (js/checkout.js), so it is not double-counted.
     window.gtag('event', 'course_cta_click', payload);
     window.gtag('event', 'add_to_cart', payload);
-    window.gtag('event', 'begin_checkout', payload);
   });
 
   /* ---- Analytics: ConvertKit newsletter signup ---- */
