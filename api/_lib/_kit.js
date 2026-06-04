@@ -132,22 +132,25 @@ async function syncQuizLead({ email, firstName = '', outcome = '' }) {
 }
 
 async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
-  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
-  const purchaseTagEnv = entry ? entry.purchaseTagEnv : null;
-
-  if (!purchaseTagEnv) {
-    return { skipped: true, reason: 'unsupported_product' };
-  }
-
   if (!isValidEmail(email)) {
     return { skipped: true, reason: 'missing_email' };
   }
 
   const apiKey = getOptionalEnv('KIT_API_KEY');
-  const purchasedTagId = getOptionalEnv(purchaseTagEnv);
-
-  if (!apiKey || !purchasedTagId) {
+  if (!apiKey) {
     return { skipped: true, reason: 'missing_kit_config' };
+  }
+
+  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
+  const purchaseTagEnv = entry ? entry.purchaseTagEnv : null;
+  const purchasedTagId = purchaseTagEnv ? getOptionalEnv(purchaseTagEnv) : '';
+  // Single master "Customer" tag so the abandoned-checkout (and any future)
+  // suppression automation works with one rule for every product, including
+  // ones that have no product-specific purchase tag (e.g. essay marking).
+  const customerTagId = getOptionalEnv('KIT_TAG_ID_CUSTOMER');
+
+  if (!purchasedTagId && !customerTagId) {
+    return { skipped: true, reason: purchaseTagEnv ? 'missing_kit_config' : 'unsupported_product' };
   }
 
   const subscriber = await upsertSubscriber({
@@ -159,14 +162,13 @@ async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
     throw new Error('Kit subscriber upsert failed');
   }
 
-  await tagSubscriber({
-    subscriberId: subscriber.id,
-    tagId: purchasedTagId,
-  });
+  if (purchasedTagId) {
+    await tagSubscriber({
+      subscriberId: subscriber.id,
+      tagId: purchasedTagId,
+    });
+  }
 
-  // Apply a single master "Customer" tag so abandoned-checkout (and any future)
-  // automations can suppress buyers with one rule instead of one per product.
-  const customerTagId = getOptionalEnv('KIT_TAG_ID_CUSTOMER');
   if (customerTagId) {
     try {
       await tagSubscriber({ subscriberId: subscriber.id, tagId: customerTagId });
