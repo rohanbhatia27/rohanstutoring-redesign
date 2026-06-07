@@ -45,6 +45,7 @@ const {
 const createCheckoutHandler = require('../api/create-checkout.js');
 const createPaymentIntentHandler = createCheckoutHandler;
 const createInstalmentSessionHandler = createCheckoutHandler;
+const kit = require('../api/_lib/_kit.js');
 const payPalOrderHandler = require('../api/paypal-order.js');
 const createPayPalOrderHandler = payPalOrderHandler;
 const capturePayPalOrderHandler = payPalOrderHandler;
@@ -2817,6 +2818,52 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
     });
   } finally {
     createPaymentIntentHandler.__resetForTests();
+  }
+});
+
+test('payment intent handler does not wait indefinitely for Kit checkout-start capture', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_CHECKOUT_ABANDONED = '20070001';
+
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      create: async () => ({
+        id: 'pi_kit_slow',
+        client_secret: 'pi_kit_slow_secret_123',
+      }),
+    },
+  }));
+  kit.__setFetch(async () => new Promise(() => {}));
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: {
+        origin: 'https://rohanstutoring.com',
+      },
+      body: {
+        slug: 'blueprint',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+        phone: '+61 400 111 222',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    const result = await Promise.race([
+      createPaymentIntentHandler(req, res).then(() => 'responded'),
+      new Promise((resolve) => setTimeout(() => resolve('timed_out'), 75)),
+    ]);
+
+    assert.equal(result, 'responded');
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { clientSecret: 'pi_kit_slow_secret_123' });
+  } finally {
+    createPaymentIntentHandler.__resetForTests();
+    kit.__resetForTests();
+    delete process.env.KIT_API_KEY;
+    delete process.env.KIT_TAG_ID_CHECKOUT_ABANDONED;
   }
 });
 

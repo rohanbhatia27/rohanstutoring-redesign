@@ -1262,3 +1262,36 @@ test('syncPurchaseTag applies the Customer tag to products with no product-speci
   delete process.env.KIT_API_KEY;
   delete process.env.KIT_TAG_ID_CUSTOMER;
 });
+
+test('syncPurchaseTag surfaces Customer tag failures for supported product buyers', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT = '19492824';
+  process.env.KIT_TAG_ID_CUSTOMER = '20075421';
+
+  kit.__setFetch(async (url) => {
+    if (url.endsWith('/v4/subscribers')) {
+      return { ok: true, status: 200, json: async () => ({ subscriber: { id: 789 } }) };
+    }
+    if (url.endsWith('/v4/tags/19492824/subscribers/789')) {
+      return { ok: true, status: 201, json: async () => ({ subscriber: { id: 789 } }) };
+    }
+    if (url.endsWith('/v4/tags/20075421/subscribers/789')) {
+      return { ok: false, status: 500, json: async () => ({ errors: ['Customer tag failed'] }) };
+    }
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  await assert.rejects(
+    () => kit.syncPurchaseTag({
+      baseSlug: 'blueprint',
+      email: 'jane@example.com',
+      customerName: 'Jane Smith',
+    }),
+    /Customer tag failed/
+  );
+
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT;
+  delete process.env.KIT_TAG_ID_CUSTOMER;
+});

@@ -25,12 +25,10 @@ const logPurchaseEvent = require('./_lib/_purchase-log.js');
 const { syncCheckoutStartedTag } = require('./_lib/_kit.js');
 
 // Capture an abandoned-checkout lead without ever blocking or failing payment.
-async function captureCheckoutStarted({ baseSlug, email, customerName, value }) {
-  try {
-    await syncCheckoutStartedTag({ baseSlug, email, customerName, value });
-  } catch (err) {
+function captureCheckoutStarted({ baseSlug, email, customerName, value }) {
+  syncCheckoutStartedTag({ baseSlug, email, customerName, value }).catch((err) => {
     console.warn('[kit] checkout-started capture failed:', err.message);
-  }
+  });
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
@@ -617,7 +615,7 @@ async function handleOneOffCheckout(req, res, body) {
       outcome: 'success',
     });
 
-    await captureCheckoutStarted({
+    captureCheckoutStarted({
       baseSlug: purchase.baseSlug,
       email: customer.email,
       customerName: customer.customerName,
@@ -734,7 +732,7 @@ async function handleInstalmentCheckout(req, res, body, origin) {
 
     const session = await stripe.checkout.sessions.create(sessionPayload);
 
-    await captureCheckoutStarted({
+    captureCheckoutStarted({
       baseSlug: checkoutRequest.slug,
       email: customer.email,
       customerName: customer.customerName,

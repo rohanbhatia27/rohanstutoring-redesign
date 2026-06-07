@@ -170,11 +170,7 @@ async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
   }
 
   if (customerTagId) {
-    try {
-      await tagSubscriber({ subscriberId: subscriber.id, tagId: customerTagId });
-    } catch (err) {
-      console.warn('[kit] Customer master tag failed:', err.message);
-    }
+    await tagSubscriber({ subscriberId: subscriber.id, tagId: customerTagId });
   }
 
   return { skipped: false, subscriberId: subscriber.id };

@@ -12,12 +12,10 @@ const { checkRateLimit } = require('./_lib/_rate-limit.js');
 const { syncCheckoutStartedTag } = require('./_lib/_kit.js');
 
 // Capture an abandoned-checkout lead without ever blocking or failing payment.
-async function captureCheckoutStarted({ baseSlug, email, customerName, value }) {
-  try {
-    await syncCheckoutStartedTag({ baseSlug, email, customerName, value });
-  } catch (err) {
+function captureCheckoutStarted({ baseSlug, email, customerName, value }) {
+  syncCheckoutStartedTag({ baseSlug, email, customerName, value }).catch((err) => {
     console.warn('[kit] checkout-started capture failed:', err.message);
-  }
+  });
 }
 
 const { isAllowedOrigin, resolveCheckoutPurchase, normaliseCustomerDetails } = createCheckoutHandler;
@@ -83,7 +81,7 @@ async function handleCreateOrder(req, res, body) {
 
     const order = await orderResponse.json();
 
-    await captureCheckoutStarted({
+    captureCheckoutStarted({
       baseSlug: purchase.baseSlug,
       email: customer.email,
       customerName: customer.customerName,
