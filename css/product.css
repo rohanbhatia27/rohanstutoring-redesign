@@ -2203,6 +2203,7 @@
 .section-focus__header {
   text-align: center;
   margin-bottom: 48px;
+  color: var(--white);
 }
 .section-focus__header p {
   color: var(--text-light);
