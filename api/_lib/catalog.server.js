@@ -42,6 +42,24 @@ const SERVER_EXTENSIONS = {
     cohortEmail: null,
   },
 
+  'blueprint-s1': {
+    deliveryType: 'digital-access',
+    fulfillmentLabel: 'Send Google Drive access',
+    fulfillmentSlug: 'blueprint-s1',
+    driveFolderSlug: 'blueprint',
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_BLUEPRINT',
+    cohortEmail: null,
+  },
+
+  'blueprint-s2': {
+    deliveryType: 'digital-access',
+    fulfillmentLabel: 'Send Google Drive access',
+    fulfillmentSlug: 'blueprint-s2',
+    driveFolderSlug: 'blueprint',
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_BLUEPRINT',
+    cohortEmail: null,
+  },
+
   advanced: {
     deliveryType: 'digital-access',
     fulfillmentLabel: 'Send Google Drive access',

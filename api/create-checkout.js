@@ -746,6 +746,52 @@ async function handleInstalmentCheckout(req, res, body, origin) {
   }
 }
 
+async function handleCheckoutLeadCapture(req, res, body) {
+  const origin = req.headers.origin || '';
+
+  if (!isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const payload = body && typeof body === 'object' ? body : null;
+  if (!payload) {
+    return res.status(400).json({ error: 'Missing or invalid JSON body' });
+  }
+
+  const slug = normaliseSlug(payload.slug || payload.productSlug || payload.baseSlug).toLowerCase();
+  if (!slug || !CATALOG[slug]) {
+    return res.status(400).json({ error: 'Missing or invalid product slug.' });
+  }
+
+  const email = String(payload.email || '').trim();
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'leads', email });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
+  }
+
+  const rawValue = Number(payload.value);
+  const value = Number.isFinite(rawValue) && rawValue > 0
+    ? rawValue
+    : (AMOUNTS[slug] || 0) / 100;
+
+  captureCheckoutStarted({
+    baseSlug: slug,
+    email,
+    customerName: String(payload.customerName || '').trim(),
+    value,
+  });
+
+  return res.status(202).json({ ok: true, status: 'queued' });
+}
+
 async function handlePublicConfig(req, res) {
   const origin = req.headers.origin || '';
 
@@ -883,6 +929,10 @@ async function createCheckoutHandler(req, res) {
 
   if (action === 'validateCoupon') {
     return handleValidateCoupon(req, res, req.body);
+  }
+
+  if (action === 'checkoutLead') {
+    return handleCheckoutLeadCapture(req, res, req.body);
   }
 
   const origin = req.headers.origin || '';

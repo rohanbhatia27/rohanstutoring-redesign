@@ -690,6 +690,9 @@ test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload
       {
         currency: 'AUD',
         value: 2499,
+        product_slug: 'mastery',
+        payment_mode: 'full',
+        page_path: '/checkout/',
         items: [
           {
             item_id: 'mastery',
@@ -700,6 +703,38 @@ test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload
         ],
       },
     ]);
+  } finally {
+    global.window = previousWindow;
+  }
+});
+
+test('trackGa4BeginCheckoutOnce includes selected payment mode and page context', () => {
+  const previousWindow = global.window;
+  const calls = [];
+
+  global.window = {
+    location: { pathname: '/checkout/' },
+    gtag(...args) {
+      calls.push(args);
+    },
+    sessionStorage: {
+      getItem() {
+        return null;
+      },
+      setItem() {},
+    },
+  };
+
+  try {
+    const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+    selection.paymentMode = 'instalments';
+
+    assert.equal(trackGa4BeginCheckoutOnce('comprehensive', PRODUCTS.comprehensive, selection, '2'), true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][2].product_slug, 'comprehensive');
+    assert.equal(calls[0][2].payment_mode, 'instalments');
+    assert.equal(calls[0][2].page_path, '/checkout/');
+    assert.equal(calls[0][2].items[0].item_variant, 'Cohort 2');
   } finally {
     global.window = previousWindow;
   }
@@ -785,6 +820,94 @@ test('initCheckoutPage honours paymentMode=instalments links and submits through
     assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
     assert.equal(confirmCardPaymentCalled, false);
     assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/instalment_123');
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+    global.Stripe = previousStripe;
+  }
+});
+
+test('initCheckoutPage queues checkout lead recovery after a valid email is entered', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const previousStripe = global.Stripe;
+  const env = createCheckoutSubmitTestEnv('?product=comprehensive&paymentMode=instalments&cohort=2');
+  const fetchCalls = [];
+  const gtagCalls = [];
+  const emailInput = env.elements['#email'];
+  emailInput.listeners = {};
+  emailInput.addEventListener = function addEventListener(type, handler) {
+    this.listeners[type] = handler;
+  };
+
+  global.window = {
+    ...env.windowObject,
+    location: {
+      ...env.windowObject.location,
+      pathname: '/checkout/',
+    },
+    gtag(...args) {
+      gtagCalls.push(args);
+    },
+  };
+  global.document = env.documentObject;
+  global.fetch = async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+
+    if (url === '/api/public-config') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
+      };
+    }
+
+    if (url === '/api/create-checkout?action=checkoutLead') {
+      return {
+        ok: true,
+        text: async () => JSON.stringify({ ok: true, status: 'queued' }),
+      };
+    }
+
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  };
+  global.Stripe = () => ({
+    elements() {
+      return {
+        create() {
+          return {
+            mount() {},
+            on(_event, handler) {
+              handler({ complete: true });
+            },
+          };
+        },
+      };
+    },
+  });
+
+  try {
+    await initCheckoutPage();
+
+    assert.equal(typeof emailInput.listeners.change, 'function');
+    emailInput.listeners.change();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const captureCall = fetchCalls.find((call) => call.url === '/api/create-checkout?action=checkoutLead');
+    assert.ok(captureCall, 'expected checkout lead capture request');
+    const payload = JSON.parse(captureCall.options.body);
+    assert.equal(payload.slug, 'comprehensive');
+    assert.equal(payload.email, 'jane@example.com');
+    assert.equal(payload.customerName, 'Jane Smith');
+    assert.equal(payload.paymentMode, 'instalments');
+    assert.equal(payload.cohort, '2');
+    assert.equal(payload.value, 1699);
+
+    const leadEvent = gtagCalls.find((call) => call[1] === 'checkout_lead_captured');
+    assert.ok(leadEvent, 'expected checkout_lead_captured GA4 event');
+    assert.equal(leadEvent[2].product_slug, 'comprehensive');
+    assert.equal(leadEvent[2].payment_mode, 'instalments');
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -2861,6 +2984,59 @@ test('payment intent handler does not wait indefinitely for Kit checkout-start c
     assert.deepEqual(res.body, { clientSecret: 'pi_kit_slow_secret_123' });
   } finally {
     createPaymentIntentHandler.__resetForTests();
+    kit.__resetForTests();
+    delete process.env.KIT_API_KEY;
+    delete process.env.KIT_TAG_ID_CHECKOUT_ABANDONED;
+  }
+});
+
+test('checkout lead capture queues abandoned checkout tag before payment setup', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_CHECKOUT_ABANDONED = '20070001';
+
+  const fetchCalls = [];
+  kit.__setFetch(async (url, options = {}) => {
+    fetchCalls.push({ url, options });
+    if (String(url).includes('/subscribers')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ subscriber: { id: 789, email_address: 'jane@example.com' } }),
+      };
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    };
+  });
+
+  try {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      query: { action: 'checkoutLead' },
+      body: {
+        slug: 'comprehensive',
+        email: 'jane@example.com',
+        customerName: 'Jane Smith',
+        value: 1699,
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createCheckoutHandler(req, res);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.equal(res.statusCode, 202);
+    assert.deepEqual(res.body, { ok: true, status: 'queued' });
+    assert.equal(fetchCalls.length, 2);
+    const subscriberPayload = JSON.parse(fetchCalls[0].options.body);
+    assert.equal(subscriberPayload.fields.checkout_product, 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)');
+    assert.equal(subscriberPayload.fields.checkout_value, '1699');
+    assert.match(String(fetchCalls[1].url), /\/tags\/20070001\/subscribe/);
+  } finally {
+    createCheckoutHandler.__resetForTests();
     kit.__resetForTests();
     delete process.env.KIT_API_KEY;
     delete process.env.KIT_TAG_ID_CHECKOUT_ABANDONED;

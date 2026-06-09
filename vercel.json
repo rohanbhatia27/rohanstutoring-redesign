@@ -214,6 +214,16 @@
       "permanent": true
     },
     {
+      "source": "/courses/blueprint-s1.html",
+      "destination": "/courses/blueprint-s1",
+      "permanent": true
+    },
+    {
+      "source": "/courses/blueprint-s2.html",
+      "destination": "/courses/blueprint-s2",
+      "permanent": true
+    },
+    {
       "source": "/courses/advanced.html",
       "destination": "/courses/advanced",
       "permanent": true

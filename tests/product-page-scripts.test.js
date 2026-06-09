@@ -27,10 +27,20 @@ test('flagship course pages route visitors to checkout after enrolments reopen',
   assert.doesNotMatch(masteryHtml, /Sold Out|waitlist|formspree\.io/i);
 
   assert.match(comprehensiveHtml, /New cohort starts 15 June/);
-  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&cohort=2"/);
   assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&paymentMode=instalments&cohort=2"/);
-  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive"/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&cohort=2"/);
+  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive"(?!&)/);
   assert.doesNotMatch(comprehensiveHtml, /Sold Out|waitlist|formspree\.io/i);
+});
+
+test('comprehensive primary enrolment CTAs default to instalments while full-pay remains available', () => {
+  const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
+  const instalmentLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive&paymentMode=instalments&cohort=2"/g) || [];
+  const fullPayLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive&cohort=2"/g) || [];
+
+  assert.ok(instalmentLinks.length >= 4, 'primary enrolment path should make instalments the easy choice');
+  assert.ok(fullPayLinks.length >= 1, 'full-pay checkout should remain available for decided buyers');
+  assert.match(comprehensiveHtml, /Pay in full\s+\$1,699/);
 });
 
 test('product hero media keeps eager LCP hints and a shared aspect-ratio fallback', () => {

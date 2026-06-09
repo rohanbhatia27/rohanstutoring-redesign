@@ -316,6 +316,34 @@
     return INSTALMENT_PLANS[productSlug] ? ['full', 'instalments'] : ['full'];
   }
 
+  function getCheckoutPagePath() {
+    return (typeof window !== 'undefined' && window.location && window.location.pathname)
+      ? window.location.pathname
+      : '/checkout/';
+  }
+
+  function getCheckoutTrackingPayload(productSlug, product, selection, cohort = '') {
+    const itemPrice = selection && selection.price !== undefined ? selection.price : product?.price;
+    const itemId = selection && selection.packageSlug ? selection.packageSlug : productSlug;
+    const paymentMode = selection && selection.paymentMode ? selection.paymentMode : 'full';
+    const item = {
+      item_id: itemId,
+      item_name: product ? product.name : itemId,
+      price: itemPrice,
+      quantity: 1,
+    };
+    if (cohort) item.item_variant = 'Cohort ' + cohort;
+
+    return {
+      currency: 'AUD',
+      value: itemPrice,
+      product_slug: productSlug,
+      payment_mode: paymentMode,
+      page_path: getCheckoutPagePath(),
+      items: [item],
+    };
+  }
+
   function getInstalmentPlanSummary(selection) {
     const plan = INSTALMENT_PLANS[selection?.pageSlug];
     if (!plan) return null;
@@ -699,7 +727,6 @@
     if (typeof window.gtag !== 'function') return false;
     if (!productSlug || !product) return false;
 
-    const itemPrice = selection && selection.price !== undefined ? selection.price : product.price;
     const itemId = selection && selection.packageSlug ? selection.packageSlug : productSlug;
 
     const key = 'ga4_begin_checkout_' + itemId;
@@ -710,19 +737,7 @@
       // sessionStorage can be unavailable in private browsing or locked-down contexts.
     }
 
-    const beginCheckoutItem = {
-      item_id: itemId,
-      item_name: product.name,
-      price: itemPrice,
-      quantity: 1,
-    };
-    if (cohort) beginCheckoutItem.item_variant = 'Cohort ' + cohort;
-
-    window.gtag('event', 'begin_checkout', {
-      currency: 'AUD',
-      value: itemPrice,
-      items: [beginCheckoutItem],
-    });
+    window.gtag('event', 'begin_checkout', getCheckoutTrackingPayload(productSlug, product, selection, cohort));
     return true;
   }
 
@@ -745,9 +760,92 @@
     window.gtag('event', 'add_payment_info', {
       currency: 'AUD',
       value: selection.price,
+      product_slug: selection.pageSlug,
+      payment_mode: selection.paymentMode || 'full',
+      page_path: getCheckoutPagePath(),
       payment_type: paymentType || 'card',
       items: [item],
     });
+  }
+
+  function buildCheckoutLeadPayload(selection, cohort = '') {
+    if (!selection) return null;
+
+    const emailInput = qs('#email');
+    const firstNameInput = qs('#first-name');
+    const lastNameInput = qs('#last-name');
+    const email = emailInput?.value.trim() || '';
+    if (!email || !EMAIL_PATTERN.test(email)) return null;
+    if (emailInput && typeof emailInput.checkValidity === 'function' && !emailInput.checkValidity()) return null;
+
+    const firstName = firstNameInput?.value.trim() || '';
+    const lastName = lastNameInput?.value.trim() || '';
+    const customerName = [firstName, lastName].filter(Boolean).join(' ');
+
+    return {
+      slug: selection.pageSlug || selection.apiSlug,
+      apiSlug: selection.apiSlug,
+      email,
+      customerName,
+      value: selection.price,
+      paymentMode: selection.paymentMode || 'full',
+      cohort,
+    };
+  }
+
+  function setupCheckoutLeadCapture(selection, cohort = '') {
+    const emailInput = qs('#email');
+    const capturedKeys = new Set();
+    if (!emailInput || typeof emailInput.addEventListener !== 'function') {
+      return function noopCaptureCheckoutLead() { return false; };
+    }
+
+    const capture = (source = 'email') => {
+      if (typeof fetch !== 'function') return false;
+      const payload = buildCheckoutLeadPayload(selection, cohort);
+      if (!payload) return false;
+
+      const key = [
+        'checkout_lead',
+        payload.slug,
+        payload.paymentMode,
+        payload.email.toLowerCase(),
+      ].join(':');
+
+      if (capturedKeys.has(key)) return false;
+      try {
+        if (window.sessionStorage && window.sessionStorage.getItem(key)) return false;
+        if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
+      } catch (error) {
+        // Locked-down browsers can throw here; in-memory de-duping still applies.
+      }
+      capturedKeys.add(key);
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'checkout_lead_captured', {
+          product_slug: payload.slug,
+          payment_mode: payload.paymentMode,
+          page_path: getCheckoutPagePath(),
+          source,
+          value: payload.value,
+          currency: 'AUD',
+          ...(payload.cohort ? { cohort: payload.cohort } : {}),
+        });
+      }
+
+      fetch('/api/create-checkout?action=checkoutLead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify(payload),
+      }).catch(() => {});
+
+      return true;
+    };
+
+    emailInput.addEventListener('change', () => capture('email_change'));
+    emailInput.addEventListener('blur', () => capture('email_blur'));
+    return capture;
   }
 
   function trackMetaPurchaseOnce(transactionId, items) {
@@ -1646,7 +1744,8 @@
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
 
-    trackGa4BeginCheckoutOnce(productSlug, product, selection, params.get('cohort') || '');
+    const cohortParam = params.get('cohort') || '';
+    trackGa4BeginCheckoutOnce(productSlug, product, selection, cohortParam);
 
     if (typeof window.fbq === 'function') {
       window.fbq('track', 'InitiateCheckout', {
@@ -1665,19 +1764,11 @@
       form.addEventListener('focusin', function handler() {
         form.removeEventListener('focusin', handler);
         if (typeof window.gtag !== 'function') return;
-        const itemPrice = selection.price;
-        const itemId = selection.packageSlug || productSlug;
-        const cohortParam = new URLSearchParams(window.location.search).get('cohort') || '';
-        const checkoutStartPayload = {
-          currency: 'AUD',
-          value: itemPrice,
-          item_id: itemId,
-          item_name: product.name,
-        };
-        if (cohortParam) checkoutStartPayload.item_variant = 'Cohort ' + cohortParam;
-        window.gtag('event', 'checkout_start', checkoutStartPayload);
+        window.gtag('event', 'checkout_start', getCheckoutTrackingPayload(productSlug, product, selection, cohortParam));
       });
     }());
+
+    const captureCheckoutLead = setupCheckoutLeadCapture(selection, cohortParam);
 
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
@@ -1800,6 +1891,7 @@
         showCardError(validation.error);
         return;
       }
+      captureCheckoutLead('submit');
 
       setLoading(true, selection);
 
