@@ -145,6 +145,7 @@ function getCheckoutProductTrackingPayload({
     product_slug: slug,
     payment_mode: paymentMode,
     cta_text: cleanText,
+    source_cta: cleanText,
     page_path: pathname,
     destination_path: `${url.pathname}${url.search}`,
     items: [item],

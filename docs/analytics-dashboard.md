@@ -107,16 +107,27 @@ On Vercel:
 
 The dashboard JS treats all of these as "fall back to mock + show the banner".
 
-## Tracking events to add
+## Conversion events
 
-The GA4 reports use these event names (override per `.env.example` if yours differ):
+Mark these as GA4 key events in Admin so new data has clean page-level attribution:
 
-- `generate_lead` / `lead_form_submit` / `email_signup` / `sign_up`
-- `free_resource_download` / `file_download`
-- `webinar_signup`
-- `checkout_click` / `begin_checkout` / `checkout_start`
+- `generate_lead`
+- `lead_form_submit`
+- `course_cta_click`
+- `checkout_start`
+- `add_payment_info`
 - `purchase`
-- `strategy_call_click`, `outbound_click` (referenced by the tracking-gaps panel)
+
+The dashboard now calculates page conversion rate from these named events by `pagePath`, not from GA4's generic `keyEvents` metric. This avoids zeroed page conversion rows when GA4 Admin is misconfigured, but it does not repair older events that were stored without the right parameters.
+
+Standard properties to keep on conversion events:
+
+- `page_path`
+- `resource_key`
+- `product_slug`
+- `payment_mode`
+- `source_cta`
+- `coupon_code`
 
 Wire them via `gtag('event', '<name>', { ... })`. Globals belong in `site/js/main.js`; page-specific events belong in the page's JS (`checkout.js`, `product.js`, `s2-slam-system.js`, `tracker.js`, etc.).
 

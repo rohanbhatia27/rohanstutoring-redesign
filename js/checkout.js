@@ -340,6 +340,7 @@
       product_slug: productSlug,
       payment_mode: paymentMode,
       page_path: getCheckoutPagePath(),
+      coupon_code: selection && selection.couponCode ? selection.couponCode : '',
       items: [item],
     };
   }
@@ -718,6 +719,32 @@
     return items;
   }
 
+  function buildPurchaseAnalyticsPayload({
+    transactionId = '',
+    productSlug = '',
+    upsellSlug = '',
+    fallbackProductSlug = '',
+    cohort = '',
+    paymentMode = 'full',
+    couponCode = '',
+    pagePath = getCheckoutPagePath(),
+  } = {}) {
+    const items = buildPurchaseItems(productSlug, upsellSlug, fallbackProductSlug, cohort);
+    const value = getPurchaseValue(items);
+    const primaryItem = items[0] || {};
+
+    return {
+      transaction_id: transactionId,
+      currency: 'AUD',
+      value,
+      product_slug: productSlug || fallbackProductSlug || primaryItem.item_id || '',
+      payment_mode: paymentMode || 'full',
+      page_path: pagePath || getCheckoutPagePath(),
+      coupon_code: couponCode || '',
+      items,
+    };
+  }
+
   function getPurchaseValue(items) {
     return items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined;
   }
@@ -763,6 +790,7 @@
       product_slug: selection.pageSlug,
       payment_mode: selection.paymentMode || 'full',
       page_path: getCheckoutPagePath(),
+      coupon_code: selection.couponCode || '',
       payment_type: paymentType || 'card',
       items: [item],
     });
@@ -2070,13 +2098,17 @@
           });
           if (typeof window.gtag === 'function') {
             const cohort = params.get('cohort') || '';
-            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug, cohort);
-            window.gtag('event', 'purchase', {
-              transaction_id: paypalOrderId,
-              currency: 'AUD',
-              value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
-              items,
+            const purchasePayload = buildPurchaseAnalyticsPayload({
+              transactionId: paypalOrderId,
+              productSlug: successProductSlug,
+              upsellSlug: verifiedUpsellSlug,
+              fallbackProductSlug: productSlug,
+              cohort,
+              paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
+              couponCode: metadata.coupon_code || params.get('coupon_code') || '',
             });
+            window.gtag('event', 'purchase', purchasePayload);
+            const items = purchasePayload.items;
             trackMetaPurchaseOnce(paypalOrderId, items);
           }
           if (window.posthog && typeof window.posthog.capture === 'function') {
@@ -2146,14 +2178,17 @@
         });
         if (typeof window.gtag === 'function') {
           const cohort = params.get('cohort') || '';
-          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug, cohort);
-
-          window.gtag('event', 'purchase', {
-            transaction_id: paymentIntentId,
-            currency: 'AUD',
-            value: items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined,
-            items,
+          const purchasePayload = buildPurchaseAnalyticsPayload({
+            transactionId: paymentIntentId,
+            productSlug: successProductSlug,
+            upsellSlug,
+            fallbackProductSlug: productSlug,
+            cohort,
+            paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
+            couponCode: metadata.coupon_code || params.get('coupon_code') || '',
           });
+          window.gtag('event', 'purchase', purchasePayload);
+          const items = purchasePayload.items;
           trackMetaPurchaseOnce(paymentIntentId, items);
         }
         if (window.posthog && typeof window.posthog.capture === 'function') {
@@ -2199,6 +2234,7 @@
     getSuccessPageTitle,
     isProductAvailable,
     buildPurchaseItems,
+    buildPurchaseAnalyticsPayload,
     trackGa4BeginCheckoutOnce,
     trackGa4AddPaymentInfo,
     buildEssayUploadUrl,

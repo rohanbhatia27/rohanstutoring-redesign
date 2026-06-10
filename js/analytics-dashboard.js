@@ -373,8 +373,8 @@
     }
 
     actions.push({
-      title: 'Add the missing tracking events',
-      body: 'Without checkout_start and strategy_call_click, half the funnel is invisible. See Tracking gaps below.',
+      title: 'Confirm GA4 key events',
+      body: 'Mark the six conversion events in GA4 Admin so new traffic keeps clean page-level attribution.',
     });
 
     actions.push({

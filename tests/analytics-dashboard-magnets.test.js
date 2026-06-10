@@ -50,6 +50,7 @@ test('lead magnet views come from the dedicated magnet page report when the page
         ],
       }),
       report({ dimensions: ['sessionSourceMedium', 'eventName'], metrics: ['eventCount'] }),
+      report({ dimensions: ['pagePath', 'eventName'], metrics: ['eventCount'] }),
     ],
   ];
   let callIndex = 0;
@@ -89,6 +90,7 @@ test('traffic source leads are counted from lead events, not generic key events'
           { sessionSourceMedium: 'youtube.com / referral', eventName: 'generate_lead', eventCount: 3 },
         ],
       }),
+      report({ dimensions: ['pagePath', 'eventName'], metrics: ['eventCount'] }),
     ],
   ];
   let callIndex = 0;
@@ -98,6 +100,53 @@ test('traffic source leads are counted from lead events, not generic key events'
 
   assert.equal(dashboard.sources[0].name, 'youtube.com / referral');
   assert.equal(dashboard.sources[0].leads, 3);
+
+  analyticsHandler.__resetForTests();
+});
+
+test('page conversions are counted from configured conversion events, not generic key events', async () => {
+  const batches = [
+    [
+      report({ dimensions: ['date', 'dateRange'], metrics: ['activeUsers'] }),
+      report({ dimensions: ['eventName', 'dateRange'], metrics: ['eventCount'] }),
+      report({ dimensions: ['sessionSourceMedium'], metrics: ['sessions', 'engagedSessions', 'keyEvents'] }),
+      report({
+        dimensions: ['pagePath', 'pageTitle'],
+        metrics: ['screenPageViews', 'averageSessionDuration', 'keyEvents'],
+        rows: [
+          {
+            pagePath: '/courses/comprehensive',
+            pageTitle: 'Comprehensive Course',
+            screenPageViews: 100,
+            averageSessionDuration: 90,
+            keyEvents: 0,
+          },
+        ],
+      }),
+    ],
+    [
+      report({ metrics: ['activeUsers', 'sessions', 'keyEvents'], totals: [{ activeUsers: 100, sessions: 120, keyEvents: 0 }] }),
+      report({ dimensions: ['pagePath', 'eventName'], metrics: ['eventCount'] }),
+      report({ dimensions: ['pagePath', 'pageTitle'], metrics: ['screenPageViews'] }),
+      report({ dimensions: ['sessionSourceMedium', 'eventName'], metrics: ['eventCount'] }),
+      report({
+        dimensions: ['pagePath', 'eventName'],
+        metrics: ['eventCount'],
+        rows: [
+          { pagePath: '/courses/comprehensive', eventName: 'course_cta_click', eventCount: 7 },
+          { pagePath: '/courses/comprehensive', eventName: 'purchase', eventCount: 1 },
+        ],
+      }),
+    ],
+  ];
+  let callIndex = 0;
+  analyticsHandler.__setRunBatchReports(async () => batches[callIndex++]);
+
+  const dashboard = await analyticsHandler.__buildDashboardForTests('123', 'token', 30);
+  const comprehensive = dashboard.pages.find((page) => page.url === '/courses/comprehensive');
+
+  assert.equal(comprehensive.conv, 8);
+  assert.equal(comprehensive.status, 'great');
 
   analyticsHandler.__resetForTests();
 });

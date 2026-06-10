@@ -168,6 +168,7 @@ test('checkout product CTA tracking payload identifies comprehensive course clic
   assert.equal(payload.product_slug, 'comprehensive');
   assert.equal(payload.payment_mode, 'instalments');
   assert.equal(payload.cta_text, 'or pay $499 x 4 instalments');
+  assert.equal(payload.source_cta, 'or pay $499 x 4 instalments');
   assert.equal(payload.page_path, '/courses/comprehensive');
   assert.equal(payload.destination_path, '/checkout/?product=comprehensive&paymentMode=instalments');
   assert.equal(payload.currency, 'AUD');

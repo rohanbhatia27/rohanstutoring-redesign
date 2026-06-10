@@ -28,7 +28,9 @@ const {
   getSuccessState,
   isProductAvailable,
   buildPurchaseItems,
+  buildPurchaseAnalyticsPayload,
   trackGa4BeginCheckoutOnce,
+  trackGa4AddPaymentInfo,
   buildEssayUploadUrl,
   getApiServerErrorMessage,
   getCheckoutSubmissionErrorMessage,
@@ -693,6 +695,7 @@ test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload
         product_slug: 'mastery',
         payment_mode: 'full',
         page_path: '/checkout/',
+        coupon_code: '',
         items: [
           {
             item_id: 'mastery',
@@ -735,6 +738,34 @@ test('trackGa4BeginCheckoutOnce includes selected payment mode and page context'
     assert.equal(calls[0][2].payment_mode, 'instalments');
     assert.equal(calls[0][2].page_path, '/checkout/');
     assert.equal(calls[0][2].items[0].item_variant, 'Cohort 2');
+  } finally {
+    global.window = previousWindow;
+  }
+});
+
+test('trackGa4AddPaymentInfo includes coupon code and checkout page context', () => {
+  const previousWindow = global.window;
+  const calls = [];
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  selection.paymentMode = 'instalments';
+  selection.couponCode = 'WEBINAR200';
+
+  global.window = {
+    location: { pathname: '/checkout/' },
+    gtag(...args) {
+      calls.push(args);
+    },
+  };
+
+  try {
+    trackGa4AddPaymentInfo(selection, 'instalments');
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][1], 'add_payment_info');
+    assert.equal(calls[0][2].product_slug, 'comprehensive');
+    assert.equal(calls[0][2].payment_mode, 'instalments');
+    assert.equal(calls[0][2].page_path, '/checkout/');
+    assert.equal(calls[0][2].coupon_code, 'WEBINAR200');
   } finally {
     global.window = previousWindow;
   }
@@ -1162,6 +1193,7 @@ test('payment intent status handler returns hosted checkout session metadata whe
       product_slug: 'blueprint',
       upsell_slug: '',
       payment_mode: 'afterpay',
+      coupon_code: '',
     });
   } finally {
     paymentIntentStatusHandler.__resetForTests();
@@ -1213,6 +1245,7 @@ test('payment intent status handler falls back to session metadata for subscript
       product_slug: 'comprehensive',
       upsell_slug: 'mentoring-single',
       payment_mode: 'instalments',
+      coupon_code: '',
     });
   } finally {
     paymentIntentStatusHandler.__resetForTests();
@@ -1789,6 +1822,27 @@ test('buildPurchaseItems adds item_variant to base item when cohort is provided'
 test('buildPurchaseItems omits item_variant when cohort is not provided', () => {
   const items = buildPurchaseItems('comprehensive', '', '');
   assert.ok(!('item_variant' in items[0]), 'item_variant should be absent with no cohort');
+});
+
+test('buildPurchaseAnalyticsPayload standardizes purchase attribution fields', () => {
+  const payload = buildPurchaseAnalyticsPayload({
+    transactionId: 'pi_123',
+    productSlug: 'comprehensive',
+    upsellSlug: 'mentoring-single',
+    fallbackProductSlug: 'comprehensive',
+    cohort: '2',
+    paymentMode: 'instalments',
+    couponCode: 'WEBINAR200',
+    pagePath: '/checkout/success',
+  });
+
+  assert.equal(payload.transaction_id, 'pi_123');
+  assert.equal(payload.product_slug, 'comprehensive');
+  assert.equal(payload.payment_mode, 'instalments');
+  assert.equal(payload.coupon_code, 'WEBINAR200');
+  assert.equal(payload.page_path, '/checkout/success');
+  assert.equal(payload.items[0].item_variant, 'Cohort 2');
+  assert.equal(payload.value, 1798);
 });
 
 test('getApiServerErrorMessage explains when HTML is returned instead of JSON', () => {
@@ -3442,6 +3496,7 @@ test('payment intent status handler returns status with safe checkout metadata',
         product_slug: 'essay-marking',
         upsell_slug: 'essay-collection',
         payment_mode: '',
+        coupon_code: '',
       },
     });
   } finally {

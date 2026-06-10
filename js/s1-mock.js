@@ -7,7 +7,7 @@
     if (leadTracked) return;
     leadTracked = true;
     if (typeof window.gtag === 'function') {
-      window.gtag('event', 'generate_lead', { form_id: RESOURCE, resource: RESOURCE });
+      window.gtag('event', 'generate_lead', { form_id: RESOURCE, resource: RESOURCE, resource_key: 's1-mock' });
       if (status === 'fallback') {
         window.gtag('event', 'free_resource_fallback', { resource: RESOURCE });
       }
