@@ -29,6 +29,8 @@ const {
   isProductAvailable,
   buildPurchaseItems,
   buildPurchaseAnalyticsPayload,
+  getGaClientIdFromCookie,
+  getGaSessionIdFromCookie,
   trackGa4BeginCheckoutOnce,
   trackGa4AddPaymentInfo,
   buildEssayUploadUrl,
@@ -1192,8 +1194,10 @@ test('payment intent status handler returns hosted checkout session metadata whe
       base_slug: 'blueprint',
       product_slug: 'blueprint',
       upsell_slug: '',
+      upsell_slug_2: '',
       payment_mode: 'afterpay',
       coupon_code: '',
+      cohort: '',
     });
   } finally {
     paymentIntentStatusHandler.__resetForTests();
@@ -1244,8 +1248,10 @@ test('payment intent status handler falls back to session metadata for subscript
       base_slug: 'comprehensive',
       product_slug: 'comprehensive',
       upsell_slug: 'mentoring-single',
+      upsell_slug_2: '',
       payment_mode: 'instalments',
       coupon_code: '',
+      cohort: '',
     });
   } finally {
     paymentIntentStatusHandler.__resetForTests();
@@ -1613,6 +1619,119 @@ test('stripe webhook still fulfills payment_intent.succeeded events', async () =
   stripeWebhookHandler.__resetForTests();
 });
 
+test('stripe webhook sends server-side GA4 purchase for tagged payment intents', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  const ga4Purchases = [];
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_test_123',
+              amount_received: 59900,
+              currency: 'aud',
+              metadata: {
+                payment_mode: 'full',
+                product_slug: 'blueprint',
+                ga_client_id: '123456789.987654321',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => ({ alreadyFulfilled: false }));
+  stripeWebhookHandler.__setSendGa4Purchase(async (payload) => {
+    ga4Purchases.push(payload);
+    return { sent: true };
+  });
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: Buffer.from('{"id":"evt_123","object":"event"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(ga4Purchases.length, 1);
+  assert.equal(ga4Purchases[0].transactionId, 'pi_test_123');
+  assert.equal(ga4Purchases[0].amountCents, 59900);
+  assert.equal(ga4Purchases[0].currency, 'aud');
+  assert.equal(ga4Purchases[0].metadata.product_slug, 'blueprint');
+  stripeWebhookHandler.__resetForTests();
+});
+
+test('stripe webhook sends server-side GA4 purchase for completed hosted checkout sessions', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  const ga4Purchases = [];
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        return {
+          type: 'checkout.session.completed',
+          data: {
+            object: {
+              id: 'cs_test_123',
+              amount_total: 169900,
+              currency: 'aud',
+              metadata: {
+                payment_mode: 'instalments',
+                product_slug: 'comprehensive',
+                base_slug: 'comprehensive',
+                cohort: '2',
+                ga_client_id: '123456789.987654321',
+                ga_session_id: '1712345678',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillInstalmentCheckout(async () => ({ alreadyFulfilled: false }));
+  stripeWebhookHandler.__setSendGa4Purchase(async (payload) => {
+    ga4Purchases.push(payload);
+    return { sent: true };
+  });
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: Buffer.from('{"id":"evt_123","object":"event"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(ga4Purchases.length, 1);
+  assert.equal(ga4Purchases[0].transactionId, 'cs_test_123');
+  assert.equal(ga4Purchases[0].amountCents, 169900);
+  assert.equal(ga4Purchases[0].metadata.product_slug, 'comprehensive');
+  assert.equal(ga4Purchases[0].metadata.cohort, '2');
+  stripeWebhookHandler.__resetForTests();
+});
+
 test('checkout stylesheet preserves hidden state for conditional checkout panels', () => {
   const css = fs.readFileSync(path.join(__dirname, '../css/checkout.css'), 'utf8');
 
@@ -1843,6 +1962,38 @@ test('buildPurchaseAnalyticsPayload standardizes purchase attribution fields', (
   assert.equal(payload.page_path, '/checkout/success');
   assert.equal(payload.items[0].item_variant, 'Cohort 2');
   assert.equal(payload.value, 1798);
+});
+
+test('GA cookie helpers extract Measurement Protocol identifiers safely', () => {
+  const cookie = '_ga=GA1.1.123456789.987654321; _ga_H1KDZ561ZE=GS2.1.s1712345678$o1$g1$t1712345688$j0$l0$h0';
+
+  assert.equal(getGaClientIdFromCookie(cookie), '123456789.987654321');
+  assert.equal(getGaSessionIdFromCookie(cookie), '1712345678');
+  assert.equal(getGaClientIdFromCookie(''), '');
+  assert.equal(getGaSessionIdFromCookie('_ga_OTHER=GS2.1.s111'), '');
+});
+
+test('buildCheckoutPayload includes GA identifiers for server-confirmed purchase attribution', () => {
+  const selection = getInitialSelection('comprehensive', PRODUCTS.comprehensive);
+  const previousDocument = global.document;
+  global.document = {
+    cookie: '_ga=GA1.1.123456789.987654321; _ga_H1KDZ561ZE=GS2.1.s1712345678$o1$g1$t1712345688$j0$l0$h0',
+  };
+
+  try {
+    const payload = buildCheckoutPayload(selection, {
+      billingDetails: {
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+61 400 111 222',
+      },
+    });
+
+    assert.equal(payload.gaClientId, '123456789.987654321');
+    assert.equal(payload.gaSessionId, '1712345678');
+  } finally {
+    global.document = previousDocument;
+  }
 });
 
 test('getApiServerErrorMessage explains when HTML is returned instead of JSON', () => {
@@ -2767,6 +2918,66 @@ test('initSuccessPage shows PayPal verification before failing an unverified ord
   }
 });
 
+test('initSuccessPage sends GA4 purchase after verified hosted checkout session success', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  const previousFetch = global.fetch;
+  const gtagCalls = [];
+  const elements = {
+    '#success-message': { textContent: '' },
+    '#success-heading': { textContent: '' },
+    '#success-icon': { textContent: '' },
+    '#success-action': { innerHTML: '', hidden: true },
+  };
+
+  global.window = {
+    location: {
+      search: '?product=comprehensive&session_id=cs_test_123&cohort=2',
+    },
+    gtag(...args) {
+      gtagCalls.push(args);
+    },
+  };
+  global.document = {
+    title: '',
+    querySelector: (selector) => elements[selector] || null,
+  };
+  global.fetch = async (url) => {
+    assert.equal(String(url), '/api/payment-status?session_id=cs_test_123');
+    return {
+      ok: true,
+      headers: { get: () => 'application/json' },
+      text: async () => JSON.stringify({
+        status: 'succeeded',
+        paymentIntentId: '',
+        metadata: {
+          base_slug: 'comprehensive',
+          product_slug: 'comprehensive',
+          upsell_slug: '',
+          payment_mode: 'instalments',
+          coupon_code: 'WEBINAR200',
+        },
+      }),
+    };
+  };
+
+  try {
+    await initSuccessPage();
+
+    const purchaseCall = gtagCalls.find((call) => call[0] === 'event' && call[1] === 'purchase');
+    assert.ok(purchaseCall, 'expected a GA4 purchase event for session_id success');
+    assert.equal(purchaseCall[2].transaction_id, 'cs_test_123');
+    assert.equal(purchaseCall[2].product_slug, 'comprehensive');
+    assert.equal(purchaseCall[2].payment_mode, 'instalments');
+    assert.equal(purchaseCall[2].coupon_code, 'WEBINAR200');
+    assert.equal(purchaseCall[2].items[0].item_variant, 'Cohort 2');
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+    global.fetch = previousFetch;
+  }
+});
+
 test('PayPal webhook rejects requests before verification when webhook ID is missing', async () => {
   const previousWebhookId = process.env.PAYPAL_WEBHOOK_ID;
   const req = {
@@ -2974,6 +3185,9 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
         email: 'jane@example.com',
         customerName: 'Jane Smith',
         phone: '+61 400 111 222',
+        cohort: '2',
+        gaClientId: '123456789.987654321',
+        gaSessionId: '1712345678',
       },
     };
     const res = createJsonResponseRecorder();
@@ -2992,6 +3206,9 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
       customer_phone: '+61 400 111 222',
+      cohort: '2',
+      ga_client_id: '123456789.987654321',
+      ga_session_id: '1712345678',
     });
   } finally {
     createPaymentIntentHandler.__resetForTests();
@@ -3419,6 +3636,9 @@ test('instalment session handler spreads a comprehensive fixed coupon across mon
         email: 'jane@example.com',
         phone: '+61 400 111 222',
         origin: 'https://rohanstutoring.com',
+        cohort: '2',
+        gaClientId: '123456789.987654321',
+        gaSessionId: '1712345678',
       },
     };
     const res = createJsonResponseRecorder();
@@ -3435,7 +3655,11 @@ test('instalment session handler spreads a comprehensive fixed coupon across mon
     assert.equal(createdSessions[0].metadata.coupon_code, 'WEBINAR200');
     assert.equal(createdSessions[0].metadata.discount_amount, '20000');
     assert.equal(createdSessions[0].metadata.discount_per_instalment, '5000');
+    assert.equal(createdSessions[0].metadata.cohort, '2');
+    assert.equal(createdSessions[0].metadata.ga_client_id, '123456789.987654321');
+    assert.equal(createdSessions[0].metadata.ga_session_id, '1712345678');
     assert.equal(createdSessions[0].subscription_data.metadata.coupon_code, 'WEBINAR200');
+    assert.equal(createdSessions[0].subscription_data.metadata.ga_client_id, '123456789.987654321');
     assert.equal(res.body.url, 'https://checkout.stripe.test/session_456');
   } finally {
     createInstalmentSessionHandler.__resetForTests();
@@ -3495,8 +3719,10 @@ test('payment intent status handler returns status with safe checkout metadata',
         base_slug: 'essay-marking',
         product_slug: 'essay-marking',
         upsell_slug: 'essay-collection',
+        upsell_slug_2: '',
         payment_mode: '',
         coupon_code: '',
+        cohort: '',
       },
     });
   } finally {

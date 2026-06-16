@@ -36,6 +36,22 @@ const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
 const INSTALMENT_PUBLIC_ERROR_MESSAGE = 'Instalment checkout setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
 
+function getSafeMetadataValue(value, maxLength = 100) {
+  return String(value || '').trim().slice(0, maxLength);
+}
+
+function addAnalyticsMetadata(metadata, body = {}) {
+  const cohort = getSafeMetadataValue(body.cohort, 50);
+  const gaClientId = getSafeMetadataValue(body.gaClientId || body.ga_client_id, 100);
+  const gaSessionId = getSafeMetadataValue(body.gaSessionId || body.ga_session_id, 100);
+
+  if (cohort) metadata.cohort = cohort;
+  if (gaClientId) metadata.ga_client_id = gaClientId;
+  if (gaSessionId) metadata.ga_session_id = gaSessionId;
+
+  return metadata;
+}
+
 // Derived from catalog — edit js/catalog.js instead.
 const ELIGIBLE_INSTALMENT_PRODUCTS = new Set(
   Object.keys(CATALOG).filter(function (k) { return CATALOG[k].instalmentEligible; })
@@ -373,6 +389,9 @@ function buildInstalmentSessionPayload({
   recurringPriceId,
   couponCode = '',
   discountAmount = 0,
+  cohort = '',
+  gaClientId = '',
+  gaSessionId = '',
 }) {
   const oneTimeLineItems = buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity, upsellSlug2);
   const plan = CATALOG[slug] && CATALOG[slug].instalment ? CATALOG[slug].instalment.plan : null;
@@ -390,6 +409,7 @@ function buildInstalmentSessionPayload({
     customer_name: customer.customerName,
     customer_phone: customer.phone,
   };
+  addAnalyticsMetadata(metadata, { cohort, gaClientId, gaSessionId });
 
   if (upsellSlug) {
     metadata.upsell_slug = upsellSlug;
@@ -447,6 +467,9 @@ function buildAfterpaySessionPayload({
   origin,
   finalAmount,
   couponCode,
+  cohort = '',
+  gaClientId = '',
+  gaSessionId = '',
 }) {
   const metadata = {
     product_slug: purchase.baseSlug,
@@ -456,6 +479,7 @@ function buildAfterpaySessionPayload({
     customer_name: customer.customerName,
     customer_phone: customer.phone,
   };
+  addAnalyticsMetadata(metadata, { cohort, gaClientId, gaSessionId });
 
   if (purchase.upsellSlug) {
     metadata.upsell_slug = purchase.upsellSlug;
@@ -532,6 +556,7 @@ async function handleOneOffCheckout(req, res, body) {
       customer_name: customer.customerName,
       customer_phone: customer.phone,
     };
+    addAnalyticsMetadata(metadata, body);
 
     if (purchase.upsellSlug) {
       metadata.upsell_slug = purchase.upsellSlug;
@@ -684,6 +709,9 @@ async function handleInstalmentCheckout(req, res, body, origin) {
         origin: sessionOrigin,
         finalAmount,
         couponCode: validatedCode && discountAmount > 0 ? validatedCode : '',
+        cohort: body.cohort,
+        gaClientId: body.gaClientId || body.ga_client_id,
+        gaSessionId: body.gaSessionId || body.ga_session_id,
       });
     } else {
       const recurringPriceId = String(process.env[PRICE_ENV_KEYS[checkoutRequest.slug]] || '').trim();
@@ -727,6 +755,9 @@ async function handleInstalmentCheckout(req, res, body, origin) {
         recurringPriceId,
         couponCode: validatedCode,
         discountAmount,
+        cohort: body.cohort,
+        gaClientId: body.gaClientId || body.ga_client_id,
+        gaSessionId: body.gaSessionId || body.ga_session_id,
       });
     }
 

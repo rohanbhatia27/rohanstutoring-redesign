@@ -26,7 +26,7 @@ test('flagship course pages route visitors to checkout after enrolments reopen',
   assert.match(masteryHtml, /href="\/checkout\/\?product=mastery(?:&amp;|&)paymentMode=instalments"/);
   assert.doesNotMatch(masteryHtml, /Sold Out|waitlist|formspree\.io/i);
 
-  assert.match(comprehensiveHtml, /New cohort starts 15 June/);
+  assert.match(comprehensiveHtml, /Cohort 2 is live, and you can still join/);
   assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&paymentMode=instalments&cohort=2"/);
   assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&cohort=2"/);
   assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive"(?!&)/);
@@ -127,14 +127,16 @@ test('course product pages share the product stylesheet and script shell', () =>
   });
 });
 
-test('comprehensive hero promotes limited June cohort spots with an AEST countdown', () => {
+test('comprehensive hero promotes limited live cohort spots without an expired countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /Only 9 spots left/);
-  assert.match(html, /\bdata-countdown-v3\b/);
-  assert.match(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
-  assert.match(html, /Cohort begins in/);
-  assert.match(html, /full library before Week 1/);
+  assert.match(html, /3 Seats Left/);
+  assert.match(html, /Cohort 2 is live, and you can still join/);
+  assert.match(html, /full 50\+ hour library is yours straight away/);
+  assert.match(html, /Week one is foundations/);
+  assert.doesNotMatch(html, /\bdata-countdown-v3\b/);
+  assert.doesNotMatch(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
+  assert.doesNotMatch(html, /Cohort begins in/);
 });
 
 test('getCountdownParts returns days, hours, and minutes until 26 May', () => {
