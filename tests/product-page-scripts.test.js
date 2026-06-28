@@ -130,7 +130,7 @@ test('course product pages share the product stylesheet and script shell', () =>
 test('comprehensive hero promotes limited live cohort spots without an expired countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /3 Seats Left/);
+  assert.match(html, /1 Seat Left/);
   assert.match(html, /Cohort 2 is live, and you can still join/);
   assert.match(html, /full 50\+ hour library is yours straight away/);
   assert.match(html, /Week one is foundations/);
