@@ -287,7 +287,7 @@
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
       priceCents: 169900,
-      available: true,
+      available: false, // sold out — flip to true when enrolments reopen
       highTicket: true,
       afterpay: false,
       instalmentEligible: true,
@@ -382,7 +382,7 @@
       name: 'Mastery Program',
       title: 'Mastery Program',
       priceCents: 249900,
-      available: true,
+      available: false, // sold out — flip to true when enrolments reopen
       highTicket: true,
       afterpay: false,
       instalmentEligible: true,

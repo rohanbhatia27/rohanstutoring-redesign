@@ -601,7 +601,7 @@ test('initCheckoutPage keeps the pay button disabled until checkout is ready', a
 
   global.window = {
     location: {
-      search: '?product=comprehensive',
+      search: '?product=blueprint',
     },
   };
   global.document = {
@@ -794,65 +794,35 @@ test('trackGa4BeginCheckoutOnce does not throw when gtag is missing', () => {
   }
 });
 
-test('initCheckoutPage honours paymentMode=instalments links and submits through the instalment session API', async () => {
+test('initCheckoutPage shows the waitlist for a sold-out instalment product instead of starting checkout', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;
   const previousFetch = global.fetch;
   const previousStripe = global.Stripe;
+  // comprehensive is sold out: a direct instalment checkout link must not start a session.
   const env = createCheckoutSubmitTestEnv('?product=comprehensive&paymentMode=instalments');
   const fetchCalls = [];
-  let confirmCardPaymentCalled = false;
 
   global.window = env.windowObject;
   global.document = env.documentObject;
   global.fetch = async (url, options = {}) => {
     fetchCalls.push({ url, options });
-
-    if (url === '/api/public-config') {
-      return {
-        ok: true,
-        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
-      };
-    }
-
-    if (url === '/api/create-checkout') {
-      return {
-        ok: true,
-        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/instalment_123' }),
-      };
-    }
-
     throw new Error(`Unexpected fetch URL: ${url}`);
   };
   global.Stripe = () => ({
     elements() {
-      return {
-        create() {
-          return {
-            mount() {},
-            on() {},
-          };
-        },
-      };
-    },
-    async confirmCardPayment() {
-      confirmCardPaymentCalled = true;
-      return {};
+      return { create() { return { mount() {}, on() {} }; } };
     },
   });
 
   try {
     await initCheckoutPage();
 
-    assert.equal(env.payBtnLabel.textContent, 'Continue to secure instalment checkout');
-
-    await env.form.submitHandler({
-      preventDefault() {},
-    });
-
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
-    assert.equal(confirmCardPaymentCalled, false);
-    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/instalment_123');
+    assert.equal(env.elements['#checkout-not-found'].hidden, false);
+    assert.match(env.elements['#checkout-not-found'].innerHTML, /waitlist/i);
+    assert.equal(env.elements['#checkout-grid'].hidden, true);
+    assert.equal(env.form.submitHandler, null);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), false);
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -866,7 +836,7 @@ test('initCheckoutPage queues checkout lead recovery after a valid email is ente
   const previousDocument = global.document;
   const previousFetch = global.fetch;
   const previousStripe = global.Stripe;
-  const env = createCheckoutSubmitTestEnv('?product=comprehensive&paymentMode=instalments&cohort=2');
+  const env = createCheckoutSubmitTestEnv('?product=blueprint&cohort=2');
   const fetchCalls = [];
   const gtagCalls = [];
   const emailInput = env.elements['#email'];
@@ -930,17 +900,17 @@ test('initCheckoutPage queues checkout lead recovery after a valid email is ente
     const captureCall = fetchCalls.find((call) => call.url === '/api/create-checkout?action=checkoutLead');
     assert.ok(captureCall, 'expected checkout lead capture request');
     const payload = JSON.parse(captureCall.options.body);
-    assert.equal(payload.slug, 'comprehensive');
+    assert.equal(payload.slug, 'blueprint');
     assert.equal(payload.email, 'jane@example.com');
     assert.equal(payload.customerName, 'Jane Smith');
-    assert.equal(payload.paymentMode, 'instalments');
+    assert.equal(payload.paymentMode, 'full');
     assert.equal(payload.cohort, '2');
-    assert.equal(payload.value, 1699);
+    assert.equal(payload.value, 599);
 
     const leadEvent = gtagCalls.find((call) => call[1] === 'checkout_lead_captured');
     assert.ok(leadEvent, 'expected checkout_lead_captured GA4 event');
-    assert.equal(leadEvent[2].product_slug, 'comprehensive');
-    assert.equal(leadEvent[2].payment_mode, 'instalments');
+    assert.equal(leadEvent[2].product_slug, 'blueprint');
+    assert.equal(leadEvent[2].payment_mode, 'full');
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -949,11 +919,12 @@ test('initCheckoutPage queues checkout lead recovery after a valid email is ente
   }
 });
 
-test('initCheckoutPage honours mastery instalment links and submits through the instalment session API', async () => {
+test('initCheckoutPage shows the waitlist for a sold-out mastery instalment link instead of starting checkout', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;
   const previousFetch = global.fetch;
   const previousStripe = global.Stripe;
+  // mastery is sold out: a direct instalment checkout link must not start a session.
   const env = createCheckoutSubmitTestEnv('?product=mastery&paymentMode=instalments');
   const fetchCalls = [];
 
@@ -961,50 +932,22 @@ test('initCheckoutPage honours mastery instalment links and submits through the 
   global.document = env.documentObject;
   global.fetch = async (url, options = {}) => {
     fetchCalls.push({ url, options });
-
-    if (url === '/api/public-config') {
-      return {
-        ok: true,
-        text: async () => JSON.stringify({ stripePublishableKey: 'pk_test_123' }),
-      };
-    }
-
-    if (url === '/api/create-checkout') {
-      return {
-        ok: true,
-        text: async () => JSON.stringify({ url: 'https://checkout.stripe.test/mastery_instalment_123' }),
-      };
-    }
-
     throw new Error(`Unexpected fetch URL: ${url}`);
   };
   global.Stripe = () => ({
     elements() {
-      return {
-        create() {
-          return {
-            mount() {},
-            on() {},
-          };
-        },
-      };
-    },
-    async confirmCardPayment() {
-      throw new Error('Card confirmation should not run for instalment checkout submissions.');
+      return { create() { return { mount() {}, on() {} }; } };
     },
   });
 
   try {
     await initCheckoutPage();
 
-    assert.equal(env.payBtnLabel.textContent, 'Continue to secure instalment checkout');
-
-    await env.form.submitHandler({
-      preventDefault() {},
-    });
-
-    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), true);
-    assert.equal(env.windowObject.location.href, 'https://checkout.stripe.test/mastery_instalment_123');
+    assert.equal(env.elements['#checkout-not-found'].hidden, false);
+    assert.match(env.elements['#checkout-not-found'].innerHTML, /waitlist/i);
+    assert.equal(env.elements['#checkout-grid'].hidden, true);
+    assert.equal(env.form.submitHandler, null);
+    assert.equal(fetchCalls.some((call) => call.url === '/api/create-checkout'), false);
   } finally {
     global.window = previousWindow;
     global.document = previousDocument;
@@ -1732,6 +1675,59 @@ test('stripe webhook sends server-side GA4 purchase for completed hosted checkou
   stripeWebhookHandler.__resetForTests();
 });
 
+test('stripe webhook treats GA4 purchase dispatch errors as non-fatal after fulfillment', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+  let fulfilled = false;
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: {
+      constructEvent() {
+        return {
+          type: 'payment_intent.succeeded',
+          data: {
+            object: {
+              id: 'pi_test_123',
+              amount_received: 59900,
+              currency: 'aud',
+              metadata: {
+                product_slug: 'blueprint',
+                ga_client_id: '123456789.987654321',
+              },
+            },
+          },
+        };
+      },
+    },
+    paymentIntents: {
+      update: async () => undefined,
+    },
+  }));
+  stripeWebhookHandler.__setFulfillPaymentIntent(async () => {
+    fulfilled = true;
+    return { alreadyFulfilled: false };
+  });
+  stripeWebhookHandler.__setSendGa4Purchase(async () => {
+    throw new Error('GA4 temporary failure');
+  });
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'stripe-signature': 't=123,v1=abc',
+    },
+    body: Buffer.from('{"id":"evt_123","object":"event"}'),
+  };
+  const res = createJsonResponseRecorder();
+
+  await stripeWebhookHandler(req, res);
+
+  assert.equal(fulfilled, true);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, { received: true });
+  stripeWebhookHandler.__resetForTests();
+});
+
 test('checkout stylesheet preserves hidden state for conditional checkout panels', () => {
   const css = fs.readFileSync(path.join(__dirname, '../css/checkout.css'), 'utf8');
 
@@ -2245,43 +2241,30 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
     }
   );
 
-  assert.deepEqual(
-    createPaymentIntentHandler.resolveCheckoutPurchase({
-      slug: 'comprehensive',
-      upsellSlug: 'mentoring-single',
-    }),
-    {
-      amount: 179800,
-      baseAmount: 169900,
-      baseSlug: 'comprehensive',
-      upsellAmount: 9900,
-      upsellSlug: 'mentoring-single',
-    }
-  );
-
-  assert.deepEqual(
-    createPaymentIntentHandler.resolveCheckoutPurchase({
-      slug: 'mastery',
-      upsellSlug: 'mentoring-single',
-      upsellQuantity: 6,
-    }),
-    {
-      amount: 309300,
-      baseAmount: 249900,
-      baseSlug: 'mastery',
-      upsellAmount: 59400,
-      upsellSlug: 'mentoring-single',
-      upsellQuantity: 6,
-      upsellUnitAmount: 9900,
-    }
-  );
-
   assert.equal(
     createPaymentIntentHandler.resolveCheckoutPurchase({
       slug: 'blueprint',
       upsellSlug: 'essay-collection',
     }).error,
     'Invalid upsell combination: blueprint + essay-collection'
+  );
+
+  // Sold-out flagship products are rejected server-side so no new sales go through.
+  assert.equal(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'comprehensive',
+      upsellSlug: 'mentoring-single',
+    }).error,
+    'This product is currently unavailable.'
+  );
+
+  assert.equal(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'mastery',
+      upsellSlug: 'mentoring-single',
+      upsellQuantity: 6,
+    }).error,
+    'This product is currently unavailable.'
   );
 
   assert.equal(
@@ -3180,7 +3163,7 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
         origin: 'https://rohanstutoring.com',
       },
       body: {
-        slug: 'comprehensive',
+        slug: 'blueprint',
         upsellSlug: 'mentoring-single',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
@@ -3197,11 +3180,11 @@ test('payment intent handler creates combined PaymentIntents with base and upsel
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, { clientSecret: 'pi_secret_123' });
     assert.equal(createPayloads.length, 1);
-    assert.equal(createPayloads[0].amount, 179800);
-    assert.equal(createPayloads[0].description, "Rohan's GAMSAT - comprehensive + mentoring-single");
+    assert.equal(createPayloads[0].amount, 69800);
+    assert.equal(createPayloads[0].description, "Rohan's GAMSAT - blueprint + mentoring-single");
     assert.deepEqual(createPayloads[0].metadata, {
-      product_slug: 'comprehensive',
-      base_slug: 'comprehensive',
+      product_slug: 'blueprint',
+      base_slug: 'blueprint',
       upsell_slug: 'mentoring-single',
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
@@ -3754,7 +3737,7 @@ test('payment intent handler sends Stripe idempotency keys for retries in the sa
         origin: 'https://rohanstutoring.com',
       },
       body: {
-        slug: 'comprehensive',
+        slug: 'blueprint',
         upsellSlug: 'mentoring-single',
         email: 'jane@example.com',
         customerName: 'Jane Smith',
@@ -3767,7 +3750,7 @@ test('payment intent handler sends Stripe idempotency keys for retries in the sa
 
     assert.equal(res.statusCode, 200);
     assert.equal(createCalls.length, 1);
-    assert.equal(createCalls[0].options.idempotencyKey, 'pi-jane@example.com-comprehensive-mentoring-single-29644594');
+    assert.equal(createCalls[0].options.idempotencyKey, 'pi-jane@example.com-blueprint-mentoring-single-29644594');
   } finally {
     Date.now = previousNow;
     createPaymentIntentHandler.__resetForTests();

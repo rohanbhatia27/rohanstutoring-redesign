@@ -17,30 +17,26 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-test('flagship course pages route visitors to checkout after enrolments reopen', () => {
+test('flagship course pages show a sold-out state and route visitors to the waitlist', () => {
   const masteryHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(masteryHtml, /New Cohort Starts 15 June/);
-  assert.match(masteryHtml, /href="\/checkout\/\?product=mastery"/);
-  assert.match(masteryHtml, /href="\/checkout\/\?product=mastery(?:&amp;|&)paymentMode=instalments"/);
-  assert.doesNotMatch(masteryHtml, /Sold Out|waitlist|formspree\.io/i);
+  assert.match(masteryHtml, /Sold Out/);
+  assert.doesNotMatch(masteryHtml, /href="\/checkout\/\?product=mastery/);
+  assert.match(masteryHtml, /href="\/contact"/);
 
-  assert.match(comprehensiveHtml, /Cohort 2 is live, and you can still join/);
-  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&paymentMode=instalments&cohort=2"/);
-  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive&cohort=2"/);
-  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive"(?!&)/);
-  assert.doesNotMatch(comprehensiveHtml, /Sold Out|waitlist|formspree\.io/i);
+  assert.match(comprehensiveHtml, /Sold Out/);
+  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
+  assert.match(comprehensiveHtml, /href="\/contact"/);
 });
 
-test('comprehensive primary enrolment CTAs default to instalments while full-pay remains available', () => {
+test('comprehensive page replaces enrolment checkout links with waitlist CTAs while sold out', () => {
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
-  const instalmentLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive&paymentMode=instalments&cohort=2"/g) || [];
-  const fullPayLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive&cohort=2"/g) || [];
+  const waitlistLinks = comprehensiveHtml.match(/href="\/contact"/g) || [];
 
-  assert.ok(instalmentLinks.length >= 4, 'primary enrolment path should make instalments the easy choice');
-  assert.ok(fullPayLinks.length >= 1, 'full-pay checkout should remain available for decided buyers');
-  assert.match(comprehensiveHtml, /Pay in full\s+\$1,699/);
+  assert.doesNotMatch(comprehensiveHtml, /\/checkout\/\?product=comprehensive/, 'no enrolment checkout links while sold out');
+  assert.ok(waitlistLinks.length >= 3, 'sold-out page should route visitors to the waitlist');
+  assert.match(comprehensiveHtml, /Join the [Ww]aitlist/);
 });
 
 test('product hero media keeps eager LCP hints and a shared aspect-ratio fallback', () => {
@@ -127,13 +123,12 @@ test('course product pages share the product stylesheet and script shell', () =>
   });
 });
 
-test('comprehensive hero promotes limited live cohort spots without an expired countdown', () => {
+test('comprehensive hero shows a sold-out state without an expired countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /1 Seat Left/);
-  assert.match(html, /Cohort 2 is live, and you can still join/);
-  assert.match(html, /full 50\+ hour library is yours straight away/);
-  assert.match(html, /Week one is foundations/);
+  assert.match(html, /Sold Out/);
+  assert.match(html, /This cohort is full/);
+  assert.doesNotMatch(html, /1 Seat Left/);
   assert.doesNotMatch(html, /\bdata-countdown-v3\b/);
   assert.doesNotMatch(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
   assert.doesNotMatch(html, /Cohort begins in/);
