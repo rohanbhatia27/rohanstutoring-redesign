@@ -1,5 +1,5 @@
 const { Resend } = require('resend');
-const { isValidEmail, addSubscriberToForm } = require('./_kit.js');
+const { isValidEmail, addSubscriberToForm, addSubscriberToSequence } = require('./_kit.js');
 
 const SUPPORT_EMAIL = 'hello@rohanstutoring.com';
 
@@ -94,6 +94,66 @@ async function submitKitResourceLead({ resourceKey, email, firstName = '' }) {
   };
 }
 
+function buildDeliveryEmailHtml({ firstName, resource }) {
+  const safeFirstName = normaliseFirstName(firstName) || 'there';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr><td style="background:#0a0f1e;padding:28px 32px;">
+          <p style="margin:0;color:#60a5fa;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT</p>
+        </td></tr>
+        <tr><td style="padding:36px 32px 28px;">
+          <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#0a0f1e;line-height:1.3;">Your ${resource.name} is ready</h1>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hi ${safeFirstName},</p>
+          <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">Here is the ${resource.name} you asked for. Open it with the button below.</p>
+          <p style="margin:0 0 28px;">
+            <a href="${resource.downloadUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 28px;border-radius:6px;">Open your ${resource.name}</a>
+          </p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6;">If the button does not work, use this link: <a href="${resource.downloadUrl}" style="color:#2563eb;text-decoration:none;">${resource.downloadUrl}</a></p>
+          <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Talk soon,<br>Rohan</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendDeliveryEmail({ resourceKey, email, firstName = '' }) {
+  const resource = getFreeResource(resourceKey);
+  if (!resource) {
+    throw new Error('Unknown free resource');
+  }
+  if (!resource.downloadUrl) {
+    throw new Error(`No download URL configured for ${resourceKey}`);
+  }
+
+  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
+  const safeEmail = String(email || '').trim();
+  if (!apiKey) {
+    throw new Error('Missing RESEND_API_KEY environment variable');
+  }
+  if (!isValidEmail(safeEmail)) {
+    throw new Error('Invalid subscriber email address');
+  }
+
+  const resend = resendFactory(apiKey);
+  const result = await resend.emails.send({
+    from: SUPPORT_EMAIL,
+    to: safeEmail,
+    subject: resource.emailSubject || `Your free ${resource.name}`,
+    html: buildDeliveryEmailHtml({ firstName, resource }),
+    text: `Hi ${normaliseFirstName(firstName) || 'there'},\n\nHere is your ${resource.name}:\n${resource.downloadUrl}\n\nTalk soon,\nRohan\n`,
+  });
+
+  return { sent: true, id: result && result.id ? result.id : null };
+}
+
 function buildFallbackPayload({ resourceKey, emailSent = false }) {
   const resource = getFreeResource(resourceKey);
   if (!resource) {
@@ -182,6 +242,7 @@ module.exports = {
   submitKitResourceLead,
   buildFallbackPayload,
   sendFallbackEmail,
+  sendDeliveryEmail,
   __setResendFactory: (value) => {
     resendFactory = value;
   },
