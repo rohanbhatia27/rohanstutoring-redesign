@@ -102,6 +102,50 @@ async function tagSubscriber({ subscriberId, tagId }) {
   return data && data.subscriber ? data.subscriber : null;
 }
 
+async function addSubscriberToForm({ formId, email, firstName = '' }) {
+  const safeFormId = String(formId || '').trim();
+  if (!safeFormId) {
+    throw new Error('Missing Kit form id');
+  }
+  if (!isValidEmail(email)) {
+    throw new Error('Invalid subscriber email address');
+  }
+
+  // Upsert first so the subscriber is active and carries their first name: the
+  // v4 form-subscribe endpoint only accepts an email address. Adding them to
+  // the form then fires the form-triggered automation that delivers the resource.
+  await upsertSubscriber({ email, firstName });
+
+  const data = await kitRequest(`/forms/${encodeURIComponent(safeFormId)}/subscribers`, {
+    method: 'POST',
+    body: { email_address: String(email).trim() },
+  });
+
+  return data && data.subscriber ? data.subscriber : null;
+}
+
+async function addSubscriberToSequence({ sequenceId, email, firstName = '' }) {
+  const safeSequenceId = String(sequenceId || '').trim();
+  if (!safeSequenceId) {
+    throw new Error('Missing Kit sequence id');
+  }
+  if (!isValidEmail(email)) {
+    throw new Error('Invalid subscriber email address');
+  }
+
+  // Upsert first so the subscriber exists and carries their first name, then
+  // enroll them into the sequence. Unlike the form-automation trigger, this
+  // enrollment is deterministic, so the nurture series actually starts.
+  await upsertSubscriber({ email, firstName });
+
+  const data = await kitRequest(`/sequences/${encodeURIComponent(safeSequenceId)}/subscribers`, {
+    method: 'POST',
+    body: { email_address: String(email).trim() },
+  });
+
+  return data && data.subscriber ? data.subscriber : null;
+}
+
 async function syncQuizLead({ email, firstName = '', outcome = '' }) {
   const safeOutcome = String(outcome || '').trim();
   const subscriber = await upsertSubscriber({
@@ -225,6 +269,8 @@ module.exports = {
   isValidEmail,
   upsertSubscriber,
   tagSubscriber,
+  addSubscriberToForm,
+  addSubscriberToSequence,
   syncQuizLead,
   syncPurchaseTag,
   syncCheckoutStartedTag,
