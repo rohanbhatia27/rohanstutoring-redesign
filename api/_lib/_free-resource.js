@@ -1,15 +1,16 @@
 const { Resend } = require('resend');
-const { isValidEmail } = require('./_kit.js');
+const { isValidEmail, addSubscriberToForm } = require('./_kit.js');
 
-const KIT_FORM_BASE = 'https://app.kit.com/forms';
 const SUPPORT_EMAIL = 'hello@rohanstutoring.com';
-const KIT_TIMEOUT_MS = 8000;
 
 const FREE_RESOURCES = {
   's1-tracker': {
     key: 's1-tracker',
     name: 'S1 Question Tracker',
     kitFormId: '8683298',
+    kitSequenceId: '2723708',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/1eaDltkkqWrejF1bIgoW48MZLguXzeHMOhxfE4xoZLlc/edit?gid=788264791#gid=788264791',
+    emailSubject: 'Your free S1 Question Tracker is inside',
     backupUrlEnv: 'FREE_RESOURCE_S1_TRACKER_BACKUP_URL',
     backupLabel: 'Open the tracker backup link',
   },
@@ -17,6 +18,9 @@ const FREE_RESOURCES = {
     key: 's1-mock',
     name: 'S1 Mini Mock',
     kitFormId: '8717603',
+    kitSequenceId: '2718570',
+    downloadUrl: 'https://drive.google.com/file/d/12rRPRFxmef7Oe8FU2oTWP3Sp0jdnLztt/view?usp=sharing',
+    emailSubject: 'Your free S1 Mini Mock is inside',
     backupUrlEnv: 'FREE_RESOURCE_S1_MOCK_BACKUP_URL',
     backupLabel: 'Open the mini-mock backup link',
   },
@@ -24,6 +28,9 @@ const FREE_RESOURCES = {
     key: 's2-slam-system',
     name: 'S2 Slam System',
     kitFormId: '8526774',
+    kitSequenceId: '2786194',
+    downloadUrl: 'https://download.filekitcdn.com/d/2hU8i25SXZz1XsLtQta7Yr/9LJePVqF4moaNxMtw6K9uB',
+    emailSubject: 'Your free S2 Slam System is inside',
     backupUrlEnv: 'FREE_RESOURCE_S2_SLAM_SYSTEM_BACKUP_URL',
     backupLabel: 'Open the S2 Slam System backup link',
   },
@@ -36,7 +43,6 @@ const FREE_RESOURCES = {
   },
 };
 
-let fetchImpl = (...args) => fetch(...args);
 let resendFactory = (apiKey) => new Resend(apiKey);
 
 function normaliseFirstName(value) {
@@ -72,43 +78,20 @@ async function submitKitResourceLead({ resourceKey, email, firstName = '' }) {
     throw new Error('Invalid subscriber email address');
   }
 
-  const formBody = new URLSearchParams();
-  const safeFirstName = normaliseFirstName(firstName);
-  if (safeFirstName) {
-    formBody.set('fields[first_name]', safeFirstName);
-  }
-  formBody.set('email_address', safeEmail);
+  // Subscribe through Kit's authenticated v4 API. This creates a real
+  // "subscribes to form" event that fires the form's delivery automation, which
+  // is what actually emails the resource. (The old unauthenticated browser form
+  // endpoint silently failed from the server, so leads never reached Kit.)
+  await addSubscriberToForm({
+    formId: resource.kitFormId,
+    email: safeEmail,
+    firstName,
+  });
 
-  const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timeoutId = controller
-    ? setTimeout(() => controller.abort(new Error('Kit form request timed out')), KIT_TIMEOUT_MS)
-    : null;
-
-  try {
-    const response = await fetchImpl(`${KIT_FORM_BASE}/${resource.kitFormId}/subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formBody.toString(),
-      redirect: 'manual',
-      signal: controller ? controller.signal : undefined,
-    });
-
-    if (response.status < 200 || response.status >= 400) {
-      throw new Error(`Kit form submission failed (${response.status})`);
-    }
-
-    return {
-      resource,
-      accepted: true,
-      status: response.status,
-    };
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  }
+  return {
+    resource,
+    accepted: true,
+  };
 }
 
 function buildFallbackPayload({ resourceKey, emailSent = false }) {
@@ -199,14 +182,10 @@ module.exports = {
   submitKitResourceLead,
   buildFallbackPayload,
   sendFallbackEmail,
-  __setFetch: (value) => {
-    fetchImpl = value;
-  },
   __setResendFactory: (value) => {
     resendFactory = value;
   },
   __resetForTests: () => {
-    fetchImpl = (...args) => fetch(...args);
     resendFactory = (apiKey) => new Resend(apiKey);
   },
 };
