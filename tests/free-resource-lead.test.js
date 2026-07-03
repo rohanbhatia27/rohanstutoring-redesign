@@ -92,3 +92,116 @@ test('sendDeliveryEmail throws when RESEND_API_KEY is missing', async () => {
     /RESEND_API_KEY/
   );
 });
+
+test('syncKitForResource enrolls the resource nurture sequence after form sync', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  const calls = [];
+  mockKitApiOk(calls);
+
+  const result = await freeResource.syncKitForResource({
+    resourceKey: 's1-mock',
+    firstName: 'Jane',
+    email: 'jane@example.com',
+  });
+
+  const formCall = calls.find((c) => c.url.endsWith('/v4/forms/8717603/subscribers'));
+  const sequenceCall = calls.find((c) => c.url.endsWith('/v4/sequences/2718570/subscribers'));
+
+  assert.deepEqual(result, { synced: true });
+  assert.ok(formCall, 'expected Kit form sync');
+  assert.ok(sequenceCall, 'expected Kit nurture sequence enrollment');
+
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+});
+
+test('syncKitForResource swallows Kit failures and never throws', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  kit.__setFetch(async () => {
+    throw new Error('Kit network failure');
+  });
+
+  const result = await freeResource.syncKitForResource({
+    resourceKey: 's1-mock',
+    firstName: 'Jane',
+    email: 'jane@example.com',
+  });
+
+  assert.equal(result.synced, true);
+
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+});
+
+test('handler returns delivered even when Kit sync fails', async () => {
+  process.env.RESEND_API_KEY = 're_test_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  const sent = [];
+  mockResend(sent);
+  kit.__setFetch(async () => {
+    throw new Error('Kit down');
+  });
+
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://www.rohanstutoring.com' },
+    body: { resourceKey: 's1-tracker', firstName: 'Jane', email: 'jane@example.com' },
+  };
+  const res = createJsonResponseRecorder();
+
+  await freeResourceLeadHandler(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.status, 'delivered');
+  assert.equal(res.body.resource.name, 'S1 Question Tracker');
+  assert.equal(sent.length, 1);
+
+  kit.__resetForTests();
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+  delete process.env.KIT_API_KEY;
+});
+
+test('handler falls back on-page when the delivery email fails', async () => {
+  process.env.RESEND_API_KEY = 're_test_123';
+  process.env.FREE_RESOURCE_S1_TRACKER_BACKUP_URL = 'https://example.com/tracker-backup';
+  freeResource.__setResendFactory(() => ({
+    emails: {
+      send: async () => {
+        throw new Error('Resend down');
+      },
+    },
+  }));
+
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://www.rohanstutoring.com' },
+    body: { resourceKey: 's1-tracker', firstName: 'Jane', email: 'jane@example.com' },
+  };
+  const res = createJsonResponseRecorder();
+
+  await freeResourceLeadHandler(req, res);
+
+  assert.equal(res.statusCode, 202);
+  assert.equal(res.body.status, 'fallback');
+  assert.equal(res.body.fallback.kind, 'download');
+  assert.equal(res.body.fallback.url, 'https://example.com/tracker-backup');
+
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+  delete process.env.FREE_RESOURCE_S1_TRACKER_BACKUP_URL;
+});
+
+test('handler rejects an unknown resource key', async () => {
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://www.rohanstutoring.com' },
+    body: { resourceKey: 'not-a-real-resource', firstName: 'Jane', email: 'jane@example.com' },
+  };
+  const res = createJsonResponseRecorder();
+
+  await freeResourceLeadHandler(req, res);
+
+  assert.equal(res.statusCode, 400);
+});

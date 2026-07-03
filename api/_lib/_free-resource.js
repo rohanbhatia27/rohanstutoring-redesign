@@ -67,33 +67,6 @@ function buildSupportMailtoUrl(resource) {
   return `mailto:${SUPPORT_EMAIL}?${params.toString()}`;
 }
 
-async function submitKitResourceLead({ resourceKey, email, firstName = '' }) {
-  const resource = getFreeResource(resourceKey);
-  if (!resource) {
-    throw new Error('Unknown free resource');
-  }
-
-  const safeEmail = String(email || '').trim();
-  if (!isValidEmail(safeEmail)) {
-    throw new Error('Invalid subscriber email address');
-  }
-
-  // Subscribe through Kit's authenticated v4 API. This creates a real
-  // "subscribes to form" event that fires the form's delivery automation, which
-  // is what actually emails the resource. (The old unauthenticated browser form
-  // endpoint silently failed from the server, so leads never reached Kit.)
-  await addSubscriberToForm({
-    formId: resource.kitFormId,
-    email: safeEmail,
-    firstName,
-  });
-
-  return {
-    resource,
-    accepted: true,
-  };
-}
-
 function buildDeliveryEmailHtml({ firstName, resource }) {
   const safeFirstName = normaliseFirstName(firstName) || 'there';
 
@@ -154,6 +127,31 @@ async function sendDeliveryEmail({ resourceKey, email, firstName = '' }) {
   return { sent: true, id: result && result.id ? result.id : null };
 }
 
+// Best-effort Kit sync run after delivery has already succeeded. Never throws:
+// a Kit outage must not affect the student who already has their resource.
+async function syncKitForResource({ resourceKey, email, firstName = '' }) {
+  const resource = getFreeResource(resourceKey);
+  if (!resource) {
+    return { synced: false, reason: 'unknown_resource' };
+  }
+
+  try {
+    await addSubscriberToForm({ formId: resource.kitFormId, email, firstName });
+  } catch (error) {
+    console.error(`[leads/resource] Kit form add failed for ${resourceKey}:`, error.message);
+  }
+
+  if (resource.kitSequenceId) {
+    try {
+      await addSubscriberToSequence({ sequenceId: resource.kitSequenceId, email, firstName });
+    } catch (error) {
+      console.error(`[leads/resource] Kit sequence enroll failed for ${resourceKey}:`, error.message);
+    }
+  }
+
+  return { synced: true };
+}
+
 function buildFallbackPayload({ resourceKey, emailSent = false }) {
   const resource = getFreeResource(resourceKey);
   if (!resource) {
@@ -178,71 +176,12 @@ function buildFallbackPayload({ resourceKey, emailSent = false }) {
   };
 }
 
-function buildFallbackEmailHtml({ firstName, resource, backupUrl }) {
-  const safeFirstName = normaliseFirstName(firstName) || 'there';
-  const safeBackupHtml = backupUrl
-    ? `<p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Use this backup link now: <a href="${backupUrl}" style="color:#2563eb;text-decoration:none;">${backupUrl}</a></p>`
-    : `<p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Reply to this email or contact <a href="mailto:${SUPPORT_EMAIL}" style="color:#2563eb;text-decoration:none;">${SUPPORT_EMAIL}</a> and we'll send it manually.</p>`;
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
-        <tr><td style="background:#0a0f1e;padding:28px 32px;">
-          <p style="margin:0;color:#60a5fa;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT</p>
-        </td></tr>
-        <tr><td style="padding:36px 32px 28px;">
-          <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#0a0f1e;line-height:1.3;">Backup access for your ${resource.name}</h1>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hi ${safeFirstName},</p>
-          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Kit did not confirm delivery straight away, so I'm sending a backup path here so you are not left waiting.</p>
-          ${safeBackupHtml}
-          <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan's GAMSAT</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
-
-async function sendFallbackEmail({ resourceKey, email, firstName = '' }) {
-  const resource = getFreeResource(resourceKey);
-  if (!resource) {
-    throw new Error('Unknown free resource');
-  }
-
-  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  const safeEmail = String(email || '').trim();
-  if (!apiKey || !isValidEmail(safeEmail)) {
-    return { sent: false };
-  }
-
-  const backupUrl = getBackupUrl(resource);
-  const resend = resendFactory(apiKey);
-
-  await resend.emails.send({
-    from: SUPPORT_EMAIL,
-    to: safeEmail,
-    subject: `Backup access for your ${resource.name}`,
-    html: buildFallbackEmailHtml({ firstName, resource, backupUrl }),
-    text: backupUrl
-      ? `Hi ${normaliseFirstName(firstName) || 'there'},\n\nKit did not confirm delivery for your ${resource.name} straight away.\n\nUse this backup link now: ${backupUrl}\n\nIf you still need help, reply to this email or contact ${SUPPORT_EMAIL}.\n`
-      : `Hi ${normaliseFirstName(firstName) || 'there'},\n\nKit did not confirm delivery for your ${resource.name} straight away.\n\nReply to this email or contact ${SUPPORT_EMAIL} and we'll send it manually.\n`,
-  });
-
-  return { sent: true };
-}
-
 module.exports = {
   SUPPORT_EMAIL,
   getFreeResource,
-  submitKitResourceLead,
   buildFallbackPayload,
-  sendFallbackEmail,
   sendDeliveryEmail,
+  syncKitForResource,
   __setResendFactory: (value) => {
     resendFactory = value;
   },
