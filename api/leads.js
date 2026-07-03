@@ -5,9 +5,9 @@ const { syncQuizLead } = require('./_lib/_kit.js');
 const { checkRateLimit } = require('./_lib/_rate-limit.js');
 const {
   getFreeResource,
-  submitKitResourceLead,
+  sendDeliveryEmail,
+  syncKitForResource,
   buildFallbackPayload,
-  sendFallbackEmail,
 } = require('./_lib/_free-resource.js');
 
 // ---- Quiz lead ----
@@ -60,25 +60,14 @@ async function handleResourceLead(body, res, req) {
   const rl = await checkRateLimit(req, { bucket: 'leads', email: lead.email });
   if (rl.limited) return res.status(429).json({ error: rl.message });
 
+  let resource;
   try {
-    const result = await submitKitResourceLead(lead);
-    return res.status(200).json({
-      ok: true,
-      status: 'kit',
-      resource: { key: result.resource.key, name: result.resource.name },
-    });
+    const result = await sendDeliveryEmail(lead);
+    resource = getFreeResource(lead.resourceKey);
+    console.log(`[leads/resource] Delivered ${lead.resourceKey} to ${lead.email} (resend id: ${result.id || 'n/a'})`);
   } catch (error) {
-    console.error(`[leads/resource] Kit submission failed for ${lead.resourceKey}:`, error.message);
-
-    let fallbackEmailSent = false;
-    try {
-      const emailResult = await sendFallbackEmail(lead);
-      fallbackEmailSent = Boolean(emailResult && emailResult.sent);
-    } catch (emailError) {
-      console.error(`[leads/resource] Fallback email failed for ${lead.resourceKey}:`, emailError.message);
-    }
-
-    const fallback = buildFallbackPayload({ resourceKey: lead.resourceKey, emailSent: fallbackEmailSent });
+    console.error(`[leads/resource] Delivery email failed for ${lead.resourceKey}:`, error.message);
+    const fallback = buildFallbackPayload({ resourceKey: lead.resourceKey, emailSent: false });
     return res.status(202).json({
       ok: true,
       status: 'fallback',
@@ -87,6 +76,16 @@ async function handleResourceLead(body, res, req) {
       fallback: fallback.fallback,
     });
   }
+
+  // Delivery already succeeded above. Kit sync is best-effort and never throws,
+  // so a Kit outage cannot turn a delivered lead into a failure.
+  await syncKitForResource(lead);
+
+  return res.status(200).json({
+    ok: true,
+    status: 'delivered',
+    resource: { key: resource.key, name: resource.name },
+  });
 }
 
 // ---- Router ----
