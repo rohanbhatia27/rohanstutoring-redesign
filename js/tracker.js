@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     successCardMessage: 'Check your inbox — the tracker is on its way.',
     onLeadCaptured: function (status) {
       fireLeadEvent(status);
-      if (status === 'kit') {
+      if (status === 'delivered') {
         fireDeliveryEvent();
       }
     },

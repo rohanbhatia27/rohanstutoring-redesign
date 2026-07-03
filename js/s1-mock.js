@@ -38,7 +38,7 @@
     successCardMessage: 'Check your inbox! Your S1 Mini Mock is on its way.',
     onLeadCaptured: function (status) {
       fireLeadEvent(status);
-      if (status === 'kit') {
+      if (status === 'delivered') {
         fireDeliveryEvent();
       }
     }
