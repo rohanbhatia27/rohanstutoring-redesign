@@ -29,7 +29,7 @@ const FREE_RESOURCES = {
     name: 'S2 Slam System',
     kitFormId: '8526774',
     kitSequenceId: '2786194',
-    downloadUrl: 'https://download.filekitcdn.com/d/2hU8i25SXZz1XsLtQta7Yr/9LJePVqF4moaNxMtw6K9uB',
+    downloadUrl: 'https://www.rohanstutoring.com/assets/free-resources/s2-slam-system.pdf',
     emailSubject: 'Your free S2 Slam System is inside',
     backupUrlEnv: 'FREE_RESOURCE_S2_SLAM_SYSTEM_BACKUP_URL',
     backupLabel: 'Open the S2 Slam System backup link',

@@ -79,7 +79,7 @@ test('sendDeliveryEmail emails the S2 Slam System link', async () => {
   });
 
   assert.equal(sent[0].subject, 'Your free S2 Slam System is inside');
-  assert.match(sent[0].html, /download\.filekitcdn\.com\/d\/2hU8i25SXZz1XsLtQta7Yr\/9LJePVqF4moaNxMtw6K9uB/);
+  assert.match(sent[0].html, /www\.rohanstutoring\.com\/assets\/free-resources\/s2-slam-system\.pdf/);
 
   freeResource.__resetForTests();
   delete process.env.RESEND_API_KEY;
