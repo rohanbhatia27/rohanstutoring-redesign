@@ -78,6 +78,14 @@ async function pingBetterStackHeartbeat() {
   }
 }
 
+async function sendGa4PurchaseNonFatal(payload) {
+  try {
+    await sendGa4PurchaseImpl(payload);
+  } catch (error) {
+    console.warn('[stripe-webhook] GA4 purchase dispatch failed:', error.message);
+  }
+}
+
 async function stripeWebhookHandler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -117,7 +125,7 @@ async function stripeWebhookHandler(req, res) {
         paymentIntent: pi,
         stripeClient,
       });
-      await sendGa4PurchaseImpl({
+      await sendGa4PurchaseNonFatal({
         transactionId: pi.id,
         amountCents: pi.amount_received || pi.amount,
         currency: pi.currency,
@@ -128,7 +136,7 @@ async function stripeWebhookHandler(req, res) {
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         await fulfillInstalmentCheckoutImpl({ session });
-        await sendGa4PurchaseImpl({
+        await sendGa4PurchaseNonFatal({
           transactionId: session.id,
           amountCents: session.amount_total,
           currency: session.currency,
