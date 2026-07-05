@@ -36,6 +36,14 @@ function read(file) {
   return fs.readFileSync(path.join(ROOT, file), 'utf8');
 }
 
+function htmlFiles() {
+  return fs.readdirSync(ROOT, { recursive: true })
+    .map(String)
+    .filter((file) => file.endsWith('.html'))
+    .filter((file) => !file.startsWith('.vercel/'))
+    .filter((file) => !file.startsWith('node_modules/'));
+}
+
 test('indexable pages declare a canonical tag that matches the clean public URL', () => {
   for (const page of INDEXABLE_PAGES) {
     const html = read(page.file);
@@ -230,10 +238,7 @@ test('retired webinar funnel is absent from active site code', () => {
 });
 
 test('local stylesheet links resolve on disk', () => {
-  const htmlFiles = fs.readdirSync(ROOT, { recursive: true })
-    .filter((file) => String(file).endsWith('.html'));
-
-  for (const file of htmlFiles) {
+  for (const file of htmlFiles()) {
     const html = read(file);
     const hrefs = Array.from(html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)).map((match) => match[1]);
 
@@ -243,6 +248,24 @@ test('local stylesheet links resolve on disk', () => {
         ? path.join(ROOT, href.slice(1))
         : path.resolve(path.dirname(path.join(ROOT, file)), href);
       assert.ok(fs.existsSync(resolved), `Missing stylesheet ${href} referenced by ${file}`);
+    }
+  }
+});
+
+test('local image src references resolve on disk', () => {
+  for (const file of htmlFiles()) {
+    const html = read(file);
+    const srcs = Array.from(html.matchAll(/<img\b[^>]*\bsrc="([^"]+)"/g)).map((match) => match[1]);
+
+    for (const rawSrc of srcs) {
+      if (/^(?:https?:)?\/\//.test(rawSrc) || rawSrc.startsWith('data:')) continue;
+
+      const src = decodeURIComponent(rawSrc.split(/[?#]/)[0]);
+      const resolved = src.startsWith('/')
+        ? path.join(ROOT, src.slice(1))
+        : path.resolve(path.dirname(path.join(ROOT, file)), src);
+
+      assert.ok(fs.existsSync(resolved), `Missing image ${rawSrc} referenced by ${file}`);
     }
   }
 });

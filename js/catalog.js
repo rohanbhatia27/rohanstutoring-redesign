@@ -285,7 +285,7 @@
     comprehensive: {
       slug: 'comprehensive',
       name: 'Comprehensive Course',
-      title: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
+      title: 'GAMSAT S1 & S2 Comprehensive Course',
       priceCents: 169900,
       available: false, // sold out — flip to true when enrolments reopen
       highTicket: true,
@@ -328,7 +328,7 @@
     's1-comprehensive': {
       slug: 's1-comprehensive',
       name: 'Section 1 Comprehensive Course',
-      title: 'GAMSAT Section 1 Comprehensive Course (June 2026 Start)',
+      title: 'GAMSAT Section 1 Comprehensive Course',
       priceCents: 99900,
       available: true,
       highTicket: false,
@@ -354,7 +354,7 @@
     's2-comprehensive': {
       slug: 's2-comprehensive',
       name: 'Section 2 Comprehensive Course',
-      title: 'GAMSAT Section 2 Comprehensive Course (June 2026 Start)',
+      title: 'GAMSAT Section 2 Comprehensive Course',
       priceCents: 99900,
       available: true,
       highTicket: false,

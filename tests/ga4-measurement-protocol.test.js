@@ -52,7 +52,7 @@ test('buildGa4PurchasePayload maps Stripe metadata to GA4 ecommerce purchase fie
   assert.deepEqual(payload.events[0].params.items, [
     {
       item_id: 'comprehensive',
-      item_name: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
+      item_name: 'GAMSAT S1 & S2 Comprehensive Course',
       item_category: 'Course',
       item_variant: 'Cohort 2',
       price: 1699,

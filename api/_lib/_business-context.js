@@ -73,17 +73,16 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   "low workshop registrations" — the workshop no longer runs.
 
 ## CURRENT PRIORITY  (snapshot — update when the launch changes)
-- Comprehensive Course Cohort 1: filled and started the week of ~26 May 2026.
-- Comprehensive Course Cohort 2: starts 15 June 2026. ALL current effort is on
-  filling it. Currently 1 enrolment; goal is another 15–20 spots.
+- Do not publish June 2026 start-date copy. That cohort date has passed.
+- Until a new live-course date is confirmed, use status-based language:
+  current cohort full, join the waitlist, or live coaching with schedule confirmed
+  before classes begin.
 - Pricing: $1699 full, or 4 x $499 instalments.
-- Primary push: email nurture off lead magnets → Comprehensive Course; invite
-  hot/engaged email leads to a private 1:1 sales call.
-- Step-down paths: GAMSAT Starter Pack and Blueprint; actively upsell existing
-  Blueprint enrolments into the Comprehensive Course with a one-off discount.
-- Roadmap after Cohort 2 fills/finishes: shift focus to Blueprint + essay marking,
-  then open a Section 1 & Section 2 sprint across July–August 2026 to catch
-  late-starting, under-prepared students.
+- Primary push: email nurture off lead magnets → quiz, Blueprint, private
+  mentoring, or waitlist depending on fit and availability; invite hot/engaged
+  email leads to a private 1:1 sales call.
+- Step-down paths: GAMSAT Starter Pack, Blueprint, essay marking, and private
+  tutoring.
 `;
 
 module.exports = { BUSINESS_CONTEXT };

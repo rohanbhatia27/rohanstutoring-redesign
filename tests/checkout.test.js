@@ -379,10 +379,11 @@ test('renderSummaryMarkup renders standard products with included features', () 
   assert.match(markup, /\$599 AUD/);
 });
 
-test('comprehensive checkout summary uses the June 2026 course title without cohort tagline', () => {
+test('comprehensive checkout summary uses the date-free course title without cohort tagline', () => {
   const markup = renderSummaryMarkup(PRODUCTS.comprehensive, getInitialSelection('comprehensive', PRODUCTS.comprehensive));
 
-  assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course \(June 2026 Start\)/);
+  assert.match(markup, /GAMSAT S1 &amp; S2 Comprehensive Course/);
+  assert.doesNotMatch(markup, /June 2026 Start/);
   assert.doesNotMatch(markup, /live classes  50\+ hrs content  September cohort/);
 });
 
@@ -1898,7 +1899,7 @@ test('buildPurchaseItems keeps the comprehensive order bump at the bundled disco
   assert.deepEqual(buildPurchaseItems('comprehensive', 'mentoring-single'), [
     {
       item_id: 'comprehensive',
-      item_name: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
+      item_name: 'GAMSAT S1 & S2 Comprehensive Course',
       price: 1699,
       quantity: 1,
     },
@@ -1926,7 +1927,7 @@ test('buildPurchaseItems adds item_variant to base item when cohort is provided'
   assert.deepEqual(buildPurchaseItems('comprehensive', '', '', '2'), [
     {
       item_id: 'comprehensive',
-      item_name: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
+      item_name: 'GAMSAT S1 & S2 Comprehensive Course',
       item_variant: 'Cohort 2',
       price: 1699,
       quantity: 1,
@@ -3286,7 +3287,7 @@ test('checkout lead capture queues abandoned checkout tag before payment setup',
     assert.deepEqual(res.body, { ok: true, status: 'queued' });
     assert.equal(fetchCalls.length, 2);
     const subscriberPayload = JSON.parse(fetchCalls[0].options.body);
-    assert.equal(subscriberPayload.fields.checkout_product, 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)');
+    assert.equal(subscriberPayload.fields.checkout_product, 'GAMSAT S1 & S2 Comprehensive Course');
     assert.equal(subscriberPayload.fields.checkout_value, '1699');
     assert.match(String(fetchCalls[1].url), /\/tags\/20070001\/subscribe/);
   } finally {

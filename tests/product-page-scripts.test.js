@@ -134,6 +134,34 @@ test('comprehensive hero shows a sold-out state without an expired countdown', (
   assert.doesNotMatch(html, /Cohort begins in/);
 });
 
+test('public cohort surfaces do not advertise expired June 2026 starts', () => {
+  const files = [
+    'index.html',
+    'courses.html',
+    'courses/comprehensive.html',
+    'courses/s1-comprehensive.html',
+    'courses/s2-comprehensive.html',
+  ];
+  const expiredActiveCohortPatterns = [
+    /New cohort starts 15 June/i,
+    /Live\s+June\s+Cohort/i,
+    /June cohort starts 15 June 2026/i,
+    /starting 15 June/i,
+    /starting 18 June/i,
+    /starts? 15 June/i,
+    /starts? 18 June/i,
+    /"startDate":\s*"2026-06-\d{2}"/,
+    /June 2026 Start/i,
+  ];
+
+  for (const file of files) {
+    const source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+    for (const pattern of expiredActiveCohortPatterns) {
+      assert.doesNotMatch(source, pattern, `Expired active cohort copy remains in ${file}: ${pattern}`);
+    }
+  }
+});
+
 test('getCountdownParts returns days, hours, and minutes until 26 May', () => {
   const target = new Date('2026-05-26T00:00:00+10:00');
   const now = new Date('2026-05-14T20:27:00+10:00');
