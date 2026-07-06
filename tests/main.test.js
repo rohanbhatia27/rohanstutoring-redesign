@@ -5,6 +5,7 @@ const {
   getCheckoutProductTrackingPayload,
   getFloatingQuizCtaRevealThreshold,
   isFloatingQuizCtaAllowedForPage,
+  shouldSuppressFloatingQuizCtaForRect,
   shouldHideFloatingQuizCtaForPath,
   shouldTrackNewsletterSignup,
 } = require('../js/main.js');
@@ -133,6 +134,35 @@ test('floating quiz CTA reveal threshold falls back to a conservative viewport t
       viewportHeight: 0,
     }),
     480
+  );
+});
+
+test('floating quiz CTA suppresses itself while the homepage course cards are in view', () => {
+  assert.equal(
+    shouldSuppressFloatingQuizCtaForRect({
+      sectionTop: 320,
+      sectionBottom: 1800,
+      viewportHeight: 844,
+    }),
+    true
+  );
+
+  assert.equal(
+    shouldSuppressFloatingQuizCtaForRect({
+      sectionTop: 900,
+      sectionBottom: 2200,
+      viewportHeight: 844,
+    }),
+    false
+  );
+
+  assert.equal(
+    shouldSuppressFloatingQuizCtaForRect({
+      sectionTop: -1400,
+      sectionBottom: -20,
+      viewportHeight: 844,
+    }),
+    false
   );
 });
 

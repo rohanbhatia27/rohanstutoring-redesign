@@ -185,6 +185,32 @@ test('homepage hero urgency CTA promotes the S2 Slam System', () => {
   assert.match(urgencyLink[2], /S2 Slam System/i);
 });
 
+test('homepage courses section promotes the buyable starter, flagship, and essay pack ladder', () => {
+  const html = read('index.html');
+  const compareSection = html.match(/<div class="courses__compare">([\s\S]*?)<\/div>\s*<div class="courses__footer/);
+
+  assert.ok(compareSection, 'Homepage courses comparison section should exist');
+
+  const sectionHtml = compareSection[1];
+  const essentialsIndex = sectionHtml.indexOf('/checkout/?product=starter-pack');
+  const blueprintIndex = sectionHtml.indexOf('/checkout/?product=blueprint');
+  const essayPackIndex = sectionHtml.indexOf('/checkout/?product=essay-pack-10');
+
+  assert.notEqual(essentialsIndex, -1, 'Essentials Playbook should be a buyable homepage card');
+  assert.notEqual(blueprintIndex, -1, 'Blueprint should be a buyable homepage card');
+  assert.notEqual(essayPackIndex, -1, '10x Essay Marking Pack should be a buyable homepage card');
+  assert.ok(essentialsIndex < blueprintIndex && blueprintIndex < essayPackIndex, 'Cards should ladder from Essentials to Blueprint to Essay Pack');
+
+  assert.match(sectionHtml, /\$97/);
+  assert.match(sectionHtml, /\$599/);
+  assert.match(sectionHtml, /\$249/);
+  assert.match(sectionHtml, /Your \$97 carries forward/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*Rohan's GAMSAT Blueprint/);
+  assert.doesNotMatch(sectionHtml, /Join Waitlist/i);
+  assert.doesNotMatch(sectionHtml, /href="\/courses\/comprehensive"/);
+  assert.doesNotMatch(sectionHtml, /href="\/courses\/mastery"/);
+});
+
 test('public forms do not ship placeholder Turnstile site keys', () => {
   const files = ['contact.html', 'courses/private-mentoring.html'];
 

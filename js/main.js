@@ -75,6 +75,20 @@ function getFloatingQuizCtaRevealThreshold({
   return fallbackThreshold;
 }
 
+function shouldSuppressFloatingQuizCtaForRect({
+  sectionTop,
+  sectionBottom,
+  viewportHeight = 0,
+  topBuffer = 96,
+  bottomBuffer = 96,
+} = {}) {
+  if (![sectionTop, sectionBottom, viewportHeight].every(Number.isFinite)) {
+    return false;
+  }
+
+  return sectionTop <= viewportHeight - bottomBuffer && sectionBottom >= topBuffer;
+}
+
 function getFloatingQuizCtaDismissed(storage) {
   if (!storage) return false;
 
@@ -421,6 +435,7 @@ function initMain() {
     const floatingCtaStorage = typeof window.sessionStorage !== 'undefined' ? window.sessionStorage : null;
     const mobileViewportQuery = window.matchMedia(`(max-width: ${FLOATING_QUIZ_CTA_MOBILE_BREAKPOINT}px)`);
     const heroQuizCta = document.querySelector('[data-quiz-source="home-hero"], [data-quiz-source$="hero-primary"]');
+    const coursesSection = document.querySelector('#courses');
     let isDismissed = getFloatingQuizCtaDismissed(floatingCtaStorage);
 
     const getHeroQuizCtaBottom = () => {
@@ -458,9 +473,16 @@ function initMain() {
         viewportHeight: window.innerHeight,
       });
       const isMobileViewport = mobileViewportQuery.matches || isFloatingQuizCtaMobileViewport(window.innerWidth);
+      const coursesSectionRect = coursesSection?.getBoundingClientRect();
+      const shouldSuppressForCourses = shouldSuppressFloatingQuizCtaForRect({
+        sectionTop: coursesSectionRect?.top,
+        sectionBottom: coursesSectionRect?.bottom,
+        viewportHeight: window.innerHeight,
+      });
       const shouldShowFloatingQuizCta = isMobileViewport
         && !document.body.classList.contains('menu-open')
         && !isDismissed
+        && !shouldSuppressForCourses
         && window.scrollY >= revealThreshold;
 
       floatingCta.hidden = !shouldShowFloatingQuizCta;
@@ -543,6 +565,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     getFloatingQuizCtaRevealThreshold,
     isFloatingQuizCtaAllowedForPage,
+    shouldSuppressFloatingQuizCtaForRect,
     shouldHideFloatingQuizCtaForPath,
     getCheckoutProductTrackingPayload,
     shouldTrackNewsletterSignup,
