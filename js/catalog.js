@@ -8,6 +8,7 @@
  *
  * Server-only fields (fulfillment, kit, drive) live in api/_lib/catalog.server.js.
  *
+ * To reopen live coaching: update COHORT_STATUSES.liveCoaching.
  * To reopen a rescue sprint: flip `available` to true for that entry.
  */
 (function (global) {
@@ -17,6 +18,32 @@
   // Each entry is keyed by its purchase slug (the value sent to the API).
   // `private-mentoring` is a page-level alias; its purchases go via
   // `mentoring-single` or `mentoring-pack`.
+
+  const COHORT_STATUSES = {
+    liveCoaching: {
+      status: 'waitlist',
+      available: false,
+      label: 'Join Waitlist',
+      publicMessage: 'This cohort is full. Join the waitlist and we will reach out when enrolments reopen.',
+    },
+  };
+
+  const COHORT_STATUS_BY_SLUG = {
+    comprehensive: 'liveCoaching',
+    's1-comprehensive': 'liveCoaching',
+    's2-comprehensive': 'liveCoaching',
+    mastery: 'liveCoaching',
+  };
+
+  function getCohortStatusForSlug(slug) {
+    const statusKey = COHORT_STATUS_BY_SLUG[String(slug || '').trim()];
+    return statusKey ? COHORT_STATUSES[statusKey] : null;
+  }
+
+  function isCohortAvailable(slug) {
+    const status = getCohortStatusForSlug(slug);
+    return status ? status.available === true : true;
+  }
 
   const CATALOG = {
     blueprint: {
@@ -287,7 +314,7 @@
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course',
       priceCents: 169900,
-      available: false, // sold out — flip to true when enrolments reopen
+      available: isCohortAvailable('comprehensive'),
       highTicket: true,
       afterpay: false,
       instalmentEligible: true,
@@ -330,7 +357,7 @@
       name: 'Section 1 Comprehensive Course',
       title: 'GAMSAT Section 1 Comprehensive Course',
       priceCents: 99900,
-      available: true,
+      available: isCohortAvailable('s1-comprehensive'),
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -356,7 +383,7 @@
       name: 'Section 2 Comprehensive Course',
       title: 'GAMSAT Section 2 Comprehensive Course',
       priceCents: 99900,
-      available: true,
+      available: isCohortAvailable('s2-comprehensive'),
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -382,14 +409,14 @@
       name: 'Mastery Program',
       title: 'Mastery Program',
       priceCents: 249900,
-      available: false, // sold out — flip to true when enrolments reopen
+      available: isCohortAvailable('mastery'),
       highTicket: true,
       afterpay: false,
       instalmentEligible: true,
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/mastery-course-card.webp',
-      tagline: 'Private tutorials  Unlimited essay marking  September cohort',
+      tagline: 'Private tutorials  Unlimited essay marking  Waitlist open',
       features: [
         'Everything in the Comprehensive Course',
         '5 × 1:1 private tutorials with Rohan',
@@ -603,8 +630,11 @@
   // ─── Export ─────────────────────────────────────────────────────────────────
 
   const ProductCatalog = {
+    COHORT_STATUSES: COHORT_STATUSES,
+    COHORT_STATUS_BY_SLUG: COHORT_STATUS_BY_SLUG,
     CATALOG: CATALOG,
     getEntry: getEntry,
+    getCohortStatusForSlug: getCohortStatusForSlug,
     getUpsellPriceCents: getUpsellPriceCents,
     isAllowedUpsell: isAllowedUpsell,
     getUnavailableSlugs: getUnavailableSlugs,

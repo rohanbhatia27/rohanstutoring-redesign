@@ -39,6 +39,22 @@ test('comprehensive page replaces enrolment checkout links with waitlist CTAs wh
   assert.match(comprehensiveHtml, /Join the [Ww]aitlist/);
 });
 
+test('split comprehensive pages replace enrolment checkout links with waitlist CTAs while live coaching is closed', () => {
+  const files = [
+    ['s1-comprehensive.html', 's1-comprehensive'],
+    ['s2-comprehensive.html', 's2-comprehensive'],
+  ];
+
+  for (const [file, slug] of files) {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'courses', file), 'utf8');
+    const waitlistLinks = html.match(/href="\/contact"/g) || [];
+
+    assert.doesNotMatch(html, new RegExp(`/checkout/\\?product=${slug}`), `${file} should not link to checkout while waitlisted`);
+    assert.ok(waitlistLinks.length >= 3, `${file} should route visitors to the waitlist`);
+    assert.match(html, /Join the [Ww]aitlist|This cohort is full|waitlist/i);
+  }
+});
+
 test('product hero media keeps eager LCP hints and a shared aspect-ratio fallback', () => {
   const productCss = fs.readFileSync(path.join(__dirname, '..', 'css', 'product.css'), 'utf8');
   const heroMedia = [
@@ -141,9 +157,11 @@ test('public cohort surfaces do not advertise expired June 2026 starts', () => {
     'courses/comprehensive.html',
     'courses/s1-comprehensive.html',
     'courses/s2-comprehensive.html',
+    'courses/mastery.html',
   ];
   const expiredActiveCohortPatterns = [
     /New cohort starts 15 June/i,
+    /same June cohort/i,
     /Live\s+June\s+Cohort/i,
     /June cohort starts 15 June 2026/i,
     /starting 15 June/i,

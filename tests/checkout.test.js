@@ -4,6 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const {
+  COHORT_STATUSES,
+  CATALOG,
+  getCohortStatusForSlug,
+} = require('../js/catalog.js');
+
+const {
   EMAIL_PATTERN,
   PRODUCTS,
   fmtPrice,
@@ -240,8 +246,19 @@ test('getProductFromSearch resolves s1-comprehensive and s2-comprehensive', () =
   assert.equal(getProductFromSearch('?product=s2-comprehensive').name, PRODUCTS['s2-comprehensive'].name);
 });
 
-test('create-payment-intent accepts s1-comprehensive and s2-comprehensive', async () => {
-  const slugs = ['s1-comprehensive', 's2-comprehensive'];
+test('cohort course availability is driven by one centralized status', () => {
+  const cohortSlugs = ['comprehensive', 's1-comprehensive', 's2-comprehensive', 'mastery'];
+
+  assert.equal(COHORT_STATUSES.liveCoaching.status, 'waitlist');
+
+  for (const slug of cohortSlugs) {
+    assert.equal(getCohortStatusForSlug(slug), COHORT_STATUSES.liveCoaching);
+    assert.equal(CATALOG[slug].available, false, `${slug} should inherit the live coaching waitlist status`);
+  }
+});
+
+test('create-payment-intent rejects unavailable cohort products before Stripe', async () => {
+  const slugs = ['comprehensive', 's1-comprehensive', 's2-comprehensive', 'mastery'];
 
   for (const slug of slugs) {
     const req = {
@@ -255,10 +272,14 @@ test('create-payment-intent accepts s1-comprehensive and s2-comprehensive', asyn
       },
     };
     const res = createJsonResponseRecorder();
+    let createCalled = false;
 
     createPaymentIntentHandler.__setStripeFactory(() => ({
       paymentIntents: {
-        create: async (payload) => ({ id: 'pi_test', client_secret: 'pi_test_secret', metadata: payload.metadata }),
+        create: async () => {
+          createCalled = true;
+          return { id: 'pi_test', client_secret: 'pi_test_secret' };
+        },
       },
       promotionCodes: { list: async () => ({ data: [] }) },
     }));
@@ -266,9 +287,13 @@ test('create-payment-intent accepts s1-comprehensive and s2-comprehensive', asyn
     process.env.STRIPE_SECRET_KEY = 'sk_test_123';
     await createPaymentIntentHandler(req, res);
 
-    assert.equal(res.statusCode, 200);
-    assert.equal(res.body.clientSecret, 'pi_test_secret');
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { error: 'This product is currently unavailable.' });
+    assert.equal(createCalled, false, `${slug} should not create a PaymentIntent`);
   }
+
+  delete process.env.STRIPE_SECRET_KEY;
+  createPaymentIntentHandler.__resetForTests();
 });
 
 test('getInitialSelection defaults private mentoring to the 10-class pack and essay collection bump', () => {
@@ -3101,7 +3126,11 @@ test('PayPal webhook verifies signature, fetches the order, and fulfills capture
   }
 });
 
-test('isProductAvailable flags sold-out sprint slugs as unavailable', () => {
+test('isProductAvailable flags sold-out cohort and sprint slugs as unavailable', () => {
+  assert.equal(isProductAvailable('comprehensive'), false);
+  assert.equal(isProductAvailable('s1-comprehensive'), false);
+  assert.equal(isProductAvailable('s2-comprehensive'), false);
+  assert.equal(isProductAvailable('mastery'), false);
   assert.equal(isProductAvailable('s1-rescue-sprint'), false);
   assert.equal(isProductAvailable('s2-rescue-sprint'), false);
   assert.equal(isProductAvailable('blueprint'), true);
