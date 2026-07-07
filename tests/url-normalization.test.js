@@ -206,6 +206,9 @@ test('homepage courses section promotes the buyable starter, flagship, and essay
   assert.match(sectionHtml, /\$249/);
   assert.match(sectionHtml, /Your \$97 carries forward/i);
   assert.match(sectionHtml, /course-tier--featured[\s\S]*Rohan's GAMSAT Blueprint/);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*80\+ hours across S1 &amp; S2/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*S1 &amp; S2 Mastery plus Advanced Series/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*Expert Essay Collection: 25 essays scored 80\+/i);
   assert.doesNotMatch(sectionHtml, /Join Waitlist/i);
   assert.doesNotMatch(sectionHtml, /href="\/courses\/comprehensive"/);
   assert.doesNotMatch(sectionHtml, /href="\/courses\/mastery"/);
