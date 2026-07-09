@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { Resend } = require('resend');
 const { syncPurchaseTag } = require('./_kit.js');
 const { shareProductAccess } = require('./_google-drive.js');
@@ -90,6 +92,52 @@ function buildCourseWelcomeHtml(firstName, startLine) {
 </html>`;
 }
 
+const ESSAY_COLLECTION_PDF_PATH = path.join(__dirname, 'assets', 'expert-essay-collection.pdf');
+const ESSAY_COLLECTION_PDF_FILENAME = 'The Expert Essay Collection.pdf';
+
+let essayCollectionPdfCache = null;
+
+// Read once per warm lambda; the file ships via the includeFiles entry in vercel.json.
+function loadEssayCollectionPdf() {
+  if (!essayCollectionPdfCache) {
+    essayCollectionPdfCache = fs.readFileSync(ESSAY_COLLECTION_PDF_PATH).toString('base64');
+  }
+  return essayCollectionPdfCache;
+}
+
+function includesEssayCollection(baseSlug, upsellSlug) {
+  return baseSlug === 'essay-collection' || upsellSlug === 'essay-collection';
+}
+
+function buildEssayCollectionHtml(firstName) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr><td style="background:#0a0f1e;padding:28px 32px;">
+          <p style="margin:0;color:#3b82f6;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">ROHAN'S GAMSAT</p>
+        </td></tr>
+        <tr><td style="padding:36px 32px 28px;">
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Hey ${esc(firstName)},</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Thanks for grabbing the Expert Essay Collection. The PDF is attached, all 25 essays across Task A and Task B.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">One thing worth saying: reading these straight through won't do much. Pick an essay, work out what the contention is and how each paragraph earns it, then write your own response to the same theme before you come back to mine.</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">If the attachment doesn't come through, just reply and I'll sort it out.</p>
+          <p style="margin:0 0 4px;font-size:15px;color:#374151;line-height:1.6;">Rohan</p>
+          <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Rohan's GAMSAT</p>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.5;">This is an automated email from Rohan's GAMSAT. You're receiving this because you purchased a product at rohanstutoring.com.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug }) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
   if (!apiKey) {
@@ -104,7 +152,26 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
   const resend = resendFactory(apiKey);
   let emailOptions;
 
-  if (variant) {
+  if (baseSlug === 'essay-collection') {
+    emailOptions = {
+      from: 'hello@rohanstutoring.com',
+      to: customerEmail,
+      subject: 'Your Expert Essay Collection is attached',
+      html: buildEssayCollectionHtml(firstName),
+      text: [
+        `Hey ${firstName},`,
+        '',
+        'Thanks for grabbing the Expert Essay Collection. The PDF is attached, all 25 essays across Task A and Task B.',
+        '',
+        "One thing worth saying: reading these straight through won't do much. Pick an essay, work out what the contention is and how each paragraph earns it, then write your own response to the same theme before you come back to mine.",
+        '',
+        "If the attachment doesn't come through, just reply and I'll sort it out.",
+        '',
+        'Rohan',
+        "Rohan's GAMSAT",
+      ].join('\n'),
+    };
+  } else if (variant) {
     emailOptions = {
       from: 'hello@rohanstutoring.com',
       to: customerEmail,
@@ -120,6 +187,12 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
       html: buildConfirmationHtml(firstName, productLine),
       text: `Hi ${firstName},\n\nWe've received your payment for ${productLine}. Your content will be sent to this email address within 24 hours.\n\nIf you have any questions, contact us at hello@rohanstutoring.com.\n\nRohan's GAMSAT`,
     };
+  }
+
+  if (includesEssayCollection(baseSlug, upsellSlug)) {
+    emailOptions.attachments = [
+      { filename: ESSAY_COLLECTION_PDF_FILENAME, content: loadEssayCollectionPdf() },
+    ];
   }
 
   await resend.emails.send(emailOptions);

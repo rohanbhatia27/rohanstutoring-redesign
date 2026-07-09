@@ -1833,7 +1833,7 @@ test('getSuccessActionMarkup reassures essay-marking buyers about Essay Collecti
 
   assert.match(markup, /upload_token=signed_token_123/);
   assert.match(markup, /Essay Collection add-on is confirmed/);
-  assert.match(markup, /Google Drive/);
+  assert.match(markup, /attached to your confirmation email/);
 });
 
 test('getSuccessActionMarkup renders essay-pack-10 email instructions', () => {

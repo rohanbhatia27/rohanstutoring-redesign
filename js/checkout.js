@@ -102,6 +102,7 @@
 
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
+    'digital-download': 'Payment confirmed. The PDF is on its way to your inbox now.',
     'essay-marking': "Payment confirmed. Use the button below to upload your essay — it takes about 30 seconds.",
     'essay-pack-10': 'Your 10-essay pack is confirmed. Email your essays whenever you are ready using the address below.',
     mentoring: "We've received your payment. Check your email for a booking link to schedule your first session.",
@@ -2078,7 +2079,7 @@
         uploadToken: context.uploadToken,
       });
       const addOnNote = context.upsellSlug === 'essay-collection'
-        ? '<p class="success-addon-note">Your Essay Collection add-on is confirmed. Access will be shared to your email via Google Drive.</p>'
+        ? '<p class="success-addon-note">Your Essay Collection add-on is confirmed. The PDF is attached to your confirmation email.</p>'
         : '';
 
       return `

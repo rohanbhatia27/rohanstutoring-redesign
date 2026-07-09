@@ -9,6 +9,15 @@
   "functions": {
     "api/analytics.js": {
       "includeFiles": "api/_lib/**"
+    },
+    "api/stripe-webhook.js": {
+      "includeFiles": "api/_lib/assets/**"
+    },
+    "api/paypal-webhook.js": {
+      "includeFiles": "api/_lib/assets/**"
+    },
+    "api/admin.js": {
+      "includeFiles": "api/_lib/assets/**"
     }
   },
   "headers": [

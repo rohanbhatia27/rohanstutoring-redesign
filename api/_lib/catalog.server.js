@@ -70,10 +70,10 @@ const SERVER_EXTENSIONS = {
   },
 
   'essay-collection': {
-    deliveryType: 'digital-access',
-    fulfillmentLabel: 'Send Google Drive access',
+    deliveryType: 'digital-download',
+    fulfillmentLabel: 'Email the Expert Essay Collection PDF',
     fulfillmentSlug: 'essay-collection',
-    driveFolderSlug: 'essay-collection',
+    driveFolderSlug: null,
     purchaseTagEnv: null,
     cohortEmail: null,
   },

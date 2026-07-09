@@ -214,7 +214,7 @@
         'Immediate access  All devices',
       ],
       isDigital: true,
-      successType: 'digital',
+      successType: 'digital-download',
       instalment: null,
       orderBump: null,
       pageSlug: 'essay-collection',
