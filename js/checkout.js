@@ -67,7 +67,7 @@
     const m = {};
     Object.keys(_CAT).forEach(function (slug) {
       const bump = _CAT[slug].orderBump;
-      if (!bump) return;
+      if (!bump || UNAVAILABLE_PRODUCT_SLUGS.has(bump.slug)) return;
       const bumpCents = _getUpsellPriceCents(slug, bump.slug);
       m[slug] = Object.assign({}, bump, {
         price: bumpCents !== null ? bumpCents / 100 : bump.price,
@@ -80,7 +80,7 @@
     const m = {};
     Object.keys(_CAT).forEach(function (slug) {
       const bump = _CAT[slug].secondOrderBump;
-      if (!bump) return;
+      if (!bump || UNAVAILABLE_PRODUCT_SLUGS.has(bump.slug)) return;
       const bumpCents = _getUpsellPriceCents(slug, bump.slug);
       m[slug] = Object.assign({}, bump, {
         price: bumpCents !== null ? bumpCents / 100 : bump.price,

@@ -102,6 +102,10 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
 test('fulfillment helper preserves essay upload instructions for manual recovery', async () => {
   process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
   const updates = [];
+  const alerts = [];
+  fulfillPaymentIntent.__setAlertFn(async (args) => {
+    alerts.push(args);
+  });
   const paymentIntent = {
     id: 'pi_essay123',
     metadata: {
@@ -138,6 +142,48 @@ test('fulfillment helper preserves essay upload instructions for manual recovery
     updates[0].payload.metadata.essay_upload_instructions,
     'Upload via essay_upload_url or email essays@rohanstutoring.com with this PaymentIntent ID.'
   );
+  assert.equal(alerts.filter((alert) => alert.failedStep === 'drive').length, 0);
+  fulfillPaymentIntent.__resetForTests();
+  delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
+});
+
+test('fulfillment retry keeps essay upload fulfillment without retrying Drive sharing', async () => {
+  process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
+  const updates = [];
+  const alerts = [];
+
+  fulfillPaymentIntent.__setAlertFn(async (args) => {
+    alerts.push(args);
+  });
+
+  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_3Tv5xeH5JsZI731G0EwGKlau',
+      metadata: {
+        base_slug: 'essay-marking',
+        customer_email: 'jane@example.com',
+        fulfillment_status: 'manual_fulfillment_pending',
+        drive_share_status: 'missing_folder_mapping',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+    forceAutomation: true,
+  });
+
+  assert.equal(result.alreadyFulfilled, false);
+  assert.equal(alerts.filter((alert) => alert.failedStep === 'drive').length, 0);
+  const finalMetadata = updates[updates.length - 1].payload.metadata;
+  assert.equal(finalMetadata.essay_upload_required, 'true');
+  assert.match(finalMetadata.essay_upload_url, /payment_intent=pi_3Tv5xeH5JsZI731G0EwGKlau/);
+
+  fulfillPaymentIntent.__resetForTests();
   delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
 });
 

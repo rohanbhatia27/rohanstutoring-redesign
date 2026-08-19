@@ -408,11 +408,12 @@ async function fulfillPaymentIntent(options) {
   };
 
   if (customerEmail) {
-    try {
-      const driveResult = await shareProductAccess({
-        baseSlug,
-        email: customerEmail,
-      });
+    if (productRequiresDriveAccess(baseSlug)) {
+      try {
+        const driveResult = await shareProductAccess({
+          baseSlug,
+          email: customerEmail,
+        });
 
       if (driveResult && !driveResult.skipped) {
         console.log(
@@ -514,6 +515,7 @@ async function fulfillPaymentIntent(options) {
         errorMessage: driveErr.message,
       });
     }
+    }
 
     try {
       await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
@@ -604,44 +606,46 @@ async function fulfillInstalmentCheckout({ session }) {
     throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
   }
 
-  try {
-    const driveResult = await shareProductAccess({ baseSlug, email: customerEmail });
-    if (driveResult && !driveResult.skipped) {
-      console.log(
-        `[fulfill-instalment-checkout] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
-      );
+  if (productRequiresDriveAccess(baseSlug)) {
+    try {
+      const driveResult = await shareProductAccess({ baseSlug, email: customerEmail });
+      if (driveResult && !driveResult.skipped) {
+        console.log(
+          `[fulfill-instalment-checkout] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
+        );
 
-      if (productUsesBlueprintDrive(baseSlug)) {
-        const driveFolderUrl = String(process.env.BLUEPRINT_DRIVE_URL || '').trim();
-        const firstName = (customerName || '').split(' ')[0] || 'there';
-        try {
-          const emailResult = await sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl });
-          console.log(`[fulfill-instalment-checkout] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
-        } catch (emailErr) {
-          console.error('[fulfill-instalment-checkout] Blueprint access email failed:', emailErr.message);
-          await safeAlert({
-            baseSlug,
-            upsellSlug,
-            customerEmail,
-            provider: 'stripe',
-            paymentId: instalmentSessionId,
-            failedStep: 'blueprint_access_email',
-            errorMessage: emailErr.message,
-          });
+        if (productUsesBlueprintDrive(baseSlug)) {
+          const driveFolderUrl = String(process.env.BLUEPRINT_DRIVE_URL || '').trim();
+          const firstName = (customerName || '').split(' ')[0] || 'there';
+          try {
+            const emailResult = await sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl });
+            console.log(`[fulfill-instalment-checkout] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
+          } catch (emailErr) {
+            console.error('[fulfill-instalment-checkout] Blueprint access email failed:', emailErr.message);
+            await safeAlert({
+              baseSlug,
+              upsellSlug,
+              customerEmail,
+              provider: 'stripe',
+              paymentId: instalmentSessionId,
+              failedStep: 'blueprint_access_email',
+              errorMessage: emailErr.message,
+            });
+          }
         }
       }
+    } catch (driveErr) {
+      console.error('[fulfill-instalment-checkout] Google Drive sharing failed:', driveErr.message);
+      await safeAlert({
+        baseSlug,
+        upsellSlug,
+        customerEmail,
+        provider: 'stripe',
+        paymentId: instalmentSessionId,
+        failedStep: 'drive',
+        errorMessage: driveErr.message,
+      });
     }
-  } catch (driveErr) {
-    console.error('[fulfill-instalment-checkout] Google Drive sharing failed:', driveErr.message);
-    await safeAlert({
-      baseSlug,
-      upsellSlug,
-      customerEmail,
-      provider: 'stripe',
-      paymentId: instalmentSessionId,
-      failedStep: 'drive',
-      errorMessage: driveErr.message,
-    });
   }
 
   try {

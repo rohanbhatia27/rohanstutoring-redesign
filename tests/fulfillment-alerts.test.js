@@ -346,6 +346,29 @@ test('fulfillPaymentIntent alert does not block success flow when alert itself f
 
 // ---- Wiring: fulfillPayPalOrder triggers alerts ----
 
+test('fulfillPayPalOrder skips Drive sharing for essay-marking orders', async () => {
+  const alerts = [];
+  const warnings = [];
+  const originalWarn = console.warn;
+
+  fulfillPayPalOrder.__setAlertFn(async (args) => { alerts.push(args); });
+  console.warn = (...args) => warnings.push(args.join(' '));
+
+  try {
+    await fulfillPayPalOrder({
+      purchase: { baseSlug: 'essay-marking', upsellSlug: '' },
+      customer: { email: 'paypal@example.com', customerName: 'PP User' },
+      orderID: 'ORDER_paypal_essay_marking',
+    });
+  } finally {
+    console.warn = originalWarn;
+    fulfillPayPalOrder.__resetForTests();
+  }
+
+  assert.equal(alerts.filter((alert) => alert.failedStep === 'drive').length, 0);
+  assert.equal(warnings.some((message) => message.includes('Google Drive folder configured')), false);
+});
+
 test('fulfillPayPalOrder sends alert when Google Drive sharing fails', async () => {
   const alerts = [];
 

@@ -67,7 +67,7 @@ test('enquiry offer router sends urgent, high-friction leads to a consult path',
   assert.match(route.cta, /consult/i);
 });
 
-test('enquiry offer router sends essay-specific, lower-friction leads to essay support', () => {
+test('enquiry offer router sends essay-specific leads to Blueprint S2 while essay marking is closed', () => {
   const route = enquiryOffers.routeRecommendedOffer({
     leadType: 'student',
     urgency: 'medium',
@@ -77,8 +77,8 @@ test('enquiry offer router sends essay-specific, lower-friction leads to essay s
     subjectNeed: 'essay_help',
   });
 
-  assert.equal(route.offerKey, 'essayMarking');
-  assert.match(route.url, /\/courses\/essay-marking$/);
+  assert.equal(route.offerKey, 'blueprintS2');
+  assert.match(route.url, /\/courses\/blueprint-s2$/);
 });
 
 test('previewDraft skips AI classification for sensitive enquiries', async () => {

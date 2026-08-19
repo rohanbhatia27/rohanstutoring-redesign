@@ -72,6 +72,10 @@ function resolveCheckoutPurchase(body) {
     return { error: 'This product is currently unavailable.' };
   }
 
+  if (UNAVAILABLE_PRODUCTS.has(upsellSlug) || UNAVAILABLE_PRODUCTS.has(upsellSlug2)) {
+    return { error: 'This add-on is currently unavailable.' };
+  }
+
   if (!upsellSlug && !upsellSlug2) {
     return {
       amount: baseAmount,

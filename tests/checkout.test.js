@@ -2256,15 +2256,24 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
   assert.deepEqual(
     createPaymentIntentHandler.resolveCheckoutPurchase({
       slug: 'blueprint',
-      upsellSlug: 'essay-pack-10',
+      upsellSlug: 'mentoring-single',
     }),
     {
-      amount: 84800,
+      amount: 69800,
       baseAmount: 59900,
       baseSlug: 'blueprint',
-      upsellAmount: 24900,
-      upsellSlug: 'essay-pack-10',
+      upsellAmount: 9900,
+      upsellSlug: 'mentoring-single',
     }
+  );
+
+  // Essay marking is closed until September 2026, so it cannot be added as a bump.
+  assert.equal(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 'blueprint',
+      upsellSlug: 'essay-pack-10',
+    }).error,
+    'This add-on is currently unavailable.'
   );
 
   assert.equal(
@@ -2513,11 +2522,11 @@ test('instalment session handler creates mastery add-on line items with selected
 test('PayPal validation formats cents and custom IDs from server-side purchase data', () => {
   const purchase = createPaymentIntentHandler.resolveCheckoutPurchase({
     slug: 'blueprint',
-    upsellSlug: 'essay-pack-10',
+    upsellSlug: 'mentoring-single',
   });
 
-  assert.equal(paypalValidation.formatPayPalAmount(purchase.amount), '848.00');
-  assert.equal(paypalValidation.getPayPalPurchaseCustomId(purchase), 'blueprint+essay-pack-10');
+  assert.equal(paypalValidation.formatPayPalAmount(purchase.amount), '698.00');
+  assert.equal(paypalValidation.getPayPalPurchaseCustomId(purchase), 'blueprint+mentoring-single');
 });
 
 test('PayPal validation rejects mismatched capture amount and currency', () => {
@@ -3327,28 +3336,19 @@ test('checkout lead capture queues abandoned checkout tag before payment setup',
   }
 });
 
-test('payment intent handler persists essay upload recovery metadata after creating an essay-marking intent', async () => {
+// Essay marking is closed until September 2026 (ESSAY_MARKING_AVAILABLE in js/catalog.js).
+// When it reopens, restore the essay upload metadata assertions this test used to make:
+// the handler should attach essay_upload_url, essay_upload_token, and essay_upload_required
+// to the payment intent after creating it.
+test('payment intent handler refuses essay-marking intents while submissions are closed', async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
 
-  const createPayloads = [];
-  const updatePayloads = [];
-  createPaymentIntentHandler.__setStripeFactory(() => ({
-    paymentIntents: {
-      create: async (payload) => {
-        createPayloads.push(payload);
-        return {
-          id: 'pi_essay123',
-          client_secret: 'pi_essay123_secret_abc',
-          metadata: payload.metadata,
-        };
-      },
-      update: async (id, payload) => {
-        updatePayloads.push({ id, payload });
-        return { id, metadata: payload.metadata };
-      },
-    },
-  }));
+  let stripeCalled = false;
+  createPaymentIntentHandler.__setStripeFactory(() => {
+    stripeCalled = true;
+    return { paymentIntents: { create: async () => ({}), update: async () => ({}) } };
+  });
 
   try {
     const req = {
@@ -3367,21 +3367,9 @@ test('payment intent handler persists essay upload recovery metadata after creat
 
     await createPaymentIntentHandler(req, res);
 
-    assert.equal(res.statusCode, 200);
-    assert.deepEqual(res.body, { clientSecret: 'pi_essay123_secret_abc' });
-    assert.equal(createPayloads.length, 1);
-    assert.equal(updatePayloads.length, 1);
-    assert.equal(updatePayloads[0].id, 'pi_essay123');
-    assert.equal(
-      updatePayloads[0].payload.metadata.essay_upload_url,
-      'https://tally.so/r/zxQdMR?payment_intent=pi_essay123&product=essay-marking&upload_token=4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6&source=stripe_metadata'
-    );
-    assert.equal(
-      updatePayloads[0].payload.metadata.essay_upload_token,
-      '4bf2dcdd522ca15ad48c9c7e6a08533f89e2ceaa2c8be2fa65b64e3568c860b6'
-    );
-    assert.equal(updatePayloads[0].payload.metadata.essay_upload_required, 'true');
-    assert.match(updatePayloads[0].payload.description, /Upload essay after payment:/);
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.error, 'This product is currently unavailable.');
+    assert.equal(stripeCalled, false, 'no payment intent should be created for a closed product');
   } finally {
     createPaymentIntentHandler.__resetForTests();
     delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;

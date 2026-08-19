@@ -192,9 +192,9 @@ test('homepage courses section promotes the buyable starter, flagship, and essay
   assert.ok(compareSection, 'Homepage courses comparison section should exist');
 
   const sectionHtml = compareSection[1];
-  const essentialsIndex = sectionHtml.indexOf('/checkout/?product=starter-pack');
-  const blueprintIndex = sectionHtml.indexOf('/checkout/?product=blueprint');
-  const essayPackIndex = sectionHtml.indexOf('/checkout/?product=essay-pack-10');
+  const essentialsIndex = sectionHtml.indexOf('/courses/starter-pack');
+  const blueprintIndex = sectionHtml.indexOf('/courses/blueprint');
+  const essayPackIndex = sectionHtml.indexOf('/courses/essay-marking');
 
   assert.notEqual(essentialsIndex, -1, 'Essentials Playbook should be a buyable homepage card');
   assert.notEqual(blueprintIndex, -1, 'Blueprint should be a buyable homepage card');

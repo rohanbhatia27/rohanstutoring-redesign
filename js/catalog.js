@@ -10,6 +10,7 @@
  *
  * To reopen live coaching: update COHORT_STATUSES.liveCoaching.
  * To reopen a rescue sprint: flip `available` to true for that entry.
+ * To reopen essay marking: set ESSAY_MARKING_AVAILABLE to true.
  */
 (function (global) {
   'use strict';
@@ -44,6 +45,11 @@
     const status = getCohortStatusForSlug(slug);
     return status ? status.available === true : true;
   }
+
+  // Essay marking is paused. Submissions reopen September 2026.
+  // Flipping this to true restores the single essay, the 10-essay pack, and the
+  // essay pack order bumps on the Blueprint checkouts.
+  const ESSAY_MARKING_AVAILABLE = false;
 
   const CATALOG = {
     blueprint: {
@@ -256,7 +262,7 @@
       name: 'Essay Marking',
       title: 'S2 Essay Marking',
       priceCents: 3499,
-      available: true,
+      available: ESSAY_MARKING_AVAILABLE,
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -288,7 +294,7 @@
       name: 'Essay Marking Pack (10 credits)',
       title: 'S2 Essay Marking — 10-Essay Pack',
       priceCents: 24900,
-      available: true,
+      available: ESSAY_MARKING_AVAILABLE,
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
