@@ -169,7 +169,7 @@ function getCheckoutProductTrackingPayload({
 const GA4_PRODUCTS = {
   blueprint:         { name: "Rohan's Blueprint",                  price: 599 },
   advanced:          { name: 'GAMSAT Advanced Series',             price: 299 },
-  'essay-collection':{ name: 'Expert Essay Collection',            price: 79 },
+  'essay-collection':{ name: 'Expert Essay Collection',            price: 59 },
   'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
   'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
   'essay-pack-10':   { name: 'S2 Essay Marking - 10-Essay Pack',   price: 249 },

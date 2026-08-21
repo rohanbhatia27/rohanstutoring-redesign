@@ -42,6 +42,12 @@
   color: var(--text-light);
 }
 .sticky-bar__price strong { color: var(--white); }
+.sticky-bar__was {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+  margin-right: 8px;
+}
 
 /* ---- Product Hero ---- */
 .product-hero {
@@ -1281,6 +1287,7 @@
 .course-tile p { font-size: 0.9rem; flex: 1; margin-bottom: 20px; }
 .course-tile__footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 16px; border-top: 1px solid #E5EAF0; }
 .course-tile__price { font-family: var(--font-heading); font-size: 1.5rem; color: var(--text); }
+.course-tile__price-was { font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted); text-decoration: line-through; margin-right: 8px; }
 .course-tile__cta { font-size: 0.85rem; font-weight: 700; color: var(--blue); }
 .course-tile__note { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; flex: 0; }
 
