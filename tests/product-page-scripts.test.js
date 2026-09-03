@@ -94,7 +94,10 @@ test('mastery hero uses the dedicated mastery artwork asset', () => {
 });
 
 test('checkout instalment links use shared storefront config', () => {
-  assert.deepEqual(PRODUCTS.comprehensive.instalment, storefrontConfig.instalmentLinks.comprehensive);
+  // Comprehensive is full-payment only during the early bird window, so it
+  // must be absent from both the catalog and the shared storefront config.
+  assert.equal(PRODUCTS.comprehensive.instalment, null);
+  assert.equal(storefrontConfig.instalmentLinks.comprehensive, undefined);
   assert.deepEqual(PRODUCTS.mastery.instalment, storefrontConfig.instalmentLinks.mastery);
 });
 

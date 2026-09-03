@@ -112,11 +112,11 @@ test('analytics sends GA4 view_item on comprehensive course product pages', () =
 
   assert.ok(viewItemCall, 'expected a GA4 view_item event');
   assert.equal(viewItemCall[2].currency, 'AUD');
-  assert.equal(viewItemCall[2].value, 1699);
+  assert.equal(viewItemCall[2].value, 1599);
   assert.deepEqual(JSON.parse(JSON.stringify(viewItemCall[2].items)), [{
     item_id: 'comprehensive',
     item_name: 'Comprehensive Course',
-    price: 1699,
+    price: 1599,
     quantity: 1,
   }]);
   assert.ok(appendedScripts.some((script) => script.src.includes('googletagmanager.com/gtag/js')));

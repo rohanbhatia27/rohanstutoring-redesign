@@ -4,7 +4,7 @@
   var shouldLoadWhenIdle = !!(document.currentScript && document.currentScript.dataset.load === 'idle');
 
   var PRODUCT_VIEW_CONTENT = {
-    comprehensive: { content_name: 'Comprehensive Course', value: 1699 },
+    comprehensive: { content_name: 'Comprehensive Course', value: 1599 },
     blueprint: { content_name: "Rohan's Blueprint", value: 599 },
     advanced: { content_name: 'GAMSAT Advanced Series', value: 299 },
     's1-comprehensive': { content_name: 'Section 1 Comprehensive Course', value: 999 },

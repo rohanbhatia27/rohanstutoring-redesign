@@ -202,11 +202,11 @@ test('checkout product CTA tracking payload identifies comprehensive course clic
   assert.equal(payload.page_path, '/courses/comprehensive');
   assert.equal(payload.destination_path, '/checkout/?product=comprehensive&paymentMode=instalments');
   assert.equal(payload.currency, 'AUD');
-  assert.equal(payload.value, 1699);
+  assert.equal(payload.value, 1599);
   assert.deepEqual(payload.items, [{
     item_id: 'comprehensive',
     item_name: 'Comprehensive Course',
-    price: 1699,
+    price: 1599,
     quantity: 1,
   }]);
 });
@@ -224,7 +224,7 @@ test('checkout product CTA tracking payload passes cohort as item_variant when c
     item_id: 'comprehensive',
     item_name: 'Comprehensive Course',
     item_variant: 'Cohort 2',
-    price: 1699,
+    price: 1599,
     quantity: 1,
   }]);
 });

@@ -26,7 +26,7 @@ function withEnv(vars, fn) {
 test('buildGa4PurchasePayload maps Stripe metadata to GA4 ecommerce purchase fields', () => {
   const payload = ga4.buildGa4PurchasePayload({
     transactionId: 'pi_test_123',
-    amountCents: 179800,
+    amountCents: 169800,
     currency: 'aud',
     metadata: {
       base_slug: 'comprehensive',
@@ -44,7 +44,7 @@ test('buildGa4PurchasePayload maps Stripe metadata to GA4 ecommerce purchase fie
   assert.equal(payload.events[0].name, 'purchase');
   assert.equal(payload.events[0].params.transaction_id, 'pi_test_123');
   assert.equal(payload.events[0].params.currency, 'AUD');
-  assert.equal(payload.events[0].params.value, 1798);
+  assert.equal(payload.events[0].params.value, 1698);
   assert.equal(payload.events[0].params.product_slug, 'comprehensive');
   assert.equal(payload.events[0].params.payment_mode, 'full');
   assert.equal(payload.events[0].params.coupon, 'WEBINAR200');
@@ -55,7 +55,7 @@ test('buildGa4PurchasePayload maps Stripe metadata to GA4 ecommerce purchase fie
       item_name: 'GAMSAT S1 & S2 Comprehensive Course',
       item_category: 'Course',
       item_variant: 'Cohort 2',
-      price: 1699,
+      price: 1599,
       quantity: 1,
     },
     {

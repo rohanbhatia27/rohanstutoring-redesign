@@ -22,10 +22,10 @@
 
   const COHORT_STATUSES = {
     liveCoaching: {
-      status: 'waitlist',
-      available: false,
-      label: 'Join Waitlist',
-      publicMessage: 'This cohort is full. Join the waitlist and we will reach out when enrolments reopen.',
+      status: 'open',
+      available: true,
+      label: 'Enrol Now',
+      publicMessage: 'Enrolments are open for the March 2027 cohort.',
     },
   };
 
@@ -319,11 +319,16 @@
       slug: 'comprehensive',
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course',
-      priceCents: 169900,
+      // Early bird for the March 2027 cohort: $1,599 until 1 October 2026, or
+      // until the first 10 enrolments land (tracked manually in Stripe — the
+      // site has no seat counter). At cutover, restore priceCents to 179900,
+      // set instalmentEligible back to true, and restore the instalment block
+      // below at $539 x 4 against a new STRIPE_PRICE_COMPREHENSIVE_INSTALMENT.
+      priceCents: 159900,
       available: isCohortAvailable('comprehensive'),
       highTicket: true,
       afterpay: false,
-      instalmentEligible: true,
+      instalmentEligible: false,
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/comprehensive-course-card.webp',
@@ -337,16 +342,9 @@
       ],
       isDigital: false,
       successType: 'cohort',
-      instalment: {
-        label: 'or pay $499 × 4 instalments →',
-        url: '/checkout/?product=comprehensive&paymentMode=instalments',
-        plan: {
-          count: 4,
-          firstPayment: 499,
-          recurringPayment: 499,
-          priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
-        },
-      },
+      // No instalment option during the early bird window. See the pricing
+      // note above for what to restore at the 1 October cutover.
+      instalment: null,
       orderBump: {
         slug: 'mentoring-single',
         title: 'Add one 1:1 Strategy Class With Rohan',
