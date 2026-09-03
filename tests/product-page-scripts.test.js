@@ -17,29 +17,29 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-test('flagship course pages show a sold-out state and route visitors to the waitlist', () => {
+test('flagship course pages are open and route visitors to checkout', () => {
   const masteryHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(masteryHtml, /Sold Out/);
-  assert.doesNotMatch(masteryHtml, /href="\/checkout\/\?product=mastery/);
-  assert.match(masteryHtml, /href="\/contact"/);
+  assert.doesNotMatch(masteryHtml, /Sold Out/);
+  assert.match(masteryHtml, /href="\/checkout\/\?product=mastery/);
 
-  assert.match(comprehensiveHtml, /Sold Out/);
-  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
-  assert.match(comprehensiveHtml, /href="\/contact"/);
+  assert.doesNotMatch(comprehensiveHtml, /Sold Out/);
+  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
 });
 
-test('comprehensive page replaces enrolment checkout links with waitlist CTAs while sold out', () => {
+test('comprehensive page routes enrolment CTAs to checkout at the early bird price', () => {
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
-  const waitlistLinks = comprehensiveHtml.match(/href="\/contact"/g) || [];
+  const checkoutLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive"/g) || [];
 
-  assert.doesNotMatch(comprehensiveHtml, /\/checkout\/\?product=comprehensive/, 'no enrolment checkout links while sold out');
-  assert.ok(waitlistLinks.length >= 3, 'sold-out page should route visitors to the waitlist');
-  assert.match(comprehensiveHtml, /Join the [Ww]aitlist/);
+  assert.ok(checkoutLinks.length >= 3, 'open page should route visitors to checkout');
+  assert.doesNotMatch(comprehensiveHtml, /Join the [Ww]aitlist/);
+  assert.match(comprehensiveHtml, /\$1,599/);
+  // The struck-through full price must stay outside the audited price element.
+  assert.match(comprehensiveHtml, /<span class="sticky-bar__was">\$1,799<\/span>/);
 });
 
-test('split comprehensive pages replace enrolment checkout links with waitlist CTAs while live coaching is closed', () => {
+test('split comprehensive pages route enrolment CTAs to checkout while live coaching is open', () => {
   const files = [
     ['s1-comprehensive.html', 's1-comprehensive'],
     ['s2-comprehensive.html', 's2-comprehensive'],
@@ -47,11 +47,12 @@ test('split comprehensive pages replace enrolment checkout links with waitlist C
 
   for (const [file, slug] of files) {
     const html = fs.readFileSync(path.join(__dirname, '..', 'courses', file), 'utf8');
-    const waitlistLinks = html.match(/href="\/contact"/g) || [];
+    const checkoutLinks = html.match(new RegExp(`/checkout/\\?product=${slug}`, 'g')) || [];
 
-    assert.doesNotMatch(html, new RegExp(`/checkout/\\?product=${slug}`), `${file} should not link to checkout while waitlisted`);
-    assert.ok(waitlistLinks.length >= 3, `${file} should route visitors to the waitlist`);
-    assert.match(html, /Join the [Ww]aitlist|This cohort is full|waitlist/i);
+    assert.ok(checkoutLinks.length >= 3, `${file} should route visitors to checkout`);
+    assert.doesNotMatch(html, /Join the [Ww]aitlist|This cohort is full/i, `${file} should not still offer a waitlist`);
+    // These sections have no instalment plan, so they must not advertise one.
+    assert.doesNotMatch(html, /instalment/i, `${file} should not mention instalments`);
   }
 });
 
@@ -142,15 +143,21 @@ test('course product pages share the product stylesheet and script shell', () =>
   });
 });
 
-test('comprehensive hero shows a sold-out state without an expired countdown', () => {
+test('comprehensive hero counts down to the early bird deadline, not an expired cohort start', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /Sold Out/);
-  assert.match(html, /This cohort is full/);
+  assert.doesNotMatch(html, /Sold Out/);
+  assert.doesNotMatch(html, /This cohort is full/);
   assert.doesNotMatch(html, /1 Seat Left/);
-  assert.doesNotMatch(html, /\bdata-countdown-v3\b/);
   assert.doesNotMatch(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
   assert.doesNotMatch(html, /Cohort begins in/);
+
+  // The countdown must target the 1 October early bird cutoff and carry every
+  // unit the hero countdown script writes into.
+  assert.match(html, /data-countdown-v3-target="2026-10-01T23:59:59\+10:00"/);
+  for (const unit of ['data-cd-days', 'data-cd-hours', 'data-cd-mins', 'data-cd-secs']) {
+    assert.match(html, new RegExp(unit), `hero countdown should include ${unit}`);
+  }
 });
 
 test('public cohort surfaces do not advertise expired June 2026 starts', () => {

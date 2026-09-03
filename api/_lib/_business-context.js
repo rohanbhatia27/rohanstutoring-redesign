@@ -20,8 +20,9 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
 
 ## Offer ladder (highest commercial priority first)
 1. Comprehensive Course — FLAGSHIP and the top commercial priority. Live S1 + S2
-   prep system run in cohorts. March 2027 cohort is open. $1599 early bird
-   until 1 October 2026, then $1799. No instalment option during early bird.
+   prep system run in cohorts. The cohort preparing for the March 2027 GAMSAT
+   is open: classes start late October 2026. $1599 early bird until
+   1 October 2026, then $1799. No instalment option during early bird.
    Page: /store/p/comprehensive
 2. Step-down / nurture entry points: GAMSAT Starter Pack
    (/store/p/gamsat-starter-pack) and the Blueprint. Existing Blueprint buyers
@@ -75,9 +76,9 @@ the course, and to surface which leads are hot enough for a sales-call invite.
 
 ## CURRENT PRIORITY  (snapshot — update when the launch changes)
 - Do not publish June 2026 start-date copy. That cohort date has passed.
-- The March 2027 cohort is open for enrolment. The live class schedule is
-  confirmed before classes begin, so use schedule-pending language until it is
-  published.
+- Enrolment is open for the cohort preparing for the March 2027 GAMSAT.
+  Classes start late October 2026. The exact weekly schedule is confirmed
+  before the first class, so do not quote specific class times yet.
 - Pricing: $1599 early bird until 1 October 2026, then $1799. Full payment only
   during the early bird window; there is no instalment plan right now.
 - Primary push: email nurture off lead magnets → quiz, Blueprint, private
