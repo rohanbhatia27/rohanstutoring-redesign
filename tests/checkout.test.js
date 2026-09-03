@@ -309,7 +309,7 @@ test('getInitialSelection defaults private mentoring to the 10-class pack and es
       slug: 'essay-collection',
       title: 'Add the Essay Collection',
       description: '25 essays scored 80+  Immediate access',
-      price: 59,
+      price: 79,
       badge: 'Optional add-on',
     },
     upsellSelected: false,
@@ -346,7 +346,7 @@ test('getOrderBumpConfig returns the configured order bump per product', () => {
     slug: 'essay-collection',
     title: 'Add the Essay Collection',
     description: '25 essays scored 80+  Immediate access',
-    price: 59,
+    price: 79,
     badge: 'Optional add-on',
   });
 
@@ -452,7 +452,7 @@ test('buildOrderBumpMarkup renders an unchecked opt-in card', () => {
   assert.match(markup, /type="checkbox"/);
   assert.match(markup, /id="order-bump-toggle"/);
   assert.match(markup, /Add the Essay Collection/);
-  assert.match(markup, /\+\$59/);
+  assert.match(markup, /\+\$79/);
   assert.doesNotMatch(markup, /checked/);
 });
 
@@ -1914,7 +1914,7 @@ test('buildPurchaseItems maps mentoring package slugs to the matching package de
     {
       item_id: 'essay-collection',
       item_name: 'Expert Essay Collection',
-      price: 59,
+      price: 79,
       quantity: 1,
     },
   ]);

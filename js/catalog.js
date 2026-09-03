@@ -204,7 +204,7 @@
       slug: 'essay-collection',
       name: 'Expert Essay Collection',
       title: 'Expert Essay Collection',
-      priceCents: 5900,
+      priceCents: 7900,
       available: true,
       highTicket: false,
       afterpay: false,
@@ -216,7 +216,7 @@
       features: [
         '25 genuine GAMSAT essays scored 80+',
         '24 themes  Task A and Task B',
-        '$2.36 per essay',
+        '$3.16 per essay',
         'Immediate access  All devices',
       ],
       isDigital: true,
