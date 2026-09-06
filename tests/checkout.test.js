@@ -3806,3 +3806,25 @@ test('public config handler allows same-site browser requests without an origin 
     process.env.STRIPE_PUBLISHABLE_KEY = previousStripeKey;
   }
 });
+
+test('unrestricted coupons are refused on high-ticket cohorts but allowed elsewhere', () => {
+  // A coupon with no product metadata used to pass for every slug, so a
+  // leftover test coupon could zero out a $1,599 cohort enrolment.
+  const unrestricted = { id: 'c_open', amount_off: 169800, metadata: {} };
+
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(unrestricted, 'comprehensive'), false);
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(unrestricted, 'mastery'), false);
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(unrestricted, 'blueprint'), true);
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(unrestricted, 'starter-pack'), true);
+
+  // Explicitly scoped coupons still reach the cohorts.
+  const scoped = { id: 'c_scoped', amount_off: 20000, metadata: { allowed_products: 'comprehensive' } };
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(scoped, 'comprehensive'), true);
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(scoped, 'mastery'), false);
+
+  // So does the high_ticket group shorthand.
+  const grouped = { id: 'c_group', amount_off: 15000, metadata: { allowed_product_group: 'high_ticket' } };
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(grouped, 'comprehensive'), true);
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(grouped, 'mastery'), true);
+  assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(grouped, 'blueprint'), false);
+});

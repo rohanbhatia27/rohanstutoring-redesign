@@ -126,7 +126,12 @@ function isCouponEligibleForProduct(coupon, productSlug) {
 
   const allowedProducts = getCouponAllowedProductSlugs(coupon);
   if (!allowedProducts || allowedProducts.size === 0) {
-    return true;
+    // An unrestricted coupon stays valid for the low-ticket catalog, but must
+    // never reach the cohorts. Without this, a coupon authored for a $97
+    // product (or a leftover test coupon) discounts a $1,599 enrolment.
+    // To discount a cohort, give the coupon allowed_products metadata naming
+    // the slug, or allowed_product_group=high_ticket.
+    return !HIGH_TICKET_PRODUCT_SLUGS.has(slug);
   }
 
   return allowedProducts.has(slug);
