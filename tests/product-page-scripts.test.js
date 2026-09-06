@@ -180,6 +180,10 @@ test('public cohort surfaces do not advertise expired June 2026 starts', () => {
     /starts? 18 June/i,
     /"startDate":\s*"2026-06-\d{2}"/,
     /June 2026 Start/i,
+    /<span>Cohort<\/span>\s*<strong>June 2026<\/strong>/i,
+    /Mondays?\s*(?:,|at|\s).*6pm AEST/i,
+    /Thursdays?\s*(?:,|at|\s).*6pm AEST/i,
+    /S1 Mondays,\s*S2 Thursdays at 6pm AEST/i,
   ];
 
   for (const file of files) {

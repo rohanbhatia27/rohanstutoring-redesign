@@ -214,6 +214,13 @@ test('homepage courses section promotes the buyable starter, flagship, and essay
   assert.doesNotMatch(sectionHtml, /href="\/courses\/mastery"/);
 });
 
+test('courses page split-course upsell shows the current comprehensive saving', () => {
+  const html = read('courses.html');
+
+  assert.match(html, /Take the full Comprehensive Course[\s\S]*save \$399/i);
+  assert.doesNotMatch(html, /Take the full Comprehensive Course[\s\S]*save \$299/i);
+});
+
 test('public forms do not ship placeholder Turnstile site keys', () => {
   const files = ['contact.html', 'courses/private-mentoring.html'];
 
