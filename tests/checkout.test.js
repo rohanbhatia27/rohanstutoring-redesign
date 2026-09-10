@@ -3852,3 +3852,25 @@ test('every instalment label discloses the total, which is higher than paying up
     );
   }
 });
+
+test('the payment selector and the order box quote the same instalment figures under a coupon', () => {
+  // A $1,599 coupon on the $449 x 4 plan discounts $399.75 off each payment,
+  // leaving $49.25. The selector used to read plan.firstPayment directly, so it
+  // still advertised $449 due today while the box below said $49.25. Two prices
+  // for the same thing on one screen.
+  const selection = {
+    ...getInitialSelection('comprehensive', PRODUCTS.comprehensive),
+    pageSlug: 'comprehensive',
+    paymentMode: 'instalments',
+    couponAmount: 1599,
+  };
+
+  const summary = getInstalmentPlanSummary(selection);
+  const markup = buildPaymentModeMarkup('comprehensive', selection);
+
+  assert.equal(summary.dueToday, 49.25);
+  assert.equal(summary.futurePaymentAmount, 49.25);
+  assert.match(markup, /\$49\.25 due today/);
+  assert.doesNotMatch(markup, /\$449 due today/);
+});
+

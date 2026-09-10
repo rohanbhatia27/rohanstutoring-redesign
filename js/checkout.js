@@ -390,6 +390,15 @@
 
     const activeMode = options.includes(selection?.paymentMode) ? selection.paymentMode : 'full';
     const plan = INSTALMENT_PLANS[productSlug];
+    // Read the discounted figures off the same summary the order box uses. Using
+    // plan.firstPayment directly meant a coupon left the selector advertising the
+    // full instalment while the box below showed the discounted one, so the same
+    // screen quoted two different prices.
+    const instalmentSummary = plan
+      ? getInstalmentPlanSummary({ ...(selection || {}), pageSlug: productSlug, paymentMode: 'instalments' })
+      : null;
+    const instalmentDueToday = instalmentSummary ? instalmentSummary.dueToday : (plan ? plan.firstPayment : 0);
+    const instalmentFuture = instalmentSummary ? instalmentSummary.futurePaymentAmount : (plan ? plan.recurringPayment : 0);
     const secondaryOption = options.includes('afterpay')
       ? `
         <label class="payment-mode-option${activeMode === 'afterpay' ? ' payment-mode-option--active' : ''}">
@@ -417,7 +426,7 @@
           >
           <span class="payment-mode-option__body">
             <strong>Pay in ${plan.count} monthly payments</strong>
-            <span>$${fmtPrice(plan.firstPayment)} due today, then ${plan.count - 1} more monthly instalments</span>
+            <span>$${fmtPrice(instalmentDueToday)} due today, then ${plan.count - 1} monthly payments of $${fmtPrice(instalmentFuture)}</span>
           </span>
         </label>
       `;
