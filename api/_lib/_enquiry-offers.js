@@ -1,5 +1,11 @@
 'use strict';
 
+const { CATALOG } = require('./catalog.server.js');
+
+// Essay marking is paused until September 2026. While it is closed, essay-help
+// leads are routed to Blueprint S2 instead of an offer they cannot buy.
+const ESSAY_MARKING_OPEN = Boolean(CATALOG['essay-marking'] && CATALOG['essay-marking'].available);
+
 function getBaseUrl() {
   const configured = String(process.env.PUBLIC_SITE_URL || '').trim();
   return (configured || 'https://www.rohanstutoring.com').replace(/\/+$/, '');
@@ -25,6 +31,13 @@ const OFFERS = Object.freeze({
     name: "Rohan's Blueprint",
     url: makeUrl('/courses/blueprint', 'ENQUIRY_URL_BLUEPRINT'),
     cta: 'see the Blueprint',
+  }),
+  blueprintS2: Object.freeze({
+    key: 'blueprintS2',
+    offerKey: 'blueprintS2',
+    name: "Rohan's Blueprint: Section 2",
+    url: makeUrl('/courses/blueprint-s2', 'ENQUIRY_URL_BLUEPRINT_S2'),
+    cta: 'work through the Section 2 Blueprint',
   }),
   essayMarking: Object.freeze({
     key: 'essayMarking',
@@ -103,7 +116,7 @@ function routeRecommendedOffer(classification = {}) {
     recommendedPath === 'essay_marking' ||
     subjectNeed === 'essay_help'
   ) {
-    return OFFERS.essayMarking;
+    return ESSAY_MARKING_OPEN ? OFFERS.essayMarking : OFFERS.blueprintS2;
   }
 
   if (

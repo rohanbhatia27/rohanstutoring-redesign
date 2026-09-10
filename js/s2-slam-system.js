@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fireLeadEvent = (status) => {
     if (typeof window.gtag === 'function') {
-      window.gtag('event', 'generate_lead', { form_id: 'slamLeadForm', resource: 'S2 Slam System' });
+      window.gtag('event', 'generate_lead', { form_id: 'slamLeadForm', resource: 'S2 Slam System', resource_key: 's2-slam-system' });
       window.gtag('event', 'lead_form_submit', { resource_key: 's2-slam-system', status: status || '' });
       if (status === 'fallback') {
         window.gtag('event', 'free_resource_fallback', { resource: 'S2 Slam System' });

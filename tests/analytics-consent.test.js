@@ -112,12 +112,51 @@ test('analytics sends GA4 view_item on comprehensive course product pages', () =
 
   assert.ok(viewItemCall, 'expected a GA4 view_item event');
   assert.equal(viewItemCall[2].currency, 'AUD');
-  assert.equal(viewItemCall[2].value, 1699);
+  assert.equal(viewItemCall[2].value, 1599);
   assert.deepEqual(JSON.parse(JSON.stringify(viewItemCall[2].items)), [{
     item_id: 'comprehensive',
     item_name: 'Comprehensive Course',
-    price: 1699,
+    price: 1599,
     quantity: 1,
   }]);
   assert.ok(appendedScripts.some((script) => script.src.includes('googletagmanager.com/gtag/js')));
+});
+
+test('analytics standardizes GA4 key event page and resource parameters', () => {
+  const context = {
+    Date,
+    document: {
+      currentScript: { dataset: {} },
+      readyState: 'complete',
+      head: { appendChild() {} },
+      querySelector() {
+        return null;
+      },
+      createElement(tagName) {
+        return { tagName, async: false, src: '' };
+      },
+      getElementsByTagName() {
+        return [{ parentNode: { insertBefore() {} } }];
+      },
+    },
+    window: {
+      __analyticsConsent: { granted: true, pending: false },
+      location: { pathname: '/contact' },
+      addEventListener() {},
+    },
+  };
+  context.window.window = context.window;
+  context.window.document = context.document;
+  context.window.Date = Date;
+
+  vm.runInNewContext(analyticsScript, context);
+  context.window.gtag('event', 'generate_lead', { form_id: 'contact' });
+
+  const leadCall = context.window.dataLayer
+    .map((entry) => Array.from(entry))
+    .find(([command, eventName]) => command === 'event' && eventName === 'generate_lead');
+
+  assert.ok(leadCall, 'expected a generate_lead event');
+  assert.equal(leadCall[2].page_path, '/contact');
+  assert.equal(leadCall[2].resource_key, 'contact');
 });

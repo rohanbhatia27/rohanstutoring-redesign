@@ -1356,6 +1356,11 @@ body.menu-open .nav::after {
   padding: 8px 12px;
   margin-top: 24px;
 }
+.course-tier__value-note--featured {
+  color: var(--white);
+  background: rgba(16,191,122,0.14);
+  border: 1px solid rgba(16,191,122,0.24);
+}
 
 .course-tier__actions {
   margin-top: auto;
@@ -1495,7 +1500,10 @@ body.menu-open .nav::after {
     max-width: 640px;
     padding-top: 8px;
   }
-  .course-tier--featured { transform: none; }
+  .course-tier--featured {
+    order: -1;
+    transform: none;
+  }
   .course-tier--featured:hover { transform: translateY(-4px); }
 }
 

@@ -13,6 +13,10 @@ const { Resend } = require('resend');
 const { generateWeeklyInsights, compactDashboard } = require('./_lib/_insights.js');
 
 const GA_API = 'https://analyticsdata.googleapis.com/v1beta';
+const GA4_KEY_EVENTS = (process.env.GA4_KEY_EVENTS || 'generate_lead,lead_form_submit,course_cta_click,checkout_start,add_payment_info,purchase')
+  .split(',')
+  .map((eventName) => eventName.trim())
+  .filter(Boolean);
 
 // Default event-name buckets. Override with env vars (comma-separated)
 // to match whatever event names you actually fire from the site.
@@ -20,7 +24,7 @@ const EVENT_BUCKETS = {
   lead:      (process.env.GA4_LEAD_EVENTS      || 'generate_lead,lead_form_submit,email_signup,sign_up').split(','),
   download:  (process.env.GA4_DOWNLOAD_EVENTS  || 'free_resource_download,file_download').split(','),
   strategy:  (process.env.GA4_STRATEGY_SESSION_EVENTS || 'strategy_session_signup,strategy_call_click').split(','),
-  checkout:  (process.env.GA4_CHECKOUT_EVENTS  || 'begin_checkout,checkout_click,checkout_start').split(','),
+  checkout:  (process.env.GA4_CHECKOUT_EVENTS  || 'course_cta_click,checkout_start,add_payment_info,begin_checkout,checkout_click').split(','),
   purchase:  (process.env.GA4_PURCHASE_EVENTS  || 'purchase').split(','),
 };
 
@@ -212,14 +216,27 @@ async function buildDashboard(propertyId, accessToken, days) {
     limit: 500,
   };
 
+  const reqPageConversionEvents = {
+    dateRanges: [dateRangeCurr],
+    dimensions: [{ name: 'pagePath' }, { name: 'eventName' }],
+    metrics: [{ name: 'eventCount' }],
+    dimensionFilter: {
+      filter: {
+        fieldName: 'eventName',
+        inListFilter: { values: GA4_KEY_EVENTS },
+      },
+    },
+    limit: 500,
+  };
+
   // GA4 caps batchRunReports at 5 reports per call, so split into two batches.
   const [batchA, batchB] = await Promise.all([
     runBatchReports(propertyId, accessToken, [reqTrend, reqEvents, reqSources, reqPages]),
-    runBatchReports(propertyId, accessToken, [reqTotals, reqMagnetEvents, reqMagnetPages, reqSourceLeadEvents]),
+    runBatchReports(propertyId, accessToken, [reqTotals, reqMagnetEvents, reqMagnetPages, reqSourceLeadEvents, reqPageConversionEvents]),
   ]);
   const reports = [...batchA, ...batchB];
 
-  const [trendR, eventsR, sourcesR, pagesR, totalsR, magnetEventsR, magnetPagesR, sourceLeadEventsR] = reports;
+  const [trendR, eventsR, sourcesR, pagesR, totalsR, magnetEventsR, magnetPagesR, sourceLeadEventsR, pageConversionEventsR] = reports;
 
   // ---- Trend (split by dateRange dimension value) ----
   const trendRows = rowsToObjects(trendR);
@@ -269,11 +286,15 @@ async function buildDashboard(propertyId, accessToken, days) {
 
   // ---- Pages ----
   const pagesRows = rowsToObjects(pagesR);
+  const pageConversionRows = rowsToObjects(pageConversionEventsR);
   const pages = pagesRows.map((r) => {
     const views = r.screenPageViews || 0;
     const avgSec = Math.round(r.averageSessionDuration || 0);
     const time = `${Math.floor(avgSec / 60)}:${String(avgSec % 60).padStart(2, '0')}`;
-    const conv = views ? Math.round(((r.keyEvents || 0) / views) * 1000) / 10 : 0;
+    const conversionEvents = pageConversionRows
+      .filter((eventRow) => eventRow.pagePath === r.pagePath)
+      .reduce((sum, eventRow) => sum + (eventRow.eventCount || 0), 0);
+    const conv = views ? Math.round((conversionEvents / views) * 1000) / 10 : 0;
     let status = 'okay';
     if (conv >= 8) status = 'great';
     else if (conv >= 4) status = 'good';
@@ -332,10 +353,11 @@ async function buildDashboard(propertyId, accessToken, days) {
   // ---- Tracking gaps (events that are missing from the period's data) ----
   const seen = new Set(evRowsCurr.map((r) => r.eventName));
   const expected = [
+    { name: 'generate_lead',          why: 'GA4 key event for lead attribution.' },
+    { name: 'course_cta_click',       why: 'Course-page intent before checkout loads.' },
     { name: 'checkout_start',         why: 'Distinguish browsers from buyers.' },
-    { name: 'free_resource_download', why: 'Confirms actual file/PDF clicks vs opt-ins.' },
-    { name: 'strategy_call_click',    why: 'High-intent CTA — attribute it to a source.' },
-    { name: 'outbound_click',         why: 'YouTube and Instagram exits are invisible without it.' },
+    { name: 'add_payment_info',       why: 'Payment-method commitment before purchase.' },
+    { name: 'purchase',               why: 'Confirmed revenue attribution.' },
     { name: 'lead_form_submit',       why: 'Unified name across forms for cleaner funnels.' },
   ];
   const gaps = expected.filter((e) => !seen.has(e.name));
@@ -349,7 +371,7 @@ async function buildDashboard(propertyId, accessToken, days) {
       { label: 'Leads generated',    value: leads,     prev: leadsPrev,     spark: trendCurr.map((v) => Math.round(v * 0.06)), note: 'Sum of configured lead events.' },
       { label: 'Resource downloads', value: downloads, prev: downloadsP,    spark: trendCurr.map((v) => Math.round(v * 0.045)), note: 'Sum of configured download events.' },
       { label: 'Strategy sessions',  value: strategy,  prev: strategyP,     spark: trendCurr.map((v) => Math.round(v * 0.02)), note: 'Configured strategy-session event total.' },
-      { label: 'Checkout clicks',    value: checkout,  prev: checkoutP,     spark: trendCurr.map((v) => Math.round(v * 0.013)), note: 'checkout_click + begin_checkout.' },
+      { label: 'Checkout clicks',    value: checkout,  prev: checkoutP,     spark: trendCurr.map((v) => Math.round(v * 0.013)), note: 'Configured checkout intent events.' },
       { label: 'Course purchases',   value: purchases, prev: purchasesP,    spark: trendCurr.map((v) => Math.round(v * 0.003)), note: 'purchase event total.' },
     ],
     sources,

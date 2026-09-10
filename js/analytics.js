@@ -4,7 +4,7 @@
   var shouldLoadWhenIdle = !!(document.currentScript && document.currentScript.dataset.load === 'idle');
 
   var PRODUCT_VIEW_CONTENT = {
-    comprehensive: { content_name: 'Comprehensive Course', value: 1699 },
+    comprehensive: { content_name: 'Comprehensive Course', value: 1599 },
     blueprint: { content_name: "Rohan's Blueprint", value: 599 },
     advanced: { content_name: 'GAMSAT Advanced Series', value: 299 },
     's1-comprehensive': { content_name: 'Section 1 Comprehensive Course', value: 999 },
@@ -13,10 +13,63 @@
     'private-mentoring': { content_name: 'Private Mentoring', value: 119 },
     'essay-marking': { content_name: 'Essay Marking', value: 35 },
   };
+  var GA4_KEY_EVENTS = {
+    generate_lead: true,
+    lead_form_submit: true,
+    course_cta_click: true,
+    checkout_start: true,
+    add_payment_info: true,
+    purchase: true,
+  };
+
+  function getCurrentPagePath() {
+    return window.location && window.location.pathname ? window.location.pathname : '';
+  }
+
+  function getPrimaryItemId(params) {
+    return params && params.items && params.items[0] ? params.items[0].item_id || '' : '';
+  }
+
+  function normalizeGA4EventParams(eventName, params) {
+    if (!GA4_KEY_EVENTS[eventName] || !params || typeof params !== 'object') return params;
+
+    var normalized = {};
+    Object.keys(params).forEach(function (key) {
+      normalized[key] = params[key];
+    });
+
+    if (!normalized.page_path) normalized.page_path = getCurrentPagePath();
+
+    if (eventName === 'generate_lead' || eventName === 'lead_form_submit') {
+      normalized.resource_key = normalized.resource_key
+        || normalized.resourceKey
+        || normalized.form_id
+        || normalized.resource
+        || '';
+    }
+
+    if (eventName === 'course_cta_click' || eventName === 'checkout_start' || eventName === 'add_payment_info' || eventName === 'purchase') {
+      normalized.product_slug = normalized.product_slug || getPrimaryItemId(normalized);
+      normalized.payment_mode = normalized.payment_mode || 'full';
+      normalized.coupon_code = normalized.coupon_code || normalized.couponCode || '';
+    }
+
+    if (eventName === 'course_cta_click') {
+      normalized.source_cta = normalized.source_cta || normalized.cta_text || '';
+    }
+
+    return normalized;
+  }
 
   function initGA4() {
     window.dataLayer = window.dataLayer || [];
-    function gtag() { window.dataLayer.push(arguments); }
+    function gtag() {
+      var args = Array.prototype.slice.call(arguments);
+      if (args[0] === 'event') {
+        args[2] = normalizeGA4EventParams(args[1], args[2]);
+      }
+      window.dataLayer.push(args);
+    }
     window.gtag = window.gtag || gtag;
     window.gtag('js', new Date());
     window.gtag('config', 'G-H1KDZ561ZE');

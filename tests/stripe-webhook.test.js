@@ -102,6 +102,10 @@ test('fulfillment helper records fulfillment on the PaymentIntent metadata', asy
 test('fulfillment helper preserves essay upload instructions for manual recovery', async () => {
   process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
   const updates = [];
+  const alerts = [];
+  fulfillPaymentIntent.__setAlertFn(async (args) => {
+    alerts.push(args);
+  });
   const paymentIntent = {
     id: 'pi_essay123',
     metadata: {
@@ -138,6 +142,48 @@ test('fulfillment helper preserves essay upload instructions for manual recovery
     updates[0].payload.metadata.essay_upload_instructions,
     'Upload via essay_upload_url or email essays@rohanstutoring.com with this PaymentIntent ID.'
   );
+  assert.equal(alerts.filter((alert) => alert.failedStep === 'drive').length, 0);
+  fulfillPaymentIntent.__resetForTests();
+  delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
+});
+
+test('fulfillment retry keeps essay upload fulfillment without retrying Drive sharing', async () => {
+  process.env.ESSAY_UPLOAD_TOKEN_SECRET = 'upload_secret_for_tests';
+  const updates = [];
+  const alerts = [];
+
+  fulfillPaymentIntent.__setAlertFn(async (args) => {
+    alerts.push(args);
+  });
+
+  const result = await fulfillPaymentIntent.fulfillPaymentIntent({
+    paymentIntent: {
+      id: 'pi_3Tv5xeH5JsZI731G0EwGKlau',
+      metadata: {
+        base_slug: 'essay-marking',
+        customer_email: 'jane@example.com',
+        fulfillment_status: 'manual_fulfillment_pending',
+        drive_share_status: 'missing_folder_mapping',
+      },
+    },
+    stripeClient: {
+      paymentIntents: {
+        update: async (id, payload) => {
+          updates.push({ id, payload });
+          return { id, metadata: payload.metadata };
+        },
+      },
+    },
+    forceAutomation: true,
+  });
+
+  assert.equal(result.alreadyFulfilled, false);
+  assert.equal(alerts.filter((alert) => alert.failedStep === 'drive').length, 0);
+  const finalMetadata = updates[updates.length - 1].payload.metadata;
+  assert.equal(finalMetadata.essay_upload_required, 'true');
+  assert.match(finalMetadata.essay_upload_url, /payment_intent=pi_3Tv5xeH5JsZI731G0EwGKlau/);
+
+  fulfillPaymentIntent.__resetForTests();
   delete process.env.ESSAY_UPLOAD_TOKEN_SECRET;
 });
 
@@ -340,7 +386,8 @@ test('fulfillment helper chooses the comprehensive welcome email template', asyn
 
   assert.equal(sentEmails[0].from, 'hello@rohanstutoring.com');
   assert.equal(sentEmails[0].subject, "Welcome to the Comprehensive Course 👋 Let's get started.");
-  assert.match(sentEmails[0].html, /June cohort starts on Monday 15 June/);
+  assert.match(sentEmails[0].html, /latest live-class schedule/);
+  assert.doesNotMatch(sentEmails[0].html, /June cohort starts/i);
   fulfillPaymentIntent.__resetForTests();
 });
 
@@ -373,7 +420,8 @@ test('fulfillment helper uses the S2-specific start time for s2-comprehensive', 
     },
   });
 
-  assert.match(sentEmails[0].html, /June cohort starts on Monday 15 June/);
+  assert.match(sentEmails[0].html, /latest live-class schedule/);
+  assert.doesNotMatch(sentEmails[0].html, /June cohort starts/i);
   fulfillPaymentIntent.__resetForTests();
 });
 
@@ -1227,4 +1275,71 @@ test('stripe webhook skips fulfillment for subscription-linked payment intents',
   assert.deepEqual(res.body, { received: true });
   assert.equal(fulfillCalled, false);
   stripeWebhookHandler.__resetForTests();
+});
+
+test('syncPurchaseTag applies the Customer tag to products with no product-specific purchase tag', async () => {
+  // essay-marking has no purchaseTagEnv, but buyers must still get the master
+  // Customer tag so the abandoned-checkout suppression rule pulls them out.
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_CUSTOMER = '20075421';
+
+  const calls = [];
+  kit.__setFetch(async (url) => {
+    calls.push(url);
+    if (url.endsWith('/v4/subscribers')) {
+      return { ok: true, status: 200, json: async () => ({ subscriber: { id: 789 } }) };
+    }
+    if (url.endsWith('/v4/tags/20075421/subscribers/789')) {
+      return { ok: true, status: 201, json: async () => ({ subscriber: { id: 789 } }) };
+    }
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  const result = await kit.syncPurchaseTag({
+    baseSlug: 'essay-marking',
+    email: 'jane@example.com',
+    customerName: 'Jane Smith',
+  });
+
+  assert.equal(result.skipped, false);
+  assert.equal(calls.length, 2);
+  assert.match(calls[0], /\/v4\/subscribers$/);
+  assert.match(calls[1], /\/v4\/tags\/20075421\/subscribers\/789$/);
+
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_CUSTOMER;
+});
+
+test('syncPurchaseTag surfaces Customer tag failures for supported product buyers', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT = '19492824';
+  process.env.KIT_TAG_ID_CUSTOMER = '20075421';
+
+  kit.__setFetch(async (url) => {
+    if (url.endsWith('/v4/subscribers')) {
+      return { ok: true, status: 200, json: async () => ({ subscriber: { id: 789 } }) };
+    }
+    if (url.endsWith('/v4/tags/19492824/subscribers/789')) {
+      return { ok: true, status: 201, json: async () => ({ subscriber: { id: 789 } }) };
+    }
+    if (url.endsWith('/v4/tags/20075421/subscribers/789')) {
+      return { ok: false, status: 500, json: async () => ({ errors: ['Customer tag failed'] }) };
+    }
+    throw new Error(`Unexpected fetch URL: ${url}`);
+  });
+
+  await assert.rejects(
+    () => kit.syncPurchaseTag({
+      baseSlug: 'blueprint',
+      email: 'jane@example.com',
+      customerName: 'Jane Smith',
+    }),
+    /Customer tag failed/
+  );
+
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+  delete process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT;
+  delete process.env.KIT_TAG_ID_CUSTOMER;
 });

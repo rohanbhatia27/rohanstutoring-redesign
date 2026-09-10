@@ -102,6 +102,50 @@ async function tagSubscriber({ subscriberId, tagId }) {
   return data && data.subscriber ? data.subscriber : null;
 }
 
+async function addSubscriberToForm({ formId, email, firstName = '' }) {
+  const safeFormId = String(formId || '').trim();
+  if (!safeFormId) {
+    throw new Error('Missing Kit form id');
+  }
+  if (!isValidEmail(email)) {
+    throw new Error('Invalid subscriber email address');
+  }
+
+  // Upsert first so the subscriber is active and carries their first name: the
+  // v4 form-subscribe endpoint only accepts an email address. Adding them to
+  // the form then fires the form-triggered automation that delivers the resource.
+  await upsertSubscriber({ email, firstName });
+
+  const data = await kitRequest(`/forms/${encodeURIComponent(safeFormId)}/subscribers`, {
+    method: 'POST',
+    body: { email_address: String(email).trim() },
+  });
+
+  return data && data.subscriber ? data.subscriber : null;
+}
+
+async function addSubscriberToSequence({ sequenceId, email, firstName = '' }) {
+  const safeSequenceId = String(sequenceId || '').trim();
+  if (!safeSequenceId) {
+    throw new Error('Missing Kit sequence id');
+  }
+  if (!isValidEmail(email)) {
+    throw new Error('Invalid subscriber email address');
+  }
+
+  // Upsert first so the subscriber exists and carries their first name, then
+  // enroll them into the sequence. Unlike the form-automation trigger, this
+  // enrollment is deterministic, so the nurture series actually starts.
+  await upsertSubscriber({ email, firstName });
+
+  const data = await kitRequest(`/sequences/${encodeURIComponent(safeSequenceId)}/subscribers`, {
+    method: 'POST',
+    body: { email_address: String(email).trim() },
+  });
+
+  return data && data.subscriber ? data.subscriber : null;
+}
+
 async function syncQuizLead({ email, firstName = '', outcome = '' }) {
   const safeOutcome = String(outcome || '').trim();
   const subscriber = await upsertSubscriber({
@@ -132,22 +176,25 @@ async function syncQuizLead({ email, firstName = '', outcome = '' }) {
 }
 
 async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
-  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
-  const purchaseTagEnv = entry ? entry.purchaseTagEnv : null;
-
-  if (!purchaseTagEnv) {
-    return { skipped: true, reason: 'unsupported_product' };
-  }
-
   if (!isValidEmail(email)) {
     return { skipped: true, reason: 'missing_email' };
   }
 
   const apiKey = getOptionalEnv('KIT_API_KEY');
-  const purchasedTagId = getOptionalEnv(purchaseTagEnv);
-
-  if (!apiKey || !purchasedTagId) {
+  if (!apiKey) {
     return { skipped: true, reason: 'missing_kit_config' };
+  }
+
+  const entry = SERVER_CATALOG[String(baseSlug || '').trim()];
+  const purchaseTagEnv = entry ? entry.purchaseTagEnv : null;
+  const purchasedTagId = purchaseTagEnv ? getOptionalEnv(purchaseTagEnv) : '';
+  // Single master "Customer" tag so the abandoned-checkout (and any future)
+  // suppression automation works with one rule for every product, including
+  // ones that have no product-specific purchase tag (e.g. essay marking).
+  const customerTagId = getOptionalEnv('KIT_TAG_ID_CUSTOMER');
+
+  if (!purchasedTagId && !customerTagId) {
+    return { skipped: true, reason: purchaseTagEnv ? 'missing_kit_config' : 'unsupported_product' };
   }
 
   const subscriber = await upsertSubscriber({
@@ -159,9 +206,60 @@ async function syncPurchaseTag({ baseSlug, email, customerName = '' }) {
     throw new Error('Kit subscriber upsert failed');
   }
 
+  if (purchasedTagId) {
+    await tagSubscriber({
+      subscriberId: subscriber.id,
+      tagId: purchasedTagId,
+    });
+  }
+
+  if (customerTagId) {
+    await tagSubscriber({ subscriberId: subscriber.id, tagId: customerTagId });
+  }
+
+  return { skipped: false, subscriberId: subscriber.id };
+}
+
+// Best-effort capture of someone who reached payment intent but has not (yet)
+// purchased. Tags them so Kit's abandoned-checkout automation can follow up.
+// Never throws on missing config — checkout must never fail because of Kit.
+async function syncCheckoutStartedTag({ baseSlug, email, customerName = '', value = '' }) {
+  if (!isValidEmail(email)) {
+    return { skipped: true, reason: 'missing_email' };
+  }
+
+  const apiKey = getOptionalEnv('KIT_API_KEY');
+  const abandonedTagId = getOptionalEnv('KIT_TAG_ID_CHECKOUT_ABANDONED');
+
+  if (!apiKey || !abandonedTagId) {
+    return { skipped: true, reason: 'missing_kit_config' };
+  }
+
+  const safeBaseSlug = String(baseSlug || '').trim();
+  const entry = SERVER_CATALOG[safeBaseSlug];
+  const productName = entry ? (entry.title || entry.name || '') : '';
+  const resumeSlug = (entry && entry.pageSlug) || safeBaseSlug;
+  const checkoutUrl = resumeSlug
+    ? `https://www.rohanstutoring.com/checkout/?product=${encodeURIComponent(resumeSlug)}`
+    : '';
+
+  const subscriber = await upsertSubscriber({
+    email,
+    firstName: firstNameFromFullName(customerName),
+    fields: {
+      checkout_product: productName,
+      checkout_value: value === '' || value === null || value === undefined ? '' : String(value),
+      checkout_url: checkoutUrl,
+    },
+  });
+
+  if (!subscriber) {
+    throw new Error('Kit subscriber upsert failed');
+  }
+
   await tagSubscriber({
     subscriberId: subscriber.id,
-    tagId: purchasedTagId,
+    tagId: abandonedTagId,
   });
 
   return { skipped: false, subscriberId: subscriber.id };
@@ -171,8 +269,11 @@ module.exports = {
   isValidEmail,
   upsertSubscriber,
   tagSubscriber,
+  addSubscriberToForm,
+  addSubscriberToSequence,
   syncQuizLead,
   syncPurchaseTag,
+  syncCheckoutStartedTag,
   firstNameFromFullName,
   __setFetch: (value) => {
     fetchImpl = value;

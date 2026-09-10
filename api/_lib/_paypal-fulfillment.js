@@ -44,33 +44,35 @@ async function fulfillPayPalOrder({
     customerName,
   };
 
-  try {
-    const driveResult = await shareProductAccess({
-      baseSlug,
-      email: customerEmail,
-    });
+  if (fulfillPaymentIntent.productRequiresDriveAccess(baseSlug)) {
+    try {
+      const driveResult = await shareProductAccess({
+        baseSlug,
+        email: customerEmail,
+      });
 
-    if (driveResult && !driveResult.skipped) {
-      console.log(
-        `[${source}] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
-      );
-      await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'success' });
-    } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
-      console.warn(`[${source}] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
-      await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'skipped', meta: { reason: driveResult.reason } });
+      if (driveResult && !driveResult.skipped) {
+        console.log(
+          `[${source}] Google Drive access ${driveResult.alreadyShared ? 'already existed' : 'shared'} for ${customerEmail} (${baseSlug})`
+        );
+        await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'success' });
+      } else if (driveResult && driveResult.reason === 'missing_folder_mapping') {
+        console.warn(`[${source}] No Google Drive folder configured for ${baseSlug} (${driveResult.folderEnvName})`);
+        await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'skipped', meta: { reason: driveResult.reason } });
+      }
+    } catch (driveErr) {
+      console.error(`[${source}] Google Drive sharing failed:`, driveErr.message);
+      await logPurchaseEvent({ ...logBase, eventType: 'drive_share.failed', outcome: 'failure', errorMessage: driveErr.message });
+      await safeAlert({
+        baseSlug,
+        upsellSlug,
+        customerEmail,
+        provider: 'paypal',
+        paymentId: orderID,
+        failedStep: 'drive',
+        errorMessage: driveErr.message,
+      });
     }
-  } catch (driveErr) {
-    console.error(`[${source}] Google Drive sharing failed:`, driveErr.message);
-    await logPurchaseEvent({ ...logBase, eventType: 'drive_share.failed', outcome: 'failure', errorMessage: driveErr.message });
-    await safeAlert({
-      baseSlug,
-      upsellSlug,
-      customerEmail,
-      provider: 'paypal',
-      paymentId: orderID,
-      failedStep: 'drive',
-      errorMessage: driveErr.message,
-    });
   }
 
   try {

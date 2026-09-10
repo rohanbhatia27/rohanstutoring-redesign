@@ -15,27 +15,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-// ─── External Stripe links (not derivable from catalog/StorefrontConfig) ─────
-
-/**
- * These two pages have hardcoded Stripe instalment buy buttons even though
- * the catalog has no `instalment` block for s1-comprehensive or s2-comprehensive.
- * Keeping this minimal map so the audit can still validate the link labels.
- * If instalment config is ever added to the catalog for these slugs, delete this.
- */
-const EXTERNAL_STRIPE_LINKS = {
-  's1-comprehensive': {
-    url: 'https://buy.stripe.com/dRmcN567q5o62u1c2EeEo0u',
-    payment: 299,
-    count: 4,
-  },
-  's2-comprehensive': {
-    url: 'https://buy.stripe.com/bJe4gz2Ve3fY3y51o0eEo0v',
-    payment: 299,
-    count: 4,
-  },
-};
-
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /**
@@ -478,20 +457,12 @@ function runPriceAudit() {
         }
       }
 
-      // Check EXTERNAL_STRIPE_LINKS
-      if (!matched && EXTERNAL_STRIPE_LINKS[pageSlug] && EXTERNAL_STRIPE_LINKS[pageSlug].url === url) {
-        matched = true;
-        ownerKey = pageSlug + ' (external)';
-        expectedPayment = EXTERNAL_STRIPE_LINKS[pageSlug].payment;
-        expectedCount = EXTERNAL_STRIPE_LINKS[pageSlug].count;
-      }
-
       if (!matched) {
         errors.push('[Stripe] In ' + fileName + ': unregistered Stripe link ' + url);
         continue;
       }
 
-      if (ownerKey && ownerKey !== pageSlug && !ownerKey.endsWith('(external)')) {
+      if (ownerKey && ownerKey !== pageSlug) {
         errors.push('[Stripe] In ' + fileName + ': Stripe link for "' + ownerKey + '" found on page for "' + pageSlug + '"');
       }
 

@@ -8,7 +8,9 @@
  *
  * Server-only fields (fulfillment, kit, drive) live in api/_lib/catalog.server.js.
  *
+ * To reopen live coaching: update COHORT_STATUSES.liveCoaching.
  * To reopen a rescue sprint: flip `available` to true for that entry.
+ * To reopen essay marking: set ESSAY_MARKING_AVAILABLE to true.
  */
 (function (global) {
   'use strict';
@@ -17,6 +19,37 @@
   // Each entry is keyed by its purchase slug (the value sent to the API).
   // `private-mentoring` is a page-level alias; its purchases go via
   // `mentoring-single` or `mentoring-pack`.
+
+  const COHORT_STATUSES = {
+    liveCoaching: {
+      status: 'open',
+      available: true,
+      label: 'Enrol Now',
+      publicMessage: 'Enrolments are open. Classes start late October 2026.',
+    },
+  };
+
+  const COHORT_STATUS_BY_SLUG = {
+    comprehensive: 'liveCoaching',
+    's1-comprehensive': 'liveCoaching',
+    's2-comprehensive': 'liveCoaching',
+    mastery: 'liveCoaching',
+  };
+
+  function getCohortStatusForSlug(slug) {
+    const statusKey = COHORT_STATUS_BY_SLUG[String(slug || '').trim()];
+    return statusKey ? COHORT_STATUSES[statusKey] : null;
+  }
+
+  function isCohortAvailable(slug) {
+    const status = getCohortStatusForSlug(slug);
+    return status ? status.available === true : true;
+  }
+
+  // Essay marking is paused. Submissions reopen September 2026.
+  // Flipping this to true restores the single essay, the 10-essay pack, and the
+  // essay pack order bumps on the Blueprint checkouts.
+  const ESSAY_MARKING_AVAILABLE = false;
 
   const CATALOG = {
     blueprint: {
@@ -56,6 +89,84 @@
         badge: 'Save $100',
       },
       pageSlug: 'blueprint',
+    },
+
+    'blueprint-s1': {
+      slug: 'blueprint-s1',
+      name: "Rohan's Blueprint: Section 1",
+      title: "Rohan's Blueprint: Section 1 Only",
+      priceCents: 39900,
+      available: true,
+      highTicket: false,
+      afterpay: true,
+      instalmentEligible: false,
+      allowedUpsells: ['essay-pack-10', 'mentoring-single'],
+      upsellPriceOverrides: { 'mentoring-single': 9900 },
+      image: '/assets/blueprint-product.jpg',
+      tagline: 'Section 1 only  40+ hours  Lifetime access',
+      features: [
+        '40+ hours of S1 instruction',
+        '27 focused S1 modules',
+        'S1 reasoning frameworks & drills',
+        'Lifetime access  No expiry',
+      ],
+      isDigital: true,
+      successType: 'digital',
+      instalment: null,
+      orderBump: {
+        slug: 'mentoring-single',
+        title: 'Add one 1:1 Strategy Class with a Top GAMSAT Tutor',
+        description: 'A private 1-hour session with a top GAMSAT tutor to build a personalised study plan and target your weak areas in Section 1.',
+        priceWas: 119,
+        badge: 'Blueprint S1-only offer',
+        lockRuntimePrice: true,
+      },
+      secondOrderBump: {
+        slug: 'essay-pack-10',
+        title: 'Add the 10x Essay Marking Pack',
+        description: 'Get clear feedback on ideas, structure, and expression across 10 full S2 essays.',
+        badge: 'Optional add-on',
+      },
+      pageSlug: 'blueprint-s1',
+    },
+
+    'blueprint-s2': {
+      slug: 'blueprint-s2',
+      name: "Rohan's Blueprint: Section 2",
+      title: "Rohan's Blueprint: Section 2 Only",
+      priceCents: 39900,
+      available: true,
+      highTicket: false,
+      afterpay: true,
+      instalmentEligible: false,
+      allowedUpsells: ['essay-pack-10', 'essay-collection', 'mentoring-single'],
+      upsellPriceOverrides: { 'mentoring-single': 9900 },
+      image: '/assets/blueprint-product.jpg',
+      tagline: 'Section 2 only  40+ hours  Lifetime access',
+      features: [
+        '40+ hours of S2 instruction',
+        '27 focused S2 modules',
+        'Essay frameworks, worked examples & model essays',
+        'Lifetime access  No expiry',
+      ],
+      isDigital: true,
+      successType: 'digital',
+      instalment: null,
+      orderBump: {
+        slug: 'essay-pack-10',
+        title: 'Add the 10x Essay Marking Pack',
+        description: 'Get clear feedback on ideas, structure, and expression across 10 full essays. Submit over time as you work through the course.',
+        badge: 'Save $100',
+      },
+      secondOrderBump: {
+        slug: 'mentoring-single',
+        title: 'Add one 1:1 Strategy Class with a Top GAMSAT Tutor',
+        description: 'A private 1-hour session with a top GAMSAT tutor to build a personalised study plan and target your weak areas in Section 2.',
+        priceWas: 119,
+        badge: 'Blueprint S2-only offer',
+        lockRuntimePrice: true,
+      },
+      pageSlug: 'blueprint-s2',
     },
 
     advanced: {
@@ -109,7 +220,7 @@
         'Immediate access  All devices',
       ],
       isDigital: true,
-      successType: 'digital',
+      successType: 'digital-download',
       instalment: null,
       orderBump: null,
       pageSlug: 'essay-collection',
@@ -151,7 +262,7 @@
       name: 'Essay Marking',
       title: 'S2 Essay Marking',
       priceCents: 3499,
-      available: true,
+      available: ESSAY_MARKING_AVAILABLE,
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -183,7 +294,7 @@
       name: 'Essay Marking Pack (10 credits)',
       title: 'S2 Essay Marking — 10-Essay Pack',
       priceCents: 24900,
-      available: true,
+      available: ESSAY_MARKING_AVAILABLE,
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -207,12 +318,18 @@
     comprehensive: {
       slug: 'comprehensive',
       name: 'Comprehensive Course',
-      title: 'GAMSAT S1 & S2 Comprehensive Course (June 2026 Start)',
-      priceCents: 169900,
-      available: true,
+      title: 'GAMSAT S1 & S2 Comprehensive Course',
+      // Early bird for the March 2027 GAMSAT cohort (classes start late
+      // October 2026): $1,599 until 1 October 2026, or
+      // until the first 10 enrolments land (tracked manually in Stripe — the
+      // site has no seat counter). At cutover, restore priceCents to 179900,
+      // set instalmentEligible back to true, and restore the instalment block
+      // below at $539 x 4 against a new STRIPE_PRICE_COMPREHENSIVE_INSTALMENT.
+      priceCents: 159900,
+      available: isCohortAvailable('comprehensive'),
       highTicket: true,
       afterpay: false,
-      instalmentEligible: true,
+      instalmentEligible: false,
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/comprehensive-course-card.webp',
@@ -226,16 +343,9 @@
       ],
       isDigital: false,
       successType: 'cohort',
-      instalment: {
-        label: 'or pay $499 × 4 instalments →',
-        url: '/checkout/?product=comprehensive&paymentMode=instalments',
-        plan: {
-          count: 4,
-          firstPayment: 499,
-          recurringPayment: 499,
-          priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
-        },
-      },
+      // No instalment option during the early bird window. See the pricing
+      // note above for what to restore at the 1 October cutover.
+      instalment: null,
       orderBump: {
         slug: 'mentoring-single',
         title: 'Add one 1:1 Strategy Class With Rohan',
@@ -250,9 +360,9 @@
     's1-comprehensive': {
       slug: 's1-comprehensive',
       name: 'Section 1 Comprehensive Course',
-      title: 'GAMSAT Section 1 Comprehensive Course (June 2026 Start)',
+      title: 'GAMSAT Section 1 Comprehensive Course',
       priceCents: 99900,
-      available: true,
+      available: isCohortAvailable('s1-comprehensive'),
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -276,9 +386,9 @@
     's2-comprehensive': {
       slug: 's2-comprehensive',
       name: 'Section 2 Comprehensive Course',
-      title: 'GAMSAT Section 2 Comprehensive Course (June 2026 Start)',
+      title: 'GAMSAT Section 2 Comprehensive Course',
       priceCents: 99900,
-      available: true,
+      available: isCohortAvailable('s2-comprehensive'),
       highTicket: false,
       afterpay: false,
       instalmentEligible: false,
@@ -304,14 +414,14 @@
       name: 'Mastery Program',
       title: 'Mastery Program',
       priceCents: 249900,
-      available: true,
+      available: isCohortAvailable('mastery'),
       highTicket: true,
       afterpay: false,
       instalmentEligible: true,
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/mastery-course-card.webp',
-      tagline: 'Private tutorials  Unlimited essay marking  September cohort',
+      tagline: 'Private tutorials  Unlimited essay marking  Waitlist open',
       features: [
         'Everything in the Comprehensive Course',
         '5 × 1:1 private tutorials with Rohan',
@@ -525,8 +635,11 @@
   // ─── Export ─────────────────────────────────────────────────────────────────
 
   const ProductCatalog = {
+    COHORT_STATUSES: COHORT_STATUSES,
+    COHORT_STATUS_BY_SLUG: COHORT_STATUS_BY_SLUG,
     CATALOG: CATALOG,
     getEntry: getEntry,
+    getCohortStatusForSlug: getCohortStatusForSlug,
     getUpsellPriceCents: getUpsellPriceCents,
     isAllowedUpsell: isAllowedUpsell,
     getUnavailableSlugs: getUnavailableSlugs,

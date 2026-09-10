@@ -22,11 +22,35 @@ const {
 const { CATALOG } = require('./_lib/catalog.server.js');
 const { checkRateLimit } = require('./_lib/_rate-limit.js');
 const logPurchaseEvent = require('./_lib/_purchase-log.js');
+const { syncCheckoutStartedTag } = require('./_lib/_kit.js');
+
+// Capture an abandoned-checkout lead without ever blocking or failing payment.
+function captureCheckoutStarted({ baseSlug, email, customerName, value }) {
+  syncCheckoutStartedTag({ baseSlug, email, customerName, value }).catch((err) => {
+    console.warn('[kit] checkout-started capture failed:', err.message);
+  });
+}
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const PUBLIC_ERROR_MESSAGE = 'Payment setup failed. Please try again.';
 const INSTALMENT_PUBLIC_ERROR_MESSAGE = 'Instalment checkout setup failed. Please try again.';
 let stripeFactory = (secretKey) => Stripe(secretKey);
+
+function getSafeMetadataValue(value, maxLength = 100) {
+  return String(value || '').trim().slice(0, maxLength);
+}
+
+function addAnalyticsMetadata(metadata, body = {}) {
+  const cohort = getSafeMetadataValue(body.cohort, 50);
+  const gaClientId = getSafeMetadataValue(body.gaClientId || body.ga_client_id, 100);
+  const gaSessionId = getSafeMetadataValue(body.gaSessionId || body.ga_session_id, 100);
+
+  if (cohort) metadata.cohort = cohort;
+  if (gaClientId) metadata.ga_client_id = gaClientId;
+  if (gaSessionId) metadata.ga_session_id = gaSessionId;
+
+  return metadata;
+}
 
 // Derived from catalog — edit js/catalog.js instead.
 const ELIGIBLE_INSTALMENT_PRODUCTS = new Set(
@@ -102,7 +126,12 @@ function isCouponEligibleForProduct(coupon, productSlug) {
 
   const allowedProducts = getCouponAllowedProductSlugs(coupon);
   if (!allowedProducts || allowedProducts.size === 0) {
-    return true;
+    // An unrestricted coupon stays valid for the low-ticket catalog, but must
+    // never reach the cohorts. Without this, a coupon authored for a $97
+    // product (or a leftover test coupon) discounts a $1,599 enrolment.
+    // To discount a cohort, give the coupon allowed_products metadata naming
+    // the slug, or allowed_product_group=high_ticket.
+    return !HIGH_TICKET_PRODUCT_SLUGS.has(slug);
   }
 
   return allowedProducts.has(slug);
@@ -365,6 +394,9 @@ function buildInstalmentSessionPayload({
   recurringPriceId,
   couponCode = '',
   discountAmount = 0,
+  cohort = '',
+  gaClientId = '',
+  gaSessionId = '',
 }) {
   const oneTimeLineItems = buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity, upsellSlug2);
   const plan = CATALOG[slug] && CATALOG[slug].instalment ? CATALOG[slug].instalment.plan : null;
@@ -382,6 +414,7 @@ function buildInstalmentSessionPayload({
     customer_name: customer.customerName,
     customer_phone: customer.phone,
   };
+  addAnalyticsMetadata(metadata, { cohort, gaClientId, gaSessionId });
 
   if (upsellSlug) {
     metadata.upsell_slug = upsellSlug;
@@ -439,6 +472,9 @@ function buildAfterpaySessionPayload({
   origin,
   finalAmount,
   couponCode,
+  cohort = '',
+  gaClientId = '',
+  gaSessionId = '',
 }) {
   const metadata = {
     product_slug: purchase.baseSlug,
@@ -448,6 +484,7 @@ function buildAfterpaySessionPayload({
     customer_name: customer.customerName,
     customer_phone: customer.phone,
   };
+  addAnalyticsMetadata(metadata, { cohort, gaClientId, gaSessionId });
 
   if (purchase.upsellSlug) {
     metadata.upsell_slug = purchase.upsellSlug;
@@ -524,6 +561,7 @@ async function handleOneOffCheckout(req, res, body) {
       customer_name: customer.customerName,
       customer_phone: customer.phone,
     };
+    addAnalyticsMetadata(metadata, body);
 
     if (purchase.upsellSlug) {
       metadata.upsell_slug = purchase.upsellSlug;
@@ -607,6 +645,13 @@ async function handleOneOffCheckout(req, res, body) {
       outcome: 'success',
     });
 
+    captureCheckoutStarted({
+      baseSlug: purchase.baseSlug,
+      email: customer.email,
+      customerName: customer.customerName,
+      value: finalAmount / 100,
+    });
+
     res.status(200).json({ clientSecret: intent.client_secret });
   } catch (err) {
     console.error('Stripe error:', err.message);
@@ -669,6 +714,9 @@ async function handleInstalmentCheckout(req, res, body, origin) {
         origin: sessionOrigin,
         finalAmount,
         couponCode: validatedCode && discountAmount > 0 ? validatedCode : '',
+        cohort: body.cohort,
+        gaClientId: body.gaClientId || body.ga_client_id,
+        gaSessionId: body.gaSessionId || body.ga_session_id,
       });
     } else {
       const recurringPriceId = String(process.env[PRICE_ENV_KEYS[checkoutRequest.slug]] || '').trim();
@@ -712,16 +760,72 @@ async function handleInstalmentCheckout(req, res, body, origin) {
         recurringPriceId,
         couponCode: validatedCode,
         discountAmount,
+        cohort: body.cohort,
+        gaClientId: body.gaClientId || body.ga_client_id,
+        gaSessionId: body.gaSessionId || body.ga_session_id,
       });
     }
 
     const session = await stripe.checkout.sessions.create(sessionPayload);
+
+    captureCheckoutStarted({
+      baseSlug: checkoutRequest.slug,
+      email: customer.email,
+      customerName: customer.customerName,
+      value: (AMOUNTS[checkoutRequest.slug] || 0) / 100,
+    });
 
     return res.status(200).json({ url: session.url });
   } catch (error) {
     console.error('Stripe checkout session error:', error.message);
     return res.status(500).json({ error: INSTALMENT_PUBLIC_ERROR_MESSAGE });
   }
+}
+
+async function handleCheckoutLeadCapture(req, res, body) {
+  const origin = req.headers.origin || '';
+
+  if (!isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const payload = body && typeof body === 'object' ? body : null;
+  if (!payload) {
+    return res.status(400).json({ error: 'Missing or invalid JSON body' });
+  }
+
+  const slug = normaliseSlug(payload.slug || payload.productSlug || payload.baseSlug).toLowerCase();
+  if (!slug || !CATALOG[slug]) {
+    return res.status(400).json({ error: 'Missing or invalid product slug.' });
+  }
+
+  const email = String(payload.email || '').trim();
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+
+  const rl = await checkRateLimit(req, { bucket: 'leads', email });
+  if (rl.limited) {
+    return res.status(429).json({ error: rl.message });
+  }
+
+  const rawValue = Number(payload.value);
+  const value = Number.isFinite(rawValue) && rawValue > 0
+    ? rawValue
+    : (AMOUNTS[slug] || 0) / 100;
+
+  captureCheckoutStarted({
+    baseSlug: slug,
+    email,
+    customerName: String(payload.customerName || '').trim(),
+    value,
+  });
+
+  return res.status(202).json({ ok: true, status: 'queued' });
 }
 
 async function handlePublicConfig(req, res) {
@@ -861,6 +965,10 @@ async function createCheckoutHandler(req, res) {
 
   if (action === 'validateCoupon') {
     return handleValidateCoupon(req, res, req.body);
+  }
+
+  if (action === 'checkoutLead') {
+    return handleCheckoutLeadCapture(req, res, req.body);
   }
 
   const origin = req.headers.origin || '';

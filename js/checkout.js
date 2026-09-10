@@ -14,6 +14,8 @@
 
   const TALLY_ESSAY_FORM_URL = 'https://tally.so/r/zxQdMR';
   const EMAIL_PATTERN = /^[^\s@.][^\s@]*@[^\s@]+\.[^\s@.]{2,}$/;
+  const GA4_MEASUREMENT_ID = 'G-H1KDZ561ZE';
+  const GA4_COOKIE_SUFFIX = GA4_MEASUREMENT_ID.replace(/^G-/, '');
 
   // Derived from catalog — edit js/catalog.js to update products, prices, or availability.
   const UNAVAILABLE_PRODUCT_SLUGS = new Set(
@@ -65,7 +67,7 @@
     const m = {};
     Object.keys(_CAT).forEach(function (slug) {
       const bump = _CAT[slug].orderBump;
-      if (!bump) return;
+      if (!bump || UNAVAILABLE_PRODUCT_SLUGS.has(bump.slug)) return;
       const bumpCents = _getUpsellPriceCents(slug, bump.slug);
       m[slug] = Object.assign({}, bump, {
         price: bumpCents !== null ? bumpCents / 100 : bump.price,
@@ -78,7 +80,7 @@
     const m = {};
     Object.keys(_CAT).forEach(function (slug) {
       const bump = _CAT[slug].secondOrderBump;
-      if (!bump) return;
+      if (!bump || UNAVAILABLE_PRODUCT_SLUGS.has(bump.slug)) return;
       const bumpCents = _getUpsellPriceCents(slug, bump.slug);
       m[slug] = Object.assign({}, bump, {
         price: bumpCents !== null ? bumpCents / 100 : bump.price,
@@ -100,6 +102,7 @@
 
   const SUCCESS_MESSAGES = {
     digital: "We've received your payment. Access will be shared to your email via Google Drive within a few hours.",
+    'digital-download': 'Payment confirmed. The PDF is on its way to your inbox now.',
     'essay-marking': "Payment confirmed. Use the button below to upload your essay — it takes about 30 seconds.",
     'essay-pack-10': 'Your 10-essay pack is confirmed. Email your essays whenever you are ready using the address below.',
     mentoring: "We've received your payment. Check your email for a booking link to schedule your first session.",
@@ -256,6 +259,7 @@
             payment_method: 'paypal',
           });
         }
+        trackGa4AddPaymentInfo(selection, 'paypal');
 
         try {
           const captureResponse = await fetch('/api/paypal-order', {
@@ -313,6 +317,35 @@
   function getPaymentModeOptions(productSlug) {
     if (PRODUCTS[productSlug]?.afterpay) return ['full', 'afterpay'];
     return INSTALMENT_PLANS[productSlug] ? ['full', 'instalments'] : ['full'];
+  }
+
+  function getCheckoutPagePath() {
+    return (typeof window !== 'undefined' && window.location && window.location.pathname)
+      ? window.location.pathname
+      : '/checkout/';
+  }
+
+  function getCheckoutTrackingPayload(productSlug, product, selection, cohort = '') {
+    const itemPrice = selection && selection.price !== undefined ? selection.price : product?.price;
+    const itemId = selection && selection.packageSlug ? selection.packageSlug : productSlug;
+    const paymentMode = selection && selection.paymentMode ? selection.paymentMode : 'full';
+    const item = {
+      item_id: itemId,
+      item_name: product ? product.name : itemId,
+      price: itemPrice,
+      quantity: 1,
+    };
+    if (cohort) item.item_variant = 'Cohort ' + cohort;
+
+    return {
+      currency: 'AUD',
+      value: itemPrice,
+      product_slug: productSlug,
+      payment_mode: paymentMode,
+      page_path: getCheckoutPagePath(),
+      coupon_code: selection && selection.couponCode ? selection.couponCode : '',
+      items: [item],
+    };
   }
 
   function getInstalmentPlanSummary(selection) {
@@ -689,8 +722,51 @@
     return items;
   }
 
+  function buildPurchaseAnalyticsPayload({
+    transactionId = '',
+    productSlug = '',
+    upsellSlug = '',
+    fallbackProductSlug = '',
+    cohort = '',
+    paymentMode = 'full',
+    couponCode = '',
+    pagePath = getCheckoutPagePath(),
+  } = {}) {
+    const items = buildPurchaseItems(productSlug, upsellSlug, fallbackProductSlug, cohort);
+    const value = getPurchaseValue(items);
+    const primaryItem = items[0] || {};
+
+    return {
+      transaction_id: transactionId,
+      currency: 'AUD',
+      value,
+      product_slug: productSlug || fallbackProductSlug || primaryItem.item_id || '',
+      payment_mode: paymentMode || 'full',
+      page_path: pagePath || getCheckoutPagePath(),
+      coupon_code: couponCode || '',
+      items,
+    };
+  }
+
   function getPurchaseValue(items) {
     return items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined;
+  }
+
+  function trackGa4PurchaseOnce(transactionId, payload) {
+    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return false;
+    const safeId = String(transactionId || '').trim();
+    if (!safeId || !payload) return false;
+
+    const key = 'ga4_purchase_' + safeId;
+    try {
+      if (window.sessionStorage && window.sessionStorage.getItem(key)) return false;
+      if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
+    } catch (error) {
+      // Success-page analytics should still fire when storage is unavailable.
+    }
+
+    window.gtag('event', 'purchase', payload);
+    return true;
   }
 
   function trackGa4BeginCheckoutOnce(productSlug, product, selection, cohort) {
@@ -698,7 +774,6 @@
     if (typeof window.gtag !== 'function') return false;
     if (!productSlug || !product) return false;
 
-    const itemPrice = selection && selection.price !== undefined ? selection.price : product.price;
     const itemId = selection && selection.packageSlug ? selection.packageSlug : productSlug;
 
     const key = 'ga4_begin_checkout_' + itemId;
@@ -709,20 +784,116 @@
       // sessionStorage can be unavailable in private browsing or locked-down contexts.
     }
 
-    const beginCheckoutItem = {
+    window.gtag('event', 'begin_checkout', getCheckoutTrackingPayload(productSlug, product, selection, cohort));
+    return true;
+  }
+
+  // Fires when a customer commits to a payment method (card / wallet / PayPal).
+  // Completes the GA4 funnel between begin_checkout and purchase so the drop-off
+  // between checkout-start and confirmed payment is measurable.
+  function trackGa4AddPaymentInfo(selection, paymentType) {
+    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+    if (!selection) return;
+
+    const product = PRODUCTS[selection.pageSlug];
+    const itemId = selection.apiSlug || selection.pageSlug;
+    const item = {
       item_id: itemId,
-      item_name: product.name,
-      price: itemPrice,
+      item_name: product ? product.name : itemId,
+      price: selection.price,
       quantity: 1,
     };
-    if (cohort) beginCheckoutItem.item_variant = 'Cohort ' + cohort;
 
-    window.gtag('event', 'begin_checkout', {
+    window.gtag('event', 'add_payment_info', {
       currency: 'AUD',
-      value: itemPrice,
-      items: [beginCheckoutItem],
+      value: selection.price,
+      product_slug: selection.pageSlug,
+      payment_mode: selection.paymentMode || 'full',
+      page_path: getCheckoutPagePath(),
+      coupon_code: selection.couponCode || '',
+      payment_type: paymentType || 'card',
+      items: [item],
     });
-    return true;
+  }
+
+  function buildCheckoutLeadPayload(selection, cohort = '') {
+    if (!selection) return null;
+
+    const emailInput = qs('#email');
+    const firstNameInput = qs('#first-name');
+    const lastNameInput = qs('#last-name');
+    const email = emailInput?.value.trim() || '';
+    if (!email || !EMAIL_PATTERN.test(email)) return null;
+    if (emailInput && typeof emailInput.checkValidity === 'function' && !emailInput.checkValidity()) return null;
+
+    const firstName = firstNameInput?.value.trim() || '';
+    const lastName = lastNameInput?.value.trim() || '';
+    const customerName = [firstName, lastName].filter(Boolean).join(' ');
+
+    return {
+      slug: selection.pageSlug || selection.apiSlug,
+      apiSlug: selection.apiSlug,
+      email,
+      customerName,
+      value: selection.price,
+      paymentMode: selection.paymentMode || 'full',
+      cohort,
+    };
+  }
+
+  function setupCheckoutLeadCapture(selection, cohort = '') {
+    const emailInput = qs('#email');
+    const capturedKeys = new Set();
+    if (!emailInput || typeof emailInput.addEventListener !== 'function') {
+      return function noopCaptureCheckoutLead() { return false; };
+    }
+
+    const capture = (source = 'email') => {
+      if (typeof fetch !== 'function') return false;
+      const payload = buildCheckoutLeadPayload(selection, cohort);
+      if (!payload) return false;
+
+      const key = [
+        'checkout_lead',
+        payload.slug,
+        payload.paymentMode,
+        payload.email.toLowerCase(),
+      ].join(':');
+
+      if (capturedKeys.has(key)) return false;
+      try {
+        if (window.sessionStorage && window.sessionStorage.getItem(key)) return false;
+        if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
+      } catch (error) {
+        // Locked-down browsers can throw here; in-memory de-duping still applies.
+      }
+      capturedKeys.add(key);
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'checkout_lead_captured', {
+          product_slug: payload.slug,
+          payment_mode: payload.paymentMode,
+          page_path: getCheckoutPagePath(),
+          source,
+          value: payload.value,
+          currency: 'AUD',
+          ...(payload.cohort ? { cohort: payload.cohort } : {}),
+        });
+      }
+
+      fetch('/api/create-checkout?action=checkoutLead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify(payload),
+      }).catch(() => {});
+
+      return true;
+    };
+
+    emailInput.addEventListener('change', () => capture('email_change'));
+    emailInput.addEventListener('blur', () => capture('email_blur'));
+    return capture;
   }
 
   function trackMetaPurchaseOnce(transactionId, items) {
@@ -1348,8 +1519,46 @@
     };
   }
 
+  function getCookieValue(cookieString, name) {
+    const source = String(cookieString || '');
+    const parts = source.split(';');
+    for (const part of parts) {
+      const index = part.indexOf('=');
+      if (index === -1) continue;
+      const key = part.slice(0, index).trim();
+      if (key === name) return decodeURIComponent(part.slice(index + 1).trim());
+    }
+    return '';
+  }
+
+  function getGaClientIdFromCookie(cookieString) {
+    const value = getCookieValue(cookieString, '_ga');
+    const match = value.match(/^GA\d+\.\d+\.(.+)$/);
+    return match ? match[1] : '';
+  }
+
+  function getGaSessionIdFromCookie(cookieString) {
+    const value = getCookieValue(cookieString, '_ga_' + GA4_COOKIE_SUFFIX);
+    if (!value) return '';
+
+    const gs2Match = value.match(/(?:^|[.$])s(\d+)(?:[$.]|$)/);
+    if (gs2Match) return gs2Match[1];
+
+    const parts = value.split('.');
+    return /^\d+$/.test(parts[2] || '') ? parts[2] : '';
+  }
+
+  function getGaTrackingIds() {
+    const cookieString = typeof document !== 'undefined' ? document.cookie || '' : '';
+    return {
+      gaClientId: getGaClientIdFromCookie(cookieString),
+      gaSessionId: getGaSessionIdFromCookie(cookieString),
+    };
+  }
+
   function buildCheckoutPayload(selection, validation) {
     const paymentMode = ['instalments', 'afterpay'].includes(selection.paymentMode) ? selection.paymentMode : 'full';
+    const gaTrackingIds = getGaTrackingIds();
     const payload = {
       slug: selection.apiSlug,
       paymentMode,
@@ -1370,6 +1579,9 @@
       upsellSlug2: null,
       couponCode: selection.couponCode || null,
     };
+
+    if (gaTrackingIds.gaClientId) payload.gaClientId = gaTrackingIds.gaClientId;
+    if (gaTrackingIds.gaSessionId) payload.gaSessionId = gaTrackingIds.gaSessionId;
 
     if (selection.upsell && selection.upsellSelected) {
       const upsellQuantity = getUpsellQuantity(selection);
@@ -1444,6 +1656,7 @@
           payment_method: canMakePayment.applePay ? 'apple_pay' : 'google_pay',
         });
       }
+      trackGa4AddPaymentInfo(selection, canMakePayment.applePay ? 'apple_pay' : 'google_pay');
 
       try {
         const payload = buildCheckoutPayload(selection, {
@@ -1620,7 +1833,8 @@
     grid.hidden = false;
     document.title = `${product.name} — Checkout | Rohan's GAMSAT`;
 
-    trackGa4BeginCheckoutOnce(productSlug, product, selection, params.get('cohort') || '');
+    const cohortParam = params.get('cohort') || '';
+    trackGa4BeginCheckoutOnce(productSlug, product, selection, cohortParam);
 
     if (typeof window.fbq === 'function') {
       window.fbq('track', 'InitiateCheckout', {
@@ -1639,19 +1853,11 @@
       form.addEventListener('focusin', function handler() {
         form.removeEventListener('focusin', handler);
         if (typeof window.gtag !== 'function') return;
-        const itemPrice = selection.price;
-        const itemId = selection.packageSlug || productSlug;
-        const cohortParam = new URLSearchParams(window.location.search).get('cohort') || '';
-        const checkoutStartPayload = {
-          currency: 'AUD',
-          value: itemPrice,
-          item_id: itemId,
-          item_name: product.name,
-        };
-        if (cohortParam) checkoutStartPayload.item_variant = 'Cohort ' + cohortParam;
-        window.gtag('event', 'checkout_start', checkoutStartPayload);
+        window.gtag('event', 'checkout_start', getCheckoutTrackingPayload(productSlug, product, selection, cohortParam));
       });
     }());
+
+    const captureCheckoutLead = setupCheckoutLeadCapture(selection, cohortParam);
 
     renderSummary(product, selection);
     setupPaymentMode(productSlug, selection);
@@ -1774,6 +1980,7 @@
         showCardError(validation.error);
         return;
       }
+      captureCheckoutLead('submit');
 
       setLoading(true, selection);
 
@@ -1785,6 +1992,7 @@
           upsell_slug: selection.upsellSelected && selection.upsell ? selection.upsell.slug : null,
         });
       }
+      trackGa4AddPaymentInfo(selection, selection.paymentMode === 'full' ? 'card' : selection.paymentMode);
 
       try {
         const payload = buildCheckoutPayload(selection, validation);
@@ -1871,7 +2079,7 @@
         uploadToken: context.uploadToken,
       });
       const addOnNote = context.upsellSlug === 'essay-collection'
-        ? '<p class="success-addon-note">Your Essay Collection add-on is confirmed. Access will be shared to your email via Google Drive.</p>'
+        ? '<p class="success-addon-note">Your Essay Collection add-on is confirmed. The PDF is attached to your confirmation email.</p>'
         : '';
 
       return `
@@ -1951,13 +2159,17 @@
           });
           if (typeof window.gtag === 'function') {
             const cohort = params.get('cohort') || '';
-            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug, cohort);
-            window.gtag('event', 'purchase', {
-              transaction_id: paypalOrderId,
-              currency: 'AUD',
-              value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
-              items,
+            const purchasePayload = buildPurchaseAnalyticsPayload({
+              transactionId: paypalOrderId,
+              productSlug: successProductSlug,
+              upsellSlug: verifiedUpsellSlug,
+              fallbackProductSlug: productSlug,
+              cohort,
+              paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
+              couponCode: metadata.coupon_code || params.get('coupon_code') || '',
             });
+            trackGa4PurchaseOnce(paypalOrderId, purchasePayload);
+            const items = purchasePayload.items;
             trackMetaPurchaseOnce(paypalOrderId, items);
           }
           if (window.posthog && typeof window.posthog.capture === 'function') {
@@ -1997,6 +2209,22 @@
               productSlug: successMessageProductSlug,
               upsellSlug,
             });
+            if (typeof window.gtag === 'function') {
+              const cohort = params.get('cohort') || metadata.cohort || '';
+              const transactionId = statusPayload.paymentIntentId || checkoutSessionId;
+              const purchasePayload = buildPurchaseAnalyticsPayload({
+                transactionId,
+                productSlug: successProductSlug,
+                upsellSlug,
+                fallbackProductSlug: productSlug,
+                cohort,
+                paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
+                couponCode: metadata.coupon_code || params.get('coupon_code') || '',
+              });
+              trackGa4PurchaseOnce(transactionId, purchasePayload);
+              const items = purchasePayload.items;
+              trackMetaPurchaseOnce(transactionId, items);
+            }
           }
         } catch (error) {
           renderState(SUCCESS_STATES.failed, 'failed');
@@ -2027,14 +2255,17 @@
         });
         if (typeof window.gtag === 'function') {
           const cohort = params.get('cohort') || '';
-          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug, cohort);
-
-          window.gtag('event', 'purchase', {
-            transaction_id: paymentIntentId,
-            currency: 'AUD',
-            value: items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined,
-            items,
+          const purchasePayload = buildPurchaseAnalyticsPayload({
+            transactionId: paymentIntentId,
+            productSlug: successProductSlug,
+            upsellSlug,
+            fallbackProductSlug: productSlug,
+            cohort,
+            paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
+            couponCode: metadata.coupon_code || params.get('coupon_code') || '',
           });
+          trackGa4PurchaseOnce(paymentIntentId, purchasePayload);
+          const items = purchasePayload.items;
           trackMetaPurchaseOnce(paymentIntentId, items);
         }
         if (window.posthog && typeof window.posthog.capture === 'function') {
@@ -2080,10 +2311,14 @@
     getSuccessPageTitle,
     isProductAvailable,
     buildPurchaseItems,
+    buildPurchaseAnalyticsPayload,
     trackGa4BeginCheckoutOnce,
+    trackGa4AddPaymentInfo,
     buildEssayUploadUrl,
     getApiServerErrorMessage,
     getCheckoutSubmissionErrorMessage,
+    getGaClientIdFromCookie,
+    getGaSessionIdFromCookie,
     parseApiResponse,
     fetchCheckoutConfig,
     loadCheckoutConfig,

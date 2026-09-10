@@ -1,10 +1,9 @@
 (function (global) {
   const StorefrontConfig = Object.freeze({
     instalmentLinks: Object.freeze({
-      comprehensive: Object.freeze({
-        label: 'or pay $499 × 4 instalments →',
-        url: '/checkout/?product=comprehensive&paymentMode=instalments',
-      }),
+      // Comprehensive has no instalment option during the early bird window.
+      // Restore this entry at the 1 October 2026 cutover, alongside
+      // the instalment block in js/catalog.js.
       mastery: Object.freeze({
         label: 'or pay $699 × 4 instalments →',
         url: '/checkout/?product=mastery&paymentMode=instalments',

@@ -75,6 +75,20 @@ function getFloatingQuizCtaRevealThreshold({
   return fallbackThreshold;
 }
 
+function shouldSuppressFloatingQuizCtaForRect({
+  sectionTop,
+  sectionBottom,
+  viewportHeight = 0,
+  topBuffer = 96,
+  bottomBuffer = 96,
+} = {}) {
+  if (![sectionTop, sectionBottom, viewportHeight].every(Number.isFinite)) {
+    return false;
+  }
+
+  return sectionTop <= viewportHeight - bottomBuffer && sectionBottom >= topBuffer;
+}
+
 function getFloatingQuizCtaDismissed(storage) {
   if (!storage) return false;
 
@@ -145,6 +159,7 @@ function getCheckoutProductTrackingPayload({
     product_slug: slug,
     payment_mode: paymentMode,
     cta_text: cleanText,
+    source_cta: cleanText,
     page_path: pathname,
     destination_path: `${url.pathname}${url.search}`,
     items: [item],
@@ -158,7 +173,7 @@ const GA4_PRODUCTS = {
   'starter-pack':    { name: 'GAMSAT Essentials Playbook',         price: 97 },
   'essay-marking':   { name: 'S2 Essay Marking',                   price: 34.99 },
   'essay-pack-10':   { name: 'S2 Essay Marking - 10-Essay Pack',   price: 249 },
-  comprehensive:     { name: 'Comprehensive Course',               price: 1699 },
+  comprehensive:     { name: 'Comprehensive Course',               price: 1599 },
   mastery:           { name: 'Mastery Program',                    price: 2499 },
   'private-mentoring':{ name: 'Private Mentoring',                 price: null },
 };
@@ -420,6 +435,7 @@ function initMain() {
     const floatingCtaStorage = typeof window.sessionStorage !== 'undefined' ? window.sessionStorage : null;
     const mobileViewportQuery = window.matchMedia(`(max-width: ${FLOATING_QUIZ_CTA_MOBILE_BREAKPOINT}px)`);
     const heroQuizCta = document.querySelector('[data-quiz-source="home-hero"], [data-quiz-source$="hero-primary"]');
+    const coursesSection = document.querySelector('#courses');
     let isDismissed = getFloatingQuizCtaDismissed(floatingCtaStorage);
 
     const getHeroQuizCtaBottom = () => {
@@ -457,9 +473,16 @@ function initMain() {
         viewportHeight: window.innerHeight,
       });
       const isMobileViewport = mobileViewportQuery.matches || isFloatingQuizCtaMobileViewport(window.innerWidth);
+      const coursesSectionRect = coursesSection?.getBoundingClientRect();
+      const shouldSuppressForCourses = shouldSuppressFloatingQuizCtaForRect({
+        sectionTop: coursesSectionRect?.top,
+        sectionBottom: coursesSectionRect?.bottom,
+        viewportHeight: window.innerHeight,
+      });
       const shouldShowFloatingQuizCta = isMobileViewport
         && !document.body.classList.contains('menu-open')
         && !isDismissed
+        && !shouldSuppressForCourses
         && window.scrollY >= revealThreshold;
 
       floatingCta.hidden = !shouldShowFloatingQuizCta;
@@ -493,9 +516,10 @@ function initMain() {
     });
     if (!payload) return;
 
+    // Funnel stage = intent. begin_checkout deliberately fires later, once the
+    // checkout page actually loads (js/checkout.js), so it is not double-counted.
     window.gtag('event', 'course_cta_click', payload);
     window.gtag('event', 'add_to_cart', payload);
-    window.gtag('event', 'begin_checkout', payload);
   });
 
   /* ---- Analytics: ConvertKit newsletter signup ---- */
@@ -541,6 +565,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     getFloatingQuizCtaRevealThreshold,
     isFloatingQuizCtaAllowedForPage,
+    shouldSuppressFloatingQuizCtaForRect,
     shouldHideFloatingQuizCtaForPath,
     getCheckoutProductTrackingPayload,
     shouldTrackNewsletterSignup,

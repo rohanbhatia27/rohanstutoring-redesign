@@ -69,7 +69,10 @@ async function handleStripeStatus(req, res) {
         base_slug: metadata.base_slug || metadata.product_slug || '',
         product_slug: metadata.product_slug || metadata.base_slug || '',
         upsell_slug: metadata.upsell_slug || '',
+        upsell_slug_2: metadata.upsell_slug_2 || '',
         payment_mode: metadata.payment_mode || '',
+        coupon_code: metadata.coupon_code || '',
+        cohort: metadata.cohort || '',
       },
     });
   } catch (error) {

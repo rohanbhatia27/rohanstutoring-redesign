@@ -1,9 +1,11 @@
 const Stripe = require('stripe');
 const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
+const { sendGa4Purchase } = require('./_lib/_ga4-measurement-protocol.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 let fulfillPaymentIntentImpl = fulfillPaymentIntent;
 let fulfillInstalmentCheckoutImpl = fulfillPaymentIntent.fulfillInstalmentCheckout;
+let sendGa4PurchaseImpl = sendGa4Purchase;
 const INSTALMENT_WEBHOOK_EVENTS = new Set([
   'checkout.session.completed',
   'invoice.paid',
@@ -76,6 +78,14 @@ async function pingBetterStackHeartbeat() {
   }
 }
 
+async function sendGa4PurchaseNonFatal(payload) {
+  try {
+    await sendGa4PurchaseImpl(payload);
+  } catch (error) {
+    console.warn('[stripe-webhook] GA4 purchase dispatch failed:', error.message);
+  }
+}
+
 async function stripeWebhookHandler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -115,10 +125,23 @@ async function stripeWebhookHandler(req, res) {
         paymentIntent: pi,
         stripeClient,
       });
+      await sendGa4PurchaseNonFatal({
+        transactionId: pi.id,
+        amountCents: pi.amount_received || pi.amount,
+        currency: pi.currency,
+        metadata: piMeta,
+      });
       await pingBetterStackHeartbeat();
     } else if (isInstalmentWebhookEvent(event)) {
       if (event.type === 'checkout.session.completed') {
-        await fulfillInstalmentCheckoutImpl({ session: event.data.object });
+        const session = event.data.object;
+        await fulfillInstalmentCheckoutImpl({ session });
+        await sendGa4PurchaseNonFatal({
+          transactionId: session.id,
+          amountCents: session.amount_total,
+          currency: session.currency,
+          metadata: session.metadata || {},
+        });
         await pingBetterStackHeartbeat();
       }
     }
@@ -156,11 +179,15 @@ stripeWebhookHandler.__setFulfillPaymentIntent = (value) => {
 stripeWebhookHandler.__setFulfillInstalmentCheckout = (value) => {
   fulfillInstalmentCheckoutImpl = value;
 };
+stripeWebhookHandler.__setSendGa4Purchase = (value) => {
+  sendGa4PurchaseImpl = value;
+};
 stripeWebhookHandler.__isInstalmentWebhookEvent = isInstalmentWebhookEvent;
 stripeWebhookHandler.__resetForTests = () => {
   stripeFactory = (secretKey) => Stripe(secretKey);
   fulfillPaymentIntentImpl = fulfillPaymentIntent;
   fulfillInstalmentCheckoutImpl = fulfillPaymentIntent.fulfillInstalmentCheckout;
+  sendGa4PurchaseImpl = sendGa4Purchase;
 };
 
 module.exports = stripeWebhookHandler;

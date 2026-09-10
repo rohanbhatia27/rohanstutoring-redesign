@@ -42,6 +42,24 @@ const SERVER_EXTENSIONS = {
     cohortEmail: null,
   },
 
+  'blueprint-s1': {
+    deliveryType: 'digital-access',
+    fulfillmentLabel: 'Send Google Drive access',
+    fulfillmentSlug: 'blueprint-s1',
+    driveFolderSlug: 'blueprint',
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_BLUEPRINT',
+    cohortEmail: null,
+  },
+
+  'blueprint-s2': {
+    deliveryType: 'digital-access',
+    fulfillmentLabel: 'Send Google Drive access',
+    fulfillmentSlug: 'blueprint-s2',
+    driveFolderSlug: 'blueprint',
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_BLUEPRINT',
+    cohortEmail: null,
+  },
+
   advanced: {
     deliveryType: 'digital-access',
     fulfillmentLabel: 'Send Google Drive access',
@@ -52,10 +70,10 @@ const SERVER_EXTENSIONS = {
   },
 
   'essay-collection': {
-    deliveryType: 'digital-access',
-    fulfillmentLabel: 'Send Google Drive access',
+    deliveryType: 'digital-download',
+    fulfillmentLabel: 'Email the Expert Essay Collection PDF',
     fulfillmentSlug: 'essay-collection',
-    driveFolderSlug: 'essay-collection',
+    driveFolderSlug: null,
     purchaseTagEnv: null,
     cohortEmail: null,
   },
@@ -95,7 +113,7 @@ const SERVER_EXTENSIONS = {
     purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
     cohortEmail: {
       subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-      startLine: 'Your June cohort starts on Monday 15 June. You now have immediate access to the course library before Week 1.',
+      startLine: 'You now have immediate access to the course library. We will send the latest live-class schedule separately before your first session.',
     },
   },
 
@@ -107,7 +125,7 @@ const SERVER_EXTENSIONS = {
     purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
     cohortEmail: {
       subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-      startLine: 'Your June cohort starts on Monday 15 June. You now have immediate access to the course library before Week 1.',
+      startLine: 'You now have immediate access to the course library. We will send the latest live-class schedule separately before your first session.',
     },
   },
 
@@ -119,7 +137,7 @@ const SERVER_EXTENSIONS = {
     purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_COMPREHENSIVE',
     cohortEmail: {
       subject: "Welcome to the Comprehensive Course 👋 Let's get started.",
-      startLine: 'Your June cohort starts on Monday 15 June. You now have immediate access to the course library before Week 1.',
+      startLine: 'You now have immediate access to the course library. We will send the latest live-class schedule separately before your first session.',
     },
   },
 

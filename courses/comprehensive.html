@@ -7,16 +7,16 @@
   <script src="/js/analytics.js" defer></script>
   <script src="/js/posthog-init.js" defer></script>
   <title>GAMSAT Live Comprehensive Course | Rohan's GAMSAT</title>
-  <meta name="description" content="24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Make September 2026 your final GAMSAT sitting.">
-  <meta property="og:title" content="GAMSAT Live Comprehensive Course: Make September 2026 Your Final Sitting">
-  <meta property="og:description" content="24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Make September 2026 your final GAMSAT sitting.">
+  <meta name="description" content="24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Make March 2027 your final GAMSAT sitting.">
+  <meta property="og:title" content="GAMSAT Live Comprehensive Course: Make March 2027 Your Final Sitting">
+  <meta property="og:description" content="24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Make March 2027 your final GAMSAT sitting.">
   <meta property="og:image" content="https://www.rohanstutoring.com/assets/rohan/rohan-square-background.webp">
   <meta property="og:url" content="https://www.rohanstutoring.com/courses/comprehensive">
   <link rel="canonical" href="https://www.rohanstutoring.com/courses/comprehensive">
   <meta property="og:type" content="product">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="GAMSAT Live Comprehensive Course: Make September 2026 Your Final Sitting">
-  <meta name="twitter:description" content="24 live classes, essay feedback, 50+ hours of content, 100% refund guarantee. $1,699 AUD.">
+  <meta name="twitter:title" content="GAMSAT Live Comprehensive Course: Make March 2027 Your Final Sitting">
+  <meta name="twitter:description" content="24 live classes, essay feedback, 50+ hours of content, 100% refund guarantee. $1,599 AUD.">
   <meta name="twitter:image" content="https://www.rohanstutoring.com/assets/rohan/rohan-square-background.webp">
   <link rel="icon" href="../assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
@@ -34,27 +34,36 @@
 .hero-v3__availability {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 14px;
+  padding: 12px 24px;
   margin: -20px 0 34px;
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 18px;
-  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(248,113,113,0.28);
+  border-radius: 16px;
+  background: linear-gradient(100deg, rgba(239,68,68,0.14), rgba(239,68,68,0.04) 38%, rgba(255,255,255,0.06));
   color: var(--white);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  box-shadow: 0 14px 32px rgba(0,0,0,0.18);
-  max-width: 820px;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.22), 0 0 24px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
+  max-width: 860px;
 }
 .hero-v3__availability-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #f87171;
-  box-shadow: 0 0 0 4px rgba(248,113,113,0.16);
+  box-shadow: 0 0 0 4px rgba(248,113,113,0.18);
   flex-shrink: 0;
+  animation: availability-pulse 1.6s ease-in-out infinite;
+}
+@keyframes availability-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(248,113,113,0.28); }
+  50% { box-shadow: 0 0 0 7px rgba(248,113,113,0.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-v3__availability-dot { animation: none; }
 }
 .hero-v3__availability-copy {
   display: flex;
@@ -77,44 +86,54 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 10px;
-  border: 1px solid rgba(245,197,24,0.32);
+  padding: 7px 12px;
+  border: 1px solid rgba(248,113,113,0.45);
   border-radius: 999px;
-  background: rgba(245,197,24,0.13);
-  color: #FCD34D;
-  font-size: 0.74rem;
+  background: rgba(239,68,68,0.18);
+  color: #fecaca;
+  font-size: 0.72rem;
   font-weight: 800;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
+  box-shadow: 0 0 14px rgba(239,68,68,0.18);
 }
 .hero-v3__countdown {
   display: grid;
-  grid-template-columns: repeat(4, minmax(46px, 1fr));
-  gap: 6px;
-  width: min(100%, 260px);
+  grid-template-columns: repeat(4, minmax(48px, 1fr));
+  gap: 7px;
+  width: min(100%, 268px);
 }
 .hero-v3__countdown-unit {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 7px 6px;
-  border: 1px solid rgba(255,255,255,0.11);
+  gap: 3px;
+  padding: 8px 6px;
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px;
-  background: rgba(8,15,26,0.35);
+  background: linear-gradient(180deg, rgba(8,15,26,0.66), rgba(8,15,26,0.42));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
   font-variant-numeric: tabular-nums;
 }
 .hero-v3__countdown-unit strong {
   color: var(--white);
-  font-size: 0.98rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   line-height: 1;
 }
 .hero-v3__countdown-unit span {
   color: var(--text-muted);
-  font-size: 0.56rem;
+  font-size: 0.55rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+.hero-v3__countdown-unit:last-child {
+  border-color: rgba(248,113,113,0.32);
+}
+.hero-v3__countdown-unit:last-child strong {
+  color: #fca5a5;
 }
 .hero-v3__countdown--complete .hero-v3__availability-dot {
   background: var(--green);
@@ -399,35 +418,22 @@
     "@context": "https://schema.org",
     "@type": "Course",
     "name": "GAMSAT Live Comprehensive Course",
-    "description": "24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Covers GAMSAT Sections 1 and 2 with small, focused live instruction starting 15 June 2026.",
+    "description": "24 live coaching classes, essay feedback, 50+ hours of content, and a 100% refund guarantee. Covers GAMSAT Sections 1 and 2 with small, focused live instruction.",
     "url": "https://www.rohanstutoring.com/courses/comprehensive",
     "provider": {
       "@type": "EducationalOrganization",
       "name": "Rohan's Tutoring",
       "url": "https://www.rohanstutoring.com"
     },
-    "hasCourseInstance": {
-      "@type": "CourseInstance",
-      "courseMode": "Blended",
-      "courseSchedule": {
-        "@type": "Schedule",
-        "startDate": "2026-06-15",
-        "repeatFrequency": "P1W",
-        "byDay": ["Monday", "Thursday"]
-      },
-      "instructor": {
-        "@type": "Person",
-        "name": "Rohan Bhatia"
-      }
-    },
     "offers": [
       {
         "@type": "Offer",
-        "name": "Standard Price",
-        "price": "1699",
+        "name": "Early Bird",
+        "price": "1599",
         "priceCurrency": "AUD",
+        "priceValidUntil": "2026-10-01",
         "availability": "https://schema.org/InStock",
-        "url": "/checkout/?product=comprehensive"
+        "url": "https://www.rohanstutoring.com/checkout/?product=comprehensive"
       }
     ]
   }
@@ -442,7 +448,7 @@
         "name": "How long is each class, and when do they run?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Each session is 1 hour. Section 1 runs Mondays at 6pm AEST, starting 15 June, and Section 2 runs Thursdays at 6pm AEST, starting 18 June. Both sections are covered every week throughout the 10-week program."
+          "text": "Each session is 1 hour. Classes start late October and run for twelve weeks. We confirm the exact weekly times before the first class, and every session is recorded if you cannot make one live."
         }
       },
       {
@@ -527,7 +533,7 @@
         <li><a href="/about">About</a></li>
         <li><a href="/blog">Blog</a></li>
       </ul>
-      <a href="/checkout/?product=comprehensive&cohort=2" class="btn btn--nav">Enrol Now</a>
+      <a href="/checkout/?product=comprehensive" class="btn btn--nav">Enrol Now</a>
       <button class="nav__burger" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
     </div>
     <div class="nav__mobile" id="mobileMenu">
@@ -562,7 +568,7 @@
       </div>
       <a href="/about">About</a>
       <a href="/blog">Blog</a>
-      <a href="/checkout/?product=comprehensive&cohort=2">Enrol Now</a>
+      <a href="/checkout/?product=comprehensive">Enrol Now</a>
     </div>
   </nav>
 
@@ -573,8 +579,9 @@
     <div class="sticky-bar__inner">
       <span class="sticky-bar__title">GAMSAT Live Comprehensive Course</span>
       <div class="sticky-bar__right">
-        <span class="sticky-bar__price"><strong>9 spots left</strong> · $1,699 AUD</span>
-        <a href="/checkout/?product=comprehensive&cohort=2" class="btn btn--primary">Enrol Now →</a>
+        <span class="sticky-bar__was">$1,799</span>
+        <span class="sticky-bar__price"><strong>$1,599</strong> AUD</span>
+        <a href="/checkout/?product=comprehensive" class="btn btn--primary">Enrol now →</a>
       </div>
     </div>
   </div>
@@ -587,24 +594,24 @@
     </div>
     <div class="container">
 
-      <div class="hero-v3__availability reveal visible" data-countdown-v3 data-countdown-v3-target="2026-06-15T18:00:00+10:00" aria-label="Final Cohort 2 enrolments. Cohort begins 15 June at 6pm AEST.">
-        <span class="hero-v3__availability-dot" aria-hidden="true"></span>
+      <div class="hero-v3__availability reveal visible" aria-label="Early bird pricing closes 1 October 2026.">
+        <span class="hero-v3__spots">Early bird</span>
         <span class="hero-v3__availability-copy">
-          <span class="hero-v3__availability-main">Cohort begins in</span>
+          <span class="hero-v3__availability-main">$1,599 until 1 October, then $1,799.</span>
+          <span class="hero-v3__availability-sub">Classes start late October and run for twelve weeks, up to the March 2027 sitting.</span>
         </span>
-        <span class="hero-v3__spots">Final Cohort 2 Enrolments!</span>
-        <span class="hero-v3__countdown" aria-hidden="true">
+        <div class="hero-v3__countdown" data-countdown-v3 data-countdown-v3-target="2026-10-01T23:59:59+10:00" aria-label="Time remaining on early bird pricing">
           <span class="hero-v3__countdown-unit"><strong data-cd-days>00</strong><span>Days</span></span>
           <span class="hero-v3__countdown-unit"><strong data-cd-hours>00</strong><span>Hrs</span></span>
           <span class="hero-v3__countdown-unit"><strong data-cd-mins>00</strong><span>Min</span></span>
           <span class="hero-v3__countdown-unit"><strong data-cd-secs>00</strong><span>Sec</span></span>
-        </span>
+        </div>
       </div>
 
       <div class="hero-v3__inner">
         <div class="product-hero__content">
           <h1 class="hero-v3__h1 reveal visible">
-            Sit GAMSAT in September 2026. <em>Don't sit it again.</em>
+            Sit GAMSAT in March 2027. <em>Don't sit it again.</em>
           </h1>
           <p class="hero-v3__sub reveal reveal--delay-1 visible">
             Twelve weeks of live coaching, real essay feedback, and small, focused classes. The point isn't to cover more content. It's to walk into the exam already knowing how you'll handle it.
@@ -634,17 +641,14 @@
             </div>
           </div>
 
-          <div class="hero-v3__cta reveal reveal--delay-3 visible" id="enrol-section">
+          <div class="hero-v3__cta reveal reveal--delay-3 visible" id="enrol-cta">
             <div class="hero-v3__cta-row">
-              <a href="/checkout/?product=comprehensive&cohort=2" class="btn btn--primary btn--lg hero-v3__cta-primary" id="enrol">
-                Enrol now  $1,699
-              </a>
-              <a href="/checkout/?product=comprehensive&paymentMode=instalments&cohort=2" class="hero-v3__cta-ghost">
-                <span>Pay in 4  $499/mo</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg hero-v3__cta-primary" id="enrol">
+                Enrol for $1,599
+                <span class="hero-v3__cta-save">save $200 before 1 October</span>
               </a>
             </div>
-            <span class="product-hero__was">Only 9 spots left. Enrolment includes immediate access to the 50+ hour library before the first live week.</span>
+            <span class="product-hero__was">You get the recorded library the moment you enrol. Live classes start late October.</span>
             <a href="#included" class="hero-v3__cta-text">See what's included →</a>
           </div>
         </div>
@@ -813,8 +817,8 @@
             <div class="value-item__num">02</div>
           </div>
           <div class="value-item__body">
-            <h3>24 Live Coaching Classes, Starting 15 June</h3>
-            <p>20 live sessions on Zoom, each 1 hour. Mondays for S1 at 6pm AEST, starting 15 June. Thursdays for S2 at 6pm AEST, starting 18 June. Classes stay small and focused, so every session is genuinely interactive. You can ask questions, clear up what's not landing, and leave each session with something concrete.</p>
+            <h3>24 Live Coaching Classes</h3>
+            <p>24 live sessions on Zoom, each 1 hour. Classes stay small and focused, so every session is genuinely interactive. You can ask questions, clear up what's not landing, and leave each session with something concrete. The weekly schedule is confirmed before the first class in late October.</p>
             <span class="value-item__value">Value: $1,200</span>
           </div>
         </div>
@@ -867,11 +871,12 @@
           </div>
           <div class="value-summary__cta">
             <div class="value-summary__price">
-              <span class="value-summary__now">$1,699</span>
+              <span class="value-summary__was">$1,799</span>
+              <span class="value-summary__now">$1,599</span>
+              <span class="value-summary__label">Early bird · closes 1 October</span>
             </div>
-            <a href="/checkout/?product=comprehensive&cohort=2" class="btn btn--primary btn--lg">Secure My Spot →</a>
-            <a href="/checkout/?product=comprehensive&paymentMode=instalments&cohort=2" class="cta-instalment">or pay $499 × 4 instalments</a>
-            <p class="value-summary__note">Only 9 spots left. New cohort starts 15 June at 6pm AEST. Enrol now to get the full library before Week 1.</p>
+            <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg">Enrol Now →</a>
+            <p class="value-summary__note">Enrol before 1 October and you pay $1,599 instead of $1,799. Classes start late October and run for twelve weeks.</p>
           </div>
         </div>
       </div>
@@ -982,7 +987,7 @@
       <div class="faq__list">
         <details class="faq__item reveal">
           <summary>How long is each class, and when do they run?</summary>
-          <div class="faq__answer"><p>Each session is 1 hour. Section 1 runs Mondays at 6pm AEST, starting 15 June, and Section 2 runs Thursdays at 6pm AEST, starting 18 June. Both sections are covered every week throughout the 10-week program.</p></div>
+          <div class="faq__answer"><p>Each session is 1 hour. Classes start late October and run for twelve weeks. We confirm the exact weekly times before the first class, and every session is recorded if you cannot make one live.</p></div>
         </details>
         <details class="faq__item reveal">
           <summary>Are the live classes recorded?</summary>
@@ -1013,10 +1018,10 @@
     <div class="product-final-cta__bg"><div class="book__orb"></div></div>
     <div class="container">
       <div class="product-final-cta__inner reveal">
-        <h2>The new cohort starts<br><em>15 June.</em></h2>
-        <p>Enrol now, get the recorded library immediately, and arrive at Week 1 with the foundations already moving.</p>
-        <a href="/checkout/?product=comprehensive&cohort=2" class="btn btn--white btn--lg">Secure Your Place →</a>
-        <p class="product-final-cta__note">$1,699 AUD  100% refund guarantee  Only 9 spots left  Classes begin 15 June at 6pm AEST</p>
+        <h2>Enrolments are<br><em>open.</em></h2>
+        <p>Early bird pricing closes 1 October. Classes start late October and run for twelve weeks, up to the March 2027 sitting.</p>
+        <a href="/checkout/?product=comprehensive" class="btn btn--white btn--lg">Enrol for $1,599 →</a>
+        <p class="product-final-cta__note">$1,599 AUD until 1 October, then $1,799 · 100% refund guarantee · Weekly class times confirmed before the first class</p>
       </div>
     </div>
   </section>

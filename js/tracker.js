@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (leadTracked) return;
     leadTracked = true;
     if (typeof window.gtag === 'function') {
-      window.gtag('event', 'generate_lead', { form_id: RESOURCE, resource: RESOURCE });
+      window.gtag('event', 'generate_lead', { form_id: RESOURCE, resource: RESOURCE, resource_key: 'section-1-tracker' });
       if (status === 'fallback') {
         window.gtag('event', 'free_resource_fallback', { resource: RESOURCE });
       }
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     successCardMessage: 'Check your inbox — the tracker is on its way.',
     onLeadCaptured: function (status) {
       fireLeadEvent(status);
-      if (status === 'kit') {
+      if (status === 'delivered') {
         fireDeliveryEvent();
       }
     },

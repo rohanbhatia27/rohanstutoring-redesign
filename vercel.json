@@ -9,6 +9,15 @@
   "functions": {
     "api/analytics.js": {
       "includeFiles": "api/_lib/**"
+    },
+    "api/stripe-webhook.js": {
+      "includeFiles": "api/_lib/assets/**"
+    },
+    "api/paypal-webhook.js": {
+      "includeFiles": "api/_lib/assets/**"
+    },
+    "api/admin.js": {
+      "includeFiles": "api/_lib/assets/**"
     }
   },
   "headers": [
@@ -211,6 +220,16 @@
     {
       "source": "/ireland-gamsat.html",
       "destination": "/ireland-gamsat",
+      "permanent": true
+    },
+    {
+      "source": "/courses/blueprint-s1.html",
+      "destination": "/courses/blueprint-s1",
+      "permanent": true
+    },
+    {
+      "source": "/courses/blueprint-s2.html",
+      "destination": "/courses/blueprint-s2",
       "permanent": true
     },
     {

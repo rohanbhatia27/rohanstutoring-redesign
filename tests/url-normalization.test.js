@@ -36,6 +36,14 @@ function read(file) {
   return fs.readFileSync(path.join(ROOT, file), 'utf8');
 }
 
+function htmlFiles() {
+  return fs.readdirSync(ROOT, { recursive: true })
+    .map(String)
+    .filter((file) => file.endsWith('.html'))
+    .filter((file) => !file.startsWith('.vercel/'))
+    .filter((file) => !file.startsWith('node_modules/'));
+}
+
 test('indexable pages declare a canonical tag that matches the clean public URL', () => {
   for (const page of INDEXABLE_PAGES) {
     const html = read(page.file);
@@ -168,6 +176,51 @@ test('S2 Slam lead magnet CTAs point to the dedicated signup page instead of loo
   }
 });
 
+test('homepage hero urgency CTA promotes the S2 Slam System', () => {
+  const html = read('index.html');
+  const urgencyLink = html.match(/<a href="([^"]+)" class="hero__urgency[^"]*"[^>]*>[\s\S]*?<span class="hero__urgency-text">([^<]+)<\/span>/);
+
+  assert.ok(urgencyLink, 'Homepage hero urgency CTA should exist');
+  assert.equal(urgencyLink[1], '/s2-slam-system');
+  assert.match(urgencyLink[2], /S2 Slam System/i);
+});
+
+test('homepage courses section promotes the buyable starter, flagship, and essay pack ladder', () => {
+  const html = read('index.html');
+  const compareSection = html.match(/<div class="courses__compare">([\s\S]*?)<\/div>\s*<div class="courses__footer/);
+
+  assert.ok(compareSection, 'Homepage courses comparison section should exist');
+
+  const sectionHtml = compareSection[1];
+  const essentialsIndex = sectionHtml.indexOf('/courses/starter-pack');
+  const blueprintIndex = sectionHtml.indexOf('/courses/blueprint');
+  const essayPackIndex = sectionHtml.indexOf('/courses/essay-marking');
+
+  assert.notEqual(essentialsIndex, -1, 'Essentials Playbook should be a buyable homepage card');
+  assert.notEqual(blueprintIndex, -1, 'Blueprint should be a buyable homepage card');
+  assert.notEqual(essayPackIndex, -1, '10x Essay Marking Pack should be a buyable homepage card');
+  assert.ok(essentialsIndex < blueprintIndex && blueprintIndex < essayPackIndex, 'Cards should ladder from Essentials to Blueprint to Essay Pack');
+
+  assert.match(sectionHtml, /\$97/);
+  assert.match(sectionHtml, /\$599/);
+  assert.match(sectionHtml, /\$249/);
+  assert.match(sectionHtml, /Your \$97 carries forward/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*Rohan's GAMSAT Blueprint/);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*80\+ hours across S1 &amp; S2/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*S1 &amp; S2 Mastery plus Advanced Series/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*Expert Essay Collection: 25 essays scored 80\+/i);
+  assert.doesNotMatch(sectionHtml, /Join Waitlist/i);
+  assert.doesNotMatch(sectionHtml, /href="\/courses\/comprehensive"/);
+  assert.doesNotMatch(sectionHtml, /href="\/courses\/mastery"/);
+});
+
+test('courses page split-course upsell shows the current comprehensive saving', () => {
+  const html = read('courses.html');
+
+  assert.match(html, /Take the full Comprehensive Course[\s\S]*save \$399/i);
+  assert.doesNotMatch(html, /Take the full Comprehensive Course[\s\S]*save \$299/i);
+});
+
 test('public forms do not ship placeholder Turnstile site keys', () => {
   const files = ['contact.html', 'courses/private-mentoring.html'];
 
@@ -230,10 +283,7 @@ test('retired webinar funnel is absent from active site code', () => {
 });
 
 test('local stylesheet links resolve on disk', () => {
-  const htmlFiles = fs.readdirSync(ROOT, { recursive: true })
-    .filter((file) => String(file).endsWith('.html'));
-
-  for (const file of htmlFiles) {
+  for (const file of htmlFiles()) {
     const html = read(file);
     const hrefs = Array.from(html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)).map((match) => match[1]);
 
@@ -243,6 +293,24 @@ test('local stylesheet links resolve on disk', () => {
         ? path.join(ROOT, href.slice(1))
         : path.resolve(path.dirname(path.join(ROOT, file)), href);
       assert.ok(fs.existsSync(resolved), `Missing stylesheet ${href} referenced by ${file}`);
+    }
+  }
+});
+
+test('local image src references resolve on disk', () => {
+  for (const file of htmlFiles()) {
+    const html = read(file);
+    const srcs = Array.from(html.matchAll(/<img\b[^>]*\bsrc="([^"]+)"/g)).map((match) => match[1]);
+
+    for (const rawSrc of srcs) {
+      if (/^(?:https?:)?\/\//.test(rawSrc) || rawSrc.startsWith('data:')) continue;
+
+      const src = decodeURIComponent(rawSrc.split(/[?#]/)[0]);
+      const resolved = src.startsWith('/')
+        ? path.join(ROOT, src.slice(1))
+        : path.resolve(path.dirname(path.join(ROOT, file)), src);
+
+      assert.ok(fs.existsSync(resolved), `Missing image ${rawSrc} referenced by ${file}`);
     }
   }
 });

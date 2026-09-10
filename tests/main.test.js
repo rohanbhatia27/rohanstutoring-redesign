@@ -5,6 +5,7 @@ const {
   getCheckoutProductTrackingPayload,
   getFloatingQuizCtaRevealThreshold,
   isFloatingQuizCtaAllowedForPage,
+  shouldSuppressFloatingQuizCtaForRect,
   shouldHideFloatingQuizCtaForPath,
   shouldTrackNewsletterSignup,
 } = require('../js/main.js');
@@ -136,6 +137,35 @@ test('floating quiz CTA reveal threshold falls back to a conservative viewport t
   );
 });
 
+test('floating quiz CTA suppresses itself while the homepage course cards are in view', () => {
+  assert.equal(
+    shouldSuppressFloatingQuizCtaForRect({
+      sectionTop: 320,
+      sectionBottom: 1800,
+      viewportHeight: 844,
+    }),
+    true
+  );
+
+  assert.equal(
+    shouldSuppressFloatingQuizCtaForRect({
+      sectionTop: 900,
+      sectionBottom: 2200,
+      viewportHeight: 844,
+    }),
+    false
+  );
+
+  assert.equal(
+    shouldSuppressFloatingQuizCtaForRect({
+      sectionTop: -1400,
+      sectionBottom: -20,
+      viewportHeight: 844,
+    }),
+    false
+  );
+});
+
 test('newsletter signup analytics skip invalid form submissions', () => {
   assert.equal(
     shouldTrackNewsletterSignup({
@@ -168,14 +198,15 @@ test('checkout product CTA tracking payload identifies comprehensive course clic
   assert.equal(payload.product_slug, 'comprehensive');
   assert.equal(payload.payment_mode, 'instalments');
   assert.equal(payload.cta_text, 'or pay $499 x 4 instalments');
+  assert.equal(payload.source_cta, 'or pay $499 x 4 instalments');
   assert.equal(payload.page_path, '/courses/comprehensive');
   assert.equal(payload.destination_path, '/checkout/?product=comprehensive&paymentMode=instalments');
   assert.equal(payload.currency, 'AUD');
-  assert.equal(payload.value, 1699);
+  assert.equal(payload.value, 1599);
   assert.deepEqual(payload.items, [{
     item_id: 'comprehensive',
     item_name: 'Comprehensive Course',
-    price: 1699,
+    price: 1599,
     quantity: 1,
   }]);
 });
@@ -193,7 +224,7 @@ test('checkout product CTA tracking payload passes cohort as item_variant when c
     item_id: 'comprehensive',
     item_name: 'Comprehensive Course',
     item_variant: 'Cohort 2',
-    price: 1699,
+    price: 1599,
     quantity: 1,
   }]);
 });
