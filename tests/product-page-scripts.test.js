@@ -95,11 +95,18 @@ test('mastery hero uses the dedicated mastery artwork asset', () => {
 });
 
 test('checkout instalment links use shared storefront config', () => {
-  // Comprehensive is full-payment only during the early bird window, so it
-  // must be absent from both the catalog and the shared storefront config.
-  assert.equal(PRODUCTS.comprehensive.instalment, null);
-  assert.equal(storefrontConfig.instalmentLinks.comprehensive, undefined);
-  assert.deepEqual(PRODUCTS.mastery.instalment, storefrontConfig.instalmentLinks.mastery);
+  // Every product offering instalments must appear in both the catalog and the
+  // shared storefront config, with the same label, or the page and the checkout
+  // will disagree about the price.
+  for (const slug of ['comprehensive', 'mastery']) {
+    const fromCatalog = PRODUCTS[slug].instalment;
+    const fromConfig = storefrontConfig.instalmentLinks[slug];
+
+    assert.ok(fromCatalog, `${slug} should offer instalments`);
+    assert.ok(fromConfig, `${slug} missing from storefront instalment links`);
+    assert.equal(fromCatalog.label, fromConfig.label, `${slug} label mismatch`);
+    assert.equal(fromCatalog.url, fromConfig.url, `${slug} url mismatch`);
+  }
 });
 
 test('checkout pages load catalog before checkout logic', () => {

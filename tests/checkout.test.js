@@ -495,13 +495,15 @@ test('buildInstalmentLinkMarkup renders instalment plans as a deliberate checkou
 
   assert.match(markup, /checkout-instalment-link__eyebrow/);
   assert.match(markup, /Pay in 4 instalments/);
-  assert.match(markup, /\$699 × 4 instalments/);
+  assert.match(markup, /4 × \$699 instalments/);
+  // The instalment total must be disclosed: $2,796 is $297 more than paying
+  // $2,499 upfront, and a buyer should not have to work that out themselves.
+  assert.match(markup, /\(\$2,796 total\)/);
   assert.match(markup, /Opens secure Stripe instalment checkout/);
 });
 
-test('getPaymentModeOptions returns instalment mode for mastery only', () => {
-  // Comprehensive has no instalment plan during the early bird window.
-  assert.deepEqual(getPaymentModeOptions('comprehensive'), ['full']);
+test('getPaymentModeOptions returns instalment mode for the cohort programs', () => {
+  assert.deepEqual(getPaymentModeOptions('comprehensive'), ['full', 'instalments']);
   assert.deepEqual(getPaymentModeOptions('mastery'), ['full', 'instalments']);
   assert.deepEqual(getPaymentModeOptions('blueprint'), ['full', 'afterpay']);
   assert.deepEqual(getPaymentModeOptions('advanced'), ['full']);
@@ -3827,4 +3829,26 @@ test('unrestricted coupons are refused on high-ticket cohorts but allowed elsewh
   assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(grouped, 'comprehensive'), true);
   assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(grouped, 'mastery'), true);
   assert.equal(createPaymentIntentHandler.isCouponEligibleForProduct(grouped, 'blueprint'), false);
+});
+
+test('every instalment label discloses the total, which is higher than paying upfront', () => {
+  for (const [slug, product] of Object.entries(PRODUCTS)) {
+    const inst = product && product.instalment;
+    if (!inst || !inst.plan) continue;
+
+    const { count, firstPayment, recurringPayment } = inst.plan;
+    const total = firstPayment + recurringPayment * (count - 1);
+    const upfront = product.priceCents / 100;
+
+    assert.ok(
+      total > upfront,
+      `${slug}: instalment total ${total} should exceed the upfront price ${upfront}`
+    );
+
+    const formatted = total.toLocaleString('en-AU');
+    assert.ok(
+      inst.label.includes(`$${formatted} total`),
+      `${slug}: instalment label must disclose the $${formatted} total, got "${inst.label}"`
+    );
+  }
 });

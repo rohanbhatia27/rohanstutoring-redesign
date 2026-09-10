@@ -325,15 +325,25 @@ function runPriceAudit() {
       errors.push('[Config Drift] StorefrontConfig instalment URL for ' + key + ' differs from catalog');
     }
 
-    const labelRe = /or pay \$(\d+) [x×] (\d+) instalments/i;
+    // Expected shape: "or 4 × $449 instalments ($1,796 total) →"
+    // The total is mandatory. Instalment plans cost more than paying upfront, so
+    // a buyer who only sees the per-payment figure can reasonably misread the
+    // real cost.
+    const labelRe = /(\d+) [x×] \$([\d,]+) instalments \(\$([\d,]+) total\)/i;
     const labelM = labelRe.exec(cfg.label);
     if (!labelM) {
-      errors.push('[Config Drift] StorefrontConfig label for ' + key + ' does not match expected format');
+      errors.push('[Config Drift] StorefrontConfig label for ' + key + ' does not match expected format "N × $X instalments ($Y total)"');
     } else {
-      const labelPrice = parseInt(labelM[1], 10);
-      const labelCount = parseInt(labelM[2], 10);
+      const labelCount = parseInt(labelM[1], 10);
+      const labelPrice = parseInt(labelM[2].replace(/,/g, ''), 10);
+      const labelTotal = parseInt(labelM[3].replace(/,/g, ''), 10);
+      const catalogTotal = plan.firstPayment + plan.recurringPayment * (plan.count - 1);
+
       if (labelPrice !== plan.firstPayment || labelCount !== plan.count) {
         errors.push('[Config Drift] StorefrontConfig label for ' + key + ' says $' + labelPrice + ' x ' + labelCount + ', catalog has $' + plan.firstPayment + ' x ' + plan.count);
+      }
+      if (labelTotal !== catalogTotal) {
+        errors.push('[Config Drift] StorefrontConfig label for ' + key + ' states a $' + labelTotal + ' total, catalog instalments add up to $' + catalogTotal);
       }
     }
   }

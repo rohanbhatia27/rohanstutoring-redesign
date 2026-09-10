@@ -319,17 +319,24 @@
       slug: 'comprehensive',
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course',
-      // Early bird for the March 2027 GAMSAT cohort (classes start late
-      // October 2026): $1,599 until 1 October 2026, or
-      // until the first 10 enrolments land (tracked manually in Stripe — the
-      // site has no seat counter). At cutover, restore priceCents to 179900,
-      // set instalmentEligible back to true, and restore the instalment block
-      // below at $539 x 4 against a new STRIPE_PRICE_COMPREHENSIVE_INSTALMENT.
+      // Early bird for the March 2027 GAMSAT cohort (classes start late October
+      // or early November 2026): $1,599 until 1 October 2026, or until the first
+      // 10 enrolments land (tracked manually in Stripe — the site has no seat
+      // counter).
+      //
+      // 1 OCTOBER CUTOVER: set priceCents to 179900, change the instalment block
+      // below back to $499 x 4 ($1,996 total), and point
+      // STRIPE_PRICE_COMPREHENSIVE_INSTALMENT at price_1TZ3gSH5JsZI731GyQagdrkL
+      // ($499/month, already active in Stripe).
+      //
+      // Instalments are deliberately priced above the upfront total to push
+      // students toward paying upfront. During the early bird that is $1,796
+      // vs $1,599, a ~12% premium matching Mastery.
       priceCents: 159900,
       available: isCohortAvailable('comprehensive'),
       highTicket: true,
       afterpay: false,
-      instalmentEligible: false,
+      instalmentEligible: true,
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/comprehensive-course-card.webp',
@@ -343,9 +350,18 @@
       ],
       isDigital: false,
       successType: 'cohort',
-      // No instalment option during the early bird window. See the pricing
-      // note above for what to restore at the 1 October cutover.
-      instalment: null,
+      instalment: {
+        label: 'or 4 × $449 instalments ($1,796 total) →',
+        url: '/checkout/?product=comprehensive&paymentMode=instalments',
+        plan: {
+          count: 4,
+          firstPayment: 449,
+          recurringPayment: 449,
+          // price_1TIRaTH5JsZI731G5kQtd0b7 — $449/month, active in Stripe on
+          // prod_TCd5uh3o7P0Nm0 (Comprehensive 4x Payment Plan).
+          priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
+        },
+      },
       orderBump: {
         slug: 'mentoring-single',
         title: 'Add one 1:1 Strategy Class With Rohan',
@@ -432,7 +448,7 @@
       isDigital: false,
       successType: 'cohort',
       instalment: {
-        label: 'or pay $699 × 4 instalments →',
+        label: 'or 4 × $699 instalments ($2,796 total) →',
         url: '/checkout/?product=mastery&paymentMode=instalments',
         plan: {
           count: 4,
