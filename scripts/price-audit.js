@@ -171,7 +171,12 @@ function checkCheckoutLinkTextPrices(html, catalog, errors, fileName) {
     const price = normaliseDollar(text);
     if (!price) continue;
 
-    const hrefParams = new URLSearchParams(href.split('?')[1] || '');
+    // Decode &amp; first: hrefs are read straight out of HTML, where the
+    // ampersand may legitimately be entity-encoded. Without this, paymentMode
+    // parses as "amp;paymentMode" and an instalment link is silently audited
+    // against the upfront price instead of the instalment plan.
+    const hrefQuery = (href.split('?')[1] || '').replace(/&amp;/g, '&');
+    const hrefParams = new URLSearchParams(hrefQuery);
     const isInstalmentLink = String(hrefParams.get('paymentMode') || hrefParams.get('payment_mode') || '').trim().toLowerCase() === 'instalments';
     const expectedAmount = isInstalmentLink && product.instalment && product.instalment.plan
       ? product.instalment.plan.firstPayment
