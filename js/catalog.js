@@ -171,7 +171,7 @@
 
     advanced: {
       slug: 'advanced',
-      name: 'Elite Excellence Course',
+      name: 'GAMSAT Advanced Series',
       title: 'GAMSAT Advanced Series',
       priceCents: 29900,
       available: true,

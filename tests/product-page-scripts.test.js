@@ -51,6 +51,7 @@ test('split comprehensive pages route enrolment CTAs to checkout while live coac
 
     assert.ok(checkoutLinks.length >= 3, `${file} should route visitors to checkout`);
     assert.doesNotMatch(html, /Join the [Ww]aitlist|This cohort is full/i, `${file} should not still offer a waitlist`);
+    assert.doesNotMatch(html, /When enrolments reopen/i, `${file} should not keep stale closed-cohort copy`);
     // These sections have no instalment plan, so they must not advertise one.
     assert.doesNotMatch(html, /instalment/i, `${file} should not mention instalments`);
   }
