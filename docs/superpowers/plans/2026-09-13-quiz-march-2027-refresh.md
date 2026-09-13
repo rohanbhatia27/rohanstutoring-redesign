@@ -8,6 +8,14 @@
 
 **Tech Stack:** Static HTML/CSS, vanilla JS, Node `node:test`, Vercel serverless (`api/leads.js`), Kit v4 API.
 
+**Status (13 September 2026, end of session):**
+
+- Done and live: Tasks 1 to 6 (quiz), 7 (local and production smoke tests; no test lead submitted), 10 (Sunday FAQ removed, Mastery 24 classes), 11 (essay marking reopened), 9 (docs and business context synced). Commits `4065820`, `d7b8990`, `9e4665d` plus the docs commit.
+- Kit: `quiz_sitting` custom field created (id 1364524). Comprehensive Path email 3 (9865061) class times replaced; Kit reported the update as a draft even with `published: true`, so Rohan should confirm it is live in the editor.
+- Skipped by Rohan: K4 (Mastery email 1 wording stays).
+- Waiting on dates: K2 price wording on 1 October (Rohan's calendar re-audit). K6 in late October: close `COHORT_STATUSES.liveCoaching`, deploy, then pause The Comprehensive Path and The Mastery Path.
+- Not done: Task 11 step 9 (optional replies to waitlist enquiries). Flag: Mastery checkout summary tagline still says "Waitlist open" (`js/catalog.js:440`, rendered by `js/checkout.js:1078,1118`).
+
 **Audit date:** 13 September 2026. Sources: `js/quiz.js`, `quiz.html`, `tests/quiz-*.test.js`, `api/leads.js`, `api/_lib/_kit.js`, `js/catalog.js`, `api/_lib/_business-context.js`, course pages, live Kit sequences and tags.
 
 ---

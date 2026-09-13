@@ -22,12 +22,13 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
 1. Comprehensive Course — FLAGSHIP and the top commercial priority. Live S1 + S2
    prep system run in cohorts. The cohort preparing for the March 2027 GAMSAT
    is open: classes start late October 2026. $1599 early bird until
-   1 October 2026, then $1799. No instalment option during early bird.
+   1 October 2026, then $1799. Instalments: 4 × $449.
    Page: /store/p/comprehensive
 2. Step-down / nurture entry points: GAMSAT Starter Pack
    (/store/p/gamsat-starter-pack) and the Blueprint. Existing Blueprint buyers
    are an upsell target into the Comprehensive Course via a one-off discount.
-3. Essay marking — secondary offer, comes forward between cohorts.
+3. Essay marking — secondary offer, comes forward between cohorts. Reopened in
+   September 2026: $34.99 per essay, $249 for 10, 3-day turnaround.
 4. Private 1:1 sales calls (15–20 min) — NOT a public product and NOT sold.
    It is a private conversion mechanic: the booking link is sent only to vetted,
    high-intent leads via email, Instagram DM, or TikTok DM, to protect Rohan's
@@ -38,6 +39,9 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
    to "increase call capacity". The link is never advertised publicly; calls are
    issued manually to hot leads only. Any insight suggesting a low strategy session
    count needs investigation or action is incorrect and should be disregarded.
+   Exception: the Mastery quiz result and the Mastery Path Kit emails link the
+   consultation booking page directly, so some strategy sessions come from
+   Mastery-fit quiz leads. That is intended.
 
 ## Lead magnets currently in rotation (the main top-of-funnel capture)
 - GAMSAT S1 Mini Mock  (historically the best converter)
@@ -79,8 +83,12 @@ the course, and to surface which leads are hot enough for a sales-call invite.
 - Enrolment is open for the cohort preparing for the March 2027 GAMSAT.
   Classes start late October 2026. The exact weekly schedule is confirmed
   before the first class, so do not quote specific class times yet.
-- Pricing: $1599 early bird until 1 October 2026, then $1799. Full payment only
-  during the early bird window; there is no instalment plan right now.
+- Pricing: $1599 early bird until 1 October 2026, then $1799. Instalments:
+  4 × $449.
+- The /quiz recommends Comprehensive or Mastery only to students sitting in
+  March 2027, and only while the cohort is open. Everyone else goes to
+  Blueprint or the Essentials Playbook.
+- Essay marking is open again ($34.99 per essay, $249 for 10).
 - Primary push: email nurture off lead magnets → quiz, Blueprint, private
   mentoring, or waitlist depending on fit and availability; invite hot/engaged
   email leads to a private 1:1 sales call.
