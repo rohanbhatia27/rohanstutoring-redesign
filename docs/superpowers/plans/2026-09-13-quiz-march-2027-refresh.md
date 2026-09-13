@@ -15,6 +15,7 @@
 - Skipped by Rohan: K4 (Mastery email 1 wording stays).
 - Waiting on dates: K2 price wording on 1 October (Rohan's calendar re-audit). K6 in late October: close `COHORT_STATUSES.liveCoaching`, deploy, then pause The Comprehensive Path and The Mastery Path.
 - Not done: Task 11 step 9 (optional replies to waitlist enquiries).
+- Routing widened after review (Rohan, 13 September 2026), based on a simulation of all 19,200 answer combinations. Changes A to E: (A) March 2027 first-timers who "don't know where to start", with 5+ hrs and a real goal, get Comprehensive; (B) no full mock yet + "realistic shot" + 5+ hrs gets Comprehensive; (C) sat once + mocked or sat the exam + "push as high as I can" + plateau or timing + 10+ hrs gets Mastery; (D) re-sitters who pick "Still deciding" are routed as March 2027, with a note saying so; (E) under 5 hrs + started prep + competitive or maximise goal gets Comprehensive. Simulated March 2027 split moved from 39.7% Comprehensive / 11.5% Mastery to 54.6% / 12.3%.
 - Fixed after review: Mastery checkout summary tagline now says "Enrolment open" (`js/catalog.js:440`), and both checkout pages load a freshly versioned `catalog.js`.
 
 **Audit date:** 13 September 2026. Sources: `js/quiz.js`, `quiz.html`, `tests/quiz-*.test.js`, `api/leads.js`, `api/_lib/_kit.js`, `js/catalog.js`, `api/_lib/_business-context.js`, course pages, live Kit sequences and tags.

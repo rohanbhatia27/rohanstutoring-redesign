@@ -136,7 +136,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
       hours: '10-20',
       blocker: 'materials',
     }).id,
-    'BLUEPRINT'
+    'COMPREHENSIVE'
   );
 });
 
@@ -158,7 +158,7 @@ test('quiz only routes into live cohorts for the March 2027 sitting while enrolm
 
   assert.equal(route({ ...resitter, timeline: 'mar-2027' }).id, 'MASTERY_CALL');
   assert.equal(route({ ...resitter, timeline: 'sep-2027' }).id, 'BLUEPRINT');
-  assert.equal(route({ ...resitter, timeline: 'unsure' }).id, 'BLUEPRINT');
+  assert.equal(route({ ...resitter, timeline: 'unsure' }).id, 'MASTERY_CALL');
   assert.equal(route({ ...committed, timeline: 'mar-2027' }).id, 'COMPREHENSIVE');
   assert.equal(route({ ...committed, timeline: 'later' }).id, 'BLUEPRINT');
   assert.equal(route({ ...committed, timeline: 'mar-2027' }, { cohortOpen: false }).id, 'BLUEPRINT');
@@ -202,4 +202,41 @@ test('quiz plans are tied to the sitting and avoid unsupported claims', () => {
   assert.match(quizJs, /'sep-2027':/);
   assert.match(quizHtml, /id="resultSitting"/);
   assert.doesNotMatch(quizJs + quizHtml, /—/);
+});
+
+test('quiz widens live-course routing for committed March 2027 students and undecided re-sitters', () => {
+  const route = loadQuizRouter();
+  const mar = { timeline: 'mar-2027', section: 's1' };
+
+  // A: first-timers who do not know where to start, with hours and a real goal
+  assert.equal(route({ ...mar, attempts: 'first', current: 'mocked', target: 'competitive', hours: '5-10', blocker: 'no-plan' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'figuring-out', hours: '5-10', blocker: 'no-plan' }).id, 'START_HERE');
+
+  // B: no full mock yet with a realistic goal and 5+ hours
+  assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'realistic', hours: '10-20', blocker: 'materials' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'realistic', hours: 'sub5', blocker: 'materials' }).id, 'BLUEPRINT');
+
+  // C: one-time sitters chasing the ceiling with 10+ hours
+  assert.equal(route({ ...mar, attempts: 'once', current: 'exam-ready', target: 'maximise', hours: '20plus', blocker: 'plateau' }).id, 'MASTERY_CALL');
+  assert.equal(route({ ...mar, attempts: 'once', current: 'mocked', target: 'maximise', hours: '5-10', blocker: 'plateau' }).id, 'COMPREHENSIVE');
+
+  // D: re-sitters still deciding are treated as March 2027; first-timers and later sittings are not
+  assert.equal(route({ timeline: 'unsure', section: 's1', attempts: 'multi', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'timing' }).id, 'MASTERY_CALL');
+  assert.equal(route({ timeline: 'unsure', section: 's2', attempts: 'once', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'essays' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ timeline: 'unsure', section: 's2', attempts: 'first', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'essays' }).id, 'START_HERE');
+  assert.equal(route({ timeline: 'sep-2027', section: 's1', attempts: 'multi', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'timing' }).id, 'BLUEPRINT');
+
+  // E: under 5 hours but has progress and an ambitious goal
+  assert.equal(route({ ...mar, attempts: 'once', current: 'building', target: 'competitive', hours: 'sub5', blocker: 'materials' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'once', current: 'building', target: 'realistic', hours: 'sub5', blocker: 'materials' }).id, 'BLUEPRINT');
+  assert.equal(route({ ...mar, attempts: 'once', current: 'new', target: 'competitive', hours: 'sub5', blocker: 'materials' }).id, 'BLUEPRINT');
+
+  // A closed cohort still sends everyone to self-paced options
+  assert.equal(route({ ...mar, attempts: 'once', current: 'building', target: 'competitive', hours: 'sub5', blocker: 'materials' }, { cohortOpen: false }).id, 'BLUEPRINT');
+  assert.equal(route({ timeline: 'unsure', section: 's1', attempts: 'multi', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'timing' }, { cohortOpen: false }).id, 'BLUEPRINT');
+});
+
+test('undecided re-sitters are told their result points at March 2027', () => {
+  assert.match(quizJs, /'unsure-resitter': 'Most re-sitters aim for the next sitting, which is March 2027\.'/);
+  assert.match(quizJs, /state\.answers\.timeline === 'unsure' && state\.answers\.attempts !== 'first'/);
 });

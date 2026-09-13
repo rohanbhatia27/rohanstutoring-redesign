@@ -105,6 +105,7 @@ const SITTING_NOTES = {
   'sep-2027': 'Built around the September 2027 sitting. You have time, so aim for a steady start rather than a sprint.',
   later: "You're sitting after September 2027. Use this stage to build habits you can keep up for a long time.",
   unsure: "You haven't picked a sitting yet. Follow this for a month, then choose your date.",
+  'unsure-resitter': 'Most re-sitters aim for the next sitting, which is March 2027.',
 };
 
 const OUTCOMES = {
@@ -239,16 +240,19 @@ const COHORT_SITTING = 'mar-2027';
 
 function routeAnswers(a, { cohortOpen = true } = {}) {
   const highHours = a.hours === '5-10' || a.hours === '10-20' || a.hours === '20plus';
-  const liveCohortFit = a.timeline === COHORT_SITTING && cohortOpen;
+  const bigHours = a.hours === '10-20' || a.hours === '20plus';
+  // Re-sitters who have not picked a sitting are routed as March 2027 students
+  const undecidedResitter = a.timeline === 'unsure' && a.attempts !== 'first';
+  const liveCohortFit = (a.timeline === COHORT_SITTING || undecidedResitter) && cohortOpen;
   const laterSitting = a.timeline === 'sep-2027' || a.timeline === 'later';
   const earlyPrep = a.current === 'new' || a.current === 'building';
   const hasProgress = a.current === 'building' || a.current === 'mocked' || a.current === 'exam-ready';
   const seriousGoal = a.target === 'realistic' || a.target === 'competitive' || a.target === 'maximise';
   const ambitiousGoal = a.target === 'competitive' || a.target === 'maximise';
 
-  // 1. Clear beginner signals
+  // 1. Clear beginner signals (first-timers without a plan still get the live course if they have hours and a goal)
   if (a.attempts === 'first' && (laterSitting || a.timeline === 'unsure')) return OUTCOMES.START_HERE;
-  if (a.blocker === 'no-plan' && a.attempts === 'first') return OUTCOMES.START_HERE;
+  if (a.blocker === 'no-plan' && a.attempts === 'first' && !(liveCohortFit && highHours && seriousGoal)) return OUTCOMES.START_HERE;
   if (earlyPrep && a.target === 'figuring-out') return OUTCOMES.START_HERE;
 
   // 2. High-friction re-sitters who need hands-on support (Mastery runs with the live cohort)
@@ -267,18 +271,25 @@ function routeAnswers(a, { cohortOpen = true } = {}) {
     return OUTCOMES.MASTERY_CALL;
   }
 
-  // 4. Live course for March 2027 students with hours and a serious goal
+  // 4. One-time sitters chasing the ceiling with serious hours
   if (
-    liveCohortFit && (
-      (hasProgress && seriousGoal && highHours) ||
-      (a.current === 'new' && highHours && ambitiousGoal) ||
-      (a.current === 'new' && a.attempts !== 'first' && a.blocker === 'essays' && highHours && seriousGoal)
-    )
+    liveCohortFit &&
+    a.attempts === 'once' &&
+    (a.current === 'mocked' || a.current === 'exam-ready') &&
+    a.target === 'maximise' &&
+    (a.blocker === 'plateau' || a.blocker === 'timing') &&
+    bigHours
   ) {
-    return OUTCOMES.COMPREHENSIVE;
+    return OUTCOMES.MASTERY_CALL;
   }
 
-  // 5. Self-paced fallback for everyone else, including later sittings and closed cohorts
+  // 5. Live course for March 2027 students with 5+ hours and a real goal
+  if (liveCohortFit && highHours && seriousGoal) return OUTCOMES.COMPREHENSIVE;
+
+  // 6. Under 5 hours, but already started and aiming for a competitive score
+  if (liveCohortFit && a.hours === 'sub5' && hasProgress && ambitiousGoal) return OUTCOMES.COMPREHENSIVE;
+
+  // 7. Self-paced fallback for everyone else, including later sittings and closed cohorts
   return OUTCOMES.BLUEPRINT;
 }
 
@@ -486,7 +497,10 @@ function showResult(outcome) {
   el.resultName.textContent = outcome.name;
   el.resultTeaser.textContent = outcome.teaser;
   const sittingEl = document.getElementById('resultSitting');
-  if (sittingEl) sittingEl.textContent = SITTING_NOTES[state.answers.timeline] || '';
+  const sittingKey = state.answers.timeline === 'unsure' && state.answers.attempts !== 'first'
+    ? 'unsure-resitter'
+    : state.answers.timeline;
+  if (sittingEl) sittingEl.textContent = SITTING_NOTES[sittingKey] || '';
   el.outcomeField.value = outcome.id;
   if (el.sittingField) el.sittingField.value = state.answers.timeline || '';
   el.subjectField.value = `New quiz lead: ${outcome.name}`;

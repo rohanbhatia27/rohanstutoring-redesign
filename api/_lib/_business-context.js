@@ -85,9 +85,12 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   before the first class, so do not quote specific class times yet.
 - Pricing: $1599 early bird until 1 October 2026, then $1799. Instalments:
   4 × $449.
-- The /quiz recommends Comprehensive or Mastery only to students sitting in
-  March 2027, and only while the cohort is open. Everyone else goes to
-  Blueprint or the Essentials Playbook.
+- The /quiz recommends Comprehensive or Mastery to students sitting in March
+  2027 and to re-sitters who are still deciding, only while the cohort is open.
+  Since 13 September 2026 it also sends committed March 2027 students with
+  under 5 hours a week (if they have started prep and want a competitive
+  score) to Comprehensive. September 2027 and later sittings go to Blueprint
+  or the Essentials Playbook.
 - Essay marking is open again ($34.99 per essay, $249 for 10).
 - Primary push: email nurture off lead magnets → quiz, Blueprint, private
   mentoring, or waitlist depending on fit and availability; invite hot/engaged
