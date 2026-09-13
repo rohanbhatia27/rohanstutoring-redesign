@@ -256,3 +256,38 @@ test('quiz lead handler rejects invalid email addresses', async () => {
   assert.equal(res.statusCode, 400);
   assert.deepEqual(res.body, { error: 'Please enter a valid email address.' });
 });
+
+test('syncQuizLead stores the chosen sitting alongside the outcome', async () => {
+  const calls = [];
+  const originalWarn = console.warn;
+  process.env.KIT_API_KEY = 'kit_test_123';
+  delete process.env.KIT_TAG_ID_QUIZ_COMPREHENSIVE;
+  console.warn = () => {};
+
+  kit.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+    return { ok: true, status: 200, json: async () => ({ subscriber: { id: 901 } }) };
+  });
+
+  try {
+    await kit.syncQuizLead({ firstName: 'Jane', email: 'jane@example.com', outcome: 'COMPREHENSIVE', sitting: 'mar-2027' });
+    assert.deepEqual(JSON.parse(calls[0].options.body).fields, {
+      quiz_outcome: 'COMPREHENSIVE',
+      quiz_sitting: 'mar-2027',
+    });
+  } finally {
+    console.warn = originalWarn;
+    kit.__resetForTests();
+    delete process.env.KIT_API_KEY;
+  }
+});
+
+test('normaliseQuizLead passes through a short sitting value', () => {
+  const lead = quizLeadHandler.normaliseQuizLead({
+    firstName: 'Jane',
+    email: 'jane@example.com',
+    outcome: 'BLUEPRINT',
+    sitting: 'sep-2027',
+  });
+  assert.equal(lead.sitting, 'sep-2027');
+});

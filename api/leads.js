@@ -16,12 +16,13 @@ function normaliseQuizLead(body) {
   const firstName = String(body.firstName || '').trim().replace(/\s+/g, ' ');
   const email = String(body.email || '').trim();
   const outcome = String(body.outcome || '').trim();
+  const sitting = String(body.sitting || '').trim().slice(0, 20);
 
   if (!firstName) return { error: 'Missing first name.' };
   if (!createPaymentIntentHandler.isValidEmail(email)) return { error: 'Please enter a valid email address.' };
   if (!outcome) return { error: 'Missing quiz outcome.' };
 
-  return { firstName: firstName.slice(0, 120), email, outcome };
+  return { firstName: firstName.slice(0, 120), email, outcome, sitting };
 }
 
 async function handleQuizLead(body, res, req) {

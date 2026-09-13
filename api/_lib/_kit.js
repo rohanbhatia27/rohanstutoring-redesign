@@ -146,13 +146,14 @@ async function addSubscriberToSequence({ sequenceId, email, firstName = '' }) {
   return data && data.subscriber ? data.subscriber : null;
 }
 
-async function syncQuizLead({ email, firstName = '', outcome = '' }) {
+async function syncQuizLead({ email, firstName = '', outcome = '', sitting = '' }) {
   const safeOutcome = String(outcome || '').trim();
-  const subscriber = await upsertSubscriber({
-    email,
-    firstName,
-    fields: safeOutcome ? { quiz_outcome: safeOutcome } : {},
-  });
+  const safeSitting = String(sitting || '').trim();
+  const fields = {};
+  if (safeOutcome) fields.quiz_outcome = safeOutcome;
+  if (safeSitting) fields.quiz_sitting = safeSitting;
+
+  const subscriber = await upsertSubscriber({ email, firstName, fields });
 
   if (!subscriber) {
     throw new Error('Kit subscriber upsert failed');

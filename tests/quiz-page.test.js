@@ -8,7 +8,7 @@ const ROOT = path.join(__dirname, '..');
 const quizHtml = fs.readFileSync(path.join(ROOT, 'quiz.html'), 'utf8');
 const quizCss = fs.readFileSync(path.join(ROOT, 'css', 'quiz.css'), 'utf8');
 const quizJs = fs.readFileSync(path.join(ROOT, 'js', 'quiz.js'), 'utf8');
-const quizQuestionsBlock = quizJs.split("const STORAGE_KEY = 'rt_quiz_v1';")[0];
+const quizQuestionsBlock = quizJs.split("const STORAGE_KEY = 'rt_quiz_v2';")[0];
 
 function loadQuizRouter() {
   const cutoff = quizJs.indexOf('// Expose for console testing');
@@ -76,7 +76,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
 
   assert.equal(
     route({
-      timeline: 'sep-2026',
+      timeline: 'mar-2027',
       attempts: 'first',
       current: 'new',
       target: 'realistic',
@@ -89,7 +89,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
 
   assert.equal(
     route({
-      timeline: 'sep-2026',
+      timeline: 'mar-2027',
       attempts: 'once',
       current: 'new',
       target: 'realistic',
@@ -138,4 +138,57 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
     }).id,
     'BLUEPRINT'
   );
+});
+
+test('quiz timeline only offers upcoming sittings', () => {
+  assert.doesNotMatch(quizQuestionsBlock, /sep-2026|September 2026/);
+  assert.match(quizQuestionsBlock, /value: 'mar-2027', label: 'March 2027'/);
+  assert.match(quizQuestionsBlock, /value: 'sep-2027', label: 'September 2027'/);
+  assert.match(quizQuestionsBlock, /value: 'later', label: 'Later than September 2027'/);
+});
+
+test('quiz storage key is bumped so answers saved before the March 2027 refresh are discarded', () => {
+  assert.match(quizJs, /const STORAGE_KEY = 'rt_quiz_v2';/);
+});
+
+test('quiz only routes into live cohorts for the March 2027 sitting while enrolment is open', () => {
+  const route = loadQuizRouter();
+  const resitter = { attempts: 'multi', current: 'mocked', target: 'competitive', section: 's1', hours: '10-20', blocker: 'timing' };
+  const committed = { attempts: 'once', current: 'mocked', target: 'competitive', section: 's2', hours: '10-20', blocker: 'essays' };
+
+  assert.equal(route({ ...resitter, timeline: 'mar-2027' }).id, 'MASTERY_CALL');
+  assert.equal(route({ ...resitter, timeline: 'sep-2027' }).id, 'BLUEPRINT');
+  assert.equal(route({ ...resitter, timeline: 'unsure' }).id, 'BLUEPRINT');
+  assert.equal(route({ ...committed, timeline: 'mar-2027' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...committed, timeline: 'later' }).id, 'BLUEPRINT');
+  assert.equal(route({ ...committed, timeline: 'mar-2027' }, { cohortOpen: false }).id, 'BLUEPRINT');
+  assert.equal(route({ ...resitter, timeline: 'mar-2027' }, { cohortOpen: false }).id, 'BLUEPRINT');
+  assert.equal(
+    route({ attempts: 'first', current: 'new', target: 'realistic', section: 'all', hours: '5-10', blocker: 'materials', timeline: 'sep-2027' }).id,
+    'START_HERE'
+  );
+});
+
+test('quiz page loads the catalog before quiz.js and routes with live cohort status', () => {
+  const catalogIdx = quizHtml.search(/<script src="js\/catalog\.js[^"]*" defer><\/script>/);
+  const quizIdx = quizHtml.indexOf('<script src="js/quiz.js');
+  assert.notEqual(catalogIdx, -1, 'expected catalog.js on the quiz page');
+  assert.ok(catalogIdx < quizIdx, 'catalog.js must load before quiz.js');
+  assert.match(quizJs, /routeAnswers\(state\.answers, \{ cohortOpen: isLiveCohortOpen\(\) \}\)/);
+});
+
+test('only the Mastery result offers the consultation link; Comprehensive points at the course', () => {
+  const route = loadQuizRouter();
+  const comprehensive = route({ timeline: 'mar-2027', attempts: 'once', current: 'mocked', target: 'competitive', section: 's2', hours: '10-20', blocker: 'essays' });
+  const mastery = route({ timeline: 'mar-2027', attempts: 'multi', current: 'mocked', target: 'competitive', section: 's1', hours: '10-20', blocker: 'timing' });
+
+  assert.equal(comprehensive.primaryCta.url, '/courses/comprehensive');
+  assert.equal(comprehensive.primaryCta.label, 'See the Comprehensive Course');
+  assert.doesNotMatch(comprehensive.primaryCta.url + comprehensive.secondaryCta.url, /calendly\.com/i);
+  assert.match(mastery.primaryCta.url, /calendly\.com\/rohansgamsat\/gamsat-strategy-consultation/);
+});
+
+test('quiz lead payload includes the chosen sitting', () => {
+  assert.match(quizHtml, /<input type="hidden" name="sitting" id="sittingField">/);
+  assert.match(quizJs, /sitting: String\(form\.elements\.sitting\?\.value \|\| state\.answers\.timeline \|\| ''\)\.trim\(\)/);
 });

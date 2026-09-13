@@ -8,9 +8,9 @@ const QUESTIONS = [
     key: 'timeline',
     stem: 'When are you sitting the GAMSAT?',
     answers: [
-      { value: 'sep-2026', label: 'September 2026' },
       { value: 'mar-2027', label: 'March 2027' },
-      { value: 'later', label: 'Later than March 2027' },
+      { value: 'sep-2027', label: 'September 2027' },
+      { value: 'later', label: 'Later than September 2027' },
       { value: 'unsure', label: 'Still deciding' },
     ],
   },
@@ -77,7 +77,7 @@ const QUESTIONS = [
   },
 ];
 
-const STORAGE_KEY = 'rt_quiz_v1';
+const STORAGE_KEY = 'rt_quiz_v2';
 
 // Analytics helper — fires GA and PostHog in parallel
 const track = (event, params = {}) => {
@@ -160,8 +160,8 @@ const OUTCOMES = {
         <li>In the final week, drop volume by half. Sleep and confidence matter more than one more paper.</li>
       </ol>
     `,
-    primaryCta: { label: 'Book a free strategy call', url: CALENDLY },
-    secondaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
+    primaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
+    secondaryCta: { label: 'Browse All Courses', url: '/courses' },
   },
   BLUEPRINT: {
     id: 'BLUEPRINT',
@@ -227,21 +227,25 @@ const OUTCOMES = {
   },
 };
 
-function routeAnswers(a) {
+const COHORT_SITTING = 'mar-2027';
+
+function routeAnswers(a, { cohortOpen = true } = {}) {
   const highHours = a.hours === '5-10' || a.hours === '10-20' || a.hours === '20plus';
-  const longRunway = a.timeline === 'sep-2026' || a.timeline === 'mar-2027';
+  const liveCohortFit = a.timeline === COHORT_SITTING && cohortOpen;
+  const laterSitting = a.timeline === 'sep-2027' || a.timeline === 'later';
   const earlyPrep = a.current === 'new' || a.current === 'building';
   const hasProgress = a.current === 'building' || a.current === 'mocked' || a.current === 'exam-ready';
   const seriousGoal = a.target === 'realistic' || a.target === 'competitive' || a.target === 'maximise';
   const ambitiousGoal = a.target === 'competitive' || a.target === 'maximise';
 
   // 1. Clear beginner signals
-  if (a.attempts === 'first' && (a.timeline === 'later' || a.timeline === 'unsure')) return OUTCOMES.START_HERE;
+  if (a.attempts === 'first' && (laterSitting || a.timeline === 'unsure')) return OUTCOMES.START_HERE;
   if (a.blocker === 'no-plan' && a.attempts === 'first') return OUTCOMES.START_HERE;
   if (earlyPrep && a.target === 'figuring-out') return OUTCOMES.START_HERE;
 
-  // 2. High-friction re-sitters who need hands-on support
+  // 2. High-friction re-sitters who need hands-on support (Mastery runs with the live cohort)
   if (
+    liveCohortFit &&
     a.attempts === 'multi' &&
     hasProgress &&
     (a.blocker === 'plateau' || a.blocker === 'timing' || a.blocker === 'materials') &&
@@ -251,34 +255,34 @@ function routeAnswers(a) {
   }
 
   // 3. Exam-ready multi-attempters chasing the ceiling
-  if (
-    a.current === 'exam-ready' &&
-    a.target === 'maximise' &&
-    a.attempts === 'multi'
-  ) {
+  if (liveCohortFit && a.current === 'exam-ready' && a.target === 'maximise' && a.attempts === 'multi') {
     return OUTCOMES.MASTERY_CALL;
   }
 
-  // 4. Structured course for students with runway, hours, and a serious goal
+  // 4. Live course for March 2027 students with hours and a serious goal
   if (
-    (hasProgress && seriousGoal && longRunway && highHours) ||
-    (a.current === 'new' && longRunway && highHours && ambitiousGoal) ||
-    (a.current === 'new' && a.attempts !== 'first' && a.blocker === 'essays' && longRunway && highHours && seriousGoal)
+    liveCohortFit && (
+      (hasProgress && seriousGoal && highHours) ||
+      (a.current === 'new' && highHours && ambitiousGoal) ||
+      (a.current === 'new' && a.attempts !== 'first' && a.blocker === 'essays' && highHours && seriousGoal)
+    )
   ) {
     return OUTCOMES.COMPREHENSIVE;
   }
 
-  // 5. S2 pain still defaults to self-paced unless it hit the course rule above
-  if (a.section === 's2' && a.blocker === 'essays' && a.target !== 'maximise') {
-    return OUTCOMES.BLUEPRINT;
-  }
-
-  // 6. Fallback
+  // 5. Self-paced fallback for everyone else, including later sittings and closed cohorts
   return OUTCOMES.BLUEPRINT;
 }
 
 // Expose for console testing
 window.__quizTest = { routeAnswers, OUTCOMES };
+
+function isLiveCohortOpen() {
+  const catalog = window.ProductCatalog;
+  if (!catalog || typeof catalog.getCohortStatusForSlug !== 'function') return true;
+  const status = catalog.getCohortStatusForSlug('comprehensive');
+  return !status || status.available === true;
+}
 
 const state = {
   answers: {},
@@ -398,6 +402,7 @@ const el = {
   resultPrimaryCta: document.getElementById('resultPrimaryCta'),
   resultSecondaryCta: document.getElementById('resultSecondaryCta'),
   outcomeField: document.getElementById('outcomeField'),
+  sittingField: document.getElementById('sittingField'),
   subjectField: document.getElementById('subjectField'),
   retake: document.getElementById('quizRetake'),
 };
@@ -449,7 +454,7 @@ function goBack() {
 }
 
 function finishQuiz() {
-  const outcome = routeAnswers(state.answers);
+  const outcome = routeAnswers(state.answers, { cohortOpen: isLiveCohortOpen() });
   state.completed = true;
   state.outcomeId = outcome.id;
   saveState();
@@ -473,6 +478,7 @@ function showResult(outcome) {
   el.resultName.textContent = outcome.name;
   el.resultTeaser.textContent = outcome.teaser;
   el.outcomeField.value = outcome.id;
+  if (el.sittingField) el.sittingField.value = state.answers.timeline || '';
   el.subjectField.value = `New quiz lead: ${outcome.name}`;
   el.resultPrimaryCta.textContent = outcome.primaryCta.label;
   el.resultPrimaryCta.href = outcome.primaryCta.url;
@@ -540,7 +546,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Resume in-progress quiz
   if (state.completed && state.outcomeId) {
     el.hero.style.display = 'none';
-    showResult(OUTCOMES[state.outcomeId]);
+    const hasAllAnswers = QUESTIONS.every((question) => state.answers[question.key]);
+    const outcome = hasAllAnswers
+      ? routeAnswers(state.answers, { cohortOpen: isLiveCohortOpen() })
+      : OUTCOMES[state.outcomeId];
+    state.outcomeId = outcome ? outcome.id : null;
+    saveState();
+    showResult(outcome);
   } else if (Object.keys(state.answers).length > 0) {
     startQuiz();
   } else {
@@ -580,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
       firstName: String(form.elements.firstName?.value || '').trim(),
       email: String(form.elements.email?.value || '').trim(),
       outcome: String(form.elements.outcome?.value || state.outcomeId || '').trim(),
+      sitting: String(form.elements.sitting?.value || state.answers.timeline || '').trim(),
     };
     try {
       const res = await fetch(form.action, {
