@@ -437,7 +437,7 @@
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/mastery-course-card.webp',
-      tagline: 'Private tutorials  Unlimited essay marking  Waitlist open',
+      tagline: 'Private tutorials  Unlimited essay marking  Enrolment open',
       features: [
         'Everything in the Comprehensive Course',
         '5 × 1:1 private tutorials with Rohan',

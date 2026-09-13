@@ -444,3 +444,9 @@ test('essay marking is open on the pre-August terms', () => {
     assert.doesNotMatch(read(file), /Reopening Sept|Closed to new submissions/i, `${file} still shows essay marking as closed`);
   }
 });
+
+test('mastery checkout tagline reflects open enrolment', () => {
+  const { CATALOG } = require('../api/_lib/catalog.server.js');
+  assert.doesNotMatch(CATALOG.mastery.tagline, /waitlist/i);
+  assert.match(CATALOG.mastery.tagline, /Enrolment open/);
+});
