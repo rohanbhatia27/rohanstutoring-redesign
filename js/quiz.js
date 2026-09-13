@@ -79,7 +79,7 @@ const QUESTIONS = [
 
 const STORAGE_KEY = 'rt_quiz_v2';
 
-// Analytics helper — fires GA and PostHog in parallel
+// Analytics helper: fires GA and PostHog in parallel
 const track = (event, params = {}) => {
   if (typeof window.gtag === 'function') {
     window.gtag('event', event, params);
@@ -100,33 +100,40 @@ const PRODUCT_IMAGES = {
   START_HERE: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Essentials Playbook' },
 };
 
+const SITTING_NOTES = {
+  'mar-2027': 'Built around the March 2027 sitting.',
+  'sep-2027': 'Built around the September 2027 sitting. You have time, so aim for a steady start rather than a sprint.',
+  later: "You're sitting after September 2027. Use this stage to build habits you can keep up for a long time.",
+  unsure: "You haven't picked a sitting yet. Follow this for a month, then choose your date.",
+};
+
 const OUTCOMES = {
   MASTERY_CALL: {
     id: 'MASTERY_CALL',
     name: 'The Mastery Path',
     teaser: "You've sat this before. You know what doesn't work. The problem is not effort or time. Nobody has looked at your specific score profile and rebuilt your prep around what's actually leaking points. That's what one-to-one coaching is for.",
     planHtml: `
-      <p>After multiple attempts, the bottleneck is rarely content. It's that no one has looked at your specific score profile and rebuilt your prep around the actual gaps. Mastery is one-to-one coaching built around you. Below is the structure we'd work through together over 10 weeks.</p>
-      <h3>Phase 1: Weeks 1 to 3: Diagnose and rebuild foundations</h3>
-      <p class="plan-phase-focus">Weekly focus: one diagnostic mock, targeted weakness work, two essays marked.</p>
+      <p>After more than one attempt, the bottleneck is rarely content. Usually nobody has looked at your score profile and rebuilt your prep around the gaps it shows. Mastery puts one-to-one work on top of the 24 live classes, and it runs up to the March 2027 sitting. This is the structure we'd work through together.</p>
+      <h3>Phase 1: Now to late October: Diagnose before classes start</h3>
+      <p class="plan-phase-focus">Weekly focus: one full diagnostic paper, your personalised roadmap, essays marked from week one.</p>
       <ol>
-        <li>Sit a full timed paper in week 1, then break it down question by question with your tutor.</li>
-        <li>Rebuild whichever section is leaking the most points, with structured coaching sessions.</li>
-        <li>Establish an essay rhythm: two essays a week, marked, with revision cycles.</li>
+        <li>Sit a full timed paper, then break it down question by question.</li>
+        <li>Build your roadmap from that evidence: your background, current scores, available hours, and what went wrong last time.</li>
+        <li>Start an essay rhythm now. Marking is unlimited, so use it.</li>
       </ol>
-      <h3>Phase 2: Weeks 4 to 7: Volume under pressure</h3>
-      <p class="plan-phase-focus">Weekly focus: 3 to 4 timed mini-papers, continued essay marking, strategy refinement.</p>
+      <h3>Phase 2: The twelve cohort weeks: Volume under pressure</h3>
+      <p class="plan-phase-focus">Weekly focus: both live classes, timed mini-papers, private tutorials on your biggest leak.</p>
       <ol>
-        <li>Shift from learning content to executing under time. Mini-papers daily, full mocks weekly.</li>
-        <li>Use 1:1 sessions to autopsy each mock, not just review answers.</li>
-        <li>Lock in your S2 template so essays become automatic, not agonising.</li>
+        <li>Use the live classes for the method and your private tutorials for whichever section is leaking the most marks.</li>
+        <li>Bring your worst mock to a private tutorial and work out why you lost the marks, not just which answers were wrong.</li>
+        <li>Lock in your S2 structure so each essay stops feeling like a fresh fight.</li>
       </ol>
-      <h3>Phase 3: Weeks 8 to 10: Sharpen and simulate</h3>
-      <p class="plan-phase-focus">Weekly focus: full mock every week, recovery between, no new content.</p>
+      <h3>Phase 3: After the final class: Sharpen and simulate for March 2027</h3>
+      <p class="plan-phase-focus">Weekly focus: a full mock every week, recovery in between, no new content.</p>
       <ol>
-        <li>Three full mocks in exam conditions. Stop studying new material.</li>
-        <li>Refine stamina, nutrition, and the morning-of routine.</li>
-        <li>One final 1:1 to walk into the exam with a clear plan for each section.</li>
+        <li>Sit full mocks in exam conditions and stop studying new material.</li>
+        <li>Sort out stamina, food, and your exam-morning routine.</li>
+        <li>Use your last monthly check-in to walk into the exam with a plan for each section.</li>
       </ol>
     `,
     primaryCta: { label: 'Book a free strategy consultation', url: CALENDLY },
@@ -135,25 +142,26 @@ const OUTCOMES = {
   COMPREHENSIVE: {
     id: 'COMPREHENSIVE',
     name: 'The Comprehensive Path',
-    teaser: "You've got the time and the hours. The gap is real but closeable. Free resources won't close it. You need live teaching, regular essay feedback, and a structure that keeps you honest across ten focused weeks.",
+    teaser: "You've got the hours to put in. The gap is real, but you can close it. Free resources probably won't get you there. Live teaching and essay feedback usually will, with a weekly structure that keeps you honest until exam day.",
     planHtml: `
-      <p>A 5+ point jump is realistic, but not through self-study alone. Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this exact gap. Here's how your next 10 weeks should look.</p>
-      <h3>Phase 1: Weeks 1 to 3: Build the foundations, section by section</h3>
-      <p class="plan-phase-focus">Weekly focus: systematic S1 and S3 study, weekly essay, one diagnostic mock.</p>
+      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start late October and run for twelve weeks, up to the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
+      <h3>Phase 1: Now to late October: Get ahead before classes start</h3>
+      <p class="plan-phase-focus">Weekly focus: the recorded library, one essay a week, one diagnostic mock.</p>
       <ol>
-        <li>Work through S1 humanities methodically, logic, poetry, tone, inference. Two hours a day minimum.</li>
-        <li>S3 fundamentals: do not skip chemistry and physics reasoning even if your background is biology.</li>
-        <li>Write one essay a week from week one. Do not wait until you feel ready.</li>
+        <li>Sit a timed diagnostic early so you know where your marks are going before the first class.</li>
+        <li>Start the S1 and S2 recorded modules. You get the library as soon as you enrol.</li>
+        <li>S3 fundamentals: don't skip chemistry and physics reasoning, even if your background is biology.</li>
+        <li>Write one essay a week from now. Don't wait until you feel ready.</li>
       </ol>
-      <h3>Phase 2: Weeks 4 to 7: Apply under pressure, refine the essay</h3>
-      <p class="plan-phase-focus">Weekly focus: timed section drills daily, two essays a week, weekly full mock.</p>
+      <h3>Phase 2: The twelve cohort weeks: Apply under pressure, refine the essay</h3>
+      <p class="plan-phase-focus">Weekly focus: both live classes, timed section drills, two essays a week.</p>
       <ol>
+        <li>Treat the live classes as fixed appointments. Weekly times are confirmed before the first class, and every session is recorded.</li>
         <li>Stop doing untimed practice. Every question from here has a clock on it.</li>
-        <li>Develop a repeatable S2 structure and commit to it for three weeks before changing anything.</li>
-        <li>After each mock, spend as long reviewing as you did sitting it.</li>
+        <li>Pick one S2 structure and stick with it for three weeks before changing anything.</li>
       </ol>
-      <h3>Phase 3: Weeks 8 to 10: Exam simulation and taper</h3>
-      <p class="plan-phase-focus">Weekly focus: 2 full mocks per fortnight, targeted weakness patching, no new content.</p>
+      <h3>Phase 3: After the final class: Exam simulation and taper for March 2027</h3>
+      <p class="plan-phase-focus">Weekly focus: full mocks, review as long as you sat each one, no new content.</p>
       <ol>
         <li>Simulate exam day start times. Your brain needs to be sharp at 9am, not 9pm.</li>
         <li>Patch only the top three recurring error patterns from your mocks. Ignore the rest.</li>
@@ -199,22 +207,22 @@ const OUTCOMES = {
     name: "The Beginner's Path",
     teaser: "You're early. That's the best position to be in, as long as you use it. You don't need a full course yet. You need 30 days of real study, a first essay submitted, and a habit that carries you through.",
     planHtml: `
-      <p>The biggest predictor of early GAMSAT success is not IQ or background. It's momentum in the first month. The Essentials Playbook gets you from zero to consistent study in 30 days, including your first essay marked. Here is how the next 10 weeks should look from where you are now.</p>
-      <h3>Phase 1: Weeks 1 to 3: Build the habit, not the knowledge</h3>
+      <p>Early GAMSAT progress mostly comes down to momentum in the first month. The Essentials Playbook gets you from zero to consistent study in 30 days, including your first essay marked. Here's how the next 12 weeks should look from where you are now.</p>
+      <h3>Phase 1: Weeks 1 to 4: Build the habit, not the knowledge</h3>
       <p class="plan-phase-focus">Weekly focus: follow the Playbook's 30-day plan exactly, no improvisation.</p>
       <ol>
         <li>Study every weekday, even if only 30 minutes. Consistency over volume.</li>
         <li>Write and submit your first essay by week 2. It does not matter how it scores.</li>
         <li>Use the free resources on the site to see how the full system fits together.</li>
       </ol>
-      <h3>Phase 2: Weeks 4 to 7: Widen the scope</h3>
+      <h3>Phase 2: Weeks 5 to 9: Widen the scope</h3>
       <p class="plan-phase-focus">Weekly focus: move beyond Playbook basics into full-section study, weekly essay.</p>
       <ol>
         <li>Add a second essay per week. Volume matters now.</li>
         <li>Start timed practice, even if scores drop. Untimed practice is a trap.</li>
         <li>Decide on your next product: Blueprint for self-paced, Comprehensive for live classes.</li>
       </ol>
-      <h3>Phase 3: Weeks 8 to 10: Decide and commit</h3>
+      <h3>Phase 3: Weeks 10 to 12: Decide and commit</h3>
       <p class="plan-phase-focus">Weekly focus: pick your main course and transition in.</p>
       <ol>
         <li>By now you'll know whether you need live teaching or self-paced content.</li>
@@ -477,6 +485,8 @@ function showResult(outcome) {
   setQuizView('result');
   el.resultName.textContent = outcome.name;
   el.resultTeaser.textContent = outcome.teaser;
+  const sittingEl = document.getElementById('resultSitting');
+  if (sittingEl) sittingEl.textContent = SITTING_NOTES[state.answers.timeline] || '';
   el.outcomeField.value = outcome.id;
   if (el.sittingField) el.sittingField.value = state.answers.timeline || '';
   el.subjectField.value = `New quiz lead: ${outcome.name}`;

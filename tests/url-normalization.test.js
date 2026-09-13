@@ -293,7 +293,7 @@ test('retired webinar funnel is absent from active site code', () => {
 test('local stylesheet links resolve on disk', () => {
   for (const file of htmlFiles()) {
     const html = read(file);
-    const hrefs = Array.from(html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)).map((match) => match[1]);
+    const hrefs = Array.from(html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)).map((match) => match[1].split(/[?#]/)[0]);
 
     for (const href of hrefs) {
       if (/^https?:\/\//.test(href)) continue;

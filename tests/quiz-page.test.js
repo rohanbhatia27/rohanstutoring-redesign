@@ -192,3 +192,14 @@ test('quiz lead payload includes the chosen sitting', () => {
   assert.match(quizHtml, /<input type="hidden" name="sitting" id="sittingField">/);
   assert.match(quizJs, /sitting: String\(form\.elements\.sitting\?\.value \|\| state\.answers\.timeline \|\| ''\)\.trim\(\)/);
 });
+
+test('quiz plans are tied to the sitting and avoid unsupported claims', () => {
+  assert.doesNotMatch(quizHtml, /10-week/i);
+  assert.doesNotMatch(quizJs, /10 weeks|10-week|ten focused weeks/i);
+  assert.doesNotMatch(quizJs, /5\+ point jump/i);
+  assert.match(quizJs, /const SITTING_NOTES = \{/);
+  assert.match(quizJs, /'mar-2027':/);
+  assert.match(quizJs, /'sep-2027':/);
+  assert.match(quizHtml, /id="resultSitting"/);
+  assert.doesNotMatch(quizJs + quizHtml, /—/);
+});
