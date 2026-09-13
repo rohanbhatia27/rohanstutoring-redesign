@@ -221,6 +221,14 @@ test('courses page split-course upsell shows the current comprehensive saving', 
   assert.doesNotMatch(html, /Take the full Comprehensive Course[\s\S]*save \$299/i);
 });
 
+test('courses page does not expose merge conflict markers in live cards', () => {
+  const html = read('courses.html');
+
+  assert.doesNotMatch(html, /<<<<<<<|=======|>>>>>>>/);
+  assert.match(html, /GAMSAT Live Comprehensive Course[\s\S]*80\+ hr library/);
+  assert.doesNotMatch(html, /GAMSAT Live Comprehensive Course[\s\S]*50\+ hr library/);
+});
+
 test('public forms do not ship placeholder Turnstile site keys', () => {
   const files = ['contact.html', 'courses/private-mentoring.html'];
 

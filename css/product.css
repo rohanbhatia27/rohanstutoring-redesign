@@ -1689,7 +1689,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(201,213,228,0.45);
+  color: var(--ice-blue);
   margin-bottom: 8px;
 }
 .product-proof__quote {
@@ -1703,7 +1703,7 @@
 }
 .product-proof__cite {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--ice-blue);
   font-weight: 600;
   font-style: normal;
   display: block;
