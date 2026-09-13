@@ -2,8 +2,8 @@
 
 const { CATALOG } = require('./catalog.server.js');
 
-// Essay marking is paused until September 2026. While it is closed, essay-help
-// leads are routed to Blueprint S2 instead of an offer they cannot buy.
+// When essay marking is paused (ESSAY_MARKING_AVAILABLE in js/catalog.js),
+// essay-help leads are routed to Blueprint S2 instead of an offer they cannot buy.
 const ESSAY_MARKING_OPEN = Boolean(CATALOG['essay-marking'] && CATALOG['essay-marking'].available);
 
 function getBaseUrl() {

@@ -415,3 +415,32 @@ test('sitemap includes all confirmed indexable public pages', () => {
 test('figtree preview page is removed from the public site', () => {
   assert.equal(fs.existsSync(path.join(ROOT, 'figtree-preview.html')), false);
 });
+
+test('homepage FAQ no longer promises the retired Sunday strategy session', () => {
+  const html = read('index.html');
+  assert.doesNotMatch(html, /Sunday strategy session/i);
+  assert.doesNotMatch(html, /Is there a free taster session\?/);
+});
+
+test('mastery page states 24 live classes everywhere', () => {
+  const html = read('courses/mastery.html');
+  assert.doesNotMatch(html, /20 sessions/);
+  assert.match(html, /<span>Live Classes<\/span><strong>24 sessions \(S1 \+ S2\)<\/strong>/);
+});
+
+test('essay marking is open on the pre-August terms', () => {
+  const { CATALOG } = require('../api/_lib/catalog.server.js');
+  assert.equal(CATALOG['essay-marking'].available, true);
+  assert.equal(CATALOG['essay-marking'].priceCents, 3499);
+  assert.equal(CATALOG['essay-pack-10'].available, true);
+  assert.equal(CATALOG['essay-pack-10'].priceCents, 24900);
+
+  const page = read('courses/essay-marking.html');
+  assert.doesNotMatch(page, /Reopening September 2026|Join the Waitlist|Submissions Closed/i);
+  assert.match(page, /\$34\.99/);
+  assert.match(page, /3-day turnaround/i);
+
+  for (const file of ['index.html', 'courses.html']) {
+    assert.doesNotMatch(read(file), /Reopening Sept|Closed to new submissions/i, `${file} still shows essay marking as closed`);
+  }
+});

@@ -10,7 +10,7 @@
  *
  * To reopen live coaching: update COHORT_STATUSES.liveCoaching.
  * To reopen a rescue sprint: flip `available` to true for that entry.
- * To reopen essay marking: set ESSAY_MARKING_AVAILABLE to true.
+ * To pause essay marking: set ESSAY_MARKING_AVAILABLE to false.
  */
 (function (global) {
   'use strict';
@@ -46,10 +46,10 @@
     return status ? status.available === true : true;
   }
 
-  // Essay marking is paused. Submissions reopen September 2026.
-  // Flipping this to true restores the single essay, the 10-essay pack, and the
-  // essay pack order bumps on the Blueprint checkouts.
-  const ESSAY_MARKING_AVAILABLE = false;
+  // Essay marking is open. Setting this to false pauses new submissions: it hides
+  // the single essay, the 10-essay pack, and the essay pack order bumps on the
+  // Blueprint checkouts.
+  const ESSAY_MARKING_AVAILABLE = true;
 
   const CATALOG = {
     blueprint: {
