@@ -112,7 +112,7 @@
   line-height: 1.5;
 }
 
-/* 3-up angled mockup */
+/* Single centred resource cover */
 .slam-page-mockup {
   position: relative;
   width: 100%;
@@ -142,7 +142,7 @@
 
 .slam-page-mockup__picture {
   display: block;
-  width: 46%;
+  width: min(100%, 250px);
 }
 
 .slam-page-mockup__img {
@@ -154,26 +154,6 @@
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.55),
     0 8px 20px rgba(0, 0, 0, 0.35);
-  transform-origin: center center;
-}
-
-.slam-page-mockup__img--left {
-  transform: perspective(1400px) rotateY(26deg) scale(0.82) translateX(18%);
-  opacity: 0.9;
-  z-index: 1;
-}
-
-.slam-page-mockup__img--center {
-  width: 52%;
-  position: relative;
-  z-index: 2;
-  transform: translateY(-8px);
-}
-
-.slam-page-mockup__img--right {
-  transform: perspective(1400px) rotateY(-26deg) scale(0.82) translateX(-18%);
-  opacity: 0.9;
-  z-index: 1;
 }
 
 /* Centered inline form */
@@ -569,20 +549,6 @@
 
   .slam-page-sub {
     font-size: 1rem;
-  }
-
-  /* On mobile, stack mockups are cramped — hide side copies, show one center, straightened */
-  .slam-page-mockup__picture--left,
-  .slam-page-mockup__picture--right,
-  .slam-page-mockup__img--left,
-  .slam-page-mockup__img--right {
-    display: none;
-  }
-
-  .slam-page-mockup__img--center {
-    width: 100%;
-    transform: none;
-    border-radius: 14px;
   }
 
   .slam-lead-form__row {
