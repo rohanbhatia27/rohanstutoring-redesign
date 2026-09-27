@@ -331,7 +331,7 @@
       //
       // Instalments are deliberately priced above the upfront total to push
       // students toward paying upfront. During the early bird that is $1,796
-      // vs $1,599, a ~12% premium matching Mastery.
+      // vs $1,599, a ~12% premium (Mastery is $2,996 vs $2,699, ~11%).
       priceCents: 159900,
       available: isCohortAvailable('comprehensive'),
       highTicket: true,
@@ -429,7 +429,7 @@
       slug: 'mastery',
       name: 'Mastery Program',
       title: 'Mastery Program',
-      priceCents: 249900,
+      priceCents: 269900,
       available: isCohortAvailable('mastery'),
       highTicket: true,
       afterpay: false,
@@ -448,12 +448,14 @@
       isDigital: false,
       successType: 'cohort',
       instalment: {
-        label: 'or 4 × $699 instalments ($2,796 total) →',
+        label: 'or 4 × $749 instalments ($2,996 total) →',
         url: '/checkout/?product=mastery&paymentMode=instalments',
         plan: {
           count: 4,
-          firstPayment: 699,
-          recurringPayment: 699,
+          firstPayment: 749,
+          recurringPayment: 749,
+          // price_1UK5Y8H5JsZI731GdLs1DHaH — $749/month, active in Stripe on
+          // prod_T41Rxs9Kd1sHFW (GAMSAT Mastery Program).
           priceEnvKey: 'STRIPE_PRICE_MASTERY_INSTALMENT',
         },
       },

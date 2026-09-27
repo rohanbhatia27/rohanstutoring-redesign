@@ -21,7 +21,7 @@ Source of truth: Kit sequence "The Mastery Path" (id 2764688). This file mirrors
 | 2 | 9865209 | +1 day | How to resit the GAMSAT |
 | 3 | 9865210 | +2 days | What The Mastery Course actually adds |
 | 4 | 9865212 | +2 days | Your study plan should not be static... |
-| 5 | 9865213 | +3 days | Mastery is $2,499. Here is the honest question. |
+| 5 | 9865213 | +3 days | Mastery is $2,699. Here is the honest question. |
 | 6 | 9865214 | +4 days | If this sitting needs to be different |
 
 ## Email 1: The Mastery GAMSAT Path
@@ -158,13 +158,13 @@ If you want help pressure-testing your current plan, book the consultation here:
 
 Rohan
 
-## Email 5: Mastery is $2,499. Here is the honest question.
+## Email 5: Mastery is $2,699. Here is the honest question.
 
 Preview: The question is not whether private support is cheap. It is whether another vague sitting is cheaper.
 
 Hi {{ subscriber.first_name | default: "there" }},
 
-The Mastery Course is $2,499 AUD. Or $699 x 4 instalments, if you prefer to split it.
+The Mastery Course is $2,699 AUD. Or $749 x 4 instalments, if you prefer to split it.
 
 That is a serious purchase. I am not going to pretend otherwise.
 

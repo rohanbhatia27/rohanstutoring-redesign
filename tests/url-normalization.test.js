@@ -185,7 +185,7 @@ test('homepage hero urgency CTA promotes the S2 Slam System', () => {
   assert.match(urgencyLink[2], /S2 Slam System/i);
 });
 
-test('homepage courses section promotes the buyable starter, flagship, and essay pack ladder', () => {
+test('homepage courses section ladders Essentials, Comprehensive, and Mastery', () => {
   const html = read('index.html');
   const compareSection = html.match(/<div class="courses__compare">([\s\S]*?)<\/div>\s*<div class="courses__footer/);
 
@@ -193,25 +193,21 @@ test('homepage courses section promotes the buyable starter, flagship, and essay
 
   const sectionHtml = compareSection[1];
   const essentialsIndex = sectionHtml.indexOf('/courses/starter-pack');
-  const blueprintIndex = sectionHtml.indexOf('/courses/blueprint');
-  const essayPackIndex = sectionHtml.indexOf('/courses/essay-marking');
+  const comprehensiveIndex = sectionHtml.indexOf('/courses/comprehensive');
+  const masteryIndex = sectionHtml.indexOf('/courses/mastery');
 
-  assert.notEqual(essentialsIndex, -1, 'Essentials Playbook should be a buyable homepage card');
-  assert.notEqual(blueprintIndex, -1, 'Blueprint should be a buyable homepage card');
-  assert.notEqual(essayPackIndex, -1, '10x Essay Marking Pack should be a buyable homepage card');
-  assert.ok(essentialsIndex < blueprintIndex && blueprintIndex < essayPackIndex, 'Cards should ladder from Essentials to Blueprint to Essay Pack');
+  assert.notEqual(essentialsIndex, -1, 'Essentials Playbook should be a homepage card');
+  assert.notEqual(comprehensiveIndex, -1, 'Comprehensive should be a homepage card');
+  assert.notEqual(masteryIndex, -1, 'Mastery should be a homepage card');
+  assert.ok(essentialsIndex < comprehensiveIndex && comprehensiveIndex < masteryIndex, 'Cards should ladder from Essentials to Comprehensive to Mastery');
 
   assert.match(sectionHtml, /\$97/);
-  assert.match(sectionHtml, /\$599/);
-  assert.match(sectionHtml, /\$249/);
+  assert.match(sectionHtml, /\$1,599/);
+  assert.match(sectionHtml, /\$2,699/);
   assert.match(sectionHtml, /Your \$97 carries forward/i);
-  assert.match(sectionHtml, /course-tier--featured[\s\S]*Rohan's GAMSAT Blueprint/);
-  assert.match(sectionHtml, /course-tier--featured[\s\S]*80\+ hours across S1 &amp; S2/i);
-  assert.match(sectionHtml, /course-tier--featured[\s\S]*S1 &amp; S2 Mastery plus Advanced Series/i);
-  assert.match(sectionHtml, /course-tier--featured[\s\S]*Expert Essay Collection: 25 essays scored 80\+/i);
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*GAMSAT Comprehensive Course/);
+  assert.match(sectionHtml, /course-tier--premium[\s\S]*GAMSAT Mastery Program/);
   assert.doesNotMatch(sectionHtml, /Join Waitlist/i);
-  assert.doesNotMatch(sectionHtml, /href="\/courses\/comprehensive"/);
-  assert.doesNotMatch(sectionHtml, /href="\/courses\/mastery"/);
 });
 
 test('courses page split-course upsell shows the current comprehensive saving', () => {

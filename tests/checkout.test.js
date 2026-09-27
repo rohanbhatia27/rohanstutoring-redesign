@@ -495,10 +495,10 @@ test('buildInstalmentLinkMarkup renders instalment plans as a deliberate checkou
 
   assert.match(markup, /checkout-instalment-link__eyebrow/);
   assert.match(markup, /Pay in 4 instalments/);
-  assert.match(markup, /4 × \$699 instalments/);
-  // The instalment total must be disclosed: $2,796 is $297 more than paying
-  // $2,499 upfront, and a buyer should not have to work that out themselves.
-  assert.match(markup, /\(\$2,796 total\)/);
+  assert.match(markup, /4 × \$749 instalments/);
+  // The instalment total must be disclosed: $2,996 is $297 more than paying
+  // $2,699 upfront, and a buyer should not have to work that out themselves.
+  assert.match(markup, /\(\$2,996 total\)/);
   assert.match(markup, /Opens secure Stripe instalment checkout/);
 });
 
@@ -526,8 +526,8 @@ test('getInstalmentPlanSummary returns first payment and future monthly copy for
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 699);
-  assert.equal(summary.futurePaymentAmount, 699);
+  assert.equal(summary.dueToday, 749);
+  assert.equal(summary.futurePaymentAmount, 749);
   assert.match(summary.futurePaymentCopy, /3 monthly payments/);
 });
 
@@ -539,8 +539,8 @@ test('getInstalmentPlanSummary adds the mastery mentoring bump to the first inst
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 798);
-  assert.equal(summary.futurePaymentAmount, 699);
+  assert.equal(summary.dueToday, 848);
+  assert.equal(summary.futurePaymentAmount, 749);
 });
 
 test('getInstalmentPlanSummary spreads a fixed coupon over mastery instalments', () => {
@@ -551,9 +551,9 @@ test('getInstalmentPlanSummary spreads a fixed coupon over mastery instalments',
 
   const summary = getInstalmentPlanSummary(selection);
 
-  assert.equal(summary.dueToday, 649);
-  assert.equal(summary.futurePaymentAmount, 649);
-  assert.match(summary.futurePaymentCopy, /\$649/);
+  assert.equal(summary.dueToday, 699);
+  assert.equal(summary.futurePaymentAmount, 699);
+  assert.match(summary.futurePaymentCopy, /\$699/);
 });
 
 test('buildPaymentModeMarkup renders full and instalment options for eligible products', () => {
@@ -722,7 +722,7 @@ test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload
       'begin_checkout',
       {
         currency: 'AUD',
-        value: 2499,
+        value: 2699,
         product_slug: 'mastery',
         payment_mode: 'full',
         page_path: '/checkout/',
@@ -731,7 +731,7 @@ test('trackGa4BeginCheckoutOnce sends the selected product GA4 ecommerce payload
           {
             item_id: 'mastery',
             item_name: 'Mastery Program',
-            price: 2499,
+            price: 2699,
             quantity: 1,
           },
         ],
@@ -2194,7 +2194,7 @@ test('buildCheckoutPayload includes mastery upsell quantity when extra classes a
   });
 
   assert.equal(payload.slug, 'mastery');
-  assert.equal(payload.totalAmount, 3093);
+  assert.equal(payload.totalAmount, 3293);
   assert.equal(payload.upsellSlug, 'mentoring-single');
   assert.equal(payload.upsellPrice, 99);
   assert.equal(payload.upsellQuantity, 6);
@@ -2293,7 +2293,7 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       upsellSlug: 'mentoring-single',
       upsellQuantity: 6,
     }).amount,
-    309300
+    329300
   );
 
   assert.equal(
@@ -3666,7 +3666,7 @@ test('instalment session handler spreads a mastery fixed coupon across monthly p
     assert.equal(createdSessions[0].discounts, undefined);
     assert.equal(createdSessions[0].allow_promotion_codes, false);
     assert.equal(createdSessions[0].line_items[0].price, undefined);
-    assert.equal(createdSessions[0].line_items[0].price_data.unit_amount, 64900);
+    assert.equal(createdSessions[0].line_items[0].price_data.unit_amount, 69900);
     assert.deepEqual(createdSessions[0].line_items[0].price_data.recurring, { interval: 'month' });
     assert.equal(createdSessions[0].metadata.coupon_code, 'WEBINAR200');
     assert.equal(createdSessions[0].metadata.discount_amount, '20000');
