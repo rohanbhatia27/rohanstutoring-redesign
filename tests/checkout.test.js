@@ -1951,7 +1951,7 @@ test('buildPurchaseItems keeps the comprehensive order bump at the bundled disco
     {
       item_id: 'comprehensive',
       item_name: 'GAMSAT S1 & S2 Comprehensive Course',
-      price: 1599,
+      price: 1799,
       quantity: 1,
     },
     {
@@ -1980,7 +1980,7 @@ test('buildPurchaseItems adds item_variant to base item when cohort is provided'
       item_id: 'comprehensive',
       item_name: 'GAMSAT S1 & S2 Comprehensive Course',
       item_variant: 'Cohort 2',
-      price: 1599,
+      price: 1799,
       quantity: 1,
     },
   ]);
@@ -2009,7 +2009,7 @@ test('buildPurchaseAnalyticsPayload standardizes purchase attribution fields', (
   assert.equal(payload.coupon_code, 'WEBINAR200');
   assert.equal(payload.page_path, '/checkout/success');
   assert.equal(payload.items[0].item_variant, 'Cohort 2');
-  assert.equal(payload.value, 1698);
+  assert.equal(payload.value, 1898);
 });
 
 test('buildPurchaseAnalyticsPayload includes both Blueprint checkout bumps', () => {
@@ -2323,7 +2323,7 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       slug: 'comprehensive',
       upsellSlug: 'mentoring-single',
     }).amount,
-    169800
+    189800
   );
 
   assert.equal(
@@ -3905,9 +3905,9 @@ test('every instalment label discloses the total, which is higher than paying up
 });
 
 test('the payment selector and the order box quote the same instalment figures under a coupon', () => {
-  // A $1,599 coupon on the $449 x 4 plan discounts $399.75 off each payment,
-  // leaving $49.25. The selector used to read plan.firstPayment directly, so it
-  // still advertised $449 due today while the box below said $49.25. Two prices
+  // A $1,599 coupon on the $499 x 4 plan discounts $399.75 off each payment,
+  // leaving $99.25. The selector used to read plan.firstPayment directly, so it
+  // still advertised $499 due today while the box below said $99.25. Two prices
   // for the same thing on one screen.
   const selection = {
     ...getInitialSelection('comprehensive', PRODUCTS.comprehensive),
@@ -3919,8 +3919,8 @@ test('the payment selector and the order box quote the same instalment figures u
   const summary = getInstalmentPlanSummary(selection);
   const markup = buildPaymentModeMarkup('comprehensive', selection);
 
-  assert.equal(summary.dueToday, 49.25);
-  assert.equal(summary.futurePaymentAmount, 49.25);
-  assert.match(markup, /\$49\.25 due today/);
-  assert.doesNotMatch(markup, /\$449 due today/);
+  assert.equal(summary.dueToday, 99.25);
+  assert.equal(summary.futurePaymentAmount, 99.25);
+  assert.match(markup, /\$99\.25 due today/);
+  assert.doesNotMatch(markup, /\$499 due today/);
 });

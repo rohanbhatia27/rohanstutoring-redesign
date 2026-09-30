@@ -28,15 +28,16 @@ test('flagship course pages are open and route visitors to checkout', () => {
   assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
 });
 
-test('comprehensive page routes enrolment CTAs to checkout at the early bird price', () => {
+test('comprehensive page routes enrolment CTAs to checkout at the standard price', () => {
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
   const checkoutLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive"/g) || [];
 
   assert.ok(checkoutLinks.length >= 3, 'open page should route visitors to checkout');
   assert.doesNotMatch(comprehensiveHtml, /Join the [Ww]aitlist/);
-  assert.match(comprehensiveHtml, /\$1,599/);
-  // The struck-through full price must stay outside the audited price element.
-  assert.match(comprehensiveHtml, /<span class="sticky-bar__was">\$1,799<\/span>/);
+  assert.match(comprehensiveHtml, /\$1,799/);
+  assert.match(comprehensiveHtml, /4 × \$499 instalments \(\$1,996 total\)/);
+  // The early bird ended on 1 October 2026: no old price, strike-through or deadline copy.
+  assert.doesNotMatch(comprehensiveHtml, /\$1,599|\$449|sticky-bar__was|value-summary__was|[Ee]arly bird|1 October/);
 });
 
 test('split comprehensive pages route enrolment CTAs to checkout while live coaching is open', () => {
@@ -151,21 +152,17 @@ test('course product pages share the product stylesheet and script shell', () =>
   });
 });
 
-test('comprehensive hero counts down to the early bird deadline, not an expired cohort start', () => {
+test('comprehensive hero drops the expired early bird countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
   assert.doesNotMatch(html, /Sold Out/);
   assert.doesNotMatch(html, /This cohort is full/);
   assert.doesNotMatch(html, /1 Seat Left/);
-  assert.doesNotMatch(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
   assert.doesNotMatch(html, /Cohort begins in/);
 
-  // The countdown must target the 4 October early bird cutoff and carry every
-  // unit the hero countdown script writes into.
-  assert.match(html, /data-countdown-v3-target="2026-10-04T23:59:59\+11:00"/);
-  for (const unit of ['data-cd-days', 'data-cd-hours', 'data-cd-mins', 'data-cd-secs']) {
-    assert.match(html, new RegExp(unit), `hero countdown should include ${unit}`);
-  }
+  // Once the early bird deadline passes, a live countdown would sit at
+  // 00:00:00 next to the price, so the hero carries no countdown at all.
+  assert.doesNotMatch(html, /data-countdown-v3/);
 });
 
 test('public cohort surfaces do not advertise expired June 2026 starts', () => {

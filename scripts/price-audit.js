@@ -330,7 +330,7 @@ function runPriceAudit() {
       errors.push('[Config Drift] StorefrontConfig instalment URL for ' + key + ' differs from catalog');
     }
 
-    // Expected shape: "or 4 × $449 instalments ($1,796 total) →"
+    // Expected shape: "or 4 × $499 instalments ($1,996 total) →"
     // The total is mandatory. Instalment plans cost more than paying upfront, so
     // a buyer who only sees the per-payment figure can reasonably misread the
     // real cost.

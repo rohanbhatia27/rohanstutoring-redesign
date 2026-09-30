@@ -205,7 +205,8 @@ test('homepage courses section ladders Essentials, Comprehensive, and Mastery', 
   assert.ok(essentialsIndex < comprehensiveIndex && comprehensiveIndex < masteryIndex, 'Cards should ladder from Essentials to Comprehensive to Mastery');
 
   assert.match(sectionHtml, /\$97/);
-  assert.match(sectionHtml, /\$1,599/);
+  assert.match(sectionHtml, /\$1,799/);
+  assert.doesNotMatch(sectionHtml, /\$1,599|early bird|1 October/i);
   assert.match(sectionHtml, /\$2,699/);
   assert.match(sectionHtml, /Your \$97 carries forward/i);
   assert.match(sectionHtml, /course-tier--featured[\s\S]*GAMSAT Comprehensive Course/);
@@ -216,8 +217,8 @@ test('homepage courses section ladders Essentials, Comprehensive, and Mastery', 
 test('courses page split-course upsell shows the current comprehensive saving', () => {
   const html = read('courses.html');
 
-  assert.match(html, /Take the full Comprehensive Course[\s\S]*save \$399/i);
-  assert.doesNotMatch(html, /Take the full Comprehensive Course[\s\S]*save \$299/i);
+  assert.match(html, /Take the full Comprehensive Course[\s\S]*save \$199/i);
+  assert.doesNotMatch(html, /Take the full Comprehensive Course[\s\S]*save \$[23]99/i);
 });
 
 test('courses page does not expose merge conflict markers in live cards', () => {

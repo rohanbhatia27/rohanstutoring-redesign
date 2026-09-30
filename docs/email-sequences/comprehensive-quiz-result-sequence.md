@@ -9,7 +9,6 @@ Source of truth: Kit sequence "The Comprehensive Path" (id 2764641). This file m
 
 ## Upcoming changes
 
-- 1 October 2026: email 5 quotes "$1,599 until 1 October, then $1,799". Swap in the post-cutover price as part of Rohan's 1 October re-audit.
 - When classes start in late October: pause this sequence (emails 1, 2 and 6 say the cohort "starts in October").
 
 ## Sequence map
@@ -20,7 +19,7 @@ Source of truth: Kit sequence "The Comprehensive Path" (id 2764641). This file m
 | 2 | 9865049 | +1 day | More study is not always the fix |
 | 3 | 9865061 | +2 days | What happens inside Comprehensive Course |
 | 4 | 9865066 | +2 days | Why self-study is often not enough |
-| 5 | 9865078 | +2 days | The Comprehensive Course is $1599. Here is how I think about that. |
+| 5 | 9865078 | +2 days | The Comprehensive Course is $1,799. Here is how I think about that. |
 | 6 | 9865088 | +2 days | If you want this GAMSAT sitting to be different |
 
 ## Email 1: Your GAMSAT quiz result - The Comprehensive Path
@@ -140,13 +139,13 @@ Not too late to enrol: https://www.rohanstutoring.com/courses/comprehensive
 
 Rohan
 
-## Email 5: The Comprehensive Course is $1599. Here is how I think about that.
+## Email 5: The Comprehensive Course is $1,799. Here is how I think about that.
 
 Preview: This is not a small purchase, so the question should not be "is it cheap?" It should be "does it reduce the right risk?"
 
 Hi {{ subscriber.first_name | default: "there" }},
 
-The Comprehensive Course is $1,599 until 1 October, then $1,799. Or four payments of $449. Whilst it's ***significantly*** **less than the bloated prep companies' courses** - it's not nothing.
+The Comprehensive Course is $1,799, or four payments of $499. Whilst it's ***significantly*** **less than the bloated prep companies' courses**, it's not nothing.
 
 So I do not think the honest question is "is it cheap?" It is not. The honest question is whether it reduces the risk you are most worried about.
 

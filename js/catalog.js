@@ -319,20 +319,13 @@
       slug: 'comprehensive',
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course',
-      // Early bird for the March 2027 GAMSAT cohort (classes start late October
-      // or early November 2026): $1,599 until 4 October 2026, or until the first
-      // 10 enrolments land (tracked manually in Stripe — the site has no seat
-      // counter).
-      //
-      // 4 OCTOBER CUTOVER: set priceCents to 179900, change the instalment block
-      // below back to $499 x 4 ($1,996 total), and point
-      // STRIPE_PRICE_COMPREHENSIVE_INSTALMENT at price_1TZ3gSH5JsZI731GyQagdrkL
-      // ($499/month, already active in Stripe).
+      // March 2027 GAMSAT cohort (classes start late October 2026). The $1,599
+      // early bird ended at 23:59 AEDT on 4 October 2026; the price is now $1,799.
       //
       // Instalments are deliberately priced above the upfront total to push
-      // students toward paying upfront. During the early bird that is $1,796
-      // vs $1,599, a ~12% premium (Mastery is $2,996 vs $2,699, ~11%).
-      priceCents: 159900,
+      // students toward paying upfront: $1,996 vs $1,799, a ~11% premium
+      // (Mastery is $2,996 vs $2,699, also ~11%).
+      priceCents: 179900,
       available: isCohortAvailable('comprehensive'),
       highTicket: true,
       afterpay: false,
@@ -351,14 +344,16 @@
       isDigital: false,
       successType: 'cohort',
       instalment: {
-        label: 'or 4 × $449 instalments ($1,796 total) →',
+        label: 'or 4 × $499 instalments ($1,996 total) →',
         url: '/checkout/?product=comprehensive&paymentMode=instalments',
         plan: {
           count: 4,
-          firstPayment: 449,
-          recurringPayment: 449,
-          // price_1TIRaTH5JsZI731G5kQtd0b7 — $449/month, active in Stripe on
-          // prod_TCd5uh3o7P0Nm0 (Comprehensive 4x Payment Plan).
+          firstPayment: 499,
+          recurringPayment: 499,
+          // price_1TZ3gSH5JsZI731GyQagdrkL — $499/month, active in Stripe on
+          // prod_TCd5uh3o7P0Nm0 (Comprehensive 4x Payment Plan). The early-bird
+          // $449 price (price_1TIRaTH5JsZI731G5kQtd0b7) stays active for
+          // subscriptions that started on it.
           priceEnvKey: 'STRIPE_PRICE_COMPREHENSIVE_INSTALMENT',
         },
       },
