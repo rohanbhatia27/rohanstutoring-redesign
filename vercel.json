@@ -213,6 +213,16 @@
       "permanent": true
     },
     {
+      "source": "/interview-calculator",
+      "destination": "/game-plan",
+      "permanent": true
+    },
+    {
+      "source": "/interview-calculator.html",
+      "destination": "/game-plan",
+      "permanent": true
+    },
+    {
       "source": "/game-plan.html",
       "destination": "/game-plan",
       "permanent": true

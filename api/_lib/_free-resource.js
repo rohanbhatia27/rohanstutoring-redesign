@@ -55,13 +55,6 @@ const FREE_RESOURCES = {
     backupUrl: 'https://www.rohanstutoring.com/assets/free-resources/march-2027-game-plan.pdf',
     backupLabel: 'Open the Game Plan PDF',
   },
-  'interview-calculator': {
-    key: 'interview-calculator',
-    name: 'Interview Chances Calculator',
-    kitFormId: '9502408',
-    backupUrlEnv: 'FREE_RESOURCE_INTERVIEW_CALCULATOR_BACKUP_URL',
-    backupLabel: 'Open the calculator results backup link',
-  },
 };
 
 let resendFactory = (apiKey) => new Resend(apiKey);
