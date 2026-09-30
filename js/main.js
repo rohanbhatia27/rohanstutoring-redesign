@@ -414,6 +414,16 @@ function initMain() {
     return params;
   };
 
+  /* ---- Homepage hero urgency: show the early-bird line only before its deadline ---- */
+  const heroUrgency = document.querySelector('[data-urgency-deadline]');
+  if (heroUrgency) {
+    const deadline = new Date(heroUrgency.dataset.urgencyDeadline).getTime();
+    const urgencyText = heroUrgency.querySelector('.hero__urgency-text');
+    if (urgencyText && heroUrgency.dataset.urgencyBefore && Date.now() < deadline) {
+      urgencyText.textContent = heroUrgency.dataset.urgencyBefore;
+    }
+  }
+
   document.querySelectorAll('[data-quiz-source]').forEach(syncQuizSourceParam);
 
   document.addEventListener('click', (event) => {

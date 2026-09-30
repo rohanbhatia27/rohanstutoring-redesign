@@ -179,13 +179,13 @@ test('S2 Slam lead magnet CTAs point to the dedicated signup page instead of loo
   }
 });
 
-test('homepage hero urgency CTA promotes the S2 Slam System', () => {
+test('homepage hero urgency CTA promotes the Comprehensive Course', () => {
   const html = read('index.html');
   const urgencyLink = html.match(/<a href="([^"]+)" class="hero__urgency[^"]*"[^>]*>[\s\S]*?<span class="hero__urgency-text">([^<]+)<\/span>/);
 
   assert.ok(urgencyLink, 'Homepage hero urgency CTA should exist');
-  assert.equal(urgencyLink[1], '/s2-slam-system');
-  assert.match(urgencyLink[2], /S2 Slam System/i);
+  assert.equal(urgencyLink[1], '/courses/comprehensive');
+  assert.match(urgencyLink[2], /Capped at 25/i);
 });
 
 test('homepage courses section ladders Essentials, Comprehensive, and Mastery', () => {

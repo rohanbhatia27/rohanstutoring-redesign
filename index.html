@@ -42,7 +42,7 @@
     @media (max-width:640px){.hero__headline,.hero__sub,.hero__proof{text-align:center}.hero__headline,.hero__sub{margin-left:auto;margin-right:auto}.hero__proof{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:28px}.hero__proof-separator{display:none}.hero__ctas{flex-direction:column;gap:10px}.hero__ctas .btn--lg{width:100%;justify-content:center;padding:15px 20px}.hero__cta-proof{display:block;text-align:center}}
     @media (max-width:480px){.hero__inner{padding-left:20px;padding-right:20px;padding-top:calc(var(--header-height) + 26px);padding-bottom:48px}.hero__headline{max-width:100%;font-size:2.35rem}}
   </style>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260930-hero2">
   <style>
     .hero__inner {
       padding: calc(var(--header-height) - 8px) 24px 56px;
@@ -162,6 +162,24 @@
       }
       .hero__headline {
         font-size: 2.3rem;
+      }
+    }
+    /* Tablet (641-860px): the photo is hidden here, so centre the hero like the
+       phone layout instead of leaving it capped at half the screen by the
+       max-width: 1100px rule above. */
+    @media (min-width: 641px) and (max-width: 860px) {
+      .hero__content {
+        max-width: 620px;
+        margin-inline: auto;
+        text-align: center;
+      }
+      .hero__headline,
+      .hero__sub {
+        margin-inline: auto;
+      }
+      .hero__proof,
+      .hero__ctas {
+        justify-content: center;
       }
     }
   </style>
@@ -375,9 +393,9 @@
     <div class="hero__inner">
       <div class="hero__content">
 
-        <a href="/s2-slam-system" class="hero__urgency reveal">
+        <a href="/courses/comprehensive" class="hero__urgency hero__urgency--live reveal" data-urgency-deadline="2026-10-01T23:59:59+10:00" data-urgency-before="March 2027 live course: 25 places, early bird ends 1 Oct.">
           <span class="hero__urgency-dot" aria-hidden="true"></span>
-          <span class="hero__urgency-text">Free S2 Slam System: learn Rohan's Section 2 essay formula.</span>
+          <span class="hero__urgency-text">March 2027 live course: capped at 25 students.</span>
         </a>
 
         <h1 class="hero__headline reveal reveal--delay-1">
@@ -910,6 +928,6 @@
   </footer>
 
   <script src="/js/posthog-init.js" defer data-load="idle"></script>
-  <script src="js/main.js?v=20260707-course-ladder" defer></script>
+  <script src="js/main.js?v=20260930-hero-urgency" defer></script>
 </body>
 </html>
