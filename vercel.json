@@ -213,6 +213,16 @@
       "permanent": true
     },
     {
+      "source": "/game-plan.html",
+      "destination": "/game-plan",
+      "permanent": true
+    },
+    {
+      "source": "/game-plan-thank-you.html",
+      "destination": "/game-plan-thank-you",
+      "permanent": true
+    },
+    {
       "source": "/uk-gamsat.html",
       "destination": "/uk-gamsat",
       "permanent": true

@@ -37,3 +37,18 @@ test('Kit resource page scripts use the hardened internal submit flow instead of
   assert.doesNotMatch(slamJs, /formspree\.io/);
   assert.doesNotMatch(slamJs, /fetch\(form\.action/);
 });
+
+test('Game Plan page posts to the internal leads API and hands off to the thank-you page', () => {
+  const html = read('game-plan.html');
+  const js = read(path.join('js', 'game-plan.js'));
+  const thanks = read('game-plan-thank-you.html');
+
+  assert.match(html, /data-resource-key="game-plan"/);
+  assert.match(html, /data-success-url="\/game-plan-thank-you"/);
+  assert.doesNotMatch(html, /<nav\b/);
+  assert.match(js, /fetch\('\/api\/leads'/);
+  assert.match(js, /resourceKey: RESOURCE_KEY/);
+  assert.match(thanks, /<meta name="robots" content="noindex, follow">/);
+  assert.match(thanks, /href="\/quiz(\?[^"]*)?"/);
+  assert.ok(fs.existsSync(path.join(ROOT, 'assets', 'free-resources', 'march-2027-game-plan.pdf')));
+});

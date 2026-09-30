@@ -205,3 +205,75 @@ test('handler rejects an unknown resource key', async () => {
 
   assert.equal(res.statusCode, 400);
 });
+
+test('sendDeliveryEmail emails the March 2027 Game Plan PDF link', async () => {
+  process.env.RESEND_API_KEY = 're_test_123';
+  const sent = [];
+  mockResend(sent);
+
+  await freeResource.sendDeliveryEmail({
+    resourceKey: 'game-plan',
+    firstName: 'Jane',
+    email: 'jane@example.com',
+  });
+
+  assert.equal(sent[0].subject, 'Your March 2027 Game Plan');
+  assert.equal(sent[0].from, '"Rohan\'s GAMSAT" <hello@rohanstutoring.com>');
+  assert.match(sent[0].html, /assets\/email\/rohans-gamsat-logo\.png/);
+  assert.match(sent[0].html, /www\.rohanstutoring\.com\/assets\/free-resources\/march-2027-game-plan\.pdf/);
+  assert.match(sent[0].html, /Hi Jane,/);
+  assert.match(sent[0].html, /quiz\?utm_source=email&utm_medium=delivery&utm_campaign=march27_gameplan/);
+  assert.match(sent[0].text, /march-2027-game-plan\.pdf/);
+  assert.doesNotMatch(sent[0].html, /\u2014/);
+
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+});
+
+test('Game Plan email escapes HTML typed into the first name field', async () => {
+  process.env.RESEND_API_KEY = 're_test_123';
+  const sent = [];
+  mockResend(sent);
+
+  await freeResource.sendDeliveryEmail({
+    resourceKey: 'game-plan',
+    firstName: '<a href="https://evil.example">Click</a>',
+    email: 'jane@example.com',
+  });
+
+  assert.doesNotMatch(sent[0].html, /<a href="https:\/\/evil\.example">/);
+  assert.match(sent[0].html, /&lt;a href=/);
+
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+});
+
+test('syncKitForResource upserts the Game Plan lead and tags lm_march27_gameplan', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  const calls = [];
+  mockKitApiOk(calls);
+
+  const result = await freeResource.syncKitForResource({
+    resourceKey: 'game-plan',
+    firstName: 'Jane',
+    email: 'jane@example.com',
+  });
+
+  assert.deepEqual(result, { synced: true });
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /\/v4\/subscribers$/);
+  const upsertBody = JSON.parse(calls[0].options.body);
+  assert.equal(upsertBody.email_address, 'jane@example.com');
+  assert.equal(upsertBody.first_name, 'Jane');
+  assert.match(calls[1].url, /\/v4\/tags\/24104655\/subscribers\/777$/);
+
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+});
+
+test('Game Plan fallback links straight to the hosted PDF when email delivery fails', () => {
+  const payload = freeResource.buildFallbackPayload({ resourceKey: 'game-plan' });
+
+  assert.equal(payload.fallback.kind, 'download');
+  assert.equal(payload.fallback.url, 'https://www.rohanstutoring.com/assets/free-resources/march-2027-game-plan.pdf');
+});

@@ -689,8 +689,7 @@
     return product.packages[selection.packageIndex] || product.packages[0] || product;
   }
 
-  function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug, cohort) {
-    const baseProduct = PRODUCTS[baseSlug] || findPackageBySlug(baseSlug) || getDefaultProductVariant(fallbackBaseSlug);
+  function getPurchaseUpsellProduct(baseSlug, upsellSlug, fallbackBaseSlug) {
     const contextualOrderBump = (
       (ORDER_BUMPS[baseSlug] && ORDER_BUMPS[baseSlug].slug === upsellSlug && ORDER_BUMPS[baseSlug])
       || (ORDER_BUMPS[fallbackBaseSlug] && ORDER_BUMPS[fallbackBaseSlug].slug === upsellSlug && ORDER_BUMPS[fallbackBaseSlug])
@@ -703,9 +702,13 @@
         || !genericUpsellProduct
       )
     );
-    const upsellProduct = (shouldPreferContextualOrderBump ? contextualOrderBump : null)
+    return (shouldPreferContextualOrderBump ? contextualOrderBump : null)
       || genericUpsellProduct
       || Object.values(ORDER_BUMPS).find((bump) => bump.slug === upsellSlug);
+  }
+
+  function buildPurchaseItems(baseSlug, upsellSlug, fallbackBaseSlug, cohort, upsellSlug2) {
+    const baseProduct = PRODUCTS[baseSlug] || findPackageBySlug(baseSlug) || getDefaultProductVariant(fallbackBaseSlug);
     const items = [];
 
     if (baseProduct) {
@@ -719,13 +722,16 @@
       items.push(baseItem);
     }
 
-    if (upsellSlug && upsellProduct) {
-      items.push({
-        item_id: upsellSlug,
-        item_name: upsellProduct.name || upsellProduct.title || upsellSlug,
-        price: upsellProduct.price,
-        quantity: 1,
-      });
+    for (const slug of [upsellSlug, upsellSlug2].filter(Boolean)) {
+      const upsellProduct = getPurchaseUpsellProduct(baseSlug, slug, fallbackBaseSlug);
+      if (upsellProduct) {
+        items.push({
+          item_id: slug,
+          item_name: upsellProduct.name || upsellProduct.title || slug,
+          price: upsellProduct.price,
+          quantity: 1,
+        });
+      }
     }
 
     return items;
@@ -735,13 +741,14 @@
     transactionId = '',
     productSlug = '',
     upsellSlug = '',
+    upsellSlug2 = '',
     fallbackProductSlug = '',
     cohort = '',
     paymentMode = 'full',
     couponCode = '',
     pagePath = getCheckoutPagePath(),
   } = {}) {
-    const items = buildPurchaseItems(productSlug, upsellSlug, fallbackProductSlug, cohort);
+    const items = buildPurchaseItems(productSlug, upsellSlug, fallbackProductSlug, cohort, upsellSlug2);
     const value = getPurchaseValue(items);
     const primaryItem = items[0] || {};
 
@@ -2157,6 +2164,7 @@
         const successProductSlug = metadata.base_slug || packageSlug || productSlug;
         const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
         const verifiedUpsellSlug = metadata.upsell_slug || upsellSlug || '';
+        const verifiedUpsellSlug2 = metadata.upsell_slug_2 || '';
         const state = getSuccessState(statusPayload.status, successMessageProductSlug);
 
         renderState(state, statusPayload.status);
@@ -2172,6 +2180,7 @@
               transactionId: paypalOrderId,
               productSlug: successProductSlug,
               upsellSlug: verifiedUpsellSlug,
+              upsellSlug2: verifiedUpsellSlug2,
               fallbackProductSlug: productSlug,
               cohort,
               paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
@@ -2182,13 +2191,14 @@
             trackMetaPurchaseOnce(paypalOrderId, items);
           }
           if (window.posthog && typeof window.posthog.capture === 'function') {
-            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug);
+            const items = buildPurchaseItems(successProductSlug, verifiedUpsellSlug, productSlug, '', verifiedUpsellSlug2);
             window.posthog.capture('checkout_completed', {
               transaction_id: paypalOrderId,
               currency: 'AUD',
               value: items.reduce((t, i) => t + (Number(i.price) || 0), 0) || undefined,
               product: successMessageProductSlug,
               upsell_slug: verifiedUpsellSlug || null,
+              upsell_slug_2: verifiedUpsellSlug2 || null,
               payment_method: 'paypal',
             });
           }
@@ -2209,6 +2219,7 @@
           const metadata = statusPayload.metadata || {};
           const successProductSlug = metadata.base_slug || metadata.product_slug || productSlug;
           const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
+          const upsellSlug2 = metadata.upsell_slug_2 || '';
           const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
 
           renderState(getSuccessState(status, successMessageProductSlug), status);
@@ -2225,6 +2236,7 @@
                 transactionId,
                 productSlug: successProductSlug,
                 upsellSlug,
+                upsellSlug2,
                 fallbackProductSlug: productSlug,
                 cohort,
                 paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
@@ -2251,6 +2263,7 @@
       const metadata = statusPayload.metadata || {};
       const successProductSlug = metadata.base_slug || metadata.product_slug || params.get('package') || productSlug;
       const upsellSlug = metadata.upsell_slug || params.get('upsell') || '';
+      const upsellSlug2 = metadata.upsell_slug_2 || '';
       const uploadToken = metadata.essay_upload_token || '';
       const successMessageProductSlug = PRODUCTS[successProductSlug] ? successProductSlug : productSlug;
 
@@ -2268,6 +2281,7 @@
             transactionId: paymentIntentId,
             productSlug: successProductSlug,
             upsellSlug,
+            upsellSlug2,
             fallbackProductSlug: productSlug,
             cohort,
             paymentMode: metadata.payment_mode || params.get('paymentMode') || params.get('payment_mode') || 'full',
@@ -2278,13 +2292,14 @@
           trackMetaPurchaseOnce(paymentIntentId, items);
         }
         if (window.posthog && typeof window.posthog.capture === 'function') {
-          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug);
+          const items = buildPurchaseItems(successProductSlug, upsellSlug, productSlug, '', upsellSlug2);
           window.posthog.capture('checkout_completed', {
             transaction_id: paymentIntentId,
             currency: 'AUD',
             value: items.reduce((total, item) => total + (Number(item.price) || 0), 0) || undefined,
             product: successMessageProductSlug,
             upsell_slug: upsellSlug || null,
+            upsell_slug_2: upsellSlug2 || null,
           });
         }
       }

@@ -133,6 +133,11 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://www.rohanstutoring.com/game-plan</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://www.rohanstutoring.com/s2-slam-system</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>

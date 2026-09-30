@@ -434,7 +434,7 @@ function initMain() {
     const floatingCta = document.createElement('div');
     const floatingCtaStorage = typeof window.sessionStorage !== 'undefined' ? window.sessionStorage : null;
     const mobileViewportQuery = window.matchMedia(`(max-width: ${FLOATING_QUIZ_CTA_MOBILE_BREAKPOINT}px)`);
-    const heroQuizCta = document.querySelector('[data-quiz-source="home-hero"], [data-quiz-source$="hero-primary"]');
+    const heroQuizCta = document.querySelector('[data-hero-cta], [data-quiz-source="home-hero"], [data-quiz-source$="hero-primary"]');
     const coursesSection = document.querySelector('#courses');
     let isDismissed = getFloatingQuizCtaDismissed(floatingCtaStorage);
 

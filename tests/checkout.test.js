@@ -1906,6 +1906,29 @@ test('buildPurchaseItems includes base and upsell products when checkout metadat
   ]);
 });
 
+test('buildPurchaseItems includes the reopened Blueprint second order bump', () => {
+  assert.deepEqual(buildPurchaseItems('blueprint', 'mentoring-single', '', '', 'essay-pack-10'), [
+    {
+      item_id: 'blueprint',
+      item_name: "Rohan's Blueprint",
+      price: 599,
+      quantity: 1,
+    },
+    {
+      item_id: 'mentoring-single',
+      item_name: 'Add one 1:1 Strategy Class with a Top GAMSAT Tutor',
+      price: 99,
+      quantity: 1,
+    },
+    {
+      item_id: 'essay-pack-10',
+      item_name: 'S2 Essay Marking — 10-Essay Pack',
+      price: 249,
+      quantity: 1,
+    },
+  ]);
+});
+
 test('buildPurchaseItems maps mentoring package slugs to the matching package definition', () => {
   assert.deepEqual(buildPurchaseItems('mentoring-pack', 'essay-collection', 'private-mentoring'), [
     {
@@ -1987,6 +2010,22 @@ test('buildPurchaseAnalyticsPayload standardizes purchase attribution fields', (
   assert.equal(payload.page_path, '/checkout/success');
   assert.equal(payload.items[0].item_variant, 'Cohort 2');
   assert.equal(payload.value, 1698);
+});
+
+test('buildPurchaseAnalyticsPayload includes both Blueprint checkout bumps', () => {
+  const payload = buildPurchaseAnalyticsPayload({
+    transactionId: 'pi_blueprint_bumps',
+    productSlug: 'blueprint',
+    upsellSlug: 'mentoring-single',
+    upsellSlug2: 'essay-pack-10',
+  });
+
+  assert.equal(payload.value, 947);
+  assert.deepEqual(payload.items.map((item) => item.item_id), [
+    'blueprint',
+    'mentoring-single',
+    'essay-pack-10',
+  ]);
 });
 
 test('GA cookie helpers extract Measurement Protocol identifiers safely', () => {
@@ -3885,4 +3924,3 @@ test('the payment selector and the order box quote the same instalment figures u
   assert.match(markup, /\$49\.25 due today/);
   assert.doesNotMatch(markup, /\$449 due today/);
 });
-

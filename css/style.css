@@ -923,6 +923,18 @@ body.menu-open .nav::after {
   padding: 14px 24px;
   font-size: 1rem;
 }
+/* Homepage hero: size both buttons to their labels so the longer Game Plan CTA
+   stays on one line; the row's flex-wrap drops the second button below if needed. */
+@media (min-width: 641px) {
+  .hero__ctas .btn--lg[data-hero-cta],
+  .hero__ctas .btn--lg[data-hero-cta] ~ .btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+  .hero__ctas .btn--lg[data-hero-cta] {
+    padding-inline: 20px;
+  }
+}
 .hero__cta-proof {
   display: none;
   width: 100%;
