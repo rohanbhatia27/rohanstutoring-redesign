@@ -52,3 +52,13 @@ test('Game Plan page posts to the internal leads API and hands off to the thank-
   assert.match(thanks, /href="\/quiz(\?[^"]*)?"/);
   assert.ok(fs.existsSync(path.join(ROOT, 'assets', 'free-resources', 'march-2027-game-plan.pdf')));
 });
+
+test('Game Plan PDF is served as a download, not opened in the browser', () => {
+  const config = JSON.parse(read('vercel.json'));
+  const rule = config.headers.find((group) => group.source === '/assets/free-resources/march-2027-game-plan.pdf');
+
+  assert.ok(rule, 'Missing header rule for the Game Plan PDF');
+  const disposition = rule.headers.find((header) => header.key === 'Content-Disposition');
+  assert.ok(disposition, 'Missing Content-Disposition header');
+  assert.match(disposition.value, /^attachment; filename="March-2027-GAMSAT-Game-Plan\.pdf"$/);
+});
