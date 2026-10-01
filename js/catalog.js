@@ -320,11 +320,11 @@
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course',
       // Early bird for the March 2027 GAMSAT cohort (classes start late October
-      // or early November 2026): $1,599 until 1 October 2026, or until the first
+      // or early November 2026): $1,599 until 4 October 2026, or until the first
       // 10 enrolments land (tracked manually in Stripe — the site has no seat
       // counter).
       //
-      // 1 OCTOBER CUTOVER: set priceCents to 179900, change the instalment block
+      // 4 OCTOBER CUTOVER: set priceCents to 179900, change the instalment block
       // below back to $499 x 4 ($1,996 total), and point
       // STRIPE_PRICE_COMPREHENSIVE_INSTALMENT at price_1TZ3gSH5JsZI731GyQagdrkL
       // ($499/month, already active in Stripe).

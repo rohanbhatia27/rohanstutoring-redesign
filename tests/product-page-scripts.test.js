@@ -160,9 +160,9 @@ test('comprehensive hero counts down to the early bird deadline, not an expired 
   assert.doesNotMatch(html, /data-countdown-v3-target="2026-06-15T18:00:00\+10:00"/);
   assert.doesNotMatch(html, /Cohort begins in/);
 
-  // The countdown must target the 1 October early bird cutoff and carry every
+  // The countdown must target the 4 October early bird cutoff and carry every
   // unit the hero countdown script writes into.
-  assert.match(html, /data-countdown-v3-target="2026-10-01T23:59:59\+10:00"/);
+  assert.match(html, /data-countdown-v3-target="2026-10-04T23:59:59\+11:00"/);
   for (const unit of ['data-cd-days', 'data-cd-hours', 'data-cd-mins', 'data-cd-secs']) {
     assert.match(html, new RegExp(unit), `hero countdown should include ${unit}`);
   }
