@@ -47,7 +47,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   box-shadow: 0 14px 32px rgba(0,0,0,0.22), 0 0 24px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
-  max-width: 860px;
+  max-width: 940px;
 }
 .hero-v3__availability-dot {
   width: 9px;
@@ -74,12 +74,17 @@
 }
 .hero-v3__availability-main {
   color: var(--white);
-  font-size: 0.86rem;
+  font-family: var(--font-heading);
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 .hero-v3__availability-sub {
-  color: var(--text-light);
-  font-size: 0.74rem;
-  font-weight: 600;
+  color: #fecaca;
+  font-size: 0.86rem;
+  font-weight: 700;
   line-height: 1.4;
 }
 .hero-v3__spots {
@@ -594,11 +599,11 @@
     </div>
     <div class="container">
 
-      <div class="hero-v3__availability reveal visible" aria-label="Early bird pricing closes 4 October 2026.">
-        <span class="hero-v3__spots">Early bird</span>
+      <div class="hero-v3__availability reveal visible" aria-label="Early bird extended to 4 October 2026. 17 spots left for GAMSAT March 2027.">
+        <span class="hero-v3__spots">Early bird extended</span>
         <span class="hero-v3__availability-copy">
-          <span class="hero-v3__availability-main">$1,599 until 4 October, then $1,799.</span>
-          <span class="hero-v3__availability-sub">Classes start late October and run for twelve weeks, up to the March 2027 sitting. S1 Wednesdays and S2 Thursdays, both 6pm Sydney/Melbourne time. Capped at 25 students.</span>
+          <span class="hero-v3__availability-main">17 spots left for GAMSAT March 2027</span>
+          <span class="hero-v3__availability-sub">$1,599 until 4 October, then $1,799.</span>
         </span>
         <div class="hero-v3__countdown" data-countdown-v3 data-countdown-v3-target="2026-10-04T23:59:59+11:00" aria-label="Time remaining on early bird pricing">
           <span class="hero-v3__countdown-unit"><strong data-cd-days>00</strong><span>Days</span></span>
