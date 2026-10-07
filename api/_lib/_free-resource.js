@@ -2,6 +2,7 @@ const { Resend } = require('resend');
 const {
   isValidEmail,
   upsertSubscriber,
+  findSubscriberByEmail,
   tagSubscriber,
   addSubscriberToForm,
   addSubscriberToSequence,
@@ -217,44 +218,68 @@ async function sendDeliveryEmail({ resourceKey, email, firstName = '' }) {
     text: content.text,
   });
 
-  return { sent: true, id: result && result.id ? result.id : null };
+  if (result && result.error) {
+    throw new Error(result.error.message || 'Resend rejected the delivery email');
+  }
+  if (!result || !(result.data?.id || result.id)) {
+    throw new Error('Resend returned no delivery email id');
+  }
+
+  return { sent: true, id: result.data?.id || result.id };
 }
 
-// Best-effort Kit sync run after delivery has already succeeded. Never throws:
-// a Kit outage must not affect the student who already has their resource.
-async function syncKitForResource({ resourceKey, email, firstName = '' }) {
+// Report failed steps so the caller can persist and retry them after delivery.
+async function syncKitForResource({ resourceKey, email, firstName = '' }, { steps, preserveInactive = false } = {}) {
   const resource = getFreeResource(resourceKey);
   if (!resource) {
     return { synced: false, reason: 'unknown_resource' };
   }
 
-  if (resource.kitFormId) {
+  const failedSteps = [];
+  const shouldRun = (step) => !steps || steps.includes(step);
+
+  if (preserveInactive) {
+    try {
+      const existing = await findSubscriberByEmail(email);
+      if (existing && existing.state !== 'active') {
+        return { synced: false, reason: 'inactive_subscriber', permanent: true };
+      }
+    } catch (error) {
+      console.error(`[leads/resource] Kit subscriber state check failed for ${resourceKey}:`, error.message);
+      return { synced: false, reason: 'state_check_failed', failedSteps: steps || ['form', 'sequence', 'tag'].filter((step) => Boolean(resource[`kit${step[0].toUpperCase()}${step.slice(1)}Id`])) };
+    }
+  }
+
+  if (resource.kitFormId && shouldRun('form')) {
     try {
       await addSubscriberToForm({ formId: resource.kitFormId, email, firstName });
     } catch (error) {
       console.error(`[leads/resource] Kit form add failed for ${resourceKey}:`, error.message);
+      failedSteps.push('form');
     }
   }
 
-  if (resource.kitSequenceId) {
+  if (resource.kitSequenceId && shouldRun('sequence')) {
     try {
       await addSubscriberToSequence({ sequenceId: resource.kitSequenceId, email, firstName });
     } catch (error) {
       console.error(`[leads/resource] Kit sequence enroll failed for ${resourceKey}:`, error.message);
+      failedSteps.push('sequence');
     }
   }
 
-  if (resource.kitTagId) {
+  if (resource.kitTagId && shouldRun('tag')) {
     try {
       const subscriber = await upsertSubscriber({ email, firstName });
       if (!subscriber || !subscriber.id) throw new Error('Kit returned no subscriber id');
       await tagSubscriber({ subscriberId: subscriber.id, tagId: resource.kitTagId });
     } catch (error) {
       console.error(`[leads/resource] Kit tag failed for ${resourceKey}:`, error.message);
+      failedSteps.push('tag');
     }
   }
 
-  return { synced: true };
+  return failedSteps.length ? { synced: false, failedSteps } : { synced: true };
 }
 
 function buildFallbackPayload({ resourceKey, emailSent = false }) {
@@ -269,8 +294,8 @@ function buildFallbackPayload({ resourceKey, emailSent = false }) {
   return {
     resource,
     message: hasBackupUrl
-      ? `Kit is taking longer than usual. Use the backup link below so you can keep moving today.`
-      : `Kit is taking longer than usual. Use the backup contact option below and we'll send it manually.`,
+      ? `Email delivery is taking longer than usual. Use the backup link below so you can keep moving today.`
+      : `Email delivery is taking longer than usual. Use the backup contact option below and we'll send it manually.`,
     fallback: {
       kind: hasBackupUrl ? 'download' : 'contact',
       url: hasBackupUrl ? backupUrl : buildSupportMailtoUrl(resource),

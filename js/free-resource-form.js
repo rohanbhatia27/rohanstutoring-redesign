@@ -49,16 +49,19 @@
     var emailCopy = fallback.emailSent
       ? ' I also sent the same backup path to your inbox.'
       : '';
+    var heading = payload.recorded === false
+      ? escapeHtml(options.resourceName) + ' access.'
+      : escapeHtml(options.resourceName) + ' request received.';
 
     form.setAttribute('data-state', 'fallback');
     clearStatusNote(form);
 
     if (form.classList.contains('tracker-form')) {
-      form.innerHTML = '<div class="tracker-form__success"><strong>' + escapeHtml(options.resourceName) + ' request received.</strong><br>' + escapeHtml(message + emailCopy) + linkHtml + '</div>';
+      form.innerHTML = '<div class="tracker-form__success"><strong>' + heading + '</strong><br>' + escapeHtml(message + emailCopy) + linkHtml + '</div>';
       return;
     }
 
-    form.innerHTML = '<div class="formkit-alert"><strong>' + escapeHtml(options.resourceName) + ' request received.</strong> ' + escapeHtml(message + emailCopy) + linkHtml + '</div>';
+    form.innerHTML = '<div class="formkit-alert"><strong>' + heading + '</strong> ' + escapeHtml(message + emailCopy) + linkHtml + '</div>';
   }
 
   function getPayload(form) {
@@ -134,7 +137,7 @@
           });
         }
 
-        if (typeof options.onLeadCaptured === 'function') {
+        if (payload.recorded !== false && typeof options.onLeadCaptured === 'function') {
           options.onLeadCaptured(payload.status, payload);
         }
       });

@@ -2,6 +2,10 @@
   "cleanUrls": true,
   "crons": [
     {
+      "path": "/api/resource-sync",
+      "schedule": "0 14 * * *"
+    },
+    {
       "path": "/api/analytics?action=weekly-insights",
       "schedule": "0 20 * * 0,3"
     }

@@ -86,6 +86,13 @@ async function upsertSubscriber({ email, firstName = '', fields = {} }) {
   return data && data.subscriber ? data.subscriber : null;
 }
 
+async function findSubscriberByEmail(email) {
+  if (!isValidEmail(email)) throw new Error('Invalid subscriber email address');
+  const query = new URLSearchParams({ email_address: String(email).trim(), status: 'all', slim: 'true' });
+  const data = await kitRequest(`/subscribers?${query}`);
+  return (data?.subscribers || []).find((item) => String(item.email_address || '').toLowerCase() === String(email).trim().toLowerCase()) || null;
+}
+
 async function tagSubscriber({ subscriberId, tagId }) {
   const safeSubscriberId = String(subscriberId || '').trim();
   const safeTagId = String(tagId || '').trim();
@@ -269,6 +276,7 @@ async function syncCheckoutStartedTag({ baseSlug, email, customerName = '', valu
 module.exports = {
   isValidEmail,
   upsertSubscriber,
+  findSubscriberByEmail,
   tagSubscriber,
   addSubscriberToForm,
   addSubscriberToSequence,

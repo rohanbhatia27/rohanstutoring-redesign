@@ -3,6 +3,8 @@
 const createPaymentIntentHandler = require('./create-checkout.js');
 const { syncQuizLead } = require('./_lib/_kit.js');
 const { checkRateLimit } = require('./_lib/_rate-limit.js');
+const resourceSyncStore = require('./_lib/_resource-sync-store.js');
+const sendResourceSyncAlert = require('./_lib/_resource-sync-alert.js');
 const {
   getFreeResource,
   sendDeliveryEmail,
@@ -61,13 +63,34 @@ async function handleResourceLead(body, res, req) {
   const rl = await checkRateLimit(req, { bucket: 'leads', email: lead.email });
   if (rl.limited) return res.status(429).json({ error: rl.message });
 
-  let resource;
+  const resource = getFreeResource(lead.resourceKey);
+  let ledgerRow;
   try {
-    const result = await sendDeliveryEmail(lead);
-    resource = getFreeResource(lead.resourceKey);
-    console.log(`[leads/resource] Delivered ${lead.resourceKey} to ${lead.email} (resend id: ${result.id || 'n/a'})`);
+    ledgerRow = await resourceSyncStore.createLead(lead);
+  } catch (error) {
+    console.error('[leads/resource] Could not record signup before email delivery:', error.message);
+    await sendResourceSyncAlert({ kind: 'Signup ledger unavailable', resourceKey: lead.resourceKey, email: lead.email, detail: error.message });
+    const fallback = buildFallbackPayload({ resourceKey: lead.resourceKey, emailSent: false });
+    return res.status(202).json({
+      ok: true, status: 'fallback', recorded: false,
+      resource: { key: resource.key, name: resource.name },
+      message: 'We could not save your request or email the resource. Please use this direct access option and try the form again later.',
+      fallback: fallback.fallback,
+    });
+  }
+
+  let delivery;
+  try {
+    delivery = await sendDeliveryEmail(lead);
+    console.log(`[leads/resource] Delivered ${lead.resourceKey} (resend id: ${delivery.id})`);
   } catch (error) {
     console.error(`[leads/resource] Delivery email failed for ${lead.resourceKey}:`, error.message);
+    try {
+      await resourceSyncStore.updateLead(ledgerRow.id, { outcome: 'delivery_failed', errorMessage: error.message, meta: { email_status: 'failed' } });
+    } catch (saveError) {
+      console.error('[leads/resource] Failed to record delivery error:', saveError.message);
+      await sendResourceSyncAlert({ kind: 'Delivery ledger update failed', resourceKey: lead.resourceKey, email: lead.email, detail: saveError.message });
+    }
     const fallback = buildFallbackPayload({ resourceKey: lead.resourceKey, emailSent: false });
     return res.status(202).json({
       ok: true,
@@ -78,13 +101,38 @@ async function handleResourceLead(body, res, req) {
     });
   }
 
-  // Delivery already succeeded above. Kit sync is best-effort and never throws,
-  // so a Kit outage cannot turn a delivered lead into a failure.
-  await syncKitForResource(lead);
+  const meta = { email_status: 'sent', resend_id: delivery.id };
+  let ledgerHealthy = true;
+  try {
+    await resourceSyncStore.updateLead(ledgerRow.id, { outcome: 'sync_pending', meta });
+  } catch (error) {
+    ledgerHealthy = false;
+    console.error('[leads/resource] Failed to record accepted delivery:', error.message);
+    await sendResourceSyncAlert({ kind: 'Delivery ledger update failed', resourceKey: lead.resourceKey, email: lead.email, detail: error.message });
+  }
+
+  const kitResult = await syncKitForResource(lead);
+  const failedSteps = kitResult.failedSteps || [];
+  const outcome = kitResult.synced ? 'synced' : 'sync_failed';
+  try {
+    await resourceSyncStore.updateLead(ledgerRow.id, {
+      outcome,
+      errorMessage: kitResult.synced ? null : `Kit steps failed: ${failedSteps.join(', ') || kitResult.reason}`,
+      meta: { ...meta, failed_steps: failedSteps },
+    });
+  } catch (error) {
+    ledgerHealthy = false;
+    console.error('[leads/resource] Failed to update Kit sync state:', error.message);
+    await sendResourceSyncAlert({ kind: 'Kit ledger update failed', resourceKey: lead.resourceKey, email: lead.email, detail: error.message });
+  }
+
+  if (!kitResult.synced) {
+    await sendResourceSyncAlert({ kind: 'Kit sync failed', resourceKey: lead.resourceKey, email: lead.email, detail: `Retry queued for: ${failedSteps.join(', ') || kitResult.reason}` });
+  }
 
   return res.status(200).json({
     ok: true,
-    status: 'delivered',
+    status: kitResult.synced && ledgerHealthy ? 'delivered' : 'delivered_pending_sync',
     resource: { key: resource.key, name: resource.name },
   });
 }

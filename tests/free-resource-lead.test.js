@@ -4,6 +4,23 @@ const assert = require('node:assert/strict');
 const freeResourceLeadHandler = require('../api/leads.js');
 const freeResource = require('../api/_lib/_free-resource.js');
 const kit = require('../api/_lib/_kit.js');
+const store = require('../api/_lib/_resource-sync-store.js');
+const sendResourceSyncAlert = require('../api/_lib/_resource-sync-alert.js');
+
+function mockLedger(calls) {
+  process.env.SUPABASE_URL = 'https://example.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
+  store.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+    return { ok: true, json: async () => [{ id: 'lead-1' }] };
+  });
+}
+
+function resetLedger() {
+  store.__resetForTests();
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
 
 function createJsonResponseRecorder() {
   return {
@@ -115,7 +132,7 @@ test('syncKitForResource enrolls the resource nurture sequence after form sync',
   delete process.env.KIT_API_KEY;
 });
 
-test('syncKitForResource swallows Kit failures and never throws', async () => {
+test('syncKitForResource reports each failed Kit step for retry', async () => {
   process.env.KIT_API_KEY = 'kit_test_123';
   kit.__setFetch(async () => {
     throw new Error('Kit network failure');
@@ -127,17 +144,34 @@ test('syncKitForResource swallows Kit failures and never throws', async () => {
     email: 'jane@example.com',
   });
 
-  assert.equal(result.synced, true);
+  assert.equal(result.synced, false);
+  assert.deepEqual(result.failedSteps, ['form', 'sequence']);
 
   kit.__resetForTests();
   delete process.env.KIT_API_KEY;
 });
 
-test('handler returns delivered even when Kit sync fails', async () => {
+test('sendDeliveryEmail rejects a Resend error result', async () => {
+  process.env.RESEND_API_KEY = 're_test_123';
+  freeResource.__setResendFactory(() => ({ emails: { send: async () => ({ data: null, error: { message: 'Sending blocked' } }) } }));
+  await assert.rejects(
+    () => freeResource.sendDeliveryEmail({ resourceKey: 'game-plan', email: 'jane@example.com' }),
+    /Sending blocked/
+  );
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+});
+
+test('handler records and alerts a failed Kit sync after delivering the PDF', async () => {
   process.env.RESEND_API_KEY = 're_test_123';
   process.env.KIT_API_KEY = 'kit_test_123';
   const sent = [];
+  const ledgerCalls = [];
+  mockLedger(ledgerCalls);
   mockResend(sent);
+  process.env.ADMIN_ALERT_EMAIL = 'owner@example.com';
+  let alertSent = false;
+  sendResourceSyncAlert.__setResendFactory(() => ({ emails: { send: async () => { alertSent = true; return { data: { id: 'alert-1' } }; } } }));
   kit.__setFetch(async () => {
     throw new Error('Kit down');
   });
@@ -153,12 +187,17 @@ test('handler returns delivered even when Kit sync fails', async () => {
 
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.ok, true);
-  assert.equal(res.body.status, 'delivered');
+  assert.equal(res.body.status, 'delivered_pending_sync');
   assert.equal(res.body.resource.name, 'S1 Question Tracker');
   assert.equal(sent.length, 1);
+  assert.equal(JSON.parse(ledgerCalls.at(-1).options.body).outcome, 'sync_failed');
+  assert.equal(alertSent, true);
 
   kit.__resetForTests();
   freeResource.__resetForTests();
+  sendResourceSyncAlert.__resetForTests();
+  resetLedger();
+  delete process.env.ADMIN_ALERT_EMAIL;
   delete process.env.RESEND_API_KEY;
   delete process.env.KIT_API_KEY;
 });
@@ -166,6 +205,8 @@ test('handler returns delivered even when Kit sync fails', async () => {
 test('handler falls back on-page when the delivery email fails', async () => {
   process.env.RESEND_API_KEY = 're_test_123';
   process.env.FREE_RESOURCE_S1_TRACKER_BACKUP_URL = 'https://example.com/tracker-backup';
+  const ledgerCalls = [];
+  mockLedger(ledgerCalls);
   freeResource.__setResendFactory(() => ({
     emails: {
       send: async () => {
@@ -187,10 +228,26 @@ test('handler falls back on-page when the delivery email fails', async () => {
   assert.equal(res.body.status, 'fallback');
   assert.equal(res.body.fallback.kind, 'download');
   assert.equal(res.body.fallback.url, 'https://example.com/tracker-backup');
+  assert.equal(JSON.parse(ledgerCalls.at(-1).options.body).outcome, 'delivery_failed');
 
   freeResource.__resetForTests();
+  resetLedger();
   delete process.env.RESEND_API_KEY;
   delete process.env.FREE_RESOURCE_S1_TRACKER_BACKUP_URL;
+});
+
+test('handler does not email when the durable ledger cannot save the lead', async () => {
+  process.env.RESEND_API_KEY = 're_test_123';
+  const sent = [];
+  mockResend(sent);
+  const req = { method: 'POST', headers: { origin: 'https://www.rohanstutoring.com' }, body: { resourceKey: 'game-plan', email: 'jane@example.com' } };
+  const res = createJsonResponseRecorder();
+  await freeResourceLeadHandler(req, res);
+  assert.equal(res.statusCode, 202);
+  assert.equal(res.body.status, 'fallback');
+  assert.equal(sent.length, 0);
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
 });
 
 test('handler rejects an unknown resource key', async () => {
@@ -267,6 +324,25 @@ test('syncKitForResource upserts the Game Plan lead and tags lm_march27_gameplan
   assert.equal(upsertBody.first_name, 'Jane');
   assert.match(calls[1].url, /\/v4\/tags\/24104655\/subscribers\/777$/);
 
+  kit.__resetForTests();
+  delete process.env.KIT_API_KEY;
+});
+
+test('a delayed retry never reactivates an inactive Kit subscriber', async () => {
+  process.env.KIT_API_KEY = 'kit_test_123';
+  const calls = [];
+  kit.__setFetch(async (url, options) => {
+    calls.push({ url, options });
+    return { ok: true, status: 200, json: async () => ({ subscribers: [{ id: 777, email_address: 'jane@example.com', state: 'cancelled' }] }) };
+  });
+  const result = await freeResource.syncKitForResource(
+    { resourceKey: 'game-plan', email: 'jane@example.com' },
+    { preserveInactive: true }
+  );
+  assert.equal(result.reason, 'inactive_subscriber');
+  assert.equal(result.permanent, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].options.method, 'GET');
   kit.__resetForTests();
   delete process.env.KIT_API_KEY;
 });

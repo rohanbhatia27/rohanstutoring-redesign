@@ -87,14 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(payload && payload.error ? payload.error : 'Form submission failed');
       }
 
-      fireLeadEvents(payload.status);
+      if (payload.recorded !== false) fireLeadEvents(payload.status);
 
       if (payload.status === 'fallback') {
         const fallback = payload.fallback || {};
         const fallbackHref = getSafeHref(fallback.url);
         const fallbackLabel = escapeHtml(fallback.label || 'Open the backup option');
         const fallbackLinkHtml = fallbackHref ? ` <a href="${fallbackHref}">${fallbackLabel}</a>` : '';
-        success.innerHTML = `<strong>Game Plan request received.</strong> ${escapeHtml(payload.message || '')}${fallbackLinkHtml}`;
+        const heading = payload.recorded === false ? 'Your Game Plan access.' : 'Game Plan request received.';
+        success.innerHTML = `<strong>${heading}</strong> ${escapeHtml(payload.message || '')}${fallbackLinkHtml}`;
         success.hidden = false;
         success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         setLoadingState(false);

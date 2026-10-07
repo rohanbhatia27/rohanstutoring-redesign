@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(payload && payload.error ? payload.error : 'Form submission failed');
       }
 
-      fireLeadEvent(payload.status);
+      if (payload.recorded !== false) fireLeadEvent(payload.status);
 
       if (payload.status === 'fallback' && payload.fallback && payload.fallback.url) {
         const fallbackHref = getSafeHref(payload.fallback.url);
@@ -99,7 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const fallbackLinkHtml = fallbackHref
           ? ` <a href="${fallbackHref}">${fallbackLabel}</a>`
           : '';
-        success.innerHTML = `<strong>S2 Slam System request received.</strong> ${message}${fallbackLinkHtml}`;
+        const heading = payload.recorded === false ? 'Your S2 Slam System access.' : 'S2 Slam System request received.';
+        success.innerHTML = `<strong>${heading}</strong> ${message}${fallbackLinkHtml}`;
       } else {
         form.reset();
         success.innerHTML = `<strong>You're in.</strong> Check your inbox for the S2 Slam System, then use the free quiz if you want a course recommendation. <a href="/quiz" class="btn btn--outline">Take the Free Quiz</a>`;
