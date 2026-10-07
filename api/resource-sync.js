@@ -17,6 +17,15 @@ function authorized(req) {
 
 async function resourceSyncHandler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  // Temporary preview-only check; removed after validating the existing table.
+  if (req.query?.check === 'ledger') {
+    try {
+      await store.hasCompletedReconciliation();
+      return res.status(200).json({ ledgerAvailable: true });
+    } catch (_) {
+      return res.status(503).json({ ledgerAvailable: false });
+    }
+  }
   if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   let retried = 0;
