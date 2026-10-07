@@ -23,8 +23,9 @@ async function resourceSyncHandler(req, res) {
       await store.hasCompletedReconciliation();
       return res.status(200).json({ ledgerAvailable: true });
     } catch (error) {
+      console.error('[resource-sync] Preview ledger check failed:', error.message, error.cause?.code || '');
       const status = error.message.match(/\((\d{3})\)/)?.[1] || null;
-      return res.status(503).json({ ledgerAvailable: false, reason: status || (error.message.includes('Missing SUPABASE') ? 'missing_config' : 'request_failed') });
+      return res.status(503).json({ ledgerAvailable: false, reason: status || error.cause?.code || (error.message.includes('Missing SUPABASE') ? 'missing_config' : error.name) });
     }
   }
   if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
