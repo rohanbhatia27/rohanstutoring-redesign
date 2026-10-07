@@ -22,8 +22,9 @@ async function resourceSyncHandler(req, res) {
     try {
       await store.hasCompletedReconciliation();
       return res.status(200).json({ ledgerAvailable: true });
-    } catch (_) {
-      return res.status(503).json({ ledgerAvailable: false });
+    } catch (error) {
+      const status = error.message.match(/\((\d{3})\)/)?.[1] || null;
+      return res.status(503).json({ ledgerAvailable: false, reason: status || (error.message.includes('Missing SUPABASE') ? 'missing_config' : 'request_failed') });
     }
   }
   if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
