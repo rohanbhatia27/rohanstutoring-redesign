@@ -17,17 +17,6 @@ function authorized(req) {
 
 async function resourceSyncHandler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  // Temporary preview-only check; removed after validating the existing table.
-  if (req.query?.check === 'ledger') {
-    try {
-      await store.hasCompletedReconciliation();
-      return res.status(200).json({ ledgerAvailable: true });
-    } catch (error) {
-      console.error('[resource-sync] Preview ledger check failed:', error.message, error.cause?.code || '');
-      const status = error.message.match(/\((\d{3})\)/)?.[1] || null;
-      return res.status(503).json({ ledgerAvailable: false, reason: status || error.cause?.code || (error.message.includes('Missing SUPABASE') ? 'missing_config' : error.name) });
-    }
-  }
   if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   let retried = 0;
