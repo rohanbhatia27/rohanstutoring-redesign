@@ -178,7 +178,7 @@ The bigger risk is repeating a sitting with the same blind spots, losing another
 
 Mastery is built to reduce that kind of risk.
 
-Roheed lifted his Section 2 score from 51 to 85 in one sitting.
+Roheed lifted his Section 2 score from 50 to 81 in one sitting.
 
 **There is also a guarantee, so the risk sits with me rather than with you.**
 

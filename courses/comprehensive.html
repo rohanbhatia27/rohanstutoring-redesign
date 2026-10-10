@@ -103,11 +103,27 @@
   white-space: nowrap;
   box-shadow: 0 0 14px rgba(239,68,68,0.18);
 }
+.hero-v3__countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(100%, 210px);
+}
+.hero-v3__countdown-fallback {
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.hero-v3__countdown-fallback[hidden],
+.hero-v3__countdown[hidden] {
+  display: none;
+}
 .hero-v3__countdown {
   display: grid;
-  grid-template-columns: repeat(4, minmax(48px, 1fr));
+  grid-template-columns: repeat(3, minmax(48px, 1fr));
   gap: 7px;
-  width: min(100%, 268px);
+  width: 100%;
 }
 .hero-v3__countdown-unit {
   display: flex;
@@ -400,7 +416,7 @@
     justify-content: flex-start;
     margin-top: -22px;
   }
-  .hero-v3__countdown {
+  .hero-v3__countdown-wrap {
     width: 100%;
   }
 }
@@ -413,6 +429,116 @@
   .proof-card__avatar { width: 34px; height: 34px; font-size: 0.85rem; }
   .hero-v3__card { padding: 24px; }
   .hero-v3__card-guarantees { grid-template-columns: 1fr; }
+}
+
+/* Student message screenshots used as proof */
+.receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, var(--receipt-w, 420px));
+  margin: 0;
+}
+.receipt__tag {
+  align-self: flex-start;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(16,191,122,0.12);
+  color: #08875A;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.receipt__shot {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: var(--white);
+  box-shadow: 0 12px 32px rgba(8,15,26,0.08);
+}
+.receipt__shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.receipt--on-dark .receipt__tag {
+  background: rgba(16,191,122,0.16);
+  color: #6EE7B7;
+}
+.receipt--on-dark .receipt__shot {
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.35);
+}
+
+.receipts {
+  padding: 96px 0;
+  background: var(--white);
+}
+.receipts__header {
+  max-width: 620px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+.receipts__header h2 {
+  color: var(--text);
+  margin-bottom: 12px;
+  text-wrap: balance;
+}
+.receipts__header p {
+  color: var(--text-muted);
+}
+.receipts__feed {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.receipts__feed .receipt:nth-child(even) {
+  align-self: flex-end;
+}
+.receipts__block + .receipts__block {
+  margin-top: 96px;
+  padding-top: 96px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.receipt-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 28px;
+  margin-top: 48px;
+}
+.receipt-row__title {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-dark-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.product-proof .receipt-row__title {
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+.value-item__body .receipt {
+  margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+  .receipts { padding: 72px 0; }
+  .receipts__feed { gap: 24px; }
+  .receipts__feed .receipt:nth-child(even) { align-self: flex-start; }
+  .receipts__block + .receipts__block { margin-top: 64px; padding-top: 64px; }
 }
 </style>
   <link rel="stylesheet" href="../css/product.css">
@@ -452,7 +578,7 @@
         "name": "How long is each class, and when do they run?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Each session is 1 hour. Classes start late October and run for twelve weeks. S1 classes are Wednesdays at 6pm Sydney/Melbourne time and S2 classes are Thursdays at 6pm Sydney/Melbourne time. Every session is recorded if you cannot make one live."
+          "text": "Each session is 1 hour. The first classes are Wednesday 28 October (S1) and Thursday 29 October (S2), and the course runs for twelve weeks. S1 classes are Wednesdays at 6pm Sydney/Melbourne time and S2 classes are Thursdays at 6pm Sydney/Melbourne time. Every session is recorded if you cannot make one live."
         }
       },
       {
@@ -601,8 +727,16 @@
         <span class="hero-v3__spots">Enrolling now</span>
         <span class="hero-v3__availability-copy">
           <span class="hero-v3__availability-main">16 spots left for GAMSAT March 2027</span>
-          <span class="hero-v3__availability-sub">Classes start late October.</span>
+          <span class="hero-v3__availability-sub">First class Wednesday 28 October, 6pm AEDT.</span>
         </span>
+        <div class="hero-v3__countdown-wrap" data-countdown data-countdown-target="2026-10-28T18:00:00+11:00" data-countdown-complete="Classes are underway" aria-label="First class Wednesday 28 October, 6pm AEDT">
+          <span class="hero-v3__countdown-fallback" data-countdown-fallback>Starts 28 Oct</span>
+          <div class="hero-v3__countdown" data-countdown-timer hidden>
+            <span class="hero-v3__countdown-unit"><strong data-countdown-days>0</strong><span>Days</span></span>
+            <span class="hero-v3__countdown-unit"><strong data-countdown-hours>00</strong><span>Hrs</span></span>
+            <span class="hero-v3__countdown-unit"><strong data-countdown-minutes>00</strong><span>Min</span></span>
+          </div>
+        </div>
       </div>
 
       <div class="hero-v3__inner">
@@ -622,7 +756,7 @@
               <span class="proof-card__avatar proof-card__avatar--r">R</span>
               <div class="proof-card__body">
                 <strong>Roheed</strong>
-                <span>S2: 51 → <em>85</em>. 100th percentile.</span>
+                <span>S2: 50 → <em>81</em> in one sitting.</span>
               </div>
             </div>
             <div class="proof-card">
@@ -651,7 +785,7 @@
               <span>Pay in 4 at $499/mo</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
-            <span class="product-hero__was">You get the recorded library the moment you enrol. Live classes start late October.</span>
+            <span class="product-hero__was">You get the recorded library the moment you enrol, so the sooner you start, the more you'll have covered before the first class on 28 October.</span>
             <a href="#included" class="hero-v3__cta-text">See what's included →</a>
           </div>
         </div>
@@ -704,6 +838,66 @@
   </section>
 
   <!-- PAIN SECTION - editorial redesign -->
+  <!-- STUDENT RECEIPTS: re-sitters, then first-time sitters -->
+  <section class="receipts">
+    <div class="container">
+      <div class="receipts__block">
+        <div class="receipts__header reveal">
+          <span class="label">Results day</span>
+          <h2>What a re-sit looks like when the method changes.</h2>
+          <p>Unedited messages from students on results day. Every one of them had sat GAMSAT before.</p>
+        </div>
+        <div class="receipts__feed">
+          <figure class="receipt reveal" style="--receipt-w: 420px">
+            <span class="receipt__tag">75, up 6 · USYD DMD offer</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.26%20pm.png" alt="Message to Rohan: I was able to score a 75, 6 marks up from last time. I got an offer for DMD at USYD and will be starting next year." width="562" height="396" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 600px">
+            <span class="receipt__tag">62 → 70 overall</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202024-11-27%20at%2010.33.58%20am.png" alt="Message to Rohan: just got my GAMSAT results back and I got a 70, which is an 8 point increase from my previous 62." width="1176" height="116" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 300px">
+            <span class="receipt__tag">S2: up 10 to 70</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-08.png" alt="Message to Rohan: I ended up getting 70 in S2 and really want to say thanks for all your help. You helped me improve by 10 points from last time." width="199" height="109" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 470px">
+            <span class="receipt__tag">S1: up 9</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.57%20pm.png" alt="Message to Rohan: I scored 9 points better in S1! Thank you for your help." width="936" height="156" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 300px">
+            <span class="receipt__tag">70 → 76</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-10.png" alt="Message to Rohan: GAMSAT results are out, got 6 points higher than last time, went from 70 to 76." width="197" height="52" loading="lazy" decoding="async"></div>
+          </figure>
+        </div>
+      </div>
+      <div class="receipts__block">
+        <div class="receipts__header reveal">
+          <span class="label">First sitting</span>
+          <h2>Sitting for the first time? Make it the only time.</h2>
+          <p>You don't need a bad result first to justify proper coaching. Beth got into USyd Medicine on her first attempt, and these are the kinds of messages that land on offer day.</p>
+        </div>
+        <div class="receipts__feed">
+          <figure class="receipt reveal" style="--receipt-w: 300px">
+            <span class="receipt__tag">Not sure where to start?</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-12.png" alt="Five-star review: Great classes. Definitely recommend if you don't know where to start with S1 and S2." width="197" height="40" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 640px">
+            <span class="receipt__tag">UWA Medicine offer</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.33%20pm.png" alt="Message to Rohan: I am very happy to say that I got a med offer for UWA, so I would like to thank you for your mentorship this year." width="1286" height="238" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 300px">
+            <span class="receipt__tag">USYD DMD offer</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-01.png" alt="Message to Rohan: I just wanted to let you know that I got accepted into USYD's DMD program. Thank you very much for all of your help and support throughout my GAMSAT studying!" width="199" height="122" loading="lazy" decoding="async"></div>
+          </figure>
+          <figure class="receipt reveal" style="--receipt-w: 640px">
+            <span class="receipt__tag">Dentistry offer</span>
+            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.50%20pm.png" alt="Message to Rohan: I wanted to share the exciting news that I've been accepted into dentistry. I truly appreciate all your support and guidance during my GAMSAT S1 preparation." width="1288" height="328" loading="lazy" decoding="async"></div>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="pain-section pain-section--editorial">
     <div class="container">
       <div class="pain-section__inner reveal">
@@ -791,6 +985,17 @@
           </div>
         </div>
       </div>
+      <div class="receipt-row">
+        <p class="receipt-row__title">What students say about the classes</p>
+        <figure class="receipt receipt--on-dark reveal" style="--receipt-w: 300px">
+          <span class="receipt__tag">Messaged after the exam</span>
+          <div class="receipt__shot"><img src="/assets/testimonials/testimonial-13.png" alt="Message to Rohan after the exam: honestly though, your course has been the best. I've learnt so much. Thank you!" width="199" height="120" loading="lazy" decoding="async"></div>
+        </figure>
+        <figure class="receipt receipt--on-dark reveal reveal--delay-1" style="--receipt-w: 380px">
+          <span class="receipt__tag">On the S2 method</span>
+          <div class="receipt__shot"><img src="/assets/testimonials/testimonial-new-01.png" alt="Student message: Rohan brought a unique perspective and method to my S2 essays. Using his approach, I developed a style of writing that was versatile and successful for the GAMSAT. Highly recommended!" width="522" height="516" loading="lazy" decoding="async"></div>
+        </figure>
+      </div>
     </div>
   </section>
 
@@ -821,7 +1026,7 @@
           </div>
           <div class="value-item__body">
             <h3>24 Live Coaching Classes</h3>
-            <p>24 live sessions on Zoom, each 1 hour. Classes stay small and focused, so every session is genuinely interactive. You can ask questions, clear up what's not landing, and leave each session with something concrete. S1 runs Wednesdays and S2 runs Thursdays, both at 6pm Sydney/Melbourne time, starting late October.</p>
+            <p>24 live sessions on Zoom, each 1 hour. Classes stay small and focused, so every session is genuinely interactive. You can ask questions, clear up what's not landing, and leave each session with something concrete. S1 runs Wednesdays and S2 runs Thursdays, both at 6pm Sydney/Melbourne time, starting Wednesday 28 October.</p>
             <span class="value-item__value">Value: $1,200</span>
           </div>
         </div>
@@ -843,7 +1048,11 @@
           </div>
           <div class="value-item__body">
             <h3>Fortnightly Essay Marking: The Kind That Actually Changes Scores</h3>
-            <p>Every S2 class includes live essay feedback. On top of that, you submit an essay every fortnight, six across the course, and get it back within five business days. Line-level notes from the teaching team that point to the exact thinking holding your score down. Not "lacks depth." Roheed used this to go from 51 to 85 in one sitting.</p>
+            <p>Every S2 class includes live essay feedback. On top of that, you submit an essay every fortnight, six across the course, and get it back within five business days. Line-level notes from the teaching team that point to the exact thinking holding your score down. Not "lacks depth." Roheed used this to go from 50 to 81 in one sitting.</p>
+            <figure class="receipt" style="--receipt-w: 300px">
+              <span class="receipt__tag">Roheed: S2 50 → 81</span>
+              <div class="receipt__shot"><img src="/assets/testimonials/testimonial-03.png" alt="Roheed's message to Rohan: I got an 81 in Section 2, a tremendous jump from 50 in my previous sitting. Your teachings about what examiners want, ideas and how to structure helped tremendously." width="200" height="114" loading="lazy" decoding="async"></div>
+            </figure>
             <span class="value-item__value">Value: $210</span>
           </div>
         </div>
@@ -855,6 +1064,10 @@
           <div class="value-item__body">
             <h3>Direct Access to Rohan Throughout the Course</h3>
             <p>No support ticket queue, no Facebook group with thousands of people you've never met. You can reach Rohan directly: the person who built the frameworks, scored in the top 1%, and is now in his third year at USyd. There's also a fortnightly open Q&A where you can bring anything, essay drafts, passages you're stuck on, strategy questions, and get answers directly.</p>
+            <figure class="receipt" style="--receipt-w: 300px">
+              <span class="receipt__tag">5-star review</span>
+              <div class="receipt__shot"><img src="/assets/testimonials/testimonial-11.png" alt="Five-star review: Rohan was extremely helpful and has a wealth of knowledge on the GAMSAT sections. His concern for my progression was demonstrated many times in the time he spent and the genuine confidence he had in my abilities." width="200" height="112" loading="lazy" decoding="async"></div>
+            </figure>
             <span class="value-item__value">Value: $999</span>
           </div>
         </div>
@@ -879,7 +1092,7 @@
             </div>
             <a href="/checkout/?product=comprehensive" class="btn btn--primary btn--lg">Enrol Now →</a>
             <a href="/checkout/?product=comprehensive&paymentMode=instalments" class="cta-instalment">or 4 × $499 instalments ($1,996 total)</a>
-            <p class="value-summary__note">You get the recorded library the moment you enrol. Classes start late October and run for twelve weeks.</p>
+            <p class="value-summary__note">First class Wednesday 28 October. You get the recorded library the moment you enrol, so you can start today.</p>
           </div>
         </div>
       </div>
@@ -897,8 +1110,7 @@
 
         <div class="product-proof__card reveal">
           <div class="product-proof__context">Section 2 Score</div>
-          <div class="product-proof__score">51 → 85</div>
-          <div class="product-proof__percentile">85 = 100th percentile nationally</div>
+          <div class="product-proof__score">50 → 81</div>
           <p class="product-proof__quote">"The essay feedback was specific enough to change how I was thinking."</p>
           <cite class="product-proof__cite">Roheed</cite>
         </div>
@@ -990,7 +1202,7 @@
       <div class="faq__list">
         <details class="faq__item reveal">
           <summary>How long is each class, and when do they run?</summary>
-          <div class="faq__answer"><p>Each session is 1 hour. Classes start late October and run for twelve weeks. S1 classes are Wednesdays at 6pm Sydney/Melbourne time and S2 classes are Thursdays at 6pm Sydney/Melbourne time. Every session is recorded if you cannot make one live.</p></div>
+          <div class="faq__answer"><p>Each session is 1 hour. The first classes are Wednesday 28 October (S1) and Thursday 29 October (S2), and the course runs for twelve weeks. S1 classes are Wednesdays at 6pm Sydney/Melbourne time and S2 classes are Thursdays at 6pm Sydney/Melbourne time. Every session is recorded if you cannot make one live.</p></div>
         </details>
         <details class="faq__item reveal">
           <summary>Are the live classes recorded?</summary>
@@ -1021,8 +1233,8 @@
     <div class="product-final-cta__bg"><div class="book__orb"></div></div>
     <div class="container">
       <div class="product-final-cta__inner reveal">
-        <h2>Enrolments are<br><em>open.</em></h2>
-        <p>Classes start late October and run for twelve weeks, up to the March 2027 sitting.</p>
+        <h2>Classes start<br><em>28 October.</em></h2>
+        <p>S1 kicks off Wednesday 28 October and S2 on Thursday 29 October, both at 6pm Sydney/Melbourne time. Enrol now and start the recorded library today.</p>
         <a href="/checkout/?product=comprehensive" class="btn btn--white btn--lg">Enrol for $1,799 →</a>
         <p class="product-final-cta__note">$1,799 AUD · Full refund if you leave before your third class · Capped at 25 students</p>
       </div>

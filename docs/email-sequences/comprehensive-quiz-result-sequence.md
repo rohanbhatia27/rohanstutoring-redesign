@@ -155,7 +155,7 @@ Another 6 months of prep. Another $600 exam fee. Another 6 months of wondering w
 
 That is the thing we are trying to prevent.
 
-Roheed lifted his Section 2 score from 51 to 85 in one sitting. That did not come from watching more content. It came from writing an essay every fortnight and having someone show him exactly what was costing him marks.
+Roheed lifted his Section 2 score from 50 to 81 in one sitting. That did not come from watching more content. It came from writing an essay every fortnight and having someone show him exactly what was costing him marks.
 
 **There is also a guarantee, so the risk sits with me rather than with you.**
 

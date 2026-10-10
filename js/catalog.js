@@ -25,7 +25,7 @@
       status: 'open',
       available: true,
       label: 'Enrol Now',
-      publicMessage: 'Enrolments are open. Classes start late October 2026.',
+      publicMessage: 'Enrolments are open. The first class is Wednesday 28 October 2026.',
     },
   };
 
@@ -319,7 +319,7 @@
       slug: 'comprehensive',
       name: 'Comprehensive Course',
       title: 'GAMSAT S1 & S2 Comprehensive Course',
-      // March 2027 GAMSAT cohort (classes start late October 2026). The $1,599
+      // March 2027 GAMSAT cohort (first class Wednesday 28 October 2026). The $1,599
       // early bird ended at 23:59 AEDT on 4 October 2026; the price is now $1,799.
       //
       // Instalments are deliberately priced above the upfront total to push

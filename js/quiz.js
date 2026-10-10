@@ -115,7 +115,7 @@ const OUTCOMES = {
     teaser: "You've sat this before. You know what doesn't work. The problem is not effort or time. Nobody has looked at your specific score profile and rebuilt your prep around what's actually leaking points. That's what one-to-one coaching is for.",
     planHtml: `
       <p>After more than one attempt, the bottleneck is rarely content. Usually nobody has looked at your score profile and rebuilt your prep around the gaps it shows. Mastery puts one-to-one work on top of the 24 live classes, and it runs up to the March 2027 sitting. This is the structure we'd work through together.</p>
-      <h3>Phase 1: Now to late October: Diagnose before classes start</h3>
+      <h3>Phase 1: Now to 28 October: Diagnose before classes start</h3>
       <p class="plan-phase-focus">Weekly focus: one full diagnostic paper, your personalised roadmap, essays marked from week one.</p>
       <ol>
         <li>Sit a full timed paper, then break it down question by question.</li>
@@ -145,8 +145,8 @@ const OUTCOMES = {
     name: 'The Comprehensive Path',
     teaser: "You've got the hours to put in. The gap is real, but you can close it. Free resources probably won't get you there. Live teaching and essay feedback usually will, with a weekly structure that keeps you honest until exam day.",
     planHtml: `
-      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start late October and run for twelve weeks, up to the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
-      <h3>Phase 1: Now to late October: Get ahead before classes start</h3>
+      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start Wednesday 28 October and run for twelve weeks, up to the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
+      <h3>Phase 1: Now to 28 October: Get ahead before classes start</h3>
       <p class="plan-phase-focus">Weekly focus: the recorded library, one essay a week, one diagnostic mock.</p>
       <ol>
         <li>Sit a timed diagnostic early so you know where your marks are going before the first class.</li>
