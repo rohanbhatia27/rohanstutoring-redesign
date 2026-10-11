@@ -82,7 +82,7 @@ the course, and to surface which leads are hot enough for a sales-call invite.
 - Do not publish June 2026 start-date copy. That cohort date has passed.
 - Enrolment is open for the cohort preparing for the March 2027 GAMSAT.
   First classes: S1 Wednesday 28 October 2026, S2 Thursday 29 October 2026.
-  S1 runs Wednesdays and S2 Thursdays, both at 6pm Sydney/Melbourne time.
+  S1 runs Wednesdays and S2 Thursdays, both at 7pm Sydney/Melbourne time.
 - Pricing: $1799 (the $1599 early bird ended 4 October 2026). Instalments:
   4 × $499 ($1996 total).
 - The /quiz recommends Comprehensive or Mastery to students sitting in March

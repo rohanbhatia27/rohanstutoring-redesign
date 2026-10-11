@@ -168,7 +168,7 @@ test('comprehensive hero drops the expired early bird countdown', () => {
 test('comprehensive hero counts down to the first class on 28 October', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /data-countdown data-countdown-target="2026-10-28T18:00:00\+11:00"/);
+  assert.match(html, /data-countdown data-countdown-target="2026-10-28T19:00:00\+11:00"/);
   assert.match(html, /data-countdown-complete="Classes are underway"/);
   assert.doesNotMatch(html, /late October/);
 });
