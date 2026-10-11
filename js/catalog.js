@@ -435,9 +435,9 @@
       tagline: 'Private tutorials  Unlimited essay marking  Enrolment open',
       features: [
         'Everything in the Comprehensive Course',
-        '5 × 1:1 private tutorials with Rohan',
+        '5 × 1:1 private tutorials with our team',
         'Unlimited essay marking',
-        'Monthly 1:1 check-ins',
+        'Monthly 1:1 check-ins with our team',
         'Personalised study roadmap',
       ],
       isDigital: false,
