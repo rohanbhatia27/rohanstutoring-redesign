@@ -102,6 +102,53 @@ async function tagSubscriber({ subscriberId, tagId }) {
   return data && data.subscriber ? data.subscriber : null;
 }
 
+async function listTagSubscriberIds(tagId, { taggedAfter = '' } = {}) {
+  const ids = new Set();
+  let cursor = '';
+
+  do {
+    const params = new URLSearchParams({ per_page: '500' });
+    if (taggedAfter) params.set('tagged_after', taggedAfter);
+    if (cursor) params.set('after', cursor);
+
+    const data = await kitRequest(`/tags/${encodeURIComponent(tagId)}/subscribers?${params}`);
+    for (const subscriber of (data && data.subscribers) || []) {
+      ids.add(subscriber.id);
+    }
+
+    const pagination = (data && data.pagination) || {};
+    cursor = pagination.has_next_page ? String(pagination.end_cursor || '') : '';
+  } while (cursor);
+
+  return ids;
+}
+
+// Adds the current cohort tag to anyone given a source (purchase) tag after the cutoff.
+async function syncCohortTag({ cohortTagId, sourceTagIds = [], taggedAfter = '' }) {
+  const safeCohortTagId = String(cohortTagId || '').trim();
+  const safeSourceTagIds = sourceTagIds.map((id) => String(id || '').trim()).filter(Boolean);
+
+  if (!safeCohortTagId || safeSourceTagIds.length === 0) {
+    throw new Error('Missing Kit cohort tag id or source tag ids');
+  }
+
+  const existing = await listTagSubscriberIds(safeCohortTagId);
+  const missing = new Set();
+
+  for (const sourceTagId of safeSourceTagIds) {
+    const ids = await listTagSubscriberIds(sourceTagId, { taggedAfter });
+    for (const id of ids) {
+      if (!existing.has(id)) missing.add(id);
+    }
+  }
+
+  for (const subscriberId of missing) {
+    await tagSubscriber({ subscriberId, tagId: safeCohortTagId });
+  }
+
+  return { tagged: [...missing], alreadyTagged: existing.size };
+}
+
 async function addSubscriberToForm({ formId, email, firstName = '' }) {
   const safeFormId = String(formId || '').trim();
   if (!safeFormId) {
@@ -270,6 +317,7 @@ module.exports = {
   isValidEmail,
   upsertSubscriber,
   tagSubscriber,
+  syncCohortTag,
   addSubscriberToForm,
   addSubscriberToSequence,
   syncQuizLead,

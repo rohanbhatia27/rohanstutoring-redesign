@@ -3,6 +3,7 @@ const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 const createCheckoutHandler = require('./create-checkout.js');
 const paymentIntentStatusHandler = require('./payment-status.js');
 const { shareProductAccess } = require('./_lib/_google-drive.js');
+const { syncCohortTag } = require('./_lib/_kit.js');
 const {
   buildAuthUrl,
   driveHealth,
@@ -248,6 +249,39 @@ async function handleTestDriveShare(req, res) {
   }
 }
 
+// Vercel cron (Bearer CRON_SECRET) or a manual run with the fulfillment retry token.
+async function handleCohortTagSync(req, res) {
+  const cronSecret = String(process.env.CRON_SECRET || '').trim();
+  const retryToken = getRetryToken();
+  const authHeader = String(req.headers['authorization'] || '').trim();
+  const isCron = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
+  const isManual = Boolean(retryToken) && getRequestToken(req) === retryToken;
+
+  if (!isCron && !isManual) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const cohortTagId = String(process.env.KIT_TAG_ID_COHORT_CURRENT || '').trim();
+  if (!cohortTagId) {
+    return res.status(200).json({ ok: true, skipped: true, reason: 'KIT_TAG_ID_COHORT_CURRENT not set' });
+  }
+
+  const sourceTagIds = [
+    process.env.KIT_TAG_ID_PURCHASED_COMPREHENSIVE,
+    process.env.KIT_TAG_ID_PURCHASED_MASTERY,
+  ];
+  const taggedAfter = String(process.env.KIT_COHORT_TAGGED_AFTER || '').trim();
+
+  try {
+    const result = await syncCohortTag({ cohortTagId, sourceTagIds, taggedAfter });
+    console.log(`[admin:cohort-tag-sync] Tagged ${result.tagged.length} new enrolment(s) into cohort tag ${cohortTagId}`);
+    return res.status(200).json({ ok: true, ...result });
+  } catch (error) {
+    console.error('[admin:cohort-tag-sync] Sync failed:', error.message);
+    return res.status(500).json({ error: 'Cohort tag sync failed.' });
+  }
+}
+
 async function adminHandler(req, res) {
   const action = String(
     (req.body && typeof req.body === 'object' ? req.body.action : '') ||
@@ -269,6 +303,10 @@ async function adminHandler(req, res) {
 
   if (action === 'testDriveShare') {
     return handleTestDriveShare(req, res);
+  }
+
+  if (action === 'cohortTagSync') {
+    return handleCohortTagSync(req, res);
   }
 
   if (action === 'stripeHealth' || (!action && req.method === 'GET')) {
