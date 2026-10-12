@@ -48,7 +48,7 @@ test('syncCohortTag tags only recent purchasers missing the cohort tag', async (
   assert.equal(result.alreadyTagged, 2);
 
   const sourceList = calls.find((c) => c.url.includes('/tags/100/subscribers?'));
-  assert.match(sourceList.url, /tagged_after=2026-09-01T00%3A00%3A00Z/);
+  assert.match(sourceList.url, /tagged_after=2026-09-01(?:&|$)/);
 
   const tagWrites = calls.filter((c) => c.options.method === 'POST').map((c) => c.url);
   assert.deepEqual(tagWrites.sort(), [

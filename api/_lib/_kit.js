@@ -34,6 +34,12 @@ function firstNameFromFullName(value) {
   return normaliseFirstName(String(value || '').split(' ')[0] || '');
 }
 
+function normaliseKitDateFilter(value) {
+  const safeValue = String(value || '').trim();
+  const dateMatch = safeValue.match(/^(\d{4}-\d{2}-\d{2})/);
+  return dateMatch ? dateMatch[1] : safeValue;
+}
+
 async function kitRequest(path, { method = 'GET', body } = {}) {
   const apiKey = getRequiredEnv('KIT_API_KEY');
   const response = await fetchImpl(`${KIT_API_BASE}${path}`, {
@@ -108,7 +114,8 @@ async function listTagSubscriberIds(tagId, { taggedAfter = '' } = {}) {
 
   do {
     const params = new URLSearchParams({ per_page: '500' });
-    if (taggedAfter) params.set('tagged_after', taggedAfter);
+    const safeTaggedAfter = normaliseKitDateFilter(taggedAfter);
+    if (safeTaggedAfter) params.set('tagged_after', safeTaggedAfter);
     if (cursor) params.set('after', cursor);
 
     const data = await kitRequest(`/tags/${encodeURIComponent(tagId)}/subscribers?${params}`);
