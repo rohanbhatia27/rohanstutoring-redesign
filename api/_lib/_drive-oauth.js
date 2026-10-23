@@ -26,8 +26,6 @@ function getAdminToken() {
 function getRequestToken(req) {
   return String(
     req.headers['x-fulfillment-retry-token'] ||
-    req.query?.token ||
-    req.body?.token ||
     ''
   ).trim();
 }

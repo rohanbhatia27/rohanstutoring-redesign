@@ -40,11 +40,7 @@ function getRetryToken() {
 }
 
 function getRequestToken(req) {
-  return String(
-    req.headers['x-fulfillment-retry-token'] ||
-    req.body?.token ||
-    ''
-  ).trim();
+  return String(req.headers['x-fulfillment-retry-token'] || '').trim();
 }
 
 async function handleRetryFulfillment(req, res) {
@@ -75,6 +71,9 @@ async function handleRetryFulfillment(req, res) {
   try {
     const stripeClient = stripeFactory(process.env.STRIPE_SECRET_KEY);
     const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(409).json({ error: 'Payment intent has not succeeded.' });
+    }
 
     // Subscription PIs have no slug metadata — resolve it from the subscription before fulfilling.
     if (paymentIntent.invoice) {
@@ -223,11 +222,13 @@ async function handleDriveOAuthCallback(req, res) {
 }
 
 async function handleTestDriveShare(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const token = String(
     req.headers['x-test-token'] ||
     req.headers['x-fulfillment-retry-token'] ||
-    req.query?.token ||
-    req.body?.token ||
     ''
   ).trim();
 
@@ -236,7 +237,7 @@ async function handleTestDriveShare(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const email = String(req.body?.email || req.query?.email || '').trim();
+  const email = String(req.body?.email || '').trim();
   if (!email) {
     return res.status(400).json({ error: 'Missing email param' });
   }
@@ -247,6 +248,18 @@ async function handleTestDriveShare(req, res) {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
+}
+
+function handleRuntimeHealth(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const expectedToken = getRetryToken();
+  if (!expectedToken || getRequestToken(req) !== expectedToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  return res.status(200).json({ nodeVersion: process.version });
 }
 
 // Vercel cron (Bearer CRON_SECRET) or a manual run with the fulfillment retry token.
@@ -307,6 +320,10 @@ async function adminHandler(req, res) {
 
   if (action === 'cohortTagSync') {
     return handleCohortTagSync(req, res);
+  }
+
+  if (action === 'runtimeHealth') {
+    return handleRuntimeHealth(req, res);
   }
 
   if (action === 'stripeHealth' || (!action && req.method === 'GET')) {

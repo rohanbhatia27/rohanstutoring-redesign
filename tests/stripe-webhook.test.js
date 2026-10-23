@@ -63,10 +63,26 @@ test('fulfillment helper maps product slugs to server-side fulfillment plans', (
   });
 });
 
+test('fulfillment helper refuses a PaymentIntent that is not paid', async () => {
+  let updated = false;
+  await assert.rejects(
+    fulfillPaymentIntent.fulfillPaymentIntent({
+      paymentIntent: { id: 'pi_unpaid', status: 'requires_payment_method', metadata: { base_slug: 'blueprint' } },
+      stripeClient: { paymentIntents: {
+        retrieve: async () => ({ id: 'pi_unpaid', status: 'requires_payment_method', metadata: { base_slug: 'blueprint' } }),
+        update: async () => { updated = true; },
+      } },
+    }),
+    /has not succeeded/
+  );
+  assert.equal(updated, false);
+});
+
 test('fulfillment helper records fulfillment on the PaymentIntent metadata', async () => {
   const updates = [];
   const paymentIntent = {
     id: 'pi_123',
+    status: 'succeeded',
     metadata: {
       base_slug: 'blueprint',
       customer_email: 'jane@example.com',
@@ -108,6 +124,7 @@ test('fulfillment helper preserves essay upload instructions for manual recovery
   });
   const paymentIntent = {
     id: 'pi_essay123',
+    status: 'succeeded',
     metadata: {
       base_slug: 'essay-marking',
       customer_email: 'jane@example.com',
@@ -159,6 +176,7 @@ test('fulfillment retry keeps essay upload fulfillment without retrying Drive sh
   const result = await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_3Tv5xeH5JsZI731G0EwGKlau',
+      status: 'succeeded',
       metadata: {
         base_slug: 'essay-marking',
         customer_email: 'jane@example.com',
@@ -191,6 +209,7 @@ test('fulfillment helper records combined purchase metadata without breaking bas
   const updates = [];
   const paymentIntent = {
     id: 'pi_456',
+    status: 'succeeded',
     metadata: {
       base_slug: 'comprehensive',
       upsell_slug: 'mentoring-single',
@@ -230,6 +249,7 @@ test('fulfillment helper skips duplicate webhook deliveries once fulfillment is 
       const result = await fulfillPaymentIntent.fulfillPaymentIntent({
         paymentIntent: {
           id: 'pi_123',
+          status: 'succeeded',
           metadata: {
             product_slug: 'blueprint',
             fulfillment_status: status,
@@ -259,6 +279,7 @@ test('fulfillment helper skips stale webhook replays when Stripe already shows f
       const result = await fulfillPaymentIntent.fulfillPaymentIntent({
         paymentIntent: {
           id: 'pi_789',
+          status: 'succeeded',
           metadata: {
             product_slug: 'blueprint',
           },
@@ -267,6 +288,7 @@ test('fulfillment helper skips stale webhook replays when Stripe already shows f
           paymentIntents: {
             retrieve: async () => ({
               id: 'pi_789',
+              status: 'succeeded',
               metadata: {
                 product_slug: 'blueprint',
                 base_slug: 'blueprint',
@@ -325,6 +347,7 @@ test('fulfillment helper retries Blueprint-family Drive sharing when fulfillment
   const result = await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_pending_drive',
+      status: 'succeeded',
       metadata: {
         product_slug: 'blueprint',
         base_slug: 'blueprint',
@@ -371,6 +394,7 @@ test('fulfillment helper chooses the comprehensive welcome email template', asyn
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_123',
+      status: 'succeeded',
       metadata: {
         base_slug: 'comprehensive',
         customer_email: 'jane@example.com',
@@ -407,6 +431,7 @@ test('fulfillment helper uses the S2-specific start time for s2-comprehensive', 
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_123',
+      status: 'succeeded',
       metadata: {
         base_slug: 's2-comprehensive',
         customer_email: 'jane@example.com',
@@ -542,6 +567,7 @@ test('fulfillment helper does not reuse the comprehensive template for mastery',
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_123',
+      status: 'succeeded',
       metadata: {
         base_slug: 'mastery',
         customer_email: 'jane@example.com',
@@ -600,6 +626,7 @@ test('fulfillment helper tags mastery buyers in Kit for full-price and instalmen
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_mastery_full',
+      status: 'succeeded',
       metadata: {
         base_slug: 'mastery',
         customer_email: 'jane@example.com',
@@ -684,6 +711,7 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
     await fulfillPaymentIntent.fulfillPaymentIntent({
       paymentIntent: {
         id: `pi_kit_${baseSlug}`,
+        status: 'succeeded',
         metadata: {
           base_slug: baseSlug,
           customer_email: 'jane@example.com',
@@ -754,6 +782,7 @@ test('fulfillment helper shares starter-pack Drive access and records share meta
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_drive123',
+      status: 'succeeded',
       metadata: {
         base_slug: 'starter-pack',
         customer_email: 'jane@example.com',
@@ -821,6 +850,7 @@ test('fulfillment helper shares Blueprint Drive access for Blueprint, Comprehens
     await fulfillPaymentIntent.fulfillPaymentIntent({
       paymentIntent: {
         id: `pi_drive_${baseSlug}`,
+        status: 'succeeded',
         metadata: {
           base_slug: baseSlug,
           customer_email: `${baseSlug}@example.com`,
@@ -882,6 +912,7 @@ test('fulfillment helper records OAuth/Drive failures in metadata for manual rec
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_drive_oauth_fail',
+      status: 'succeeded',
       metadata: {
         base_slug: 'blueprint',
         customer_email: 'jane@example.com',
@@ -973,6 +1004,7 @@ test('fulfillment helper preserves Drive metadata when Kit tagging also succeeds
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_drive_kit_123',
+      status: 'succeeded',
       metadata: {
         base_slug: 'starter-pack',
         customer_email: 'jane@example.com',

@@ -187,6 +187,7 @@ test('fulfillPaymentIntent sends alert when Google Drive sharing fails', async (
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_drive_fail',
+      status: 'succeeded',
       metadata: { base_slug: 'blueprint', customer_email: 'jane@example.com' },
     },
     stripeClient: {
@@ -227,6 +228,7 @@ test('fulfillPaymentIntent sends alert when confirmation email fails', async () 
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_email_fail',
+      status: 'succeeded',
       metadata: { base_slug: 'blueprint', customer_email: 'jane@example.com' },
     },
     stripeClient: {
@@ -269,6 +271,7 @@ test('fulfillPaymentIntent sends alert when Kit tagging fails', async () => {
   await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_kit_fail',
+      status: 'succeeded',
       metadata: { base_slug: 'blueprint', customer_email: 'jane@example.com' },
     },
     stripeClient: {
@@ -298,6 +301,7 @@ test('fulfillPaymentIntent sends alert for unknown product slug', async () => {
       fulfillPaymentIntent.fulfillPaymentIntent({
         paymentIntent: {
           id: 'pi_unknown_product',
+          status: 'succeeded',
           metadata: { base_slug: 'nonexistent-product', customer_email: 'jane@example.com' },
         },
         stripeClient: {
@@ -331,6 +335,7 @@ test('fulfillPaymentIntent alert does not block success flow when alert itself f
   const result = await fulfillPaymentIntent.fulfillPaymentIntent({
     paymentIntent: {
       id: 'pi_alert_fail',
+      status: 'succeeded',
       metadata: { base_slug: 'blueprint', customer_email: 'jane@example.com' },
     },
     stripeClient: {

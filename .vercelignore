@@ -5,8 +5,6 @@ coverage/
 tmp/
 tests/
 scripts/
-package.json
-package-lock.json
 .env
 .env.*
 .env*.local

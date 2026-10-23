@@ -13,8 +13,6 @@ function getExpectedToken() {
 function getRequestToken(req) {
   return String(
     req.headers['x-enquiry-automation-token'] ||
-    req.body?.token ||
-    req.query?.token ||
     ''
   ).trim();
 }

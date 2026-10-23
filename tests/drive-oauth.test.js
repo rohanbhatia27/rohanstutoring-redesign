@@ -37,11 +37,10 @@ test('Drive OAuth connect returns an admin-protected auth URL with Drive scope',
 
   const req = {
     method: 'GET',
-    headers: { host: 'www.rohanstutoring.com' },
+    headers: { host: 'www.rohanstutoring.com', 'x-fulfillment-retry-token': 'retry_secret' },
     query: {
       action: 'driveOAuthStart',
       mode: 'connect',
-      token: 'retry_secret',
     },
   };
   const res = createResponseRecorder();
@@ -153,10 +152,8 @@ test('Admin test-drive-share action shares Blueprint access for a verified admin
   const req = {
     method: 'POST',
     headers: { 'x-test-token': 'retry_secret' },
-    query: {
-      action: 'testDriveShare',
-      email: 'jane@example.com',
-    },
+    query: { action: 'testDriveShare' },
+    body: { email: 'jane@example.com' },
   };
   const res = createResponseRecorder();
 

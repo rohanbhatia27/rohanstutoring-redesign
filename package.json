@@ -1,6 +1,9 @@
 {
   "name": "rohanstutoring-site",
   "version": "1.0.0",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "test": "node --test tests/*.test.js",
     "audit:redirects": "node scripts/redirect-audit.js",

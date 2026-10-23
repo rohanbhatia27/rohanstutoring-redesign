@@ -4,6 +4,8 @@ const crypto = require('crypto');
 
 const COOKIE_NAME = 'rg_ga4_rt';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 60; // 60 days
+const STATE_COOKIE_NAME = '__Host-rg_ga4_state';
+const STATE_MAX_AGE = 10 * 60; // 10 minutes
 
 const SCOPE = 'https://www.googleapis.com/auth/analytics.readonly';
 
@@ -29,8 +31,11 @@ function encrypt(plaintext) {
 }
 
 function decrypt(payload) {
-  const [ivB, encB, tagB] = String(payload).split('.');
-  if (!ivB || !encB || !tagB) throw new Error('Bad cookie payload');
+  const parts = String(payload).split('.');
+  if (parts.length !== 3 || parts.some((part) => !/^[A-Za-z0-9_-]+$/.test(part))) {
+    throw new Error('Bad cookie payload');
+  }
+  const [ivB, encB, tagB] = parts;
   const decipher = crypto.createDecipheriv(
     'aes-256-gcm',
     getEncryptionKey(),
@@ -45,15 +50,51 @@ function decrypt(payload) {
 
 function parseCookies(req) {
   const header = req.headers.cookie || '';
-  const out = {};
+  const out = Object.create(null);
   header.split(';').forEach((part) => {
     const idx = part.indexOf('=');
     if (idx < 0) return;
     const k = part.slice(0, idx).trim();
     const v = part.slice(idx + 1).trim();
-    if (k) out[k] = decodeURIComponent(v);
+    if (k) {
+      try {
+        out[k] = decodeURIComponent(v);
+      } catch (err) {
+        out[k] = null;
+      }
+    }
   });
   return out;
+}
+
+function appendCookie(res, cookie) {
+  const existing = res.getHeader('Set-Cookie');
+  res.setHeader('Set-Cookie', existing ? [].concat(existing, cookie) : cookie);
+}
+
+function createOAuthState(res) {
+  const state = crypto.randomBytes(32).toString('base64url');
+  const payload = encrypt(JSON.stringify({ state, expiresAt: Date.now() + STATE_MAX_AGE * 1000 }));
+  appendCookie(res, `${STATE_COOKIE_NAME}=${payload}; Max-Age=${STATE_MAX_AGE}; Path=/; HttpOnly; Secure; SameSite=Lax`);
+  return state;
+}
+
+function clearOAuthStateCookie(res) {
+  appendCookie(res, `${STATE_COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`);
+}
+
+function validateOAuthState(req, state) {
+  if (typeof state !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(state)) return false;
+  try {
+    const raw = parseCookies(req)[STATE_COOKIE_NAME];
+    if (!raw) return false;
+    const saved = JSON.parse(decrypt(raw));
+    if (!saved || typeof saved.state !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(saved.state) ||
+        !Number.isFinite(saved.expiresAt) || saved.expiresAt <= Date.now()) return false;
+    return crypto.timingSafeEqual(Buffer.from(state), Buffer.from(saved.state));
+  } catch (err) {
+    return false;
+  }
 }
 
 function setRefreshTokenCookie(res, refreshToken) {
@@ -66,12 +107,12 @@ function setRefreshTokenCookie(res, refreshToken) {
     'Secure',
     'SameSite=Lax',
   ].join('; ');
-  res.setHeader('Set-Cookie', cookie);
+  appendCookie(res, cookie);
 }
 
 function clearRefreshTokenCookie(res) {
-  res.setHeader(
-    'Set-Cookie',
+  appendCookie(
+    res,
     `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`
   );
 }
@@ -142,6 +183,9 @@ async function refreshAccessToken(refreshToken) {
 
 module.exports = {
   SCOPE,
+  createOAuthState,
+  clearOAuthStateCookie,
+  validateOAuthState,
   buildAuthUrl,
   exchangeCodeForTokens,
   refreshAccessToken,

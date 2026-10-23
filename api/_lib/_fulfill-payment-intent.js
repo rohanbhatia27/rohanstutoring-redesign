@@ -301,6 +301,10 @@ async function fulfillPaymentIntent(options) {
     ? await stripeClient.paymentIntents.retrieve(paymentIntent.id, { expand: ['charges'] })
     : paymentIntent;
 
+  if (currentPaymentIntent.status !== 'succeeded') {
+    throw new Error('Cannot fulfill a PaymentIntent that has not succeeded.');
+  }
+
   let metadata = currentPaymentIntent.metadata && typeof currentPaymentIntent.metadata === 'object'
     ? currentPaymentIntent.metadata
     : {};

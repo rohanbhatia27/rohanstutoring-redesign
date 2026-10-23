@@ -7,6 +7,9 @@ const {
   readRefreshToken,
   refreshAccessToken,
   clearRefreshTokenCookie,
+  createOAuthState,
+  clearOAuthStateCookie,
+  validateOAuthState,
 } = require('./_lib/_ga4-auth.js');
 
 const { Resend } = require('resend');
@@ -505,7 +508,7 @@ async function handler(req, res) {
   // ---- OAuth: start ----
   if (action === 'connect') {
     try {
-      const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const state = createOAuthState(res);
       const url = buildAuthUrl(state);
       res.statusCode = 302;
       res.setHeader('Location', url);
@@ -538,10 +541,9 @@ async function handler(req, res) {
 
   // ---- Email digest (called by Vercel cron, requires GA4_REFRESH_TOKEN env var) ----
   if (action === 'digest') {
-    const cronHeader = req.headers['x-vercel-cron'];
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers['authorization'];
-    if (!cronHeader && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'unauthorized' }));
@@ -600,10 +602,9 @@ async function handler(req, res) {
 
   // ---- Weekly DeepSeek insight email (Vercel cron or Bearer token) ----
   if (action === 'weekly-insights') {
-    const cronHeader = req.headers['x-vercel-cron'];
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers['authorization'];
-    if (!cronHeader && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       res.statusCode = 401;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'unauthorized' }));
@@ -669,6 +670,14 @@ async function handler(req, res) {
 
   // ---- OAuth: callback ----
   if (action === 'callback') {
+    // Consume the browser binding even when Google denies access or exchange fails.
+    clearOAuthStateCookie(res);
+    if (!validateOAuthState(req, req.query.state)) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'text/plain');
+      res.end('Invalid or expired OAuth state. Reconnect Google Analytics.');
+      return;
+    }
     const code = req.query.code;
     const error = req.query.error;
 
