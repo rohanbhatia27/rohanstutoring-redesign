@@ -114,7 +114,7 @@ const OUTCOMES = {
     name: 'The Mastery Path',
     teaser: "You've sat this before. You know what doesn't work. The problem is not effort or time. Nobody has looked at your specific score profile and rebuilt your prep around what's actually leaking points. That's what one-to-one coaching is for.",
     planHtml: `
-      <p>After more than one attempt, the bottleneck is rarely content. Usually nobody has looked at your score profile and rebuilt your prep around the gaps it shows. Mastery puts one-to-one work on top of the 24 live classes, and it runs up to the March 2027 sitting. This is the structure we'd work through together.</p>
+      <p>After more than one attempt, the bottleneck is rarely content. Usually nobody has looked at your score profile and rebuilt your prep around the gaps it shows. Mastery puts one-to-one work on top of the 20 live classes, and it runs up to the March 2027 sitting. This is the structure we'd work through together.</p>
       <h3>Phase 1: Now to 29 November: Diagnose before classes start</h3>
       <p class="plan-phase-focus">Weekly focus: one full diagnostic paper, your personalised roadmap, essays marked from week one.</p>
       <ol>
@@ -122,7 +122,7 @@ const OUTCOMES = {
         <li>Build your roadmap from that evidence: your background, current scores, available hours, and what went wrong last time.</li>
         <li>Start an essay rhythm now. Marking is unlimited, so use it.</li>
       </ol>
-      <h3>Phase 2: The twelve cohort weeks: Volume under pressure</h3>
+      <h3>Phase 2: The ten cohort weeks: Volume under pressure</h3>
       <p class="plan-phase-focus">Weekly focus: both live classes, timed mini-papers, private tutorials on your biggest leak.</p>
       <ol>
         <li>Use the live classes for the method and your private tutorials for whichever section is leaking the most marks.</li>
@@ -145,7 +145,7 @@ const OUTCOMES = {
     name: 'The Comprehensive Path',
     teaser: "You've got the hours to put in. The gap is real, but you can close it. Free resources probably won't get you there. Live teaching and essay feedback usually will, with a weekly structure that keeps you honest until exam day.",
     planHtml: `
-      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start Sunday 29 November and run for twelve weeks, up to the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
+      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start Sunday 29 November and run for ten weeks, up to the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
       <h3>Phase 1: Now to 29 November: Get ahead before classes start</h3>
       <p class="plan-phase-focus">Weekly focus: the recorded library, one essay a week, one diagnostic mock.</p>
       <ol>
@@ -154,7 +154,7 @@ const OUTCOMES = {
         <li>S3 fundamentals: don't skip chemistry and physics reasoning, even if your background is biology.</li>
         <li>Write one essay a week from now. Don't wait until you feel ready.</li>
       </ol>
-      <h3>Phase 2: The twelve cohort weeks: Apply under pressure, refine the essay</h3>
+      <h3>Phase 2: The ten cohort weeks: Apply under pressure, refine the essay</h3>
       <p class="plan-phase-focus">Weekly focus: both live classes, timed section drills, two essays a week.</p>
       <ol>
         <li>Treat the live classes as fixed appointments. Weekly times are confirmed before the first class, and every session is recorded.</li>

@@ -88,7 +88,7 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   First classes: S1 Sunday 29 November 2026, S2 Tuesday 1 December 2026.
   S1 runs Sundays at 5pm and S2 Tuesdays at 6pm, Sydney/Melbourne time
   (6am Sunday and 7am Tuesday in the UK). One week off over Christmas, last
-  class Tuesday 23 February 2027. Enrolment closes Friday 27 November 2026,
+  class Tuesday 9 February 2027. 10 weeks, 20 live classes. Enrolment closes Friday 27 November 2026,
   11:59pm Sydney. Includes 5 marked essays. Waiting on September results is
   fine: they can enrol and use the refund (before the third class).
 - Pricing: $1799 (the $1599 early bird ended 4 October 2026). Instalments:

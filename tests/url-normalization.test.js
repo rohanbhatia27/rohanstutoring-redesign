@@ -423,10 +423,10 @@ test('homepage FAQ no longer promises the retired Sunday strategy session', () =
   assert.doesNotMatch(html, /Is there a free taster session\?/);
 });
 
-test('mastery page states 24 live classes everywhere', () => {
+test('mastery page states the summer cohort 20 live classes everywhere', () => {
   const html = read('courses/mastery.html');
-  assert.doesNotMatch(html, /20 sessions/);
-  assert.match(html, /<span>Live Classes<\/span><strong>24 sessions \(S1 \+ S2\)<\/strong>/);
+  assert.doesNotMatch(html, /24 sessions|24 live/);
+  assert.match(html, /<span>Live Classes<\/span><strong>20 sessions \(S1 \+ S2\)<\/strong>/);
 });
 
 test('essay marking is open on the pre-August terms', () => {
