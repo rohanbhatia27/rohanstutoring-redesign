@@ -30,7 +30,7 @@ test('flagship course pages are open and route visitors to checkout', () => {
 
 test('comprehensive page routes enrolment CTAs to checkout at the standard price', () => {
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
-  const checkoutLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive"/g) || [];
+  const checkoutLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive(&cohort=nov-2026)?"/g) || [];
 
   assert.ok(checkoutLinks.length >= 3, 'open page should route visitors to checkout');
   assert.doesNotMatch(comprehensiveHtml, /Join the [Ww]aitlist/);
@@ -165,12 +165,14 @@ test('comprehensive hero drops the expired early bird countdown', () => {
   assert.doesNotMatch(html, /data-countdown-v3/);
 });
 
-test('comprehensive hero counts down to the first class on 28 October', () => {
+test('comprehensive hero counts down to summer cohort enrolment closing on 27 November', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /data-countdown data-countdown-target="2026-10-28T19:00:00\+11:00"/);
-  assert.match(html, /data-countdown-complete="Classes are underway"/);
+  assert.match(html, /data-countdown data-countdown-target="2026-11-27T23:59:00\+11:00"/);
+  assert.match(html, /data-countdown-complete="Enrolment has closed"/);
   assert.doesNotMatch(html, /late October/);
+  assert.doesNotMatch(html, /spots left/);
+  assert.doesNotMatch(html, /Wednesday 28 October/);
 });
 
 test('public cohort surfaces do not advertise expired June 2026 starts', () => {

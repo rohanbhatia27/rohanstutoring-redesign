@@ -21,7 +21,9 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
 ## Offer ladder (highest commercial priority first)
 1. Comprehensive Course — FLAGSHIP and the top commercial priority. Live S1 + S2
    prep system run in cohorts. The cohort preparing for the March 2027 GAMSAT
-   is open: the first class is Wednesday 28 October 2026. $1799 (the $1599 early bird
+   is the summer cohort (the October cohort closed 27 October 2026): the first
+   class is Sunday 29 November 2026 and enrolment closes Friday 27 November 2026,
+   11:59pm Sydney. 5 marked essays. $1799 (the $1599 early bird
    ended 4 October 2026). Instalments: 4 × $499 ($1996 total).
    Page: /store/p/comprehensive
 2. Step-down / nurture entry points: GAMSAT Starter Pack
@@ -81,8 +83,14 @@ the course, and to surface which leads are hot enough for a sales-call invite.
 ## CURRENT PRIORITY  (snapshot — update when the launch changes)
 - Do not publish June 2026 start-date copy. That cohort date has passed.
 - Enrolment is open for the cohort preparing for the March 2027 GAMSAT.
-  First classes: S1 Wednesday 28 October 2026, S2 Thursday 29 October 2026.
-  S1 runs Wednesdays and S2 Thursdays, both at 7pm Sydney/Melbourne time.
+  This is the summer cohort. The October cohort (Wed/Thu 7pm, started 28 October)
+  is closed to new students.
+  First classes: S1 Sunday 29 November 2026, S2 Tuesday 1 December 2026.
+  S1 runs Sundays at 5pm and S2 Tuesdays at 6pm, Sydney/Melbourne time
+  (6am Sunday and 7am Tuesday in the UK). One week off over Christmas, last
+  class Tuesday 23 February 2027. Enrolment closes Friday 27 November 2026,
+  11:59pm Sydney. Includes 5 marked essays. Waiting on September results is
+  fine: they can enrol and use the refund (before the third class).
 - Pricing: $1799 (the $1599 early bird ended 4 October 2026). Instalments:
   4 × $499 ($1996 total).
 - The /quiz recommends Comprehensive or Mastery to students sitting in March
