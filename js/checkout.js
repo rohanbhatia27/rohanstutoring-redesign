@@ -201,7 +201,7 @@
   // Card UI that syncSelectionUI already shows/hides on every call, so card
   // mode leaves it alone. Only the elements below it are restored by flag.
   const PAYPAL_HIDES_SYNCED = ['#card-element-wrap', '#payment-request-button', '#payment-request-separator'];
-  const PAYPAL_HIDES_RESTORED = ['#pay-btn', '#instalment-link'];
+  const PAYPAL_HIDES_RESTORED = ['#pay-btn', '#instalment-link', '.checkout-payment-methods'];
 
   function syncPayPalAvailability(selection) {
     if (!selection || !selection.payPalReady) return;
@@ -269,7 +269,29 @@
     if (!container || container.dataset.ppRendered) return;
     container.dataset.ppRendered = '1';
 
+    // Message for a problem the buyer can fix (empty field, terms unticked).
+    // Kept so PayPal's generic onError doesn't overwrite it.
+    let buyerFixableError = '';
+
+    function getPayPalBlockingError() {
+      if (!isPayPalEligible(selection)) {
+        return 'PayPal is only available when paying in full without a coupon. Please pay by card.';
+      }
+      const validation = validateForm();
+      return validation.ok ? '' : validation.error;
+    }
+
     global.paypal.Buttons({
+      // Runs before PayPal opens its window, so a missing detail stops it there.
+      onClick: (data, actions) => {
+        buyerFixableError = getPayPalBlockingError();
+        if (buyerFixableError) {
+          showCardError(buyerFixableError);
+          return actions.reject();
+        }
+        clearCardError();
+        return actions.resolve();
+      },
       style: {
         layout: 'vertical',
         color: 'gold',
@@ -278,17 +300,13 @@
         height: 44,
       },
       createOrder: async () => {
-        if (!isPayPalEligible(selection)) {
-          const msg = 'PayPal is only available when paying in full without a coupon. Please pay by card.';
-          showCardError(msg);
-          throw new Error(msg);
+        buyerFixableError = getPayPalBlockingError();
+        if (buyerFixableError) {
+          showCardError(buyerFixableError);
+          throw new Error(buyerFixableError);
         }
 
         const validation = validateForm();
-        if (!validation.ok) {
-          showCardError(validation.error);
-          throw new Error(validation.error);
-        }
         clearCardError();
 
         const payload = buildCheckoutPayload(selection, validation);
@@ -348,7 +366,7 @@
       },
       onError: (err) => {
         console.error('PayPal error:', err);
-        showCardError('PayPal payment failed. Please try again or pay by card.');
+        showCardError(buyerFixableError || 'PayPal payment failed. Please try again or pay by card.');
       },
     }).render('#paypal-button-container');
   }
@@ -2360,6 +2378,7 @@
 
   const exported = {
     isPayPalEligible,
+    initPayPalButtons,
     MASTERY_INSTALMENT_URL,
     TALLY_ESSAY_FORM_URL,
     EMAIL_PATTERN,

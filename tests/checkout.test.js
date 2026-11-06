@@ -52,6 +52,7 @@ const {
   initCheckoutPage,
   initSuccessPage,
   isPayPalEligible,
+  initPayPalButtons,
 } = require('../js/checkout.js');
 const createCheckoutHandler = require('../api/create-checkout.js');
 const createPaymentIntentHandler = createCheckoutHandler;
@@ -3997,4 +3998,43 @@ test('Checkout offers PayPal only for plain pay-in-full selections', () => {
   assert.equal(isPayPalEligible({ ...base, upsell: quantityBump, upsellSelected: true, upsellQuantity: 1 }), true);
   assert.equal(isPayPalEligible({ ...base, upsell: quantityBump, upsellSelected: true, upsellQuantity: 3 }), false);
   assert.equal(isPayPalEligible({ ...base, upsell: { slug: 'essay-pack-10' }, upsellSelected: true }), true);
+});
+
+test('PayPal buttons stop before opening and show the real reason when details are missing', async () => {
+  const previousDocument = global.document;
+  const previousPayPal = global.paypal;
+  const env = createCheckoutSubmitTestEnv('?product=essay-marking');
+  env.elements['#first-name'].value = '';
+  let config = null;
+  global.document = env.documentObject;
+  global.paypal = {
+    Buttons(cfg) {
+      config = cfg;
+      return { render() {} };
+    },
+  };
+
+  try {
+    initPayPalButtons({ paymentMode: 'full', couponCode: null, upsellSelected: false, upsell: null });
+
+    let rejected = false;
+    let resolved = false;
+    await config.onClick({}, { reject() { rejected = true; }, resolve() { resolved = true; } });
+    assert.equal(rejected, true);
+    assert.equal(resolved, false);
+    assert.equal(env.elements['#card-error'].textContent, 'Please fill in all fields.');
+
+    await assert.rejects(() => config.createOrder());
+    config.onError(new Error('PayPal SDK wrapper error'));
+    assert.equal(env.elements['#card-error'].textContent, 'Please fill in all fields.');
+
+    env.elements['#first-name'].value = 'Jane';
+    rejected = false;
+    await config.onClick({}, { reject() { rejected = true; }, resolve() { resolved = true; } });
+    assert.equal(rejected, false);
+    assert.equal(resolved, true);
+  } finally {
+    global.document = previousDocument;
+    global.paypal = previousPayPal;
+  }
 });

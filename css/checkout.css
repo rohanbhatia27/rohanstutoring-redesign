@@ -513,7 +513,10 @@
 .checkout-upsell[hidden],
 #payment-mode-slot[hidden],
 #instalment-summary-slot[hidden],
-#paypal-button-container[hidden] {
+#paypal-button-container[hidden],
+#payment-request-button[hidden],
+.checkout-wallet-separator[hidden],
+.checkout-payment-methods[hidden] {
   display: none !important;
 }
 
