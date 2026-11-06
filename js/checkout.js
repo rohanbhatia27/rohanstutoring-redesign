@@ -185,24 +185,80 @@
     });
   }
 
-  function initPaymentMethodToggle(onSwitch) {
+  // PayPal only handles plain pay-in-full orders: no coupon, no instalments or
+  // Afterpay, at most one add-on with quantity 1. api/paypal-order.js enforces
+  // the same rule server-side.
+  function isPayPalEligible(selection) {
+    if (!selection) return false;
+    if ((selection.paymentMode || 'full') !== 'full') return false;
+    if (selection.couponCode) return false;
+    if (selection.secondUpsell && selection.secondUpsellSelected) return false;
+    if (getUpsellQuantity(selection) > 1) return false;
+    return true;
+  }
+
+  const PAYPAL_HIDDEN_FLAG = 'hiddenForPaypal';
+  // Card UI that syncSelectionUI already shows/hides on every call, so card
+  // mode leaves it alone. Only the elements below it are restored by flag.
+  const PAYPAL_HIDES_SYNCED = ['#card-element-wrap', '#payment-request-button', '#payment-request-separator'];
+  const PAYPAL_HIDES_RESTORED = ['#pay-btn', '#instalment-link'];
+
+  function syncPayPalAvailability(selection) {
+    if (!selection || !selection.payPalReady) return;
+
+    const eligible = isPayPalEligible(selection);
+    if (!eligible) selection.paymentMethod = 'card';
+    const usePayPal = selection.paymentMethod === 'paypal';
+
     const toggle = qs('#payment-method-toggle');
+    if (toggle) {
+      toggle.hidden = !eligible;
+      toggle.style.display = eligible ? '' : 'none';
+    }
+
     const tabCard = qs('#tab-card');
     const tabPaypal = qs('#tab-paypal');
-    if (!toggle || !tabCard || !tabPaypal) return;
+    if (tabCard) tabCard.classList.toggle('payment-tab--active', !usePayPal);
+    if (tabPaypal) tabPaypal.classList.toggle('payment-tab--active', usePayPal);
 
-    toggle.hidden = false;
+    const paypalContainer = qs('#paypal-button-container');
+    if (paypalContainer) paypalContainer.hidden = !usePayPal;
+
+    if (usePayPal) {
+      PAYPAL_HIDES_SYNCED.forEach((selector) => {
+        const el = qs(selector);
+        if (el) el.hidden = true;
+      });
+    }
+
+    PAYPAL_HIDES_RESTORED.forEach((selector) => {
+      const el = qs(selector);
+      if (!el) return;
+      if (usePayPal) {
+        if (!el.hidden) {
+          el.hidden = true;
+          el.dataset[PAYPAL_HIDDEN_FLAG] = '1';
+        }
+      } else if (el.dataset[PAYPAL_HIDDEN_FLAG]) {
+        el.hidden = false;
+        delete el.dataset[PAYPAL_HIDDEN_FLAG];
+      }
+    });
+  }
+
+  function initPaymentMethodToggle(selection) {
+    const tabCard = qs('#tab-card');
+    const tabPaypal = qs('#tab-paypal');
+    if (!tabCard || !tabPaypal) return;
 
     tabCard.addEventListener('click', () => {
-      tabCard.classList.add('payment-tab--active');
-      tabPaypal.classList.remove('payment-tab--active');
-      onSwitch('card');
+      selection.paymentMethod = 'card';
+      syncSelectionUI(selection);
     });
 
     tabPaypal.addEventListener('click', () => {
-      tabPaypal.classList.add('payment-tab--active');
-      tabCard.classList.remove('payment-tab--active');
-      onSwitch('paypal');
+      selection.paymentMethod = isPayPalEligible(selection) ? 'paypal' : 'card';
+      syncSelectionUI(selection);
     });
   }
 
@@ -222,6 +278,12 @@
         height: 44,
       },
       createOrder: async () => {
+        if (!isPayPalEligible(selection)) {
+          const msg = 'PayPal is only available when paying in full without a coupon. Please pay by card.';
+          showCardError(msg);
+          throw new Error(msg);
+        }
+
         const validation = validateForm();
         if (!validation.ok) {
           showCardError(validation.error);
@@ -1296,6 +1358,8 @@
     if (payButtonLabel) {
       payButtonLabel.textContent = getPrimaryButtonLabel(selection);
     }
+
+    syncPayPalAvailability(selection);
   }
 
   function getInstalmentRedirectUrl(selection) {
@@ -1899,8 +1963,7 @@
     try {
       const config = await loadCheckoutConfig();
       stripePublishableKey = String(config.stripePublishableKey || '').trim();
-      // PayPal temporarily disabled — merchant account pending verification
-      // paypalClientId = String(config.paypalClientId || '').trim();
+      paypalClientId = String(config.paypalClientId || '').trim();
     } catch (error) {
       showCardError(error.message || 'Checkout configuration is unavailable.');
       const payButton = qs('#pay-btn');
@@ -1918,23 +1981,10 @@
     if (paypalClientId) {
       loadPayPalSDK(paypalClientId).then(() => {
         initPayPalButtons(selection);
-        initPaymentMethodToggle((method) => {
-          const cardWrap = qs('#card-element-wrap');
-          const paypalContainer = qs('#paypal-button-container');
-          const payBtn = qs('#pay-btn');
-          const instalmentLink = qs('#instalment-link');
-          if (method === 'paypal') {
-            if (cardWrap) cardWrap.hidden = true;
-            if (paypalContainer) paypalContainer.hidden = false;
-            if (payBtn) payBtn.hidden = true;
-            if (instalmentLink) instalmentLink.hidden = true;
-          } else {
-            if (cardWrap) cardWrap.hidden = false;
-            if (paypalContainer) paypalContainer.hidden = true;
-            if (payBtn) payBtn.hidden = false;
-            if (product.instalment && instalmentLink) instalmentLink.hidden = false;
-          }
-        });
+        initPaymentMethodToggle(selection);
+        selection.paymentMethod = selection.paymentMethod || 'card';
+        selection.payPalReady = true;
+        syncSelectionUI(selection);
       }).catch(() => {
         // PayPal SDK failed to load — card-only mode, no toggle shown
       });
@@ -2309,6 +2359,7 @@
   }
 
   const exported = {
+    isPayPalEligible,
     MASTERY_INSTALMENT_URL,
     TALLY_ESSAY_FORM_URL,
     EMAIL_PATTERN,
