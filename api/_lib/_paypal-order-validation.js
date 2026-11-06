@@ -53,6 +53,14 @@ function getPrimaryCapture(orderData) {
   return Array.isArray(captures) ? captures[0] : null;
 }
 
+// PayPal's capture response (return=minimal) puts custom_id on the capture,
+// not on the purchase unit; GET /v2/checkout/orders puts it on both.
+function getPayPalOrderCustomId(orderData) {
+  const purchaseUnit = getPrimaryPurchaseUnit(orderData);
+  const capture = getPrimaryCapture(orderData);
+  return String(purchaseUnit?.custom_id || capture?.custom_id || '').trim();
+}
+
 function parsePayPalCustomId(customId) {
   const safeCustomId = String(customId || '').trim();
 
@@ -70,8 +78,7 @@ function parsePayPalCustomId(customId) {
 }
 
 function resolvePayPalPurchaseFromOrder(orderData) {
-  const purchaseUnit = getPrimaryPurchaseUnit(orderData);
-  const customId = String(purchaseUnit?.custom_id || '').trim();
+  const customId = getPayPalOrderCustomId(orderData);
   const parsed = parsePayPalCustomId(customId);
 
   if (parsed.error) {
@@ -145,7 +152,7 @@ function validateCompletedPayPalOrder(orderData, purchase, expectedOrderId = '')
   const expectedAmount = formatPayPalAmount(purchase.amount);
   const capturedAmount = String(capture.amount?.value || '').trim();
   const capturedCurrency = String(capture.amount?.currency_code || '').trim().toUpperCase();
-  const customId = String(purchaseUnit.custom_id || '').trim();
+  const customId = getPayPalOrderCustomId(orderData);
   const expectedCustomId = getPayPalPurchaseCustomId(purchase);
 
   if (capturedCurrency !== PAYPAL_CURRENCY) {
@@ -196,6 +203,7 @@ module.exports = {
   PAYPAL_UNAVAILABLE_MESSAGE,
   formatPayPalAmount,
   getPayPalIneligibilityReason,
+  getPayPalOrderCustomId,
   getPayPalPurchaseCustomId,
   isValidPayPalOrderId,
   parsePayPalCustomId,

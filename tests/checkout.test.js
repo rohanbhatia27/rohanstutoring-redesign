@@ -4038,3 +4038,59 @@ test('PayPal buttons stop before opening and show the real reason when details a
     global.paypal = previousPayPal;
   }
 });
+
+test('PayPal validation reads custom_id from the capture when the purchase unit omits it', () => {
+  const purchase = createPaymentIntentHandler.resolveCheckoutPurchase({ slug: 'blueprint' });
+  const amount = paypalValidation.formatPayPalAmount(purchase.amount);
+
+  // Shape of a real /capture response: custom_id lives on the capture only.
+  const result = paypalValidation.validateCompletedPayPalOrder(
+    {
+      id: 'ORDER123',
+      status: 'COMPLETED',
+      purchase_units: [
+        {
+          reference_id: 'default',
+          payments: {
+            captures: [
+              {
+                status: 'COMPLETED',
+                custom_id: 'blueprint',
+                amount: { value: amount, currency_code: 'AUD' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    purchase,
+    'ORDER123'
+  );
+
+  assert.equal(result.error, undefined);
+  assert.equal(result.customId, 'blueprint');
+
+  const wrongProduct = paypalValidation.validateCompletedPayPalOrder(
+    {
+      id: 'ORDER123',
+      status: 'COMPLETED',
+      purchase_units: [
+        {
+          payments: {
+            captures: [
+              {
+                status: 'COMPLETED',
+                custom_id: 'essay-marking',
+                amount: { value: amount, currency_code: 'AUD' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    purchase,
+    'ORDER123'
+  );
+
+  assert.equal(wrongProduct.error, 'Captured PayPal product does not match checkout product.');
+});
