@@ -51,6 +51,7 @@ const {
   buildCheckoutPayload,
   initCheckoutPage,
   initSuccessPage,
+  isPayPalEligible,
 } = require('../js/checkout.js');
 const createCheckoutHandler = require('../api/create-checkout.js');
 const createPaymentIntentHandler = createCheckoutHandler;
@@ -3923,4 +3924,77 @@ test('the payment selector and the order box quote the same instalment figures u
   assert.equal(summary.futurePaymentAmount, 99.25);
   assert.match(markup, /\$99\.25 due today/);
   assert.doesNotMatch(markup, /\$499 due today/);
+});
+
+test('PayPal create handler refuses orders the PayPal flow cannot charge correctly', async () => {
+  process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
+  process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  const previousFetch = global.fetch;
+  const fetchCalls = [];
+  global.fetch = async (url) => {
+    fetchCalls.push(String(url));
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  const customer = {
+    email: 'jane@example.com',
+    customerName: 'Jane Smith',
+    phone: '+61 400 111 222',
+  };
+  const cases = [
+    { action: 'create', slug: 'comprehensive', paymentMode: 'instalments' },
+    { action: 'create', slug: 'blueprint', paymentMode: 'afterpay' },
+    { action: 'create', slug: 'comprehensive', couponCode: 'SAVE100' },
+    { action: 'create', slug: 'mastery', upsellSlug: 'mentoring-single', upsellQuantity: 3 },
+    { action: 'create', slug: 'blueprint', upsellSlug: 'mentoring-single', upsellSlug2: 'essay-pack-10' },
+  ];
+
+  try {
+    for (const body of cases) {
+      const req = {
+        method: 'POST',
+        headers: { origin: 'https://rohanstutoring.com' },
+        body: { ...body, ...customer },
+      };
+      const res = createJsonResponseRecorder();
+      await createPayPalOrderHandler(req, res);
+      assert.equal(res.statusCode, 400, JSON.stringify(body));
+      assert.equal(res.body.error, paypalValidation.PAYPAL_UNAVAILABLE_MESSAGE, JSON.stringify(body));
+    }
+    assert.equal(fetchCalls.length, 0);
+  } finally {
+    global.fetch = previousFetch;
+    delete process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_SECRET;
+  }
+});
+
+test('PayPal eligibility allows plain pay-in-full orders with one add-on', () => {
+  const resolve = (body) => paypalValidation.getPayPalIneligibilityReason(
+    body,
+    createPaymentIntentHandler.resolveCheckoutPurchase(body)
+  );
+  assert.equal(resolve({ slug: 'comprehensive' }), '');
+  assert.equal(resolve({ slug: 'comprehensive', paymentMode: 'full', couponCode: '' }), '');
+  assert.equal(resolve({ slug: 'mastery', upsellSlug: 'mentoring-single', upsellQuantity: 1 }), '');
+  assert.equal(resolve({ slug: 'blueprint', upsellSlug: 'essay-pack-10' }), '');
+  assert.notEqual(resolve({ slug: 'comprehensive', paymentMode: 'instalments' }), '');
+  assert.notEqual(resolve({ slug: 'comprehensive', couponCode: 'SAVE100' }), '');
+});
+
+test('Checkout offers PayPal only for plain pay-in-full selections', () => {
+  const base = { paymentMode: 'full', couponCode: null, upsellSelected: false, upsell: null };
+  assert.equal(isPayPalEligible(base), true);
+  assert.equal(isPayPalEligible({ ...base, paymentMode: 'instalments' }), false);
+  assert.equal(isPayPalEligible({ ...base, paymentMode: 'afterpay' }), false);
+  assert.equal(isPayPalEligible({ ...base, couponCode: 'SAVE100' }), false);
+  assert.equal(isPayPalEligible({
+    ...base,
+    secondUpsell: { slug: 'essay-pack-10' },
+    secondUpsellSelected: true,
+  }), false);
+  const quantityBump = { slug: 'mentoring-single', quantityEnabled: true, minQuantity: 1 };
+  assert.equal(isPayPalEligible({ ...base, upsell: quantityBump, upsellSelected: true, upsellQuantity: 1 }), true);
+  assert.equal(isPayPalEligible({ ...base, upsell: quantityBump, upsellSelected: true, upsellQuantity: 3 }), false);
+  assert.equal(isPayPalEligible({ ...base, upsell: { slug: 'essay-pack-10' }, upsellSelected: true }), true);
 });

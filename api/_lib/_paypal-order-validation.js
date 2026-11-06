@@ -12,6 +12,21 @@ function getPayPalPurchaseCustomId(purchase) {
   return purchase.upsellSlug ? `${purchase.baseSlug}+${purchase.upsellSlug}` : purchase.baseSlug;
 }
 
+const PAYPAL_UNAVAILABLE_MESSAGE = 'PayPal is only available when paying in full without a coupon. Please pay by card.';
+
+// PayPal orders carry only base + one add-on in custom_id, are captured without
+// coupon logic, and are fulfilled from that custom_id. Refuse anything else so
+// the amount PayPal charges always matches what the order is fulfilled as.
+function getPayPalIneligibilityReason(body, purchase) {
+  const safeBody = body || {};
+  const paymentMode = String(safeBody.paymentMode || 'full').trim().toLowerCase();
+  if (paymentMode !== 'full') return 'payment_mode';
+  if (String(safeBody.couponCode || '').trim()) return 'coupon';
+  if (purchase && purchase.upsellSlug2) return 'second_add_on';
+  if (purchase && Number(purchase.upsellQuantity) > 1) return 'add_on_quantity';
+  return '';
+}
+
 function isValidPayPalOrderId(value) {
   return PAYPAL_ORDER_ID_PATTERN.test(String(value || '').trim());
 }
@@ -178,7 +193,9 @@ function resolveCompletedPayPalOrder(orderData, expectedOrderId = '') {
 
 module.exports = {
   PAYPAL_CURRENCY,
+  PAYPAL_UNAVAILABLE_MESSAGE,
   formatPayPalAmount,
+  getPayPalIneligibilityReason,
   getPayPalPurchaseCustomId,
   isValidPayPalOrderId,
   parsePayPalCustomId,

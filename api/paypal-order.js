@@ -2,7 +2,9 @@ const { PAYPAL_API, getPayPalAccessToken } = require('./_lib/_paypal.js');
 const createCheckoutHandler = require('./create-checkout.js');
 const {
   PAYPAL_CURRENCY,
+  PAYPAL_UNAVAILABLE_MESSAGE,
   formatPayPalAmount,
+  getPayPalIneligibilityReason,
   getPayPalPurchaseCustomId,
   isValidPayPalOrderId,
   resolvePayPalPurchaseFromBody,
@@ -24,6 +26,10 @@ async function handleCreateOrder(req, res, body) {
   const purchase = resolveCheckoutPurchase(body);
   if (purchase.error) {
     return res.status(400).json({ error: purchase.error });
+  }
+
+  if (getPayPalIneligibilityReason(body, purchase)) {
+    return res.status(400).json({ error: PAYPAL_UNAVAILABLE_MESSAGE });
   }
 
   const customer = normaliseCustomerDetails(body);
