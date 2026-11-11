@@ -91,6 +91,9 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   classes. Do not quote an end date or a Christmas break (not confirmed). Enrolment closes Friday 27 November 2026,
   11:59pm Sydney. Includes 5 marked essays. Waiting on September results is
   fine: they can enrol and use the refund (before the third class).
+  Results refund (Comprehensive summer cohort): if they enrol, get their
+  September results back and have done well enough that they don't need to
+  sit again in March, they email Rohan and get a full refund.
 - Pricing: $1799 (the $1599 early bird ended 4 October 2026). Instalments:
   4 × $499 ($1996 total).
 - The /quiz recommends Comprehensive or Mastery to students sitting in March
