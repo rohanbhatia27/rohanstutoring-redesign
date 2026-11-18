@@ -35,7 +35,10 @@ test('comprehensive page routes enrolment CTAs to checkout at the standard price
   assert.ok(checkoutLinks.length >= 3, 'open page should route visitors to checkout');
   assert.doesNotMatch(comprehensiveHtml, /Join the [Ww]aitlist/);
   assert.match(comprehensiveHtml, /\$1,799/);
-  assert.match(comprehensiveHtml, /4 × \$499 instalments \(\$1,996 total\)/);
+  assert.match(comprehensiveHtml, /4 monthly payments of \$499/);
+  assert.match(comprehensiveHtml, /\$499 today, then 3 monthly payments of \$499\. \$1,996 total\./);
+  assert.match(comprehensiveHtml, /Save \$197 compared with instalments\./);
+  assert.equal((CATALOG.comprehensive.instalment.plan.firstPayment + CATALOG.comprehensive.instalment.plan.recurringPayment * (CATALOG.comprehensive.instalment.plan.count - 1)) * 100 - CATALOG.comprehensive.priceCents, 19700);
   // The early bird ended on 1 October 2026: no old price, strike-through or deadline copy.
   assert.doesNotMatch(comprehensiveHtml, /\$1,599|\$449|sticky-bar__was|value-summary__was|[Ee]arly bird|1 October/);
 });

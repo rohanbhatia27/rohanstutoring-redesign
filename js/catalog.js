@@ -66,7 +66,7 @@
       image: '/assets/courses/blueprint-course-card.webp',
       tagline: 'Self-paced  Lifetime access  All devices',
       features: [
-        'S1 & S2 Mastery Course (50+ hrs)',
+        'S1 & S2 Mastery Course (included in the 80+ hour library)',
         'GAMSAT Advanced Series (30 hrs)',
         'Expert Essay Collection (25 essays)',
         'Lifetime access  No expiry',
@@ -336,7 +336,7 @@
       image: '/assets/courses/comprehensive-course-card.webp',
       tagline: '',
       features: [
-        '50+ hours of recorded library content',
+        '80+ hours of recorded S1 & S2 library content',
         '20 live coaching classes',
         'Live essay feedback in every class',
         'Direct access to Rohan',
