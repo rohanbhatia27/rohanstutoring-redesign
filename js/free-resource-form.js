@@ -1,4 +1,7 @@
 (function () {
+  // Bot screening: the server drops submissions that fill the hidden field or arrive too fast.
+  var pageReadyAt = Date.now();
+
   function escapeHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -64,11 +67,14 @@
   function getPayload(form) {
     var firstNameInput = form.querySelector('input[name="fields[first_name]"]');
     var emailInput = form.querySelector('input[name="email_address"]');
+    var honeypotInput = form.querySelector('input[name="websiteUrl"]');
 
     return {
       resourceKey: form.getAttribute('data-resource-key') || '',
       firstName: firstNameInput ? firstNameInput.value : '',
       email: emailInput ? emailInput.value : '',
+      websiteUrl: honeypotInput ? honeypotInput.value : '',
+      elapsedMs: Date.now() - pageReadyAt,
     };
   }
 

@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form || !submitBtn || !submitText || !submitLoading || !success || !error) return;
 
+  // Bot screening: the server drops submissions that fill the hidden field or arrive too fast.
+  const formReadyAt = Date.now();
+
   const escapeHtml = (value) => String(value || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -73,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const firstNameInput = form.querySelector('input[name="fields[first_name]"]');
       const emailInput = form.querySelector('input[name="email_address"]');
+      const honeypotInput = form.querySelector('input[name="websiteUrl"]');
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
@@ -82,6 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
           resourceKey: 's2-slam-system',
           firstName: firstNameInput ? firstNameInput.value : '',
           email: emailInput ? emailInput.value : '',
+          websiteUrl: honeypotInput ? honeypotInput.value : '',
+          elapsedMs: Date.now() - formReadyAt,
         }),
       });
       const payload = await response.json().catch(() => null);

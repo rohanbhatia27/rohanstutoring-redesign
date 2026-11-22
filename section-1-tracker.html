@@ -25,11 +25,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/s1-mock.css">
+  <link rel="stylesheet" href="css/s1-mock.css?v=20261123-botcheck">
   <link rel="stylesheet" href="css/tracker.css">
 
   <script src="js/main.js?v=20260521-catalog" defer></script>
-  <script src="js/free-resource-form.js" defer></script>
+  <script src="js/free-resource-form.js?v=20261123-botcheck" defer></script>
   <script src="js/tracker.js" defer></script>
 </head>
 <body>
@@ -73,6 +73,10 @@
                 </div>
                 <div class="formkit-field">
                   <input class="formkit-input" type="email" name="email_address" placeholder="Email Address" aria-label="Email Address" required autocomplete="email">
+                </div>
+                <div class="free-resource-honeypot" aria-hidden="true">
+                  <label for="trackerWebsite">Website</label>
+                  <input type="text" id="trackerWebsite" name="websiteUrl" tabindex="-1" autocomplete="off">
                 </div>
                 <button type="submit" class="formkit-submit formkit-submit">
                   <span>Get The Tracker Now!</span>
@@ -388,6 +392,10 @@
             required
             autocomplete="email"
           >
+          <div class="free-resource-honeypot" aria-hidden="true">
+            <label for="trackerWebsite2">Website</label>
+            <input type="text" id="trackerWebsite2" name="websiteUrl" tabindex="-1" autocomplete="off">
+          </div>
           <button type="submit" class="tracker-form__submit">
             Unlock My Tracker Now
           </button>

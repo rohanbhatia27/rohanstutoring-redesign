@@ -249,6 +249,12 @@
   font-size: 1rem !important;
 }
 
+/* Hidden field that only bots fill in. Kept off-screen rather than display:none so bots still see it. */
+.free-resource-honeypot {
+  position: absolute;
+  left: -9999px;
+}
+
 /* ---- Inline form (ConvertKit overrides to match slam-system style) ---- */
 .mock-inline-form {
   width: 100%;

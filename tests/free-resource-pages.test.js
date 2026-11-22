@@ -14,8 +14,8 @@ test('Kit resource pages load the shared hardening script and declare resource k
   const mockHtml = read('s1-mock.html');
   const slamHtml = read('s2-slam-system.html');
 
-  assert.match(trackerHtml, /<script src="js\/free-resource-form\.js" defer><\/script>/);
-  assert.match(mockHtml, /<script src="js\/free-resource-form\.js" defer><\/script>/);
+  assert.match(trackerHtml, /<script src="js\/free-resource-form\.js(\?v=[\w-]+)?" defer><\/script>/);
+  assert.match(mockHtml, /<script src="js\/free-resource-form\.js(\?v=[\w-]+)?" defer><\/script>/);
   assert.match(trackerHtml, /data-resource-key="s1-tracker"/);
   assert.match(mockHtml, /data-resource-key="s1-mock"/);
   assert.match(slamHtml, /action="https:\/\/app\.kit\.com\/forms\/8526774\/subscriptions"/);
@@ -36,6 +36,26 @@ test('Kit resource page scripts use the hardened internal submit flow instead of
   assert.match(slamJs, /fetch\('\/api\/leads'/);
   assert.doesNotMatch(slamJs, /formspree\.io/);
   assert.doesNotMatch(slamJs, /fetch\(form\.action/);
+});
+
+test('every free resource form has a hidden honeypot and its script sends the bot-check fields', () => {
+  const pages = {
+    'section-1-tracker.html': 2,
+    's1-mock.html': 1,
+    's2-slam-system.html': 1,
+    'game-plan.html': 1,
+  };
+  for (const [file, formCount] of Object.entries(pages)) {
+    const html = read(file);
+    const honeypots = html.match(/name="websiteUrl" tabindex="-1" autocomplete="off"/g) || [];
+    assert.equal(honeypots.length, formCount, `${file} should have one honeypot per form`);
+  }
+
+  for (const script of ['free-resource-form.js', 's2-slam-system.js', 'game-plan.js']) {
+    const js = read(path.join('js', script));
+    assert.match(js, /websiteUrl:/, `${script} should send the honeypot value`);
+    assert.match(js, /elapsedMs: Date\.now\(\) - /, `${script} should send the form fill time`);
+  }
 });
 
 test('Game Plan page posts to the internal leads API and hands off to the thank-you page', () => {

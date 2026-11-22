@@ -145,7 +145,7 @@ test('handler returns delivered even when Kit sync fails', async () => {
   const req = {
     method: 'POST',
     headers: { origin: 'https://www.rohanstutoring.com' },
-    body: { resourceKey: 's1-tracker', firstName: 'Jane', email: 'jane@example.com' },
+    body: { resourceKey: 's1-tracker', firstName: 'Jane', email: 'jane@example.com', websiteUrl: '', elapsedMs: 9000 },
   };
   const res = createJsonResponseRecorder();
 
@@ -177,7 +177,7 @@ test('handler falls back on-page when the delivery email fails', async () => {
   const req = {
     method: 'POST',
     headers: { origin: 'https://www.rohanstutoring.com' },
-    body: { resourceKey: 's1-tracker', firstName: 'Jane', email: 'jane@example.com' },
+    body: { resourceKey: 's1-tracker', firstName: 'Jane', email: 'jane@example.com', websiteUrl: '', elapsedMs: 9000 },
   };
   const res = createJsonResponseRecorder();
 
@@ -204,6 +204,81 @@ test('handler rejects an unknown resource key', async () => {
   await freeResourceLeadHandler(req, res);
 
   assert.equal(res.statusCode, 400);
+});
+
+// Bots have been posting strangers' emails to the free resource forms. These
+// tests check that suspected bots get a normal-looking reply while no email is
+// sent and nothing reaches Kit.
+async function postResourceLead(extraBody) {
+  process.env.RESEND_API_KEY = 're_test_123';
+  process.env.KIT_API_KEY = 'kit_test_123';
+  const sent = [];
+  const kitCalls = [];
+  mockResend(sent);
+  mockKitApiOk(kitCalls);
+
+  const req = {
+    method: 'POST',
+    headers: { origin: 'https://www.rohanstutoring.com' },
+    body: { resourceKey: 'game-plan', firstName: 'Jane', email: 'jane@example.com', ...extraBody },
+  };
+  const res = createJsonResponseRecorder();
+  await freeResourceLeadHandler(req, res);
+
+  kit.__resetForTests();
+  freeResource.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+  delete process.env.KIT_API_KEY;
+  return { res, sent, kitCalls };
+}
+
+test('handler silently drops a lead that fills the hidden honeypot field', async () => {
+  const { res, sent, kitCalls } = await postResourceLead({ websiteUrl: 'http://spam.example', elapsedMs: 9000 });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.status, 'delivered');
+  assert.equal(res.body.resource.key, 'game-plan');
+  assert.equal(sent.length, 0);
+  assert.equal(kitCalls.length, 0);
+});
+
+test('handler silently drops a lead posted without the form timer', async () => {
+  const { res, sent, kitCalls } = await postResourceLead({});
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.status, 'delivered');
+  assert.equal(sent.length, 0);
+  assert.equal(kitCalls.length, 0);
+});
+
+test('handler silently drops a lead submitted faster than a person can type', async () => {
+  const { res, sent, kitCalls } = await postResourceLead({ websiteUrl: '', elapsedMs: 400 });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.status, 'delivered');
+  assert.equal(sent.length, 0);
+  assert.equal(kitCalls.length, 0);
+});
+
+test('handler delivers a normal lead with an empty honeypot and a human fill time', async () => {
+  const { res, sent, kitCalls } = await postResourceLead({ websiteUrl: '', elapsedMs: 8000 });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.status, 'delivered');
+  assert.equal(sent.length, 1);
+  assert.ok(kitCalls.some((c) => /\/v4\/tags\/24104655\/subscribers\//.test(c.url)));
+});
+
+test('getBotReason names each failed check', () => {
+  const { getBotReason, MIN_FORM_FILL_MS } = freeResourceLeadHandler;
+
+  assert.equal(getBotReason({ websiteUrl: 'x', elapsedMs: 9000 }), 'honeypot');
+  assert.equal(getBotReason({}), 'missing_timer');
+  assert.equal(getBotReason({ elapsedMs: 'soon' }), 'missing_timer');
+  assert.equal(getBotReason({ elapsedMs: MIN_FORM_FILL_MS - 1 }), 'too_fast');
+  assert.equal(getBotReason({ elapsedMs: MIN_FORM_FILL_MS }), '');
+  assert.equal(getBotReason({ websiteUrl: '   ', elapsedMs: '6000' }), '');
 });
 
 test('sendDeliveryEmail emails the March 2027 Game Plan PDF link', async () => {

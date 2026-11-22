@@ -41,6 +41,24 @@ async function handleQuizLead(body, res, req) {
   }
 }
 
+// ---- Bot screening (free resource forms) ----
+// Real visitors leave the hidden `websiteUrl` field empty and take a few
+// seconds to fill in the form. Bots fill every field, or post straight to this
+// endpoint without loading the page, so they fail one of these checks. Since
+// late September 2026 bots used these forms to sign strangers' addresses up to
+// Kit and send them the PDF, so suspected bots get a normal-looking reply and
+// nothing is sent.
+const MIN_FORM_FILL_MS = 2500;
+
+function getBotReason(body) {
+  if (String(body.websiteUrl || '').trim()) return 'honeypot';
+  if (body.elapsedMs === undefined || body.elapsedMs === null || body.elapsedMs === '') return 'missing_timer';
+  const elapsedMs = Number(body.elapsedMs);
+  if (!Number.isFinite(elapsedMs)) return 'missing_timer';
+  if (elapsedMs < MIN_FORM_FILL_MS) return 'too_fast';
+  return '';
+}
+
 // ---- Free resource lead ----
 
 function normaliseResourceLead(body) {
@@ -57,6 +75,17 @@ function normaliseResourceLead(body) {
 async function handleResourceLead(body, res, req) {
   const lead = normaliseResourceLead(body);
   if (lead.error) return res.status(400).json({ error: lead.error });
+
+  const botReason = getBotReason(body);
+  if (botReason) {
+    const resource = getFreeResource(lead.resourceKey);
+    console.warn(`[leads/resource] Dropped suspected bot for ${lead.resourceKey} (${botReason})`);
+    return res.status(200).json({
+      ok: true,
+      status: 'delivered',
+      resource: { key: resource.key, name: resource.name },
+    });
+  }
 
   const rl = await checkRateLimit(req, { bucket: 'leads', email: lead.email });
   if (rl.limited) return res.status(429).json({ error: rl.message });
@@ -114,5 +143,7 @@ async function leadsHandler(req, res) {
 
 leadsHandler.normaliseQuizLead = normaliseQuizLead;
 leadsHandler.normaliseResourceLead = normaliseResourceLead;
+leadsHandler.getBotReason = getBotReason;
+leadsHandler.MIN_FORM_FILL_MS = MIN_FORM_FILL_MS;
 
 module.exports = leadsHandler;
