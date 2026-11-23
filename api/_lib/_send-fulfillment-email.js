@@ -1,4 +1,5 @@
 const { Resend } = require('resend');
+const sendEmail = require('./_send-email.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
 
@@ -40,22 +41,12 @@ function buildFulfillmentHtml({ firstName, customerEmail, driveFolderUrl }) {
 </html>`;
 }
 
-async function sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl }) {
-  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  if (!apiKey) {
-    console.warn('[send-fulfillment-email] RESEND_API_KEY not set — skipping');
-    return { skipped: true, reason: 'no_api_key' };
-  }
-
-  if (!driveFolderUrl) {
-    console.warn('[send-fulfillment-email] BLUEPRINT_DRIVE_URL not set — skipping');
-    return { skipped: true, reason: 'no_drive_url' };
-  }
+async function sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl, idempotencyKey }) {
+  if (!driveFolderUrl) { const error = new Error('Missing Blueprint Drive URL'); error.notAccepted = true; throw error; }
 
   const from = String(process.env.FULFILLMENT_FROM_EMAIL || '').trim() || "Rohan's GAMSAT <support@rohanstutoring.com>";
 
-  const resend = resendFactory(apiKey);
-  await resend.emails.send({
+  const result = await sendEmail({ resendFactory, idempotencyKey, options: {
     from,
     to: customerEmail,
     reply_to: 'support@rohanstutoring.com',
@@ -77,9 +68,9 @@ async function sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl }
       'Rohan',
       "Rohan's GAMSAT",
     ].join('\n'),
-  });
+  } });
 
-  return { sent: true };
+  return { sent: true, messageId: result.messageId };
 }
 
 sendFulfillmentEmail.__setResendFactory = (factory) => { resendFactory = factory; };

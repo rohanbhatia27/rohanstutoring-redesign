@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { Resend } = require('resend');
+const sendEmail = require('./_send-email.js');
+const emailDelivery = require('./_email-delivery-store.js');
 const { syncPurchaseTag } = require('./_kit.js');
 const { shareProductAccess } = require('./_google-drive.js');
 const { SERVER_CATALOG } = require('./catalog.server.js');
@@ -24,11 +26,17 @@ async function safeAlert(args) {
   }
 }
 
-function productLabel(baseSlug, upsellSlug) {
-  const base = (SERVER_CATALOG[baseSlug] && SERVER_CATALOG[baseSlug].name) || baseSlug;
-  if (!upsellSlug) return base;
-  const upsell = (SERVER_CATALOG[upsellSlug] && SERVER_CATALOG[upsellSlug].name) || upsellSlug;
-  return `${base} + ${upsell}`;
+function orderItems(metadata) {
+  return [
+    { slug: String(metadata.base_slug || metadata.product_slug || '').trim(), quantity: 1 },
+    { slug: String(metadata.upsell_slug || '').trim(), quantity: Math.max(1, Math.floor(Number(metadata.upsell_quantity) || 1)) },
+    { slug: String(metadata.upsell_slug_2 || '').trim(), quantity: 1 },
+  ].filter(item => item.slug);
+}
+
+function productLabel(baseSlug, upsellSlug, upsellSlug2 = '', upsellQuantity = 1) {
+  return orderItems({ base_slug: baseSlug, upsell_slug: upsellSlug, upsell_slug_2: upsellSlug2, upsell_quantity: upsellQuantity })
+    .map(({ slug, quantity }) => `${SERVER_CATALOG[slug]?.name || slug}${quantity > 1 ? ` × ${quantity}` : ''}`).join(' + ');
 }
 
 function esc(v) {
@@ -105,10 +113,6 @@ function loadEssayCollectionPdf() {
   return essayCollectionPdfCache;
 }
 
-function includesEssayCollection(baseSlug, upsellSlug) {
-  return baseSlug === 'essay-collection' || upsellSlug === 'essay-collection';
-}
-
 function buildEssayCollectionHtml(firstName) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -138,18 +142,11 @@ function buildEssayCollectionHtml(firstName) {
 </html>`;
 }
 
-async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug }) {
-  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
-  if (!apiKey) {
-    console.warn('[fulfill-payment-intent] RESEND_API_KEY not set — skipping confirmation email');
-    return;
-  }
-
+async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug, upsellSlug2 = '', upsellQuantity = 1, idempotencyKey }) {
   const firstName = (customerName || '').split(' ')[0] || 'there';
-  const productLine = productLabel(baseSlug, upsellSlug);
+  const productLine = productLabel(baseSlug, upsellSlug, upsellSlug2, upsellQuantity);
   const variant = SERVER_CATALOG[baseSlug] ? SERVER_CATALOG[baseSlug].cohortEmail : null;
 
-  const resend = resendFactory(apiKey);
   let emailOptions;
 
   if (baseSlug === 'essay-collection') {
@@ -189,39 +186,41 @@ async function sendConfirmationEmail({ customerName, customerEmail, baseSlug, up
     };
   }
 
-  if (includesEssayCollection(baseSlug, upsellSlug)) {
+  const items = orderItems({ base_slug: baseSlug, upsell_slug: upsellSlug, upsell_slug_2: upsellSlug2, upsell_quantity: upsellQuantity });
+  if (items.length > 1) {
+    const extra = `Your order: ${productLine}.`;
+    emailOptions.text += `\n\n${extra}`;
+    emailOptions.html = emailOptions.html.replace('</body>', `<p>${esc(extra)}</p></body>`);
+  }
+  if (items.some(item => item.slug === 'essay-pack-10' || item.slug === 'essay-marking')) {
+    const instructions = 'To submit your essays, email essays@rohanstutoring.com with your payment reference.';
+    emailOptions.text += `\n\n${instructions}`;
+    emailOptions.html = emailOptions.html.replace('</body>', `<p>${esc(instructions)}</p></body>`);
+  }
+  if (baseSlug === 'essay-collection') {
     emailOptions.attachments = [
       { filename: ESSAY_COLLECTION_PDF_FILENAME, content: loadEssayCollectionPdf() },
     ];
   }
 
-  await resend.emails.send(emailOptions);
+  const result = await sendEmail({ resendFactory, options: emailOptions, idempotencyKey });
 
   console.log(`[fulfill-payment-intent] Confirmation email sent to ${customerEmail} for ${productLine}`);
+  return result;
 }
 
-function getFulfillmentPlan(productSlug, upsellSlug) {
-  const baseEntry = SERVER_CATALOG[String(productSlug || '').trim()] || null;
-  if (!baseEntry) return null;
-
-  const basePlan = {
-    productSlug: baseEntry.fulfillmentSlug || productSlug,
-    deliveryType: baseEntry.deliveryType,
-    fulfillmentLabel: baseEntry.fulfillmentLabel,
+function getFulfillmentPlan(productSlug, upsellSlug, upsellSlug2 = '') {
+  const items = orderItems({ base_slug: productSlug, upsell_slug: upsellSlug, upsell_slug_2: upsellSlug2 });
+  const entries = items.map(item => SERVER_CATALOG[item.slug]);
+  if (!entries.length || entries.some(entry => !entry)) return null;
+  const plan = {
+    productSlug: entries[0].fulfillmentSlug || items[0].slug,
+    deliveryType: entries.map(entry => entry.deliveryType).join('+'),
+    fulfillmentLabel: entries.map(entry => entry.fulfillmentLabel).join(' + '),
   };
-
-  const normalizedUpsellSlug = String(upsellSlug || '').trim();
-  if (!normalizedUpsellSlug) return basePlan;
-
-  const upsellEntry = SERVER_CATALOG[normalizedUpsellSlug] || null;
-  if (!upsellEntry) return basePlan;
-
-  return {
-    productSlug: basePlan.productSlug,
-    upsellSlug: upsellEntry.fulfillmentSlug || normalizedUpsellSlug,
-    deliveryType: `${basePlan.deliveryType}+${upsellEntry.deliveryType}`,
-    fulfillmentLabel: `${basePlan.fulfillmentLabel} + ${upsellEntry.fulfillmentLabel}`,
-  };
+  if (entries[1]) plan.upsellSlug = entries[1].fulfillmentSlug || items[1].slug;
+  if (entries[2]) plan.upsellSlug2 = entries[2].fulfillmentSlug || items[2].slug;
+  return plan;
 }
 
 function needsStarterPackAutomation(metadata, baseSlug) {
@@ -255,7 +254,7 @@ function needsDriveAutomation(metadata, baseSlug) {
 }
 
 function needsAutomationRetry(metadata, baseSlug) {
-  return needsDriveAutomation(metadata, baseSlug) || needsStarterPackAutomation(metadata, baseSlug);
+  return needsDriveAutomation(metadata, baseSlug) || needsStarterPackAutomation(metadata, baseSlug) || ['pending', 'failed'].includes(metadata.confirmation_email_status) || ['pending', 'failed'].includes(metadata.blueprint_access_email_status) || ['pending', 'failed'].includes(metadata.essay_pdf_email_status);
 }
 
 function buildFulfillmentMetadata({
@@ -310,6 +309,9 @@ async function fulfillPaymentIntent(options) {
     : {};
   const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
   const upsellSlug = String(metadata.upsell_slug || '').trim();
+  const upsellSlug2 = String(metadata.upsell_slug_2 || '').trim();
+  const upsellQuantity = Math.max(1, Math.floor(Number(metadata.upsell_quantity) || 1));
+  const essayPdfRequired = baseSlug !== 'essay-collection' && orderItems(metadata).some(item => item.slug === 'essay-collection');
 
   const finalFulfillmentStatuses = new Set(['fulfilled', 'manual_fulfillment_pending']);
   if (
@@ -319,11 +321,11 @@ async function fulfillPaymentIntent(options) {
   ) {
     return {
       alreadyFulfilled: true,
-      plan: getFulfillmentPlan(baseSlug, upsellSlug),
+      plan: getFulfillmentPlan(baseSlug, upsellSlug, upsellSlug2),
     };
   }
 
-  const plan = getFulfillmentPlan(baseSlug, upsellSlug);
+  const plan = getFulfillmentPlan(baseSlug, upsellSlug, upsellSlug2);
   if (!plan) {
     const unknownEmail = String(metadata.customer_email || currentPaymentIntent.receipt_email || '').trim();
     await safeAlert({
@@ -337,10 +339,9 @@ async function fulfillPaymentIntent(options) {
     });
     throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
   }
+  if (upsellSlug && upsellQuantity > 1) plan.fulfillmentLabel += ` (${upsellQuantity} × ${upsellSlug})`;
 
-  const fulfillmentProductSlugs = plan.upsellSlug
-    ? `${plan.productSlug},${plan.upsellSlug}`
-    : plan.productSlug;
+  const fulfillmentProductSlugs = [plan.productSlug, plan.upsellSlug, plan.upsellSlug2].filter(Boolean).join(',');
   const requestedAt = now();
   const needsEssayUpload = !!(SERVER_CATALOG[baseSlug] || {}).requiresEssayUpload;
   const essayUploadToken = needsEssayUpload
@@ -372,7 +373,7 @@ async function fulfillPaymentIntent(options) {
     plan,
     fulfillmentProductSlugs,
     requestedAt,
-    extra: essayUploadMetadata,
+    extra: { ...essayUploadMetadata, confirmation_email_status: metadata.confirmation_email_status || 'pending', ...(productUsesBlueprintDrive(baseSlug) ? { blueprint_access_email_status: metadata.blueprint_access_email_status || 'pending' } : {}), ...(essayPdfRequired ? { essay_pdf_email_status: metadata.essay_pdf_email_status || 'pending' } : {}) },
   });
   metadata = nextMetadata;
 
@@ -414,10 +415,9 @@ async function fulfillPaymentIntent(options) {
   if (customerEmail) {
     if (productRequiresDriveAccess(baseSlug)) {
       try {
-        const driveResult = await shareProductAccess({
-          baseSlug,
-          email: customerEmail,
-        });
+        const driveResult = hasCompletedDriveShare(metadata)
+          ? { alreadyShared: true, folderId: metadata.drive_share_folder_id, folderEnvName: metadata.drive_share_folder_env, permissionId: metadata.drive_share_permission_id }
+          : await shareProductAccess({ baseSlug, email: customerEmail });
 
       if (driveResult && !driveResult.skipped) {
         console.log(
@@ -434,11 +434,11 @@ async function fulfillPaymentIntent(options) {
 
         await logPurchaseEvent({ ...logBase, eventType: 'drive_share.success', outcome: 'success' });
 
-        if (productUsesBlueprintDrive(baseSlug)) {
+        if (productUsesBlueprintDrive(baseSlug) && metadata.blueprint_access_email_status !== 'sent') {
           const driveFolderUrl = String(process.env.BLUEPRINT_DRIVE_URL || '').trim();
           const firstName = (customerName || '').split(' ')[0] || 'there';
           try {
-            const emailResult = await sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl });
+            const emailResult = await emailDelivery.run({ provider: 'stripe', paymentId: paymentIntent.id, purpose: 'blueprint-access', send: idempotencyKey => sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl, idempotencyKey }) });
             if (emailResult.skipped) {
               await updateFulfillmentMetadata({
                 blueprint_access_email_status: 'skipped',
@@ -448,10 +448,11 @@ async function fulfillPaymentIntent(options) {
               await updateFulfillmentMetadata({
                 blueprint_access_email_status: 'sent',
                 blueprint_access_email_sent_at: now(),
+                blueprint_access_email_message_id: emailResult.messageId,
                 ...essayUploadMetadata,
               });
             }
-            await logPurchaseEvent({ ...logBase, eventType: 'blueprint_access_email.sent', outcome: emailResult.skipped ? 'skipped' : 'success' });
+            await logPurchaseEvent({ ...logBase, eventType: 'blueprint_access_email.sent', outcome: (emailResult.skipped || emailResult.alreadySent) ? 'skipped' : 'success' });
             console.log(`[fulfill-payment-intent] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
           } catch (emailErr) {
             console.error('[fulfill-payment-intent] Blueprint access email failed:', emailErr.message);
@@ -522,10 +523,14 @@ async function fulfillPaymentIntent(options) {
     }
 
     try {
-      await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
-      await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: 'success' });
+      if (metadata.confirmation_email_status !== 'sent') {
+        const emailResult = await emailDelivery.run({ provider: 'stripe', paymentId: paymentIntent.id, purpose: 'confirmation', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug, upsellSlug2, upsellQuantity, idempotencyKey }) });
+        await updateFulfillmentMetadata({ confirmation_email_status: 'sent', confirmation_email_message_id: emailResult.messageId });
+        await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: emailResult.alreadySent ? 'skipped' : 'success', meta: { messageId: emailResult.messageId, ...(emailResult.alreadySent ? { reason: 'already_sent' } : {}) } });
+      }
     } catch (emailErr) {
       console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
+      await updateFulfillmentMetadata({ confirmation_email_status: 'failed', confirmation_email_error: String(emailErr.message).slice(0, 480) });
       await logPurchaseEvent({ ...logBase, eventType: 'email.failed', outcome: 'failure', errorMessage: emailErr.message });
       await safeAlert({
         baseSlug,
@@ -536,6 +541,18 @@ async function fulfillPaymentIntent(options) {
         failedStep: 'email',
         errorMessage: emailErr.message,
       });
+    }
+
+    if (essayPdfRequired && metadata.essay_pdf_email_status !== 'sent') {
+      try {
+        const result = await emailDelivery.run({ provider: 'stripe', paymentId: paymentIntent.id, purpose: 'essay-pdf', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug: 'essay-collection', idempotencyKey }) });
+        await updateFulfillmentMetadata({ essay_pdf_email_status: 'sent', essay_pdf_email_message_id: result.messageId });
+        await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.sent', outcome: result.alreadySent ? 'skipped' : 'success', meta: { messageId: result.messageId, ...(result.alreadySent ? { reason: 'already_sent' } : {}) } });
+      } catch (error) {
+        await updateFulfillmentMetadata({ essay_pdf_email_status: 'failed', essay_pdf_email_error: String(error.message).slice(0, 480) });
+        await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.failed', outcome: 'failure', errorMessage: error.message });
+        await safeAlert({ baseSlug, upsellSlug, customerEmail, provider: 'stripe', paymentId: paymentIntent.id, failedStep: 'essay_pdf_email', errorMessage: error.message });
+      }
     }
 
     try {
@@ -581,22 +598,24 @@ async function fulfillPaymentIntent(options) {
   };
 }
 
-async function fulfillInstalmentCheckout({ session }) {
+async function fulfillInstalmentCheckout({ session, stripeClient }) {
   const metadata = (session && session.metadata) || {};
   const baseSlug = String(metadata.base_slug || metadata.product_slug || '').trim();
   const upsellSlug = String(metadata.upsell_slug || '').trim();
+  const upsellSlug2 = String(metadata.upsell_slug_2 || '').trim();
+  const upsellQuantity = Math.max(1, Math.floor(Number(metadata.upsell_quantity) || 1));
   const customerDetails = (session && session.customer_details) || {};
   const customerEmail = String(metadata.customer_email || session.customer_email || customerDetails.email || '').trim();
   const customerName = String(metadata.customer_name || customerDetails.name || '').trim();
 
   if (!customerEmail) {
-    console.warn('[fulfill-instalment-checkout] No customer email found — skipping fulfillment');
-    return { skipped: true };
+    throw new Error('Missing instalment checkout customer email');
   }
 
   const instalmentSessionId = (session && session.id) || '';
+  let emailFailure = null;
 
-  const plan = getFulfillmentPlan(baseSlug, upsellSlug);
+  const plan = getFulfillmentPlan(baseSlug, upsellSlug, upsellSlug2);
   if (!plan) {
     await safeAlert({
       baseSlug: baseSlug || 'unknown',
@@ -608,6 +627,19 @@ async function fulfillInstalmentCheckout({ session }) {
       errorMessage: `No fulfillment plan for slug: ${baseSlug || 'unknown'}`,
     });
     throw new Error(`Unsupported fulfillment product slug: ${baseSlug || 'unknown'}`);
+  }
+  if (upsellSlug && upsellQuantity > 1) plan.fulfillmentLabel += ` (${upsellQuantity} × ${upsellSlug})`;
+
+  if (stripeClient) {
+    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
+    if (!subscriptionId || !stripeClient.subscriptions?.update) throw new Error('Cannot record instalment fulfilment on subscription');
+    await stripeClient.subscriptions.update(subscriptionId, { metadata: {
+      fulfillment_status: 'manual_fulfillment_pending',
+      fulfillment_product_slugs: [plan.productSlug, plan.upsellSlug, plan.upsellSlug2].filter(Boolean).join(','),
+      fulfillment_label: plan.fulfillmentLabel,
+      upsell_quantity: String(upsellQuantity),
+      ...(upsellSlug2 ? { upsell_slug_2: upsellSlug2 } : {}),
+    } });
   }
 
   if (productRequiresDriveAccess(baseSlug)) {
@@ -622,9 +654,10 @@ async function fulfillInstalmentCheckout({ session }) {
           const driveFolderUrl = String(process.env.BLUEPRINT_DRIVE_URL || '').trim();
           const firstName = (customerName || '').split(' ')[0] || 'there';
           try {
-            const emailResult = await sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl });
+            const emailResult = await emailDelivery.run({ provider: 'stripe', paymentId: instalmentSessionId, purpose: 'blueprint-access', send: idempotencyKey => sendFulfillmentEmail({ firstName, customerEmail, driveFolderUrl, idempotencyKey }) });
             console.log(`[fulfill-instalment-checkout] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
           } catch (emailErr) {
+            emailFailure = emailErr;
             console.error('[fulfill-instalment-checkout] Blueprint access email failed:', emailErr.message);
             await safeAlert({
               baseSlug,
@@ -637,8 +670,12 @@ async function fulfillInstalmentCheckout({ session }) {
             });
           }
         }
+      } else if (driveResult?.skipped) {
+        emailFailure = new Error(`Missing ${driveResult.folderEnvName || 'Google Drive folder'} configuration`);
+        await safeAlert({ baseSlug, upsellSlug, customerEmail, provider: 'stripe', paymentId: instalmentSessionId, failedStep: 'drive', errorMessage: emailFailure.message });
       }
     } catch (driveErr) {
+      emailFailure = driveErr;
       console.error('[fulfill-instalment-checkout] Google Drive sharing failed:', driveErr.message);
       await safeAlert({
         baseSlug,
@@ -653,8 +690,9 @@ async function fulfillInstalmentCheckout({ session }) {
   }
 
   try {
-    await sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug });
+    await emailDelivery.run({ provider: 'stripe', paymentId: instalmentSessionId, purpose: 'confirmation', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug, upsellSlug2, upsellQuantity, idempotencyKey }) });
   } catch (emailErr) {
+    emailFailure = emailErr;
     console.error('[fulfill-instalment-checkout] Confirmation email failed:', emailErr.message);
     await safeAlert({
       baseSlug,
@@ -665,6 +703,15 @@ async function fulfillInstalmentCheckout({ session }) {
       failedStep: 'email',
       errorMessage: emailErr.message,
     });
+  }
+
+  if (baseSlug !== 'essay-collection' && [upsellSlug, upsellSlug2].includes('essay-collection')) {
+    try {
+      await emailDelivery.run({ provider: 'stripe', paymentId: instalmentSessionId, purpose: 'essay-pdf', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug: 'essay-collection', idempotencyKey }) });
+    } catch (error) {
+      emailFailure = error;
+      await safeAlert({ baseSlug, upsellSlug, customerEmail, provider: 'stripe', paymentId: instalmentSessionId, failedStep: 'essay_pdf_email', errorMessage: error.message });
+    }
   }
 
   try {
@@ -690,6 +737,7 @@ async function fulfillInstalmentCheckout({ session }) {
     });
   }
 
+  if (emailFailure && stripeClient) throw emailFailure;
   return { plan };
 }
 

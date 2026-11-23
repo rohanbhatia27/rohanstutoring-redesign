@@ -100,31 +100,6 @@ function resolvePayPalPurchaseFromOrder(orderData) {
   };
 }
 
-function getPayPalCustomerFromOrder(orderData) {
-  const payer = orderData?.payer || {};
-  const payerName = payer.name || {};
-  const purchaseUnit = getPrimaryPurchaseUnit(orderData) || {};
-  const shippingName = purchaseUnit.shipping?.name || {};
-  const email = String(payer.email_address || '').trim();
-  const customerName = [
-    String(payerName.given_name || '').trim(),
-    String(payerName.surname || '').trim(),
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .trim()
-    || String(shippingName.full_name || '').trim();
-
-  if (!email) {
-    return { error: 'Missing PayPal payer email.' };
-  }
-
-  return {
-    email,
-    customerName,
-  };
-}
-
 function validateCompletedPayPalOrder(orderData, purchase, expectedOrderId = '') {
   if (!orderData || typeof orderData !== 'object') {
     return { error: 'Missing PayPal order data.' };
@@ -175,29 +150,6 @@ function validateCompletedPayPalOrder(orderData, purchase, expectedOrderId = '')
   };
 }
 
-function resolveCompletedPayPalOrder(orderData, expectedOrderId = '') {
-  const purchaseResult = resolvePayPalPurchaseFromOrder(orderData);
-  if (purchaseResult.error) {
-    return { error: purchaseResult.error };
-  }
-
-  const validation = validateCompletedPayPalOrder(orderData, purchaseResult.purchase, expectedOrderId);
-  if (validation.error) {
-    return { error: validation.error };
-  }
-
-  const customer = getPayPalCustomerFromOrder(orderData);
-  if (customer.error) {
-    return { error: customer.error };
-  }
-
-  return {
-    ...validation,
-    purchase: purchaseResult.purchase,
-    customer,
-  };
-}
-
 module.exports = {
   PAYPAL_CURRENCY,
   PAYPAL_UNAVAILABLE_MESSAGE,
@@ -208,8 +160,6 @@ module.exports = {
   isValidPayPalOrderId,
   parsePayPalCustomId,
   resolvePayPalPurchaseFromOrder,
-  getPayPalCustomerFromOrder,
   resolvePayPalPurchaseFromBody,
   validateCompletedPayPalOrder,
-  resolveCompletedPayPalOrder,
 };

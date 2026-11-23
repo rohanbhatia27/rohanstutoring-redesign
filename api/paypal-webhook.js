@@ -1,6 +1,8 @@
 const { PAYPAL_API, getPayPalAccessToken } = require('./_lib/_paypal.js');
-const { resolveCompletedPayPalOrder } = require('./_lib/_paypal-order-validation.js');
+const { validateCompletedPayPalOrder, PAYPAL_CURRENCY } = require('./_lib/_paypal-order-validation.js');
 const fulfillPayPalOrder = require('./_lib/_paypal-fulfillment.js');
+const orderStore = require('./_lib/_paypal-order-store.js');
+const sendFulfillmentAlert = require('./_lib/_fulfillment-alerts.js');
 
 function getHeader(headers, name) {
   const lowerName = String(name).toLowerCase();
@@ -63,12 +65,18 @@ async function loadCompletedPayPalOrder(orderID) {
   }
 
   const orderData = await orderResponse.json();
-  const resolved = resolveCompletedPayPalOrder(orderData, orderID);
-  if (resolved.error) {
-    throw new Error(resolved.error);
+  let saved;
+  try {
+    saved = await orderStore.load(orderID);
+  } catch (error) {
+    await sendFulfillmentAlert({ baseSlug: 'unknown', provider: 'paypal', paymentId: orderID, failedStep: 'checkout_record', errorMessage: error.message });
+    throw error;
   }
-
-  return resolved;
+  if (!saved.purchase || saved.purchase.amount !== saved.amountCents || saved.currency !== PAYPAL_CURRENCY || !saved.customer.email) throw new Error('Invalid saved PayPal order');
+  const validation = validateCompletedPayPalOrder(orderData, saved.purchase, orderID);
+  if (validation.error) throw new Error(validation.error);
+  await orderStore.savePayer(orderID, String(orderData.payer?.email_address || '').trim());
+  return { ...validation, purchase: saved.purchase, customer: saved.customer };
 }
 
 async function paypalWebhookHandler(req, res) {

@@ -1,6 +1,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
+const deliveryStore = require('../api/_lib/_email-delivery-store.js');
+test.beforeEach(() => {
+  const rows = new Map();
+  deliveryStore.__setRequest(async (method, data) => {
+    if (method === 'reserve' && !rows.has(data.delivery_key)) rows.set(data.delivery_key, { ...data, status: 'pending', created_at: new Date().toISOString() });
+    if (method === 'get') return rows.get(data.delivery_key);
+    if (method === 'complete') Object.assign(rows.get(data.delivery_key), { status: 'sent', message_id: data.messageId });
+  });
+});
+test.afterEach(() => deliveryStore.__resetForTests());
+
 const sendFulfillmentAlert = require('../api/_lib/_fulfillment-alerts.js');
 const fulfillPaymentIntent = require('../api/_lib/_fulfill-payment-intent.js');
 const fulfillPayPalOrder = require('../api/_lib/_paypal-fulfillment.js');
@@ -28,13 +39,14 @@ test('sendFulfillmentAlert sends to ADMIN_ALERT_EMAIL with all required fields',
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'alert_email_1' };
+        return { data: { id: 'alert_email_1' }, error: null };
       },
     },
   }));
 
-  await sendFulfillmentAlert(BASE_ALERT_ARGS);
+  const result = await sendFulfillmentAlert(BASE_ALERT_ARGS);
 
+  assert.equal(result.messageId, 'alert_email_1');
   assert.equal(sentEmails.length, 1);
   assert.equal(sentEmails[0].to, 'rohan@example.com');
   assert.match(sentEmails[0].subject, /FULFILLMENT ALERT/);
@@ -61,7 +73,7 @@ test('sendFulfillmentAlert includes upsell slug when present', async () => {
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'alert_email_2' };
+        return { data: { id: 'alert_email_2' }, error: null };
       },
     },
   }));
@@ -86,7 +98,7 @@ test('sendFulfillmentAlert skips silently when RESEND_API_KEY is missing', async
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'alert_email_3' };
+        return { data: { id: 'alert_email_3' }, error: null };
       },
     },
   }));
@@ -108,7 +120,7 @@ test('sendFulfillmentAlert skips silently when ADMIN_ALERT_EMAIL is missing', as
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'alert_email_4' };
+        return { data: { id: 'alert_email_4' }, error: null };
       },
     },
   }));
@@ -149,7 +161,7 @@ test('sendFulfillmentAlert escapes HTML in error message', async () => {
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'alert_email_5' };
+        return { data: { id: 'alert_email_5' }, error: null };
       },
     },
   }));
@@ -250,7 +262,7 @@ test('fulfillPaymentIntent sends alert when Kit tagging fails', async () => {
   const alerts = [];
 
   fulfillPaymentIntent.__setResendFactory(() => ({
-    emails: { send: async () => ({ id: 'ok' }) },
+    emails: { send: async () => ({ data: { id: 'ok' }, error: null }) },
   }));
   fulfillPaymentIntent.__setAlertFn(async (args) => { alerts.push(args); });
   process.env.RESEND_API_KEY = 're_test_key';
@@ -360,11 +372,11 @@ test('fulfillPayPalOrder skips Drive sharing for essay-marking orders', async ()
   console.warn = (...args) => warnings.push(args.join(' '));
 
   try {
-    await fulfillPayPalOrder({
+    await assert.rejects(() => fulfillPayPalOrder({
       purchase: { baseSlug: 'essay-marking', upsellSlug: '' },
       customer: { email: 'paypal@example.com', customerName: 'PP User' },
       orderID: 'ORDER_paypal_essay_marking',
-    });
+    }), /RESEND_API_KEY/);
   } finally {
     console.warn = originalWarn;
     fulfillPayPalOrder.__resetForTests();
@@ -391,11 +403,11 @@ test('fulfillPayPalOrder sends alert when Google Drive sharing fails', async () 
   process.env.GOOGLE_REFRESH_TOKEN = 'gtoken';
   process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'folder_xyz';
 
-  await fulfillPayPalOrder({
+  await assert.rejects(() => fulfillPayPalOrder({
     purchase: { baseSlug: 'blueprint', upsellSlug: '' },
     customer: { email: 'paypal@example.com', customerName: 'PP User' },
     orderID: 'ORDER_paypal_123',
-  });
+  }), /RESEND_API_KEY/);
 
   const driveAlert = alerts.find((a) => a.failedStep === 'drive');
   assert.ok(driveAlert, 'Expected a drive alert for PayPal');
@@ -424,11 +436,11 @@ test('fulfillPayPalOrder sends alert when confirmation email fails', async () =>
   }));
   process.env.RESEND_API_KEY = 're_test_key';
 
-  await fulfillPayPalOrder({
+  await assert.rejects(() => fulfillPayPalOrder({
     purchase: { baseSlug: 'blueprint', upsellSlug: '' },
     customer: { email: 'paypal@example.com', customerName: 'PP User' },
     orderID: 'ORDER_paypal_456',
-  });
+  }), /PayPal email send error/);
 
   const emailAlert = alerts.find((a) => a.failedStep === 'email');
   assert.ok(emailAlert, 'Expected an email alert for PayPal');
@@ -445,7 +457,7 @@ test('fulfillPayPalOrder sends alert when Kit tagging fails', async () => {
 
   fulfillPayPalOrder.__setAlertFn(async (args) => { alerts.push(args); });
   fulfillPaymentIntent.__setResendFactory(() => ({
-    emails: { send: async () => ({ id: 'ok' }) },
+    emails: { send: async () => ({ data: { id: 'ok' }, error: null }) },
   }));
   process.env.RESEND_API_KEY = 're_test_key';
   process.env.KIT_API_KEY = 'kit_key';
@@ -462,11 +474,11 @@ test('fulfillPayPalOrder sends alert when Kit tagging fails', async () => {
     throw new Error('Kit PayPal tag error');
   });
 
-  await fulfillPayPalOrder({
+  await assert.rejects(() => fulfillPayPalOrder({
     purchase: { baseSlug: 'blueprint', upsellSlug: '' },
     customer: { email: 'paypal@example.com', customerName: 'PP User' },
     orderID: 'ORDER_paypal_789',
-  });
+  }), /GOOGLE_DRIVE_FOLDER/);
 
   const kitAlert = alerts.find((a) => a.failedStep === 'kit');
   assert.ok(kitAlert, 'Expected a kit alert for PayPal');
@@ -479,4 +491,102 @@ test('fulfillPayPalOrder sends alert when Kit tagging fails', async () => {
   delete process.env.RESEND_API_KEY;
   delete process.env.KIT_API_KEY;
   delete process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT;
+});
+
+test('confirmation requires Resend acceptance and a message ID', async () => {
+  process.env.RESEND_API_KEY = 're_test_key';
+  try {
+    for (const response of [{ data: null, error: { message: 'rejected' } }, { data: null, error: null }]) {
+      fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async () => response } }));
+      await assert.rejects(() => fulfillPaymentIntent.sendConfirmationEmail({ customerEmail: 'student@example.com', baseSlug: 'blueprint' }), /rejected|message ID/);
+    }
+    fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async () => ({ data: { id: 'msg_123' }, error: null }) } }));
+    const result = await fulfillPaymentIntent.sendConfirmationEmail({ customerEmail: 'student@example.com', baseSlug: 'blueprint' });
+    assert.equal(result.messageId, 'msg_123');
+  } finally {
+    fulfillPaymentIntent.__resetForTests();
+    delete process.env.RESEND_API_KEY;
+  }
+});
+
+test('confirmation treats a missing Resend key as a failure', async () => {
+  delete process.env.RESEND_API_KEY;
+  await assert.rejects(() => fulfillPaymentIntent.sendConfirmationEmail({ customerEmail: 'student@example.com', baseSlug: 'blueprint' }), /RESEND_API_KEY/);
+});
+
+test('Blueprint access email rejects missing configuration and unaccepted sends', async () => {
+  const send = require('../api/_lib/_send-fulfillment-email.js');
+  delete process.env.RESEND_API_KEY;
+  await assert.rejects(() => send({ firstName: 'A', customerEmail: 'a@example.com', driveFolderUrl: 'https://example.com' }), /RESEND_API_KEY/);
+  process.env.RESEND_API_KEY = 'test';
+  try {
+    await assert.rejects(() => send({ firstName: 'A', customerEmail: 'a@example.com' }), /drive/i);
+    send.__setResendFactory(() => ({ emails: { send: async () => ({ data: null, error: { message: 'rejected' } }) } }));
+    await assert.rejects(() => send({ firstName: 'A', customerEmail: 'a@example.com', driveFolderUrl: 'https://example.com' }), /rejected/);
+  } finally { send.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('PayPal webhook replay does not send a second accepted confirmation', async () => {
+  process.env.RESEND_API_KEY = 'test';
+  let sends = 0;
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async () => { sends++; return { data: { id: 'msg_1' }, error: null }; } } }));
+  const order = { orderID: 'ORDER123', purchase: { baseSlug: 'essay-collection' }, customer: { email: 'student@example.com', customerName: 'Student' } };
+  try {
+    await fulfillPayPalOrder(order);
+    await fulfillPayPalOrder(order);
+    assert.equal(sends, 1);
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('PayPal retries an add-on PDF without repeating the accepted confirmation', async () => {
+  process.env.RESEND_API_KEY = 'test';
+  let welcomes = 0, pdfs = 0;
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async payload => {
+    if (!payload.attachments) { welcomes++; return { data: { id: 'welcome' }, error: null }; }
+    pdfs++; if (pdfs === 1) throw new Error('timeout');
+    return { data: { id: 'pdf' }, error: null };
+  } } }));
+  const order = { orderID: 'ORDERPDF1', purchase: { baseSlug: 'essay-marking', upsellSlug: 'essay-collection' }, customer: { email: 'student@example.com', customerName: 'Student' } };
+  try {
+    await assert.rejects(() => fulfillPayPalOrder(order), /timeout/);
+    await fulfillPayPalOrder(order);
+    assert.equal(welcomes, 1);
+    assert.equal(pdfs, 2);
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('sandbox email restriction rejects recipients outside the configured allowlist', async () => {
+  const sendEmail = require('../api/_lib/_send-email.js');
+  process.env.RESEND_API_KEY = 'test';
+  process.env.SANDBOX_ALLOWED_EMAILS = 'student@example.com';
+  let called = false;
+  try {
+    await assert.rejects(() => sendEmail({ resendFactory: () => ({ emails: { send: async () => { called = true; return { data: { id: 'msg' }, error: null }; } } }), options: { to: 'someone-else@example.com' } }), /sandbox recipient/i);
+    assert.equal(called, false);
+  } finally {
+    delete process.env.RESEND_API_KEY;
+    delete process.env.SANDBOX_ALLOWED_EMAILS;
+  }
+});
+
+test('sandbox email restriction permits the approved recipient', async () => {
+  const sendEmail = require('../api/_lib/_send-email.js');
+  process.env.RESEND_API_KEY = 'test';
+  process.env.SANDBOX_ALLOWED_EMAILS = 'student@example.com';
+  try {
+    const result = await sendEmail({ resendFactory: () => ({ emails: { send: async () => ({ data: { id: 'msg' }, error: null }) } }), options: { to: 'Student@example.com' } });
+    assert.equal(result.messageId, 'msg');
+  } finally { delete process.env.RESEND_API_KEY; delete process.env.SANDBOX_ALLOWED_EMAILS; }
+});
+
+test('fulfilment can use a separate Resend key without enabling other site email flows', async () => {
+  const sendEmail = require('../api/_lib/_send-email.js');
+  delete process.env.RESEND_API_KEY;
+  process.env.FULFILLMENT_RESEND_API_KEY = 'fulfilment-only-key';
+  let usedKey;
+  try {
+    const result = await sendEmail({ resendFactory: key => { usedKey = key; return { emails: { send: async () => ({ data: { id: 'msg' }, error: null }) } }; }, options: { to: 'student@example.com' } });
+    assert.equal(usedKey, 'fulfilment-only-key');
+    assert.equal(result.messageId, 'msg');
+  } finally { delete process.env.FULFILLMENT_RESEND_API_KEY; }
 });

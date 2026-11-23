@@ -410,6 +410,7 @@ function buildInstalmentSessionPayload({
     product_slug: slug,
     base_slug: slug,
     payment_mode: 'instalments',
+    instalment_schedule_version: '1',
     customer_email: customer.email,
     customer_name: customer.customerName,
     customer_phone: customer.phone,
@@ -488,6 +489,9 @@ function buildAfterpaySessionPayload({
 
   if (purchase.upsellSlug) {
     metadata.upsell_slug = purchase.upsellSlug;
+    if (Number(purchase.upsellQuantity) > 1) {
+      metadata.upsell_quantity = String(Math.floor(Number(purchase.upsellQuantity)));
+    }
   }
 
   if (purchase.upsellSlug2) {

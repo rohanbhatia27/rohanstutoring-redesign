@@ -1,6 +1,8 @@
 const Stripe = require('stripe');
 const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 const { sendGa4Purchase } = require('./_lib/_ga4-measurement-protocol.js');
+const ensureInstalmentSchedule = require('./_lib/_instalment-schedule.js');
+const sendFulfillmentAlert = require('./_lib/_fulfillment-alerts.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 let fulfillPaymentIntentImpl = fulfillPaymentIntent;
@@ -135,7 +137,16 @@ async function stripeWebhookHandler(req, res) {
     } else if (isInstalmentWebhookEvent(event)) {
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
-        await fulfillInstalmentCheckoutImpl({ session });
+        if (session.metadata?.instalment_schedule_version === '1') {
+          try {
+            await ensureInstalmentSchedule({ stripeClient, session });
+          } catch (error) {
+            const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
+            await sendFulfillmentAlert({ baseSlug: session.metadata?.base_slug || 'unknown', customerEmail: session.metadata?.customer_email || '', provider: 'stripe', paymentId: subscriptionId || session.id, failedStep: 'instalment_schedule', errorMessage: error.message });
+            throw error;
+          }
+        }
+        await fulfillInstalmentCheckoutImpl({ session, stripeClient });
         await sendGa4PurchaseNonFatal({
           transactionId: session.id,
           amountCents: session.amount_total,

@@ -1510,6 +1510,7 @@ test('stripe webhook acknowledges checkout.session.completed for instalment chec
           data: {
             object: {
               id: 'cs_test_123',
+              subscription: 'sub_test_123',
               metadata: {
                 product_slug: 'comprehensive',
                 payment_mode: 'instalments',
@@ -1519,14 +1520,18 @@ test('stripe webhook acknowledges checkout.session.completed for instalment chec
         };
       },
     },
-    paymentIntents: {
-      update: async () => undefined,
+    subscriptions: { retrieve: async () => ({ start_date: 1767225600, items: { data: [{ price: { id: 'price_test', recurring: { interval: 'month' } }, quantity: 1 }] } }) },
+    subscriptionSchedules: {
+      create: async () => ({ id: 'sched_test', current_phase: { start_date: 1767225600 } }),
+      update: async () => ({ end_behavior: 'cancel', phases: [{ start_date: 1767225600, end_date: 1777593600, items: [{ price: 'price_test', quantity: 1 }] }] }),
     },
   }));
   stripeWebhookHandler.__setFulfillPaymentIntent(async () => {
     fulfilled = true;
     return { alreadyFulfilled: false };
   });
+
+  stripeWebhookHandler.__setFulfillInstalmentCheckout(async () => ({}));
 
   const req = {
     method: 'POST',
@@ -1661,6 +1666,7 @@ test('stripe webhook sends server-side GA4 purchase for completed hosted checkou
           data: {
             object: {
               id: 'cs_test_123',
+              subscription: 'sub_test_123',
               amount_total: 159900,
               currency: 'aud',
               metadata: {
@@ -1676,8 +1682,10 @@ test('stripe webhook sends server-side GA4 purchase for completed hosted checkou
         };
       },
     },
-    paymentIntents: {
-      update: async () => undefined,
+    subscriptions: { retrieve: async () => ({ start_date: 1767225600, items: { data: [{ price: { id: 'price_test', recurring: { interval: 'month' } }, quantity: 1 }] } }) },
+    subscriptionSchedules: {
+      create: async () => ({ id: 'sched_test', current_phase: { start_date: 1767225600 } }),
+      update: async () => ({ end_behavior: 'cancel', phases: [{ start_date: 1767225600, end_date: 1777593600, items: [{ price: 'price_test', quantity: 1 }] }] }),
     },
   }));
   stripeWebhookHandler.__setFulfillInstalmentCheckout(async () => ({ alreadyFulfilled: false }));
@@ -2481,6 +2489,7 @@ test('instalment session handler creates a subscription checkout session with fi
       product_slug: 'mastery',
       base_slug: 'mastery',
       payment_mode: 'instalments',
+      instalment_schedule_version: '1',
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
       customer_phone: '+61 400 111 222',
@@ -2490,6 +2499,7 @@ test('instalment session handler creates a subscription checkout session with fi
       product_slug: 'mastery',
       base_slug: 'mastery',
       payment_mode: 'instalments',
+      instalment_schedule_version: '1',
       customer_email: 'jane@example.com',
       customer_name: 'Jane Smith',
       customer_phone: '+61 400 111 222',
@@ -2650,6 +2660,10 @@ test('PayPal validation rejects captures without completed status', () => {
 test('PayPal capture handler rejects completed orders with mismatched amounts', async () => {
   process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
   process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  const orderStore = require('../api/_lib/_paypal-order-store.js');
+  const originalLoad = orderStore.load, originalSavePayer = orderStore.savePayer;
+  orderStore.load = async () => ({ customer: { email: 'student@example.com', customerName: 'Student' }, purchase: { baseSlug: 'blueprint', amount: 59900 }, amountCents: 59900, currency: 'AUD' });
+  orderStore.savePayer = async () => {};
   const previousFetch = global.fetch;
   const fetchCalls = [];
 
@@ -2712,6 +2726,7 @@ test('PayPal capture handler rejects completed orders with mismatched amounts', 
     assert.equal(fetchCalls.length, 2);
   } finally {
     global.fetch = previousFetch;
+    orderStore.load = originalLoad; orderStore.savePayer = originalSavePayer;
     delete process.env.PAYPAL_CLIENT_ID;
     delete process.env.PAYPAL_CLIENT_SECRET;
   }
@@ -2720,6 +2735,10 @@ test('PayPal capture handler rejects completed orders with mismatched amounts', 
 test('PayPal capture handler accepts only validated completed checkout orders', async () => {
   process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
   process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  const orderStore = require('../api/_lib/_paypal-order-store.js');
+  const originalLoad = orderStore.load, originalSavePayer = orderStore.savePayer;
+  orderStore.load = async () => ({ customer: { email: 'student@example.com', customerName: 'Student' }, purchase: { baseSlug: 'blueprint', amount: 59900 }, amountCents: 59900, currency: 'AUD' });
+  orderStore.savePayer = async () => {};
   const previousFetch = global.fetch;
 
   global.fetch = async (url) => {
@@ -2783,6 +2802,7 @@ test('PayPal capture handler accepts only validated completed checkout orders', 
     });
   } finally {
     global.fetch = previousFetch;
+    orderStore.load = originalLoad; orderStore.savePayer = originalSavePayer;
     delete process.env.PAYPAL_CLIENT_ID;
     delete process.env.PAYPAL_CLIENT_SECRET;
   }
@@ -3060,6 +3080,11 @@ test('PayPal webhook verifies signature, fetches the order, and fulfills capture
   process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
   process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
   process.env.PAYPAL_WEBHOOK_ID = 'webhook_id_test';
+  const orderStore = require('../api/_lib/_paypal-order-store.js');
+  const originalLoad = orderStore.load, originalSavePayer = orderStore.savePayer;
+  orderStore.load = async () => ({ customer: { email: 'student@example.com', customerName: 'Student' }, purchase: { baseSlug: 'blueprint', amount: 59900 }, amountCents: 59900, currency: 'AUD' });
+  let payerEmail;
+  orderStore.savePayer = async (_, email) => { payerEmail = email; };
   const previousFetch = global.fetch;
   const calls = [];
   const fulfilledOrders = [];
@@ -3160,9 +3185,11 @@ test('PayPal webhook verifies signature, fetches the order, and fulfills capture
     assert.equal(fulfilledOrders.length, 1);
     assert.equal(fulfilledOrders[0].orderID, 'ORDER123');
     assert.equal(fulfilledOrders[0].purchase.baseSlug, 'blueprint');
-    assert.equal(fulfilledOrders[0].customer.email, 'jane@example.com');
+    assert.equal(fulfilledOrders[0].customer.email, 'student@example.com');
+    assert.equal(payerEmail, 'jane@example.com');
   } finally {
     global.fetch = previousFetch;
+    orderStore.load = originalLoad; orderStore.savePayer = originalSavePayer;
     delete process.env.PAYPAL_CLIENT_ID;
     delete process.env.PAYPAL_CLIENT_SECRET;
     delete process.env.PAYPAL_WEBHOOK_ID;
@@ -4093,4 +4120,54 @@ test('PayPal validation reads custom_id from the capture when the purchase unit 
   );
 
   assert.equal(wrongProduct.error, 'Captured PayPal product does not match checkout product.');
+});
+
+test('PayPal order is returned only after its student recipient is saved', async () => {
+  const store = require('../api/_lib/_paypal-order-store.js');
+  const oldSave = store.save, oldFetch = global.fetch;
+  process.env.PAYPAL_CLIENT_ID = 'paypal_client_test';
+  process.env.PAYPAL_CLIENT_SECRET = 'paypal_secret_test';
+  let saved, rejectSave = false;
+  store.save = async record => { if (rejectSave) throw new Error('database unavailable'); saved = record; };
+  global.fetch = async url => String(url).includes('/v1/oauth2/token')
+    ? { ok: true, json: async () => ({ access_token: 'test' }) }
+    : { ok: true, json: async () => ({ id: 'ORDER123' }) };
+  const request = { method: 'POST', headers: { origin: 'https://rohanstutoring.com' }, body: { slug: 'blueprint', email: 'student@example.com', customerName: 'Student Name', phone: '+61 400 111 222' } };
+  try {
+    const first = createJsonResponseRecorder();
+    await payPalOrderHandler(request, first);
+    assert.equal(first.statusCode, 200);
+    assert.equal(saved.customer.email, 'student@example.com');
+    assert.equal(saved.purchase.amount, 59900);
+    rejectSave = true;
+    const second = createJsonResponseRecorder();
+    await payPalOrderHandler(request, second);
+    assert.equal(second.statusCode, 500);
+    assert.equal(second.body.orderID, undefined);
+  } finally {
+    store.save = oldSave; global.fetch = oldFetch;
+    delete process.env.PAYPAL_CLIENT_ID; delete process.env.PAYPAL_CLIENT_SECRET;
+  }
+});
+
+test('PayPal webhook holds an old order without a saved recipient for review', async () => {
+  process.env.PAYPAL_CLIENT_ID = 'test'; process.env.PAYPAL_CLIENT_SECRET = 'test'; process.env.PAYPAL_WEBHOOK_ID = 'test';
+  const store = require('../api/_lib/_paypal-order-store.js'), oldLoad = store.load, oldFetch = global.fetch;
+  let fulfilled = false;
+  store.load = async () => { throw new Error('PayPal order has no saved checkout recipient; manual review required'); };
+  global.fetch = async url => {
+    if (String(url).includes('/oauth2/token')) return { ok: true, json: async () => ({ access_token: 'test' }) };
+    if (String(url).includes('/verify-webhook-signature')) return { ok: true, json: async () => ({ verification_status: 'SUCCESS' }) };
+    return { ok: true, json: async () => ({ id: 'ORDER123', status: 'COMPLETED' }) };
+  };
+  paypalWebhookHandler.__setFulfillPayPalOrder(async () => { fulfilled = true; });
+  try {
+    const res = createJsonResponseRecorder();
+    await paypalWebhookHandler({ method: 'POST', headers: {}, body: { event_type: 'PAYMENT.CAPTURE.COMPLETED', resource: { supplementary_data: { related_ids: { order_id: 'ORDER123' } } } } }, res);
+    assert.equal(res.statusCode, 500);
+    assert.equal(fulfilled, false);
+  } finally {
+    store.load = oldLoad; global.fetch = oldFetch; paypalWebhookHandler.__resetForTests();
+    delete process.env.PAYPAL_CLIENT_ID; delete process.env.PAYPAL_CLIENT_SECRET; delete process.env.PAYPAL_WEBHOOK_ID;
+  }
 });

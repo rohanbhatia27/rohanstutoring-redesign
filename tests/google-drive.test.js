@@ -224,3 +224,22 @@ test('verifyProductDriveAccess checks the configured Blueprint folder', async ()
   delete process.env.GOOGLE_REFRESH_TOKEN;
   delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
 });
+
+test('sandbox Drive sharing rejects unapproved recipients and folders before contacting Google', async () => {
+  process.env.SANDBOX_ALLOWED_EMAILS = 'student@example.com';
+  process.env.SANDBOX_DRIVE_FOLDER_ID = 'test-folder';
+  process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'test-folder';
+  let called = false;
+  googleDrive.__setFetch(async () => { called = true; throw new Error('unexpected fetch'); });
+  try {
+    await assert.rejects(() => googleDrive.shareProductAccess({ baseSlug: 'blueprint', email: 'other@example.com' }), /sandbox recipient/i);
+    process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT = 'live-folder';
+    await assert.rejects(() => googleDrive.shareProductAccess({ baseSlug: 'blueprint', email: 'student@example.com' }), /sandbox folder/i);
+    assert.equal(called, false);
+  } finally {
+    googleDrive.__resetForTests();
+    delete process.env.SANDBOX_ALLOWED_EMAILS;
+    delete process.env.SANDBOX_DRIVE_FOLDER_ID;
+    delete process.env.GOOGLE_DRIVE_FOLDER_ID_BLUEPRINT;
+  }
+});

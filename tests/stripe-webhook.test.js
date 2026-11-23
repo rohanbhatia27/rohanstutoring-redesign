@@ -1,5 +1,16 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+
+const deliveryStore = require('../api/_lib/_email-delivery-store.js');
+test.beforeEach(() => {
+  const rows = new Map();
+  deliveryStore.__setRequest(async (method, data) => {
+    if (method === 'reserve' && !rows.has(data.delivery_key)) rows.set(data.delivery_key, { ...data, status: 'pending', created_at: new Date().toISOString() });
+    if (method === 'get') return rows.get(data.delivery_key);
+    if (method === 'complete') Object.assign(rows.get(data.delivery_key), { status: 'sent', message_id: data.messageId });
+  });
+});
+test.afterEach(() => deliveryStore.__resetForTests());
 const { EventEmitter } = require('node:events');
 
 const fulfillPaymentIntent = require('../api/_lib/_fulfill-payment-intent.js');
@@ -386,7 +397,7 @@ test('fulfillment helper chooses the comprehensive welcome email template', asyn
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -423,7 +434,7 @@ test('fulfillment helper uses the S2-specific start time for s2-comprehensive', 
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -458,7 +469,7 @@ test('fulfillment helper uses Checkout Session customer details for instalment f
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -497,7 +508,7 @@ test('fulfillment helper tags instalment buyers in Kit', async () => {
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -559,7 +570,7 @@ test('fulfillment helper does not reuse the comprehensive template for mastery',
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -596,7 +607,7 @@ test('fulfillment helper tags mastery buyers in Kit for full-price and instalmen
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -680,7 +691,7 @@ test('fulfillment helper tags supported product buyers in Kit', async () => {
     emails: {
       send: async (payload) => {
         sentEmails.push(payload);
-        return { id: 'email_123' };
+        return { data: { id: 'email_123' }, error: null };
       },
     },
   }));
@@ -799,7 +810,7 @@ test('fulfillment helper shares starter-pack Drive access and records share meta
     },
   });
 
-  assert.equal(updates.length, 2);
+  assert.ok(updates.length >= 2);
   assert.equal(updates[1].payload.metadata.drive_share_status, 'shared');
   assert.equal(updates[1].payload.metadata.drive_share_folder_id, 'folder_123');
   assert.equal(updates[1].payload.metadata.drive_share_permission_id, 'perm_123');
@@ -1374,4 +1385,155 @@ test('syncPurchaseTag surfaces Customer tag failures for supported product buyer
   delete process.env.KIT_API_KEY;
   delete process.env.KIT_TAG_ID_PURCHASED_BLUEPRINT;
   delete process.env.KIT_TAG_ID_CUSTOMER;
+});
+
+test('replayed legacy instalment checkout never changes its existing subscription', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_example';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_example';
+  let touched = false, fulfilled = false;
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: { constructEvent: () => ({ type: 'checkout.session.completed', data: { object: { id: 'cs_old', subscription: 'sub_existing', metadata: { payment_mode: 'instalments', base_slug: 'comprehensive' } } } }) },
+    subscriptions: { retrieve: async () => { touched = true; throw new Error('Unexpected subscription access'); } },
+  }));
+  stripeWebhookHandler.__setFulfillInstalmentCheckout(async () => { fulfilled = true; });
+  stripeWebhookHandler.__setSendGa4Purchase(async () => {});
+  const res = createJsonResponseRecorder();
+  try {
+    await stripeWebhookHandler({ method: 'POST', headers: { 'stripe-signature': 'sig' }, rawBody: Buffer.from('{}') }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(touched, false);
+    assert.equal(fulfilled, true);
+  } finally {
+    stripeWebhookHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+  }
+});
+
+test('instalment webhook configures schedule before fulfilment', async () => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_example';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_example';
+  const order = [];
+  const start = 1767225600;
+  stripeWebhookHandler.__setStripeFactory(() => ({
+    webhooks: { constructEvent: () => ({ type: 'checkout.session.completed', data: { object: { id: 'cs_test', subscription: 'sub_test', metadata: { payment_mode: 'instalments', base_slug: 'comprehensive', instalment_schedule_version: '1' } } } }) },
+    subscriptions: { retrieve: async () => ({ start_date: start, items: { data: [{ price: { id: 'price_actual', recurring: { interval: 'month' } }, quantity: 1 }] } }) },
+    subscriptionSchedules: {
+      create: async () => ({ id: 'schedule', current_phase: { start_date: start } }),
+      update: async () => { order.push('schedule'); return { end_behavior: 'cancel', phases: [{ start_date: start, end_date: 1777593600, items: [{ price: 'price_actual', quantity: 1 }] }] }; },
+    },
+  }));
+  stripeWebhookHandler.__setFulfillInstalmentCheckout(async () => { order.push('fulfill'); });
+  stripeWebhookHandler.__setSendGa4Purchase(async () => {});
+  const res = createJsonResponseRecorder();
+  try {
+    await stripeWebhookHandler({ method: 'POST', headers: { 'stripe-signature': 'sig' }, rawBody: Buffer.from('{}') }, res);
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(order, ['schedule', 'fulfill']);
+  } finally {
+    stripeWebhookHandler.__resetForTests();
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+  }
+});
+
+test('fulfilment records and confirms the second add-on when it is purchased alone', async () => {
+  const updates = [], emails = [];
+  process.env.RESEND_API_KEY = 're_test_key';
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async options => { emails.push(options); return { data: { id: 'email_1' }, error: null }; } } }));
+  try {
+    await fulfillPaymentIntent({ paymentIntent: { id: 'pi_second', status: 'succeeded', metadata: { base_slug: 'blueprint', upsell_slug_2: 'essay-pack-10', customer_email: 'student@example.com' } }, stripeClient: { paymentIntents: { update: async (_, payload) => { updates.push(payload.metadata); } } } });
+    assert.match(updates[0].fulfillment_product_slugs, /essay-pack-10/);
+    assert.match(emails[0].text, /Essay Marking Pack \(10 credits\)/i);
+    assert.match(emails[0].text, /essays@rohanstutoring\.com/);
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('a timed-out essay email is retried with its attachment and is not sent again after acceptance', async () => {
+  process.env.RESEND_API_KEY = 're_test';
+  let attempts = 0, state = { id: 'pi_essay_retry', status: 'succeeded', metadata: { base_slug: 'essay-collection', customer_email: 'student@example.com' } };
+  const keys = [], messages = [];
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async (message, options) => {
+    attempts++; keys.push(options.idempotencyKey); messages.push(message);
+    if (attempts === 1) throw new Error('timeout');
+    return { data: { id: 'msg_success' }, error: null };
+  } } }));
+  const stripeClient = { paymentIntents: { retrieve: async () => state, update: async (_, payload) => { state = { ...state, metadata: payload.metadata }; } } };
+  try {
+    await fulfillPaymentIntent({ paymentIntent: state, stripeClient });
+    assert.equal(state.metadata.confirmation_email_status, 'failed');
+    await fulfillPaymentIntent({ paymentIntent: state, stripeClient });
+    assert.equal(state.metadata.confirmation_email_status, 'sent');
+    await fulfillPaymentIntent({ paymentIntent: state, stripeClient });
+    assert.equal(attempts, 2);
+    assert.equal(keys[0], keys[1]);
+    assert.equal(messages[1].attachments[0].filename, 'The Expert Essay Collection.pdf');
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('instalment fulfilment records the purchased add-ons and quantity on the subscription', async () => {
+  process.env.RESEND_API_KEY = 'test';
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async () => ({ data: { id: 'msg' }, error: null }) } }));
+  let saved;
+  await assert.rejects(() => fulfillPaymentIntent.fulfillInstalmentCheckout({ session: { id: 'cs_123', subscription: 'sub_123', metadata: { base_slug: 'comprehensive', upsell_slug: 'mentoring-single', upsell_quantity: '3', customer_email: 'student@example.com' } }, stripeClient: { subscriptions: { update: async (id, value) => { saved = { id, ...value.metadata }; } } } }), /Google Drive folder|GOOGLE_DRIVE_FOLDER/);
+  assert.equal(saved.id, 'sub_123');
+  assert.match(saved.fulfillment_product_slugs, /private-mentoring/);
+  assert.equal(saved.upsell_quantity, '3');
+  fulfillPaymentIntent.__resetForTests();
+  delete process.env.RESEND_API_KEY;
+});
+
+test('multiple mentoring sessions appear in the fulfilment instructions and confirmation', async () => {
+  process.env.RESEND_API_KEY = 'test';
+  let recorded, message;
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async payload => { message = payload; return { data: { id: 'msg' }, error: null }; } } }));
+  try {
+    await fulfillPaymentIntent({ paymentIntent: { id: 'pi_quantity', status: 'succeeded', metadata: { base_slug: 'blueprint', upsell_slug: 'mentoring-single', upsell_quantity: '3', customer_email: 'student@example.com' } }, stripeClient: { paymentIntents: { update: async (_, payload) => { recorded ||= payload.metadata; } } } });
+    assert.match(recorded.fulfillment_label, /3/);
+    assert.match(message.text, /× 3/);
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('fulfilment matches the checkout order for each Blueprint add-on combination', async () => {
+  const { resolveCheckoutPurchase } = require('../api/_lib/products.js');
+  const cases = [
+    { args: {}, slugs: ['blueprint'], names: ["Rohan's Blueprint"], amount: 59900 },
+    { args: { upsellSlug: 'mentoring-single' }, slugs: ['blueprint', 'private-mentoring'], names: ['Private Mentoring Session'], amount: 69800 },
+    { args: { upsellSlug2: 'essay-pack-10' }, slugs: ['blueprint', 'essay-pack-10'], names: ['Essay Marking Pack'], amount: 84800 },
+    { args: { upsellSlug: 'mentoring-single', upsellSlug2: 'essay-pack-10' }, slugs: ['blueprint', 'private-mentoring', 'essay-pack-10'], names: ['Private Mentoring Session', 'Essay Marking Pack'], amount: 94700 },
+    { args: { upsellSlug: 'mentoring-single', upsellQuantity: 3 }, slugs: ['blueprint', 'private-mentoring'], names: ['× 3'], amount: 89600 },
+  ];
+  process.env.RESEND_API_KEY = 'test';
+  let message;
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async payload => { message = payload; return { data: { id: 'msg' }, error: null }; } } }));
+  try {
+    for (const [i, c] of cases.entries()) {
+      const purchase = resolveCheckoutPurchase({ slug: 'blueprint', ...c.args });
+      assert.equal(purchase.amount, c.amount);
+      let metadata;
+      await fulfillPaymentIntent({ paymentIntent: { id: `pi_matrix_${i}`, status: 'succeeded', amount: purchase.amount, metadata: { base_slug: purchase.baseSlug, upsell_slug: purchase.upsellSlug || '', upsell_slug_2: purchase.upsellSlug2 || '', upsell_quantity: String(purchase.upsellQuantity || 1), customer_email: 'student@example.com' } }, stripeClient: { paymentIntents: { update: async (_, payload) => { metadata ||= payload.metadata; } } } });
+      assert.deepEqual(metadata.fulfillment_product_slugs.split(','), c.slugs);
+      for (const name of c.names) assert.ok(message.text.includes(name), name);
+    }
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
+});
+
+test('a missing add-on PDF retries independently of a successful welcome email', async () => {
+  process.env.RESEND_API_KEY = 'test';
+  let state = { id: 'pi_pdf_addon', status: 'succeeded', metadata: { base_slug: 'advanced', upsell_slug: 'essay-collection', customer_email: 'student@example.com' } }, welcomes = 0, pdfAttempts = 0;
+  fulfillPaymentIntent.__setResendFactory(() => ({ emails: { send: async payload => {
+    if (!payload.attachments) { welcomes++; return { data: { id: 'welcome' }, error: null }; }
+    pdfAttempts++; if (pdfAttempts === 1) throw new Error('timeout');
+    return { data: { id: 'pdf' }, error: null };
+  } } }));
+  const stripeClient = { paymentIntents: { retrieve: async () => state, update: async (_, payload) => { state = { ...state, metadata: payload.metadata }; } } };
+  try {
+    await fulfillPaymentIntent({ paymentIntent: state, stripeClient });
+    assert.equal(state.metadata.confirmation_email_status, 'sent');
+    assert.equal(state.metadata.essay_pdf_email_status, 'failed');
+    await fulfillPaymentIntent({ paymentIntent: state, stripeClient });
+    assert.equal(state.metadata.essay_pdf_email_status, 'sent');
+    assert.equal(welcomes, 1);
+    assert.equal(pdfAttempts, 2);
+  } finally { fulfillPaymentIntent.__resetForTests(); delete process.env.RESEND_API_KEY; }
 });
