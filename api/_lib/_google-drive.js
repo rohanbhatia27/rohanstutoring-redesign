@@ -19,6 +19,15 @@ function getOptionalEnv(name) {
   return String(process.env[name] || '').trim();
 }
 
+function validateSandboxShare(folderId, email) {
+  const allowedFolder = getOptionalEnv('SANDBOX_DRIVE_FOLDER_ID');
+  const allowedEmails = getOptionalEnv('SANDBOX_ALLOWED_EMAILS');
+  if (allowedFolder && folderId !== allowedFolder) throw new Error('Sandbox folder is not allowed');
+  if (allowedEmails && !allowedEmails.split(',').map(value => value.trim().toLowerCase()).includes(String(email || '').trim().toLowerCase())) {
+    throw new Error('Sandbox recipient is not allowed');
+  }
+}
+
 function toBase64UrlJson(value) {
   return Buffer.from(JSON.stringify(value)).toString('base64url');
 }
@@ -148,6 +157,7 @@ async function hasExistingPermission({ folderId, email, accessToken }) {
 }
 
 async function shareFolderWithUser({ folderId, email, accessToken }) {
+  validateSandboxShare(folderId, email);
   const existingPermission = await hasExistingPermission({ folderId, email, accessToken });
   if (existingPermission) {
     return {
@@ -191,6 +201,7 @@ async function shareProductAccess({ baseSlug, email }) {
     };
   }
 
+  validateSandboxShare(folderId, email);
   const accessToken = await getDriveAccessToken();
   const result = await shareFolderWithUser({
     folderId,

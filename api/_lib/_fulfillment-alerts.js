@@ -1,4 +1,6 @@
 const { Resend } = require('resend');
+const sendEmail = require('./_send-email.js');
+const emailDelivery = require('./_email-delivery-store.js');
 
 let resendFactory = (apiKey) => new Resend(apiKey);
 
@@ -59,7 +61,7 @@ async function sendFulfillmentAlert({
   failedStep,
   errorMessage,
 }) {
-  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
+  const apiKey = String(process.env.FULFILLMENT_RESEND_API_KEY || process.env.RESEND_API_KEY || '').trim();
   const adminEmail = String(process.env.ADMIN_ALERT_EMAIL || '').trim();
 
   if (!apiKey || !adminEmail) {
@@ -68,7 +70,6 @@ async function sendFulfillmentAlert({
   }
 
   try {
-    const resend = resendFactory(apiKey);
     const subject = `[FULFILLMENT ALERT] ${failedStep} failed: ${baseSlug}${upsellSlug ? '+' + upsellSlug : ''} (${provider})`;
     const textBody = [
       'Fulfillment step failed after a successful payment.',
@@ -82,15 +83,16 @@ async function sendFulfillmentAlert({
       `Error: ${errorMessage}`,
     ].join('\n');
 
-    await resend.emails.send({
+    const options = {
       from: 'hello@rohanstutoring.com',
       to: adminEmail,
       subject,
       html: buildAlertHtml({ baseSlug, upsellSlug, customerEmail, provider, paymentId, failedStep, errorMessage }),
       text: textBody,
-    });
+    };
+    const result = await emailDelivery.run({ provider: provider || 'system', paymentId, purpose: `alert-${failedStep}`, send: idempotencyKey => sendEmail({ resendFactory, options, idempotencyKey }) });
+    return result;
 
-    console.log(`[fulfillment-alerts] Alert sent for ${failedStep} failure on ${paymentId}`);
   } catch (alertErr) {
     console.error('[fulfillment-alerts] Failed to send alert email:', alertErr.message);
   }

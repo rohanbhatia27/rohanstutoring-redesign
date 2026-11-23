@@ -7,11 +7,11 @@ const {
   getPayPalIneligibilityReason,
   getPayPalPurchaseCustomId,
   isValidPayPalOrderId,
-  resolvePayPalPurchaseFromBody,
   validateCompletedPayPalOrder,
 } = require('./_lib/_paypal-order-validation.js');
 const { checkRateLimit } = require('./_lib/_rate-limit.js');
 const { syncCheckoutStartedTag } = require('./_lib/_kit.js');
+const orderStore = require('./_lib/_paypal-order-store.js');
 
 // Capture an abandoned-checkout lead without ever blocking or failing payment.
 function captureCheckoutStarted({ baseSlug, email, customerName, value }) {
@@ -69,13 +69,6 @@ async function handleCreateOrder(req, res, body) {
             description,
           },
         ],
-        payer: {
-          name: {
-            given_name: customer.customerName.split(' ')[0] || '',
-            surname: customer.customerName.split(' ').slice(1).join(' ') || '',
-          },
-          email_address: customer.email,
-        },
       }),
     });
 
@@ -86,6 +79,8 @@ async function handleCreateOrder(req, res, body) {
     }
 
     const order = await orderResponse.json();
+    if (!isValidPayPalOrderId(order.id)) throw new Error('Invalid PayPal order ID returned');
+    await orderStore.save({ orderID: order.id, customer, purchase, currency: PAYPAL_CURRENCY });
 
     captureCheckoutStarted({
       baseSlug: purchase.baseSlug,
@@ -111,19 +106,12 @@ async function handleCaptureOrder(req, res, body) {
     return res.status(400).json({ error: 'Invalid PayPal order ID.' });
   }
 
-  const resolved = resolvePayPalPurchaseFromBody(body);
-  if (resolved.error) {
-    return res.status(400).json({ error: resolved.error });
-  }
-
-  const { purchase, customer } = resolved;
-
-  const rl = await checkRateLimit(req, { bucket: 'payment', email: customer.email });
-  if (rl.limited) {
-    return res.status(429).json({ error: rl.message });
-  }
-
   try {
+    const saved = await orderStore.load(orderID);
+    const { purchase, customer } = saved;
+    if (!purchase || purchase.amount !== saved.amountCents || saved.currency !== PAYPAL_CURRENCY || !customer.email) throw new Error('Invalid saved PayPal order');
+    const rl = await checkRateLimit(req, { bucket: 'payment', email: customer.email });
+    if (rl.limited) return res.status(429).json({ error: rl.message });
     const accessToken = await getPayPalAccessToken();
 
     const captureResponse = await fetch(

@@ -1,3 +1,5 @@
+const supabaseHeaders = require('./_supabase-headers.js');
+
 /**
  * Lightweight Supabase purchase event logger.
  *
@@ -52,8 +54,7 @@ async function logPurchaseEvent(payload) {
         method: 'POST',
         headers: {
           'Content-Type':  'application/json',
-          'Authorization': `Bearer ${config.key}`,
-          'apikey':        config.key,
+          ...supabaseHeaders(config.key),
           'Prefer':        'return=minimal',
         },
         body: JSON.stringify(row),

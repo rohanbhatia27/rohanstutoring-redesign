@@ -4,6 +4,8 @@ const createCheckoutHandler = require('./create-checkout.js');
 const paymentIntentStatusHandler = require('./payment-status.js');
 const { shareProductAccess } = require('./_lib/_google-drive.js');
 const { syncCohortTag } = require('./_lib/_kit.js');
+const auditInstalments = require('./_lib/_audit-instalments.js');
+const sendFulfillmentAlert = require('./_lib/_fulfillment-alerts.js');
 const {
   buildAuthUrl,
   driveHealth,
@@ -301,6 +303,20 @@ async function adminHandler(req, res) {
     (req.query ? req.query.action : '') ||
     ''
   ).trim();
+
+  if (action === 'auditInstalments') {
+    const secret = String(process.env.CRON_SECRET || '').trim();
+    const manual = getRetryToken();
+    if ((!secret || req.headers.authorization !== `Bearer ${secret}`) && (!manual || getRequestToken(req) !== manual)) return res.status(401).json({ error: 'Unauthorized' });
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    try {
+      const result = await auditInstalments({ stripeClient: stripeFactory(process.env.STRIPE_SECRET_KEY), alert: sendFulfillmentAlert });
+      return res.status(200).json({ ok: true, ...result });
+    } catch (error) {
+      console.error('[admin:audit-instalments]', error.message);
+      return res.status(500).json({ error: 'Instalment audit failed.' });
+    }
+  }
 
   if (action === 'retryFulfillment') {
     return handleRetryFulfillment(req, res);
