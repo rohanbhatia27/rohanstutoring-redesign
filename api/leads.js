@@ -48,7 +48,9 @@ async function handleQuizLead(body, res, req) {
 // late September 2026 bots used these forms to sign strangers' addresses up to
 // Kit and send them the PDF, so suspected bots get a normal-looking reply and
 // nothing is sent.
-const MIN_FORM_FILL_MS = 2500;
+// Kept low on purpose: browser autofill lets real visitors submit in about a second,
+// and the bots seen so far either fill the honeypot or post with no timer at all.
+const MIN_FORM_FILL_MS = 1000;
 
 function getBotReason(body) {
   if (String(body.websiteUrl || '').trim()) return 'honeypot';
@@ -79,7 +81,7 @@ async function handleResourceLead(body, res, req) {
   const botReason = getBotReason(body);
   if (botReason) {
     const resource = getFreeResource(lead.resourceKey);
-    console.warn(`[leads/resource] Dropped suspected bot for ${lead.resourceKey} (${botReason})`);
+    console.warn(`[leads/resource] Dropped suspected bot for ${lead.resourceKey} (${botReason}, elapsedMs=${body.elapsedMs === undefined ? 'none' : body.elapsedMs})`);
     return res.status(200).json({
       ok: true,
       status: 'delivered',
