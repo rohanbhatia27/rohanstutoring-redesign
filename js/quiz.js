@@ -145,7 +145,7 @@ const OUTCOMES = {
     name: 'The Comprehensive Path',
     teaser: "You've got the hours to put in. The gap is real, but you can close it. Free resources probably won't get you there. Live teaching and essay feedback usually will, with a weekly structure that keeps you honest until exam day.",
     planHtml: `
-      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start Sunday 29 November and run for ten weeks, up to the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
+      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start Sunday 29 November and run until 14 March, in time for the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
       <h3>Phase 1: Now to 29 November: Get ahead before classes start</h3>
       <p class="plan-phase-focus">Weekly focus: the recorded library, one essay a week, one diagnostic mock.</p>
       <ol>

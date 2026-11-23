@@ -87,8 +87,10 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   is closed to new students.
   First classes: S1 Sunday 29 November 2026, S2 Tuesday 1 December 2026.
   S1 runs Sundays at 6pm and S2 Tuesdays at 6pm, Sydney/Melbourne time
-  (7am Sunday and 7am Tuesday in the UK). 10 weeks, 20 live
-  classes. Do not quote an end date or a Christmas break (not confirmed). Enrolment closes Friday 27 November 2026,
+  (7am Sunday and 7am Tuesday in the UK). 20 live classes. No classes from 20 December to 9 January (last classes 13 and 15 December,
+  resume 10 and 12 January). S1 has no classes in February and returns on 7 March (extra S1
+  class Tuesday 9 March), finishing 14 March. S2 also meets Sunday 7 February and finishes
+  Tuesday 16 February. Enrolment closes Friday 27 November 2026,
   11:59pm Sydney. Includes 5 marked essays. Waiting on September results is
   fine: they can enrol and use the refund (before the third class).
   Results refund (Comprehensive summer cohort): if they enrol, get their
