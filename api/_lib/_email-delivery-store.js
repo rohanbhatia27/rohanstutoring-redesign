@@ -23,11 +23,11 @@ async function run({ provider, paymentId, purpose, send }) {
   await request('reserve', identity);
   let row = await request('get', identity);
   if (!row) throw new Error('Email delivery record missing');
-  if (row.status === 'sent' && row.message_id) return { messageId: row.message_id };
+  if (row.status === 'sent' && row.message_id) return { messageId: row.message_id, alreadySent: true };
   if (row.status === 'failed') {
     await request('restart', identity);
     row = await request('get', identity);
-    if (row?.status === 'sent' && row.message_id) return { messageId: row.message_id };
+    if (row?.status === 'sent' && row.message_id) return { messageId: row.message_id, alreadySent: true };
   }
   const started = Date.parse(row.created_at);
   if (!Number.isFinite(started) || Date.now() - started >= 23 * 60 * 60 * 1000) throw new Error('Email delivery requires manual review after idempotency window');

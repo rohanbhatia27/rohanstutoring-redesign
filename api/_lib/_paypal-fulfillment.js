@@ -90,7 +90,7 @@ async function fulfillPayPalOrder({
   try {
     const emailResult = await emailDelivery.run({ provider: 'paypal', paymentId: orderID, purpose: 'confirmation', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug, upsellSlug2: purchase.upsellSlug2, upsellQuantity: purchase.upsellQuantity, idempotencyKey }) });
     console.log(`[${source}] Confirmation email processed for ${customerEmail} (${orderID || baseSlug})`);
-    await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: 'success', meta: { messageId: emailResult.messageId } });
+    await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: emailResult.alreadySent ? 'skipped' : 'success', meta: { messageId: emailResult.messageId, ...(emailResult.alreadySent ? { reason: 'already_sent' } : {}) } });
   } catch (emailErr) {
     emailFailure = emailErr;
     console.error(`[${source}] Confirmation email failed:`, emailErr.message);
@@ -109,7 +109,7 @@ async function fulfillPayPalOrder({
   if (baseSlug !== 'essay-collection' && [purchase.upsellSlug, purchase.upsellSlug2].includes('essay-collection')) {
     try {
       const result = await emailDelivery.run({ provider: 'paypal', paymentId: orderID, purpose: 'essay-pdf', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug: 'essay-collection', idempotencyKey }) });
-      await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.sent', outcome: 'success', meta: { messageId: result.messageId } });
+      await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.sent', outcome: result.alreadySent ? 'skipped' : 'success', meta: { messageId: result.messageId, ...(result.alreadySent ? { reason: 'already_sent' } : {}) } });
     } catch (error) {
       emailFailure = error;
       await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.failed', outcome: 'failure', errorMessage: error.message });

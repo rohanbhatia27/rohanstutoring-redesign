@@ -452,7 +452,7 @@ async function fulfillPaymentIntent(options) {
                 ...essayUploadMetadata,
               });
             }
-            await logPurchaseEvent({ ...logBase, eventType: 'blueprint_access_email.sent', outcome: emailResult.skipped ? 'skipped' : 'success' });
+            await logPurchaseEvent({ ...logBase, eventType: 'blueprint_access_email.sent', outcome: (emailResult.skipped || emailResult.alreadySent) ? 'skipped' : 'success' });
             console.log(`[fulfill-payment-intent] Blueprint access email ${emailResult.skipped ? 'skipped' : 'sent'} for ${customerEmail}`);
           } catch (emailErr) {
             console.error('[fulfill-payment-intent] Blueprint access email failed:', emailErr.message);
@@ -526,7 +526,7 @@ async function fulfillPaymentIntent(options) {
       if (metadata.confirmation_email_status !== 'sent') {
         const emailResult = await emailDelivery.run({ provider: 'stripe', paymentId: paymentIntent.id, purpose: 'confirmation', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug, upsellSlug, upsellSlug2, upsellQuantity, idempotencyKey }) });
         await updateFulfillmentMetadata({ confirmation_email_status: 'sent', confirmation_email_message_id: emailResult.messageId });
-        await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: 'success', meta: { messageId: emailResult.messageId } });
+        await logPurchaseEvent({ ...logBase, eventType: 'email.sent', outcome: emailResult.alreadySent ? 'skipped' : 'success', meta: { messageId: emailResult.messageId, ...(emailResult.alreadySent ? { reason: 'already_sent' } : {}) } });
       }
     } catch (emailErr) {
       console.error('[fulfill-payment-intent] Confirmation email failed:', emailErr.message);
@@ -547,7 +547,7 @@ async function fulfillPaymentIntent(options) {
       try {
         const result = await emailDelivery.run({ provider: 'stripe', paymentId: paymentIntent.id, purpose: 'essay-pdf', send: idempotencyKey => sendConfirmationEmail({ customerName, customerEmail, baseSlug: 'essay-collection', idempotencyKey }) });
         await updateFulfillmentMetadata({ essay_pdf_email_status: 'sent', essay_pdf_email_message_id: result.messageId });
-        await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.sent', outcome: 'success', meta: { messageId: result.messageId } });
+        await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.sent', outcome: result.alreadySent ? 'skipped' : 'success', meta: { messageId: result.messageId, ...(result.alreadySent ? { reason: 'already_sent' } : {}) } });
       } catch (error) {
         await updateFulfillmentMetadata({ essay_pdf_email_status: 'failed', essay_pdf_email_error: String(error.message).slice(0, 480) });
         await logPurchaseEvent({ ...logBase, eventType: 'essay_pdf_email.failed', outcome: 'failure', errorMessage: error.message });

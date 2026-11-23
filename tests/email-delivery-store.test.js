@@ -54,3 +54,38 @@ test('delivery storage uses the current Supabase secret-key authentication', asy
     delete process.env.SUPABASE_URL; delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   }
 });
+
+test('a delivery that was already sent is flagged so callers do not log it as a new send', async () => {
+  let row = { delivery_key: 'k', provider: 'paypal', payment_id: 'o_1', purpose: 'confirmation', status: 'sent', message_id: 'msg_old', created_at: new Date().toISOString() };
+  let sends = 0;
+  delivery.__setRequest(async (method) => { if (method === 'get') return row; });
+  try {
+    const replay = await delivery.run({ provider: 'paypal', paymentId: 'o_1', purpose: 'confirmation', send: async () => { sends++; return { messageId: 'msg_new' }; } });
+    assert.deepEqual(replay, { messageId: 'msg_old', alreadySent: true });
+    assert.equal(sends, 0);
+  } finally { delivery.__resetForTests(); }
+});
+
+test('a fresh send is not flagged as already sent', async () => {
+  let row;
+  delivery.__setRequest(async (method, data) => {
+    if (method === 'reserve') { row ||= { ...data, status: 'pending', created_at: new Date().toISOString() }; return; }
+    if (method === 'get') return row;
+    if (method === 'complete') { row = { ...row, status: 'sent', message_id: data.messageId }; }
+  });
+  try {
+    const result = await delivery.run({ provider: 'paypal', paymentId: 'o_2', purpose: 'confirmation', send: async () => ({ messageId: 'msg_1' }) });
+    assert.equal(result.alreadySent, undefined);
+  } finally { delivery.__resetForTests(); }
+});
+
+test('fulfilment logs record an already-sent email as skipped, not as a new send', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  for (const file of ['_paypal-fulfillment.js', '_fulfill-payment-intent.js']) {
+    const source = fs.readFileSync(path.join(__dirname, '..', 'api', '_lib', file), 'utf8');
+    assert.match(source, /emailResult\.alreadySent \? 'skipped' : 'success'/, `${file} confirmation log`);
+    assert.match(source, /result\.alreadySent \? 'skipped' : 'success'/, `${file} essay PDF log`);
+    assert.doesNotMatch(source, /eventType: 'email\.sent', outcome: 'success'/, `${file} must not log every email.sent as success`);
+  }
+});
