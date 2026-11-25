@@ -1,11 +1,14 @@
 const Stripe = require('stripe');
 const fulfillPaymentIntent = require('./_lib/_fulfill-payment-intent.js');
 const { sendGa4Purchase } = require('./_lib/_ga4-measurement-protocol.js');
+const { recordPromoRedemption } = require('./_lib/_promo-redemptions.js');
+const sendFulfillmentAlert = require('./_lib/_fulfillment-alerts.js');
 
 let stripeFactory = (secretKey) => Stripe(secretKey);
 let fulfillPaymentIntentImpl = fulfillPaymentIntent;
 let fulfillInstalmentCheckoutImpl = fulfillPaymentIntent.fulfillInstalmentCheckout;
 let sendGa4PurchaseImpl = sendGa4Purchase;
+let alertFn = sendFulfillmentAlert;
 const INSTALMENT_WEBHOOK_EVENTS = new Set([
   'checkout.session.completed',
   'invoice.paid',
@@ -86,6 +89,32 @@ async function sendGa4PurchaseNonFatal(payload) {
   }
 }
 
+// Never fails the webhook: the student has paid and been fulfilled, so a
+// tracking error only means the code may stay live. Alert so it can be
+// switched off by hand.
+async function recordPromoRedemptionNonFatal({ stripeClient, metadata, transactionId }) {
+  const code = String((metadata && metadata.coupon_code) || '').trim();
+  if (!code) return;
+  try {
+    await recordPromoRedemption({ stripeClient, code, transactionId });
+  } catch (error) {
+    console.error('[stripe-webhook] Promo code redemption tracking failed:', error.message);
+    try {
+      await alertFn({
+        baseSlug: String(metadata.base_slug || metadata.product_slug || ''),
+        upsellSlug: '',
+        customerEmail: String(metadata.customer_email || ''),
+        provider: 'stripe',
+        paymentId: transactionId,
+        failedStep: 'promo-code-redemption',
+        errorMessage: `Coupon ${code} was used but could not be counted (${error.message}). Deactivate it in Stripe if it has reached its limit.`,
+      });
+    } catch (alertError) {
+      console.error('[stripe-webhook] Promo code alert failed:', alertError.message);
+    }
+  }
+}
+
 async function stripeWebhookHandler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -125,6 +154,7 @@ async function stripeWebhookHandler(req, res) {
         paymentIntent: pi,
         stripeClient,
       });
+      await recordPromoRedemptionNonFatal({ stripeClient, metadata: piMeta, transactionId: pi.id });
       await sendGa4PurchaseNonFatal({
         transactionId: pi.id,
         amountCents: pi.amount_received || pi.amount,
@@ -136,6 +166,11 @@ async function stripeWebhookHandler(req, res) {
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         await fulfillInstalmentCheckoutImpl({ session });
+        await recordPromoRedemptionNonFatal({
+          stripeClient,
+          metadata: session.metadata || {},
+          transactionId: session.id,
+        });
         await sendGa4PurchaseNonFatal({
           transactionId: session.id,
           amountCents: session.amount_total,
@@ -182,12 +217,16 @@ stripeWebhookHandler.__setFulfillInstalmentCheckout = (value) => {
 stripeWebhookHandler.__setSendGa4Purchase = (value) => {
   sendGa4PurchaseImpl = value;
 };
+stripeWebhookHandler.__setAlertFn = (value) => {
+  alertFn = value;
+};
 stripeWebhookHandler.__isInstalmentWebhookEvent = isInstalmentWebhookEvent;
 stripeWebhookHandler.__resetForTests = () => {
   stripeFactory = (secretKey) => Stripe(secretKey);
   fulfillPaymentIntentImpl = fulfillPaymentIntent;
   fulfillInstalmentCheckoutImpl = fulfillPaymentIntent.fulfillInstalmentCheckout;
   sendGa4PurchaseImpl = sendGa4Purchase;
+  alertFn = sendFulfillmentAlert;
 };
 
 module.exports = stripeWebhookHandler;
