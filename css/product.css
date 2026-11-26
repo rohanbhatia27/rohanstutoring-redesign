@@ -386,7 +386,7 @@
   letter-spacing: 0.05em;
   margin-bottom: 6px;
 }
-.team__grid--hero .team__card-info p { font-size: 0.8rem; color: var(--text-muted); }
+.team__grid--hero .team__card-info p { font-size: 0.8rem; color: var(--text-light); }
 .team__grid--hero .team__card-tags {
   display: flex;
   gap: 5px;
