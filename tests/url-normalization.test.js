@@ -185,7 +185,7 @@ test('homepage hero urgency CTA promotes the Comprehensive Course', () => {
 
   assert.ok(urgencyLink, 'Homepage hero urgency CTA should exist');
   assert.equal(urgencyLink[1], '/courses/comprehensive');
-  assert.match(urgencyLink[2], /Capped at 25/i);
+  assert.match(urgencyLink[2], /sold out/i);
 });
 
 test('homepage courses section ladders Essentials, Comprehensive, and Mastery', () => {
@@ -211,14 +211,15 @@ test('homepage courses section ladders Essentials, Comprehensive, and Mastery', 
   assert.match(sectionHtml, /Your \$97 carries forward/i);
   assert.match(sectionHtml, /course-tier--featured[\s\S]*GAMSAT Comprehensive Course/);
   assert.match(sectionHtml, /course-tier--premium[\s\S]*GAMSAT Mastery Program/);
-  assert.doesNotMatch(sectionHtml, /Join Waitlist/i);
+  const featuredTier = sectionHtml.slice(sectionHtml.indexOf('course-tier--featured'), sectionHtml.indexOf('course-tier--premium'));
+  assert.match(featuredTier, /Sold Out/, 'Comprehensive tier shows sold out');
+  assert.match(sectionHtml.slice(sectionHtml.indexOf('course-tier--premium')), /Sold Out/, 'Mastery tier shows sold out');
 });
 
-test('courses page split-course upsell shows the current comprehensive saving', () => {
+test('courses page drops the comprehensive upsell while comprehensive is sold out', () => {
   const html = read('courses.html');
 
-  assert.match(html, /Take the full Comprehensive Course[\s\S]*save \$199/i);
-  assert.doesNotMatch(html, /Take the full Comprehensive Course[\s\S]*save \$[23]99/i);
+  assert.doesNotMatch(html, /Take the full Comprehensive Course/i);
 });
 
 test('courses page does not expose merge conflict markers in live cards', () => {
@@ -446,8 +447,8 @@ test('essay marking is open on the pre-August terms', () => {
   }
 });
 
-test('mastery checkout tagline reflects open enrolment', () => {
+test('mastery checkout tagline reflects sold-out status', () => {
   const { CATALOG } = require('../api/_lib/catalog.server.js');
-  assert.doesNotMatch(CATALOG.mastery.tagline, /waitlist/i);
-  assert.match(CATALOG.mastery.tagline, /Enrolment open/);
+  assert.match(CATALOG.mastery.tagline, /Sold out/);
+  assert.equal(CATALOG.mastery.available, false);
 });

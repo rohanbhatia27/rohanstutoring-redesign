@@ -9,6 +9,8 @@
  * Server-only fields (fulfillment, kit, drive) live in api/_lib/catalog.server.js.
  *
  * To reopen live coaching: update COHORT_STATUSES.liveCoaching.
+ * To reopen a sold-out cohort course: map its slug back to 'liveCoaching' in
+ * COHORT_STATUS_BY_SLUG.
  * To reopen a rescue sprint: flip `available` to true for that entry.
  * To pause essay marking: set ESSAY_MARKING_AVAILABLE to false.
  */
@@ -27,13 +29,22 @@
       label: 'Enrol Now',
       publicMessage: 'Enrolments are open for the summer cohort. The first class is Sunday 29 November 2026, and enrolment closes Friday 27 November.',
     },
+    // Summer cohort sold out (27 Nov 2026) for Comprehensive, S1-only and
+    // Mastery. S2-only stays on liveCoaching (open). Existing instalment
+    // subscriptions are unaffected.
+    soldOut: {
+      status: 'soldOut',
+      available: false,
+      label: 'Join Waitlist',
+      publicMessage: 'This course is sold out for the summer cohort. Join the waitlist and we will reach out when the next intake opens.',
+    },
   };
 
   const COHORT_STATUS_BY_SLUG = {
-    comprehensive: 'liveCoaching',
-    's1-comprehensive': 'liveCoaching',
+    comprehensive: 'soldOut',
+    's1-comprehensive': 'soldOut',
     's2-comprehensive': 'liveCoaching',
-    mastery: 'liveCoaching',
+    mastery: 'soldOut',
   };
 
   function getCohortStatusForSlug(slug) {
@@ -433,7 +444,7 @@
       allowedUpsells: ['mentoring-single'],
       upsellPriceOverrides: { 'mentoring-single': 9900 },
       image: '/assets/courses/mastery-course-card.webp',
-      tagline: 'Private tutorials  Unlimited essay marking  Enrolment open',
+      tagline: 'Private tutorials  Unlimited essay marking  Sold out',
       features: [
         'Everything in the Comprehensive Course',
         '5 × 1:1 private tutorials with Rohan',

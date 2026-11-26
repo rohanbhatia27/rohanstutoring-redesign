@@ -17,35 +17,43 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-test('flagship course pages are open and route visitors to checkout', () => {
+test('mastery and comprehensive are sold out and route visitors to the waitlist', () => {
   const masteryHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'mastery.html'), 'utf8');
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.doesNotMatch(masteryHtml, /Sold Out/);
-  assert.match(masteryHtml, /href="\/checkout\/\?product=mastery/);
+  assert.match(masteryHtml, /Sold Out/);
+  assert.match(masteryHtml, /schema\.org\/SoldOut/);
+  assert.doesNotMatch(masteryHtml, /href="\/checkout\/\?product=mastery/);
+  assert.match(masteryHtml, /href="\/contact"[^>]*>Join the Waitlist/);
 
-  assert.doesNotMatch(comprehensiveHtml, /Sold Out/);
-  assert.match(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
+  assert.match(comprehensiveHtml, /Sold Out/);
+  assert.match(comprehensiveHtml, /schema\.org\/SoldOut/);
+  assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
+  assert.match(comprehensiveHtml, /href="\/contact"[^>]*>\s*Join the Waitlist/);
+  // Sold-out page points single-section buyers at the still-open S2 course.
+  assert.match(comprehensiveHtml, /href="\/courses\/s2-comprehensive"/);
 });
 
-test('comprehensive page routes enrolment CTAs to checkout at the standard price', () => {
+test('comprehensive page keeps the standard price while sold out', () => {
   const comprehensiveHtml = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
-  const checkoutLinks = comprehensiveHtml.match(/href="\/checkout\/\?product=comprehensive(&cohort=nov-2026)?"/g) || [];
 
-  assert.ok(checkoutLinks.length >= 3, 'open page should route visitors to checkout');
-  assert.doesNotMatch(comprehensiveHtml, /Join the [Ww]aitlist/);
   assert.match(comprehensiveHtml, /\$1,799/);
-  assert.match(comprehensiveHtml, /4 monthly payments of \$499/);
-  assert.match(comprehensiveHtml, /\$499 today, then 3 monthly payments of \$499\. \$1,996 total\./);
-  assert.match(comprehensiveHtml, /Save \$197 compared with instalments\./);
   assert.equal((CATALOG.comprehensive.instalment.plan.firstPayment + CATALOG.comprehensive.instalment.plan.recurringPayment * (CATALOG.comprehensive.instalment.plan.count - 1)) * 100 - CATALOG.comprehensive.priceCents, 19700);
   // The early bird ended on 1 October 2026: no old price, strike-through or deadline copy.
   assert.doesNotMatch(comprehensiveHtml, /\$1,599|\$449|sticky-bar__was|value-summary__was|[Ee]arly bird|1 October/);
 });
 
-test('split comprehensive pages route enrolment CTAs to checkout while live coaching is open', () => {
+test('S1-only is sold out and routes visitors to the waitlist', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 's1-comprehensive.html'), 'utf8');
+
+  assert.match(html, /Sold Out/);
+  assert.match(html, /schema\.org\/SoldOut/);
+  assert.doesNotMatch(html, /\/checkout\/\?product=s1-comprehensive/);
+  assert.match(html, /href="\/contact"[^>]*>Join the Waitlist/);
+});
+
+test('S2-only routes enrolment CTAs to checkout while live coaching is open', () => {
   const files = [
-    ['s1-comprehensive.html', 's1-comprehensive'],
     ['s2-comprehensive.html', 's2-comprehensive'],
   ];
 
@@ -158,7 +166,6 @@ test('course product pages share the product stylesheet and script shell', () =>
 test('comprehensive hero drops the expired early bird countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.doesNotMatch(html, /Sold Out/);
   assert.doesNotMatch(html, /This cohort is full/);
   assert.doesNotMatch(html, /1 Seat Left/);
   assert.doesNotMatch(html, /Cohort begins in/);
@@ -168,11 +175,11 @@ test('comprehensive hero drops the expired early bird countdown', () => {
   assert.doesNotMatch(html, /data-countdown-v3/);
 });
 
-test('comprehensive hero counts down to summer cohort enrolment closing on 27 November', () => {
+test('sold-out comprehensive hero has no enrolment countdown', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 'comprehensive.html'), 'utf8');
 
-  assert.match(html, /data-countdown data-countdown-target="2026-11-27T23:59:00\+11:00"/);
-  assert.match(html, /data-countdown-complete="Enrolment has closed"/);
+  assert.doesNotMatch(html, /data-countdown data-countdown-target=/);
+  assert.match(html, /summer cohort for GAMSAT March 2027 is sold out/);
   assert.doesNotMatch(html, /late October/);
   assert.doesNotMatch(html, /spots left/);
   assert.doesNotMatch(html, /Wednesday 28 October/);

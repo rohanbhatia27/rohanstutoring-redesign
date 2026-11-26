@@ -248,14 +248,18 @@ test('getProductFromSearch resolves s1-comprehensive and s2-comprehensive', () =
   assert.equal(getProductFromSearch('?product=s2-comprehensive').name, PRODUCTS['s2-comprehensive'].name);
 });
 
-test('cohort course availability is driven by one centralized status', () => {
-  const cohortSlugs = ['comprehensive', 's1-comprehensive', 's2-comprehensive', 'mastery'];
-
+test('cohort course availability is driven by centralized statuses', () => {
   assert.equal(COHORT_STATUSES.liveCoaching.status, 'open');
+  assert.equal(COHORT_STATUSES.soldOut.status, 'soldOut');
 
-  for (const slug of cohortSlugs) {
-    assert.equal(getCohortStatusForSlug(slug), COHORT_STATUSES.liveCoaching);
-    assert.equal(CATALOG[slug].available, true, `${slug} should inherit the live coaching open status`);
+  // S2-only stays open for the summer cohort.
+  assert.equal(getCohortStatusForSlug('s2-comprehensive'), COHORT_STATUSES.liveCoaching);
+  assert.equal(CATALOG['s2-comprehensive'].available, true);
+
+  // Comprehensive, S1-only and Mastery are sold out.
+  for (const slug of ['comprehensive', 's1-comprehensive', 'mastery']) {
+    assert.equal(getCohortStatusForSlug(slug), COHORT_STATUSES.soldOut);
+    assert.equal(CATALOG[slug].available, false, `${slug} should be sold out`);
   }
 });
 
@@ -2319,13 +2323,20 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
     'Invalid upsell combination: blueprint + essay-collection'
   );
 
-  // The open cohorts resolve to the base price plus their mentoring bump.
+  // Sold-out cohorts are rejected before pricing.
   assert.equal(
     createPaymentIntentHandler.resolveCheckoutPurchase({
       slug: 'comprehensive',
       upsellSlug: 'mentoring-single',
+    }).error,
+    'This product is currently unavailable.'
+  );
+
+  assert.equal(
+    createPaymentIntentHandler.resolveCheckoutPurchase({
+      slug: 's2-comprehensive',
     }).amount,
-    189800
+    CATALOG['s2-comprehensive'].priceCents
   );
 
   assert.equal(
@@ -2333,8 +2344,8 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
       slug: 'mastery',
       upsellSlug: 'mentoring-single',
       upsellQuantity: 6,
-    }).amount,
-    329300
+    }).error,
+    'This product is currently unavailable.'
   );
 
   assert.equal(
@@ -3170,11 +3181,11 @@ test('PayPal webhook verifies signature, fetches the order, and fulfills capture
   }
 });
 
-test('isProductAvailable flags sold-out sprint slugs as unavailable and open cohorts as available', () => {
-  assert.equal(isProductAvailable('comprehensive'), true);
-  assert.equal(isProductAvailable('s1-comprehensive'), true);
+test('isProductAvailable flags sold-out slugs as unavailable and open cohorts as available', () => {
+  assert.equal(isProductAvailable('comprehensive'), false);
+  assert.equal(isProductAvailable('s1-comprehensive'), false);
   assert.equal(isProductAvailable('s2-comprehensive'), true);
-  assert.equal(isProductAvailable('mastery'), true);
+  assert.equal(isProductAvailable('mastery'), false);
   assert.equal(isProductAvailable('s1-rescue-sprint'), false);
   assert.equal(isProductAvailable('s2-rescue-sprint'), false);
   assert.equal(isProductAvailable('blueprint'), true);
@@ -3943,10 +3954,10 @@ test('PayPal create handler refuses orders the PayPal flow cannot charge correct
     phone: '+61 400 111 222',
   };
   const cases = [
-    { action: 'create', slug: 'comprehensive', paymentMode: 'instalments' },
+    { action: 'create', slug: 's2-comprehensive', paymentMode: 'instalments' },
     { action: 'create', slug: 'blueprint', paymentMode: 'afterpay' },
-    { action: 'create', slug: 'comprehensive', couponCode: 'SAVE100' },
-    { action: 'create', slug: 'mastery', upsellSlug: 'mentoring-single', upsellQuantity: 3 },
+    { action: 'create', slug: 's2-comprehensive', couponCode: 'SAVE100' },
+    { action: 'create', slug: 'blueprint', upsellSlug: 'mentoring-single', upsellQuantity: 3 },
     { action: 'create', slug: 'blueprint', upsellSlug: 'mentoring-single', upsellSlug2: 'essay-pack-10' },
   ];
 
