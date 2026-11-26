@@ -57,6 +57,21 @@ const {
 const createCheckoutHandler = require('../api/create-checkout.js');
 const createPaymentIntentHandler = createCheckoutHandler;
 const createInstalmentSessionHandler = createCheckoutHandler;
+
+// The instalment machinery only serves sold-out cohort products right now.
+// Treat them as available for the duration of a test so the coverage keeps
+// running for when enrolments reopen.
+function withAvailableProducts(slugs, fn) {
+  return async () => {
+    const unavailable = createCheckoutHandler.UNAVAILABLE_PRODUCTS;
+    const reopened = slugs.filter((slug) => unavailable.delete(slug));
+    try {
+      await fn();
+    } finally {
+      reopened.forEach((slug) => unavailable.add(slug));
+    }
+  };
+}
 const kit = require('../api/_lib/_kit.js');
 const payPalOrderHandler = require('../api/paypal-order.js');
 const createPayPalOrderHandler = payPalOrderHandler;
@@ -2376,6 +2391,28 @@ test('instalment session handler rejects unsupported product slugs', async () =>
   assert.match(res.body.error, /not available/i);
 });
 
+test('instalment session handler rejects sold-out products before Stripe', async () => {
+  for (const slug of ['comprehensive', 'mastery']) {
+    const req = {
+      method: 'POST',
+      headers: { origin: 'https://rohanstutoring.com' },
+      body: {
+        slug,
+        paymentMode: 'instalments',
+        customerName: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+61 400 111 222',
+      },
+    };
+    const res = createJsonResponseRecorder();
+
+    await createInstalmentSessionHandler(req, res);
+
+    assert.equal(res.statusCode, 400, slug);
+    assert.equal(res.body.error, 'This product is currently unavailable.', slug);
+  }
+});
+
 test('instalment session handler rejects invalid payment modes', async () => {
   const req = {
     method: 'POST',
@@ -2397,7 +2434,7 @@ test('instalment session handler rejects invalid payment modes', async () => {
   assert.match(res.body.error, /payment mode/i);
 });
 
-test('instalment session handler rejects whitespace-only Stripe secret keys', async () => {
+test('instalment session handler rejects whitespace-only Stripe secret keys', withAvailableProducts(['comprehensive', 'mastery'], async () => {
   process.env.STRIPE_SECRET_KEY = '   ';
   process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
 
@@ -2440,9 +2477,9 @@ test('instalment session handler rejects whitespace-only Stripe secret keys', as
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_PRICE_MASTERY_INSTALMENT;
   }
-});
+}));
 
-test('instalment session handler creates a subscription checkout session with first-checkout add-on only', async () => {
+test('instalment session handler creates a subscription checkout session with first-checkout add-on only', withAvailableProducts(['comprehensive', 'mastery'], async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
 
@@ -2513,9 +2550,9 @@ test('instalment session handler creates a subscription checkout session with fi
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_PRICE_MASTERY_INSTALMENT;
   }
-});
+}));
 
-test('instalment session handler creates mastery add-on line items with selected quantity', async () => {
+test('instalment session handler creates mastery add-on line items with selected quantity', withAvailableProducts(['comprehensive', 'mastery'], async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
 
@@ -2563,7 +2600,7 @@ test('instalment session handler creates mastery add-on line items with selected
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_PRICE_MASTERY_INSTALMENT;
   }
-});
+}));
 
 test('PayPal validation formats cents and custom IDs from server-side purchase data', () => {
   const purchase = createPaymentIntentHandler.resolveCheckoutPurchase({
@@ -3658,7 +3695,7 @@ test('payment intent status handler origin allow-list matches checkout endpoint'
   assert.equal(paymentIntentStatusHandler.isAllowedOrigin('https://evil.example.com'), false);
 });
 
-test('instalment session handler spreads a mastery fixed coupon across monthly payments', async () => {
+test('instalment session handler spreads a mastery fixed coupon across monthly payments', withAvailableProducts(['comprehensive', 'mastery'], async () => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_123';
   process.env.STRIPE_PRICE_MASTERY_INSTALMENT = 'price_mastery_123';
 
@@ -3734,7 +3771,7 @@ test('instalment session handler spreads a mastery fixed coupon across monthly p
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_PRICE_MASTERY_INSTALMENT;
   }
-});
+}));
 
 test('payment intent status handler validates Stripe payment-intent IDs', () => {
   assert.equal(paymentIntentStatusHandler.isValidPaymentIntentId('pi_123'), true);

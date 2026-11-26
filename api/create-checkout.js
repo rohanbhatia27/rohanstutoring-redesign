@@ -314,6 +314,12 @@ function validateInstalmentRequest(body) {
     return { error: 'Invalid payment mode.' };
   }
 
+  // Sold-out products must not open an instalment or Afterpay session, even
+  // when called directly rather than through the checkout page.
+  if (UNAVAILABLE_PRODUCTS.has(slug)) {
+    return { error: 'This product is currently unavailable.' };
+  }
+
   if (paymentMode === 'instalments' && !ELIGIBLE_INSTALMENT_PRODUCTS.has(slug)) {
     return { error: 'Instalments are not available for this product.' };
   }
