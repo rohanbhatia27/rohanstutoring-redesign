@@ -1,0 +1,5 @@
+{
+  "_note": "Update 'taken' as places sell during the 4-10 Dec launch. The landing page shows places left once taken is above 0.",
+  "base": { "cap": 15, "taken": 0 },
+  "premium": { "cap": 6, "taken": 0 }
+}
