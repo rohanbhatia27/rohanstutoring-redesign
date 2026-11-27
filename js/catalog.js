@@ -443,7 +443,7 @@
       name: 'GAMSAT March Intensive Premium',
       title: 'GAMSAT March Intensive Premium',
       // Premium tier, capped at 6. Everything in Base plus 4 semi-privates
-      // with Rohan (max 6 students), 3 extra marked essays (5 total) and a
+      // with Rohan (max 6 students), 6 extra marked essays (8 total) and a
       // 30-minute private diagnostic with Shayan.
       // Paid in full: $2,599. Instalments: 3 x $959/month ($2,877 total).
       priceCents: 259900,
@@ -459,7 +459,7 @@
       features: [
         'Everything in the March Intensive',
         '4 semi-privates with Rohan (max 6 students)',
-        '5 essays marked by Rohan in total',
+        '8 essays marked by Rohan in total',
         '30-minute private diagnostic with Shayan',
         '16 live S1 & S2 classes (all recorded) + Blueprint library',
         'Two-class refund guarantee',

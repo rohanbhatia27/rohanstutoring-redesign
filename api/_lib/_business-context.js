@@ -34,7 +34,7 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
      3 × A$629/month (A$1,887 total). Capped at 15 places.
    - Premium: A$2,599 paid in full, or 3 × A$959/month (A$2,877 total).
      Capped at 6 places. Adds 4 semi-privates with Rohan (max 6 students),
-     3 extra essays marked by Rohan (5 total), and a 30-min diagnostic with
+     6 extra essays marked by Rohan (8 total), and a 30-min diagnostic with
      Shayan in early January.
    Page: /courses/march-intensive
    (Note: Live Comprehensive Course and Mastery Program summer cohorts closed /
@@ -110,7 +110,7 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   - Pricing: Base A$1,699 paid in full (+1 bonus marked essay = 3 total) or
     3 × A$629 (A$1,887 total), capped at 15. Premium A$2,599 paid in full or
     3 × A$959 (A$2,877 total), capped at 6 (4 semi-privates with Rohan,
-    5 essays marked by Rohan, 30-min diagnostic with Shayan).
+    8 essays marked by Rohan, 30-min diagnostic with Shayan).
   - Risk reversal: two-class refund guarantee only (attend or watch first two
     classes on 12–13 Dec; email before Class 3 on Sat 19 Dec for a full refund;
     no score guarantee).
