@@ -400,7 +400,7 @@
       name: 'GAMSAT March Intensive',
       title: 'GAMSAT March Intensive',
       // 16 live classes over 8 weekends (12 Dec 2026 – 13 Mar 2027), Base tier only.
-      // Paid in full: $1,699 (+1 bonus marked essay = 3 total).
+      // Paid in full: $1,699 (+1 bonus marked essay = 5 total).
       // Instalments: 3 x $629/month ($1,887 total, ~11% premium).
       priceCents: 169900,
       available: isCohortAvailable('march-intensive'),
@@ -416,7 +416,7 @@
         '16 live S1 & S2 classes with Rohan (all recorded)',
         'Full Blueprint library from day one (80+ hours)',
         'Weekly Game Plan + No-Backslide Holiday Plan',
-        '2 essays marked by Rohan (+1 bonus if paid in full)',
+        '4 essays marked by Rohan (+1 bonus if paid in full)',
         'Timed S2 mock + live debrief & 2 bonus sessions',
         'Two-class refund guarantee',
       ],
@@ -443,7 +443,7 @@
       name: 'GAMSAT March Intensive Premium',
       title: 'GAMSAT March Intensive Premium',
       // Premium tier, capped at 6. Everything in Base plus 4 semi-privates
-      // with Rohan (max 6 students), 6 extra marked essays (8 total) and a
+      // with Rohan (max 6 students), 4 extra marked essays (8 total) and a
       // 30-minute private diagnostic with Shayan.
       // Paid in full: $2,599. Instalments: 3 x $959/month ($2,877 total).
       priceCents: 259900,

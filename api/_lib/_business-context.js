@@ -30,11 +30,11 @@ warm, direct, calm, confident. Avoid hype and scarcity pressure.
    live debrief (21 Feb), and essays marked by Rohan. Enrolment closes
    Thursday 10 December 2026. Two-class refund guarantee (email before Class 3
    on Sat 19 Dec for a full refund).
-   - Base: A$1,699 paid in full (+1 bonus marked essay = 3 total), or
-     3 × A$629/month (A$1,887 total). Capped at 15 places.
+   - Base: A$1,699 paid in full (+1 bonus marked essay = 5 total), or
+     3 × A$629/month (A$1,887 total). Includes 4 essays marked by Rohan. Capped at 15 places.
    - Premium: A$2,599 paid in full, or 3 × A$959/month (A$2,877 total).
      Capped at 6 places. Adds 4 semi-privates with Rohan (max 6 students),
-     6 extra essays marked by Rohan (8 total), and a 30-min diagnostic with
+     4 extra essays marked by Rohan (8 total), and a 30-min diagnostic with
      Shayan in early January.
    Page: /courses/march-intensive
    (Note: Live Comprehensive Course and Mastery Program summer cohorts closed /
@@ -107,8 +107,8 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   - S1 Saturdays 9–10am Sydney (Fri 10pm UK); S2 Sundays 7–8pm Sydney
     (Sun 8am UK). All classes recorded.
   - Enrolment closes Thursday 10 December 2026 (or earlier on sell-out).
-  - Pricing: Base A$1,699 paid in full (+1 bonus marked essay = 3 total) or
-    3 × A$629 (A$1,887 total), capped at 15. Premium A$2,599 paid in full or
+  - Pricing: Base A$1,699 paid in full (+1 bonus marked essay = 5 total) or
+    3 × A$629 (A$1,887 total, 4 marked essays), capped at 15. Premium A$2,599 paid in full or
     3 × A$959 (A$2,877 total), capped at 6 (4 semi-privates with Rohan,
     8 essays marked by Rohan, 30-min diagnostic with Shayan).
   - Risk reversal: two-class refund guarantee only (attend or watch first two
