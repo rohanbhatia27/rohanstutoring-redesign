@@ -182,16 +182,17 @@ test('S2 Slam lead magnet CTAs point to the dedicated signup page instead of loo
   }
 });
 
-test('homepage hero urgency CTA promotes the Comprehensive Course', () => {
+test('homepage hero urgency CTA promotes the March Intensive', () => {
   const html = read('index.html');
   const urgencyLink = html.match(/<a href="([^"]+)" class="hero__urgency[^"]*"[^>]*>[\s\S]*?<span class="hero__urgency-text">([^<]+)<\/span>/);
 
   assert.ok(urgencyLink, 'Homepage hero urgency CTA should exist');
-  assert.equal(urgencyLink[1], '/courses/comprehensive');
-  assert.match(urgencyLink[2], /sold out/i);
+  assert.equal(urgencyLink[1], '/courses/march-intensive');
+  assert.match(urgencyLink[2], /March Intensive/i);
+  assert.match(urgencyLink[2], /12 Dec/i);
 });
 
-test('homepage courses section ladders Essentials, Comprehensive, and Mastery', () => {
+test('homepage courses section ladders Essentials, March Intensive, and March Intensive Premium', () => {
   const html = read('index.html');
   const compareSection = html.match(/<div class="courses__compare">([\s\S]*?)<\/div>\s*<div class="courses__footer/);
 
@@ -199,24 +200,22 @@ test('homepage courses section ladders Essentials, Comprehensive, and Mastery', 
 
   const sectionHtml = compareSection[1];
   const essentialsIndex = sectionHtml.indexOf('/courses/starter-pack');
-  const comprehensiveIndex = sectionHtml.indexOf('/courses/comprehensive');
-  const masteryIndex = sectionHtml.indexOf('/courses/mastery');
+  const intensiveIndex = sectionHtml.indexOf('href="/courses/march-intensive"');
+  const premiumIndex = sectionHtml.indexOf('href="/courses/march-intensive#pricing"');
 
   assert.notEqual(essentialsIndex, -1, 'Essentials Playbook should be a homepage card');
-  assert.notEqual(comprehensiveIndex, -1, 'Comprehensive should be a homepage card');
-  assert.notEqual(masteryIndex, -1, 'Mastery should be a homepage card');
-  assert.ok(essentialsIndex < comprehensiveIndex && comprehensiveIndex < masteryIndex, 'Cards should ladder from Essentials to Comprehensive to Mastery');
+  assert.notEqual(intensiveIndex, -1, 'March Intensive should be a homepage card');
+  assert.notEqual(premiumIndex, -1, 'March Intensive Premium should be a homepage card');
+  assert.ok(essentialsIndex < intensiveIndex && intensiveIndex < premiumIndex, 'Cards should ladder from Essentials to March Intensive to March Intensive Premium');
 
   assert.match(sectionHtml, /\$97/);
-  assert.match(sectionHtml, /\$1,799/);
-  assert.doesNotMatch(sectionHtml, /\$1,599|early bird|1 October/i);
-  assert.match(sectionHtml, /\$2,699/);
+  assert.match(sectionHtml, /\$1,699/);
+  assert.match(sectionHtml, /\$2,599/);
   assert.match(sectionHtml, /Your \$97 carries forward/i);
-  assert.match(sectionHtml, /course-tier--featured[\s\S]*GAMSAT Comprehensive Course/);
-  assert.match(sectionHtml, /course-tier--premium[\s\S]*GAMSAT Mastery Program/);
-  const featuredTier = sectionHtml.slice(sectionHtml.indexOf('course-tier--featured'), sectionHtml.indexOf('course-tier--premium'));
-  assert.match(featuredTier, /Sold Out/, 'Comprehensive tier shows sold out');
-  assert.match(sectionHtml.slice(sectionHtml.indexOf('course-tier--premium')), /Sold Out/, 'Mastery tier shows sold out');
+  assert.match(sectionHtml, /course-tier--featured[\s\S]*GAMSAT March Intensive/);
+  assert.match(sectionHtml, /course-tier--premium[\s\S]*March Intensive Premium/);
+  assert.doesNotMatch(sectionHtml, /GAMSAT Comprehensive Course|GAMSAT Mastery Program|\/courses\/comprehensive|\/courses\/mastery|Sold Out/i, 'Comprehensive and Mastery should be retired from the homepage courses grid');
+  assert.doesNotMatch(html, /\/courses\/comprehensive|\/courses\/mastery/, 'Homepage should not link to retired Comprehensive or Mastery pages');
 });
 
 test('courses page drops the comprehensive upsell while comprehensive is sold out', () => {
