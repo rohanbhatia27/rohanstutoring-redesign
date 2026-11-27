@@ -30,20 +30,26 @@
       publicMessage: 'Enrolments are open for the summer cohort. The first class is Sunday 29 November 2026, and enrolment closes Friday 27 November.',
     },
     // Summer cohort sold out (27 Nov 2026) for Comprehensive, S1-only and
-    // Mastery. S2-only stays on liveCoaching (open). Existing instalment
-    // subscriptions are unaffected.
+    // Mastery. Existing instalment subscriptions are unaffected.
     soldOut: {
       status: 'soldOut',
       available: false,
       label: 'Join Waitlist',
       publicMessage: 'This course is sold out for the summer cohort. Join the waitlist and we will reach out when the next intake opens.',
     },
+    // Summer cohort enrolment closed (27 Nov 2026) for S2-only.
+    enrolmentClosed: {
+      status: 'closed',
+      available: false,
+      label: 'Join Waitlist',
+      publicMessage: 'Enrolment for the summer cohort is closed. Join the waitlist and we will reach out when the next intake opens.',
+    },
   };
 
   const COHORT_STATUS_BY_SLUG = {
     comprehensive: 'soldOut',
     's1-comprehensive': 'soldOut',
-    's2-comprehensive': 'liveCoaching',
+    's2-comprehensive': 'enrolmentClosed',
     mastery: 'soldOut',
   };
 

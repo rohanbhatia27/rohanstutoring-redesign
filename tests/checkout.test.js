@@ -266,10 +266,11 @@ test('getProductFromSearch resolves s1-comprehensive and s2-comprehensive', () =
 test('cohort course availability is driven by centralized statuses', () => {
   assert.equal(COHORT_STATUSES.liveCoaching.status, 'open');
   assert.equal(COHORT_STATUSES.soldOut.status, 'soldOut');
+  assert.equal(COHORT_STATUSES.enrolmentClosed.status, 'closed');
 
-  // S2-only stays open for the summer cohort.
-  assert.equal(getCohortStatusForSlug('s2-comprehensive'), COHORT_STATUSES.liveCoaching);
-  assert.equal(CATALOG['s2-comprehensive'].available, true);
+  // S2-only enrolment is closed for the summer cohort.
+  assert.equal(getCohortStatusForSlug('s2-comprehensive'), COHORT_STATUSES.enrolmentClosed);
+  assert.equal(CATALOG['s2-comprehensive'].available, false);
 
   // Comprehensive, S1-only and Mastery are sold out.
   for (const slug of ['comprehensive', 's1-comprehensive', 'mastery']) {
@@ -2350,8 +2351,8 @@ test('payment intent handler resolves allowed checkout combinations and rejects 
   assert.equal(
     createPaymentIntentHandler.resolveCheckoutPurchase({
       slug: 's2-comprehensive',
-    }).amount,
-    CATALOG['s2-comprehensive'].priceCents
+    }).error,
+    'This product is currently unavailable.'
   );
 
   assert.equal(
@@ -3221,7 +3222,7 @@ test('PayPal webhook verifies signature, fetches the order, and fulfills capture
 test('isProductAvailable flags sold-out slugs as unavailable and open cohorts as available', () => {
   assert.equal(isProductAvailable('comprehensive'), false);
   assert.equal(isProductAvailable('s1-comprehensive'), false);
-  assert.equal(isProductAvailable('s2-comprehensive'), true);
+  assert.equal(isProductAvailable('s2-comprehensive'), false);
   assert.equal(isProductAvailable('mastery'), false);
   assert.equal(isProductAvailable('s1-rescue-sprint'), false);
   assert.equal(isProductAvailable('s2-rescue-sprint'), false);
@@ -3991,9 +3992,9 @@ test('PayPal create handler refuses orders the PayPal flow cannot charge correct
     phone: '+61 400 111 222',
   };
   const cases = [
-    { action: 'create', slug: 's2-comprehensive', paymentMode: 'instalments' },
+    { action: 'create', slug: 'advanced', paymentMode: 'instalments' },
     { action: 'create', slug: 'blueprint', paymentMode: 'afterpay' },
-    { action: 'create', slug: 's2-comprehensive', couponCode: 'SAVE100' },
+    { action: 'create', slug: 'advanced', couponCode: 'SAVE100' },
     { action: 'create', slug: 'blueprint', upsellSlug: 'mentoring-single', upsellQuantity: 3 },
     { action: 'create', slug: 'blueprint', upsellSlug: 'mentoring-single', upsellSlug2: 'essay-pack-10' },
   ];

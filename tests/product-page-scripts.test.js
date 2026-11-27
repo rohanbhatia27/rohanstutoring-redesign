@@ -30,8 +30,8 @@ test('mastery and comprehensive are sold out and route visitors to the waitlist'
   assert.match(comprehensiveHtml, /schema\.org\/SoldOut/);
   assert.doesNotMatch(comprehensiveHtml, /href="\/checkout\/\?product=comprehensive/);
   assert.match(comprehensiveHtml, /href="\/contact"[^>]*>\s*Join the Waitlist/);
-  // Sold-out page points single-section buyers at the still-open S2 course.
-  assert.match(comprehensiveHtml, /href="\/courses\/s2-comprehensive"/);
+  // S2-only is closed too, so the page no longer points buyers at it as open.
+  assert.doesNotMatch(comprehensiveHtml, /S2 course is still open|S2 course<\/a> is still open/);
 });
 
 test('comprehensive page keeps the standard price while sold out', () => {
@@ -52,21 +52,15 @@ test('S1-only is sold out and routes visitors to the waitlist', () => {
   assert.match(html, /href="\/contact"[^>]*>Join the Waitlist/);
 });
 
-test('S2-only routes enrolment CTAs to checkout while live coaching is open', () => {
-  const files = [
-    ['s2-comprehensive.html', 's2-comprehensive'],
-  ];
+test('S2-only enrolment is closed and routes visitors to the waitlist', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'courses', 's2-comprehensive.html'), 'utf8');
 
-  for (const [file, slug] of files) {
-    const html = fs.readFileSync(path.join(__dirname, '..', 'courses', file), 'utf8');
-    const checkoutLinks = html.match(new RegExp(`/checkout/\\?product=${slug}`, 'g')) || [];
-
-    assert.ok(checkoutLinks.length >= 3, `${file} should route visitors to checkout`);
-    assert.doesNotMatch(html, /Join the [Ww]aitlist|This cohort is full/i, `${file} should not still offer a waitlist`);
-    assert.doesNotMatch(html, /When enrolments reopen/i, `${file} should not keep stale closed-cohort copy`);
-    // These sections have no instalment plan, so they must not advertise one.
-    assert.doesNotMatch(html, /instalment/i, `${file} should not mention instalments`);
-  }
+  assert.match(html, /Enrolment Closed/);
+  assert.match(html, /schema\.org\/SoldOut/);
+  assert.doesNotMatch(html, /\/checkout\/\?product=s2-comprehensive/);
+  assert.match(html, /href="\/contact"[^>]*>Join the Waitlist/);
+  // This section has no instalment plan, so it must not advertise one.
+  assert.doesNotMatch(html, /instalment/i);
 });
 
 test('product hero media keeps eager LCP hints and a shared aspect-ratio fallback', () => {
