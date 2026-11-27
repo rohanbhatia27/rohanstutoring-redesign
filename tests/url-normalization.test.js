@@ -18,6 +18,7 @@ const INDEXABLE_PAGES = [
   { file: 'courses/advanced.html', canonical: 'https://www.rohanstutoring.com/courses/advanced' },
   { file: 'courses/blueprint.html', canonical: 'https://www.rohanstutoring.com/courses/blueprint' },
   { file: 'courses/comprehensive.html', canonical: 'https://www.rohanstutoring.com/courses/comprehensive' },
+  { file: 'courses/march-intensive.html', canonical: 'https://www.rohanstutoring.com/courses/march-intensive' },
   { file: 'courses/essay-collection.html', canonical: 'https://www.rohanstutoring.com/courses/essay-collection' },
   { file: 'courses/essay-marking.html', canonical: 'https://www.rohanstutoring.com/courses/essay-marking' },
   { file: 'courses/mastery.html', canonical: 'https://www.rohanstutoring.com/courses/mastery' },
@@ -68,6 +69,7 @@ test('course schema urls do not point at .html variants', () => {
     'courses/advanced.html',
     'courses/blueprint.html',
     'courses/comprehensive.html',
+    'courses/march-intensive.html',
     'courses/essay-collection.html',
     'courses/essay-marking.html',
     'courses/mastery.html',
@@ -99,6 +101,7 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
     '/courses/advanced.html -> /courses/advanced',
     '/courses/blueprint.html -> /courses/blueprint',
     '/courses/comprehensive.html -> /courses/comprehensive',
+    '/courses/march-intensive.html -> /courses/march-intensive',
     '/courses/essay-collection.html -> /courses/essay-collection',
     '/courses/essay-marking.html -> /courses/essay-marking',
     '/courses/mastery.html -> /courses/mastery',
@@ -378,6 +381,7 @@ test('public-page links no longer point at .html paths', () => {
     'courses/advanced.html',
     'courses/blueprint.html',
     'courses/comprehensive.html',
+    'courses/march-intensive.html',
     'courses/essay-collection.html',
     'courses/essay-marking.html',
     'courses/mastery.html',
@@ -400,6 +404,7 @@ test('public-page links no longer point at .html paths', () => {
 test('sitemap includes all confirmed indexable public pages', () => {
   const sitemap = read('sitemap.xml');
   const expectedUrls = [
+    'https://www.rohanstutoring.com/courses/march-intensive',
     'https://www.rohanstutoring.com/quiz',
     'https://www.rohanstutoring.com/quote-generator',
     'https://www.rohanstutoring.com/s1-mock',

@@ -19,16 +19,30 @@ teaching, standards, feedback, accountability) — not a content dump. Voice is
 warm, direct, calm, confident. Avoid hype and scarcity pressure.
 
 ## Offer ladder (highest commercial priority first)
-1. Comprehensive Course — FLAGSHIP and the top commercial priority. Live S1 + S2
-   prep system run in cohorts. The cohort preparing for the March 2027 GAMSAT
-   is the summer cohort (the October cohort closed 27 October 2026): the first
-   class is Sunday 29 November 2026 and enrolment closes Friday 27 November 2026,
-   11:59pm Sydney. 5 marked essays. $1799 (the $1599 early bird
-   ended 4 October 2026). Instalments: 4 × $499 ($1996 total).
-   Page: /store/p/comprehensive
+1. GAMSAT March Intensive — CURRENT ACTIVE LIVE OFFER (replaces the closed
+   October and Summer Comprehensive cohorts for March 2027 sitters).
+   16 live S1 + S2 classes with Rohan over 8 weekends (Sat 12 Dec 2026 to
+   Sat 13 Mar 2027), timed around the March 2027 sittings (S2 27–28 Feb,
+   S1/S3 from 19 Mar). S1 runs Saturdays 9–10am Sydney (Fri 10pm UK); S2 runs
+   Sundays 7–8pm Sydney (Sun 8am UK). Includes full Blueprint library (80+ hrs),
+   Last-Two Diagnostic, Weekly Game Plan, No-Backslide Holiday Plan, January
+   Restart Session (10 Jan), S1 Keep-Warm Clinic (13 Feb), timed S2 mock +
+   live debrief (21 Feb), and essays marked by Rohan. Enrolment closes
+   Thursday 10 December 2026. Two-class refund guarantee (email before Class 3
+   on Sat 19 Dec for a full refund).
+   - Base: A$1,699 paid in full (+1 bonus marked essay = 3 total), or
+     3 × A$629/month (A$1,887 total). Capped at 15 places.
+   - Premium: A$2,599 paid in full, or 3 × A$959/month (A$2,877 total).
+     Capped at 6 places. Adds 4 semi-privates with Rohan (max 6 students),
+     3 extra essays marked by Rohan (5 total), and a 30-min diagnostic with
+     Shayan in early January.
+   Page: /courses/march-intensive
+   (Note: Live Comprehensive Course and Mastery Program summer cohorts closed /
+   sold out on 27 November 2026.)
 2. Step-down / nurture entry points: GAMSAT Starter Pack
-   (/store/p/gamsat-starter-pack) and the Blueprint. Existing Blueprint buyers
-   are an upsell target into the Comprehensive Course via a one-off discount.
+   (/courses/starter-pack) and Rohan's Blueprint (/courses/blueprint, A$599).
+   Blueprint is the primary self-paced downsell for leads who cannot attend
+   live classes or want to study independently.
 3. Essay marking — secondary offer, comes forward between cohorts. Reopened in
    September 2026: $34.99 per essay, $249 for 10, 3-day turnaround.
 4. Private 1:1 sales calls (15–20 min) — NOT a public product and NOT sold.
@@ -81,35 +95,32 @@ the course, and to surface which leads are hot enough for a sales-call invite.
   "low workshop registrations" — the workshop no longer runs.
 
 ## CURRENT PRIORITY  (snapshot — update when the launch changes)
-- Do not publish June 2026 start-date copy. That cohort date has passed.
-- Enrolment is open for the cohort preparing for the March 2027 GAMSAT.
-  This is the summer cohort. The October cohort (Wed/Thu 7pm, started 28 October)
-  is closed to new students.
-  First classes: S1 Sunday 29 November 2026, S2 Tuesday 1 December 2026.
-  S1 runs Sundays at 6pm and S2 Tuesdays at 6pm, Sydney/Melbourne time
-  (7am Sunday and 7am Tuesday in the UK). 20 live classes. No classes from 20 December to 9 January (last classes 13 and 15 December,
-  resume 10 and 12 January). S1 has no classes in February and returns on 7 March (extra S1
-  class Tuesday 9 March), finishing 14 March. S2 also meets Sunday 7 February and finishes
-  Tuesday 16 February. Enrolment closes Friday 27 November 2026,
-  11:59pm Sydney. Includes 5 marked essays. Waiting on September results is
-  fine: they can enrol and use the refund (before the third class).
-  Results refund (Comprehensive summer cohort): if they enrol, get their
-  September results back and have done well enough that they don't need to
-  sit again in March, they email Rohan and get a full refund.
-- Pricing: $1799 (the $1599 early bird ended 4 October 2026). Instalments:
-  4 × $499 ($1996 total).
-- The /quiz recommends Comprehensive or Mastery to students sitting in March
-  2027 and to re-sitters who are still deciding, only while the cohort is open.
-  Since 13 September 2026 it also sends committed March 2027 students with
-  under 5 hours a week (if they have started prep and want a competitive
-  score) to Comprehensive. September 2027 and later sittings go to Blueprint
-  or the Essentials Playbook.
-- Essay marking is open again ($34.99 per essay, $249 for 10).
-- Primary push: email nurture off lead magnets → quiz, Blueprint, private
-  mentoring, or waitlist depending on fit and availability; invite hot/engaged
-  email leads to a private 1:1 sales call.
-- Step-down paths: GAMSAT Starter Pack, Blueprint, essay marking, and private
-  tutoring.
+- Do not publish June 2026, October 2026, or November 2026 summer cohort
+  enrolment copy. Both the October cohort (started 28 Oct) and the Summer
+  cohort (Comprehensive, Mastery, S1-only, S2-only — closed 27 Nov 2026) are
+  closed / sold out to new enrolments.
+- Current active live cohort for March 2027 GAMSAT sitters: **GAMSAT March
+  Intensive** (/courses/march-intensive).
+  - 16 live classes over 8 weekends, 12 December 2026 to 13 March 2027
+    (break 21 Dec – 9 Jan; Restart Session Sun 10 Jan; S1 Keep-Warm Clinic
+    Sat 13 Feb; S2 timed mock debrief Sun 21 Feb).
+  - S1 Saturdays 9–10am Sydney (Fri 10pm UK); S2 Sundays 7–8pm Sydney
+    (Sun 8am UK). All classes recorded.
+  - Enrolment closes Thursday 10 December 2026 (or earlier on sell-out).
+  - Pricing: Base A$1,699 paid in full (+1 bonus marked essay = 3 total) or
+    3 × A$629 (A$1,887 total), capped at 15. Premium A$2,599 paid in full or
+    3 × A$959 (A$2,877 total), capped at 6 (4 semi-privates with Rohan,
+    5 essays marked by Rohan, 30-min diagnostic with Shayan).
+  - Risk reversal: two-class refund guarantee only (attend or watch first two
+    classes on 12–13 Dec; email before Class 3 on Sat 19 Dec for a full refund;
+    no score guarantee).
+  - Pitch angle: S1-led ("stop losing S1 marks between the last two options"),
+    aimed at warm March 2027 leads (both re-sitters and first-timers).
+- Essay marking is open ($34.99 per essay, $249 for 10, 3-day turnaround).
+- Primary push: convert warm March 2027 leads into GAMSAT March Intensive
+  (Base or Premium); step-down to Rohan's Blueprint (A$599) for self-paced
+  or budget-constrained leads; September 2027+ sitters go to Blueprint or
+  Essentials Playbook.
 `;
 
 module.exports = { BUSINESS_CONTEXT };
