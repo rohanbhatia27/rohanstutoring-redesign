@@ -667,6 +667,67 @@
   object-position: left top;
 }
 
+/* Results marquee */
+.mi-marquee {
+  background: var(--navy-dark);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 34px 0 42px;
+  overflow: hidden;
+}
+.mi-marquee__label {
+  margin: 0 0 18px;
+  color: var(--text-dark-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mi-marquee__viewport {
+  overflow: hidden;
+  outline: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.mi-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: mi-marquee 120s linear infinite;
+}
+.mi-marquee__viewport:hover .mi-marquee__track,
+.mi-marquee__viewport:focus-visible .mi-marquee__track { animation-play-state: paused; }
+.mi-marquee__group {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding-right: 22px;
+}
+.mi-marquee__item {
+  flex: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mi-marquee__tag {
+  color: var(--ice-blue);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mi-marquee__item img {
+  display: block;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.35);
+}
+@keyframes mi-marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .mi-marquee__track { animation: none; }
+  .mi-marquee__viewport { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .mi-marquee__group[aria-hidden="true"] { display: none; }
+}
+
 /* Pull quote */
 .mi-stat { background: var(--cream); padding: clamp(72px, 9vw, 120px) 0; }
 .mi-stat__inner {
@@ -1102,6 +1163,125 @@
     </div>
   </section>
 
+  <!-- RESULTS MARQUEE -->
+  <section class="mi-marquee" aria-label="Messages from students on results day">
+    <div class="container">
+      <p class="mi-marquee__label">Messages from results day. Screenshots, exactly as sent.</p>
+    </div>
+    <div class="mi-marquee__viewport" tabindex="0">
+      <div class="mi-marquee__track">
+          <div class="mi-marquee__group">
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S1: up 9</span>
+              <img src="/assets/testimonials/hd/s1-up-9.webp" alt="Message to Rohan: Hey Rohan hope you&#x27;re well too! I scored 9 point better in S1! Thank you for your help." width="398" height="60" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S2: 50 → 81</span>
+              <img src="/assets/testimonials/hd/s2-50-to-81.webp" alt="Message to Rohan: Hey Rohan, I got an 81 in Section 2, a tremendous jump from 50 in my previous sitting. Your teachings about what examiners want, ideas and how to structure helped tremendously which is why I saw a huge jump. Thanks Man!" width="275" height="154" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">USYD DMD offer</span>
+              <img src="/assets/testimonials/hd/usyd-dmd-accepted.webp" alt="Message to Rohan: Hey Rohan! I just wanted to let you know that I got accepted into USYD&#x27;s DMD program. Thank you very much for all of your help and support throughout my gamsat studying!" width="267" height="124" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">62 → 70 overall</span>
+              <img src="/assets/testimonials/hd/overall-62-to-70.webp" alt="Message to Rohan: Hey Rohan! just got my gamsat results back and i got a 70, which is an 8 pt increase from my previous 62" width="275" height="98" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">On the S2 method</span>
+              <img src="/assets/testimonials/hd/s2-method.webp" alt="Message to Rohan: Rohan brought a unique perspective and method to my S2 essays. Using his approach, I was able to develop a style of writing that was versatile and successful for the gamsat! His teaching style and method allows students to go further than what&#x27;s taught by prep companies, school and uni. Highly recommended!" width="253" height="238" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">Dentistry offer</span>
+              <img src="/assets/testimonials/hd/dentistry-offer.webp" alt="Message to Rohan: Hi Rohan, I hope this message finds you well! I wanted to share the exciting news that I&#x27;ve been accepted into dentistry. I truly appreciate all your support and guidance during my GAMSAT S1 preparation. Your help made a significant difference, and I can&#x27;t thank you enough." width="596" height="144" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">70 → 76</span>
+              <img src="/assets/testimonials/hd/overall-70-to-76.webp" alt="Message to Rohan: rohan gamsat results are out! got 6 pts higher than last time - went from 70 to 76 thanks for ur help!" width="275" height="69" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">After the exam</span>
+              <img src="/assets/testimonials/hd/best-course.webp" alt="Message to Rohan: Hi Rohan, I&#x27;ll email you with course feedback after my exam, honestly though, your course has been the best. I&#x27;ve learnt so much. Thank you!!!" width="315" height="175" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">75, up 6 · USYD DMD</span>
+              <img src="/assets/testimonials/hd/dmd-75-usyd.webp" alt="Message to Rohan: Hi Rohan, hope you&#x27;re well. Just wanted to let you know that I was able to score a 75 (6 marks up from last time) for the gamsat and wanted to thank you for all your help for the past lessons. It has helped me tremendously not only in terms of improving my marks, but I feel that I&#x27;ve learned a lot. I got an offer for dmd at usyd and will be starting next year. Thank you again and all the best!" width="339" height="249" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S2: up 10 to 70</span>
+              <img src="/assets/testimonials/hd/s2-up-10.webp" alt="Message to Rohan: Hey Rohan, I ended up getting at 70 in S2 and I really want to say thanks for all your help. You helped me improve by 10 points from last time." width="232" height="115" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">UWA Medicine offer</span>
+              <img src="/assets/testimonials/hd/uwa-med-offer.webp" alt="Message to Rohan: Hey Rohan, you probably don&#x27;t remember me but we did some GAMSAT sessions in the beginning of this year. I am very happy to saw that I got a med offer for UWA so I would like to thank you for your mentorship this year. I am absolutely over the moon." width="596" height="104" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S2: 81</span>
+              <img src="/assets/testimonials/hd/s2-81-shoutout.webp" alt="Message to Rohan: Huge shoutout to Rohan, who has been incredible help to me not only on my GAMSAT journey but also giving me the right attitude and mindset. Rohan guided me how to finally break past the 70+ mark and I was able to obtain a score of 81 in S2 thanks to his teachings. He is super patient, knowledgable, and friendly. I cannot recommend him enough!" width="278" height="238" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">5-star review</span>
+              <img src="/assets/testimonials/hd/great-classes.webp" alt="Message to Rohan: Five-star review: Great classes. Definitely recommend if you don&#x27;t know where to start with s1 and 2." width="338" height="63" loading="lazy" decoding="async">
+            </figure>
+          </div>
+          <div class="mi-marquee__group" aria-hidden="true">
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S1: up 9</span>
+              <img src="/assets/testimonials/hd/s1-up-9.webp" alt="" width="398" height="60" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S2: 50 → 81</span>
+              <img src="/assets/testimonials/hd/s2-50-to-81.webp" alt="" width="275" height="154" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">USYD DMD offer</span>
+              <img src="/assets/testimonials/hd/usyd-dmd-accepted.webp" alt="" width="267" height="124" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">62 → 70 overall</span>
+              <img src="/assets/testimonials/hd/overall-62-to-70.webp" alt="" width="275" height="98" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">On the S2 method</span>
+              <img src="/assets/testimonials/hd/s2-method.webp" alt="" width="253" height="238" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">Dentistry offer</span>
+              <img src="/assets/testimonials/hd/dentistry-offer.webp" alt="" width="596" height="144" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">70 → 76</span>
+              <img src="/assets/testimonials/hd/overall-70-to-76.webp" alt="" width="275" height="69" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">After the exam</span>
+              <img src="/assets/testimonials/hd/best-course.webp" alt="" width="315" height="175" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">75, up 6 · USYD DMD</span>
+              <img src="/assets/testimonials/hd/dmd-75-usyd.webp" alt="" width="339" height="249" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S2: up 10 to 70</span>
+              <img src="/assets/testimonials/hd/s2-up-10.webp" alt="" width="232" height="115" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">UWA Medicine offer</span>
+              <img src="/assets/testimonials/hd/uwa-med-offer.webp" alt="" width="596" height="104" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">S2: 81</span>
+              <img src="/assets/testimonials/hd/s2-81-shoutout.webp" alt="" width="278" height="238" loading="lazy" decoding="async">
+            </figure>
+            <figure class="mi-marquee__item">
+              <span class="mi-marquee__tag">5-star review</span>
+              <img src="/assets/testimonials/hd/great-classes.webp" alt="" width="338" height="63" loading="lazy" decoding="async">
+            </figure>
+          </div>
+      </div>
+    </div>
+  </section>
+
   <!-- THE PROBLEM, IN THEIR WORDS -->
   <section class="mi-stat">
     <div class="container">
@@ -1115,41 +1295,6 @@
           <p>43 of those 53 already score 60+ in S2. Their marks are going in Section 1.</p>
         </div>
       </figure>
-    </div>
-  </section>
-
-  <!-- RECEIPTS -->
-  <section class="receipts">
-    <div class="container">
-      <div class="receipts__block">
-        <div class="receipts__header reveal">
-          <span class="label">Results day</span>
-          <h2>Messages from results day.</h2>
-          <p>Screenshots, exactly as sent. Most of these students had sat GAMSAT before.</p>
-        </div>
-        <div class="receipts__feed">
-          <figure class="receipt reveal" style="--receipt-w: 300px">
-            <span class="receipt__tag">70 → 76</span>
-            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-10.png" alt="Message to Rohan: GAMSAT results are out, got 6 points higher than last time, went from 70 to 76." width="197" height="52" loading="lazy" decoding="async"></div>
-          </figure>
-          <figure class="receipt reveal" style="--receipt-w: 300px">
-            <span class="receipt__tag">S2: up 10 to 70</span>
-            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-08.png" alt="Message to Rohan: I ended up getting 70 in S2 and really want to say thanks for all your help. You helped me improve by 10 points from last time." width="199" height="109" loading="lazy" decoding="async"></div>
-          </figure>
-          <figure class="receipt reveal" style="--receipt-w: 300px">
-            <span class="receipt__tag">S2: 50 → 81</span>
-            <div class="receipt__shot"><img src="/assets/testimonials/testimonial-03.png" alt="Roheed's message to Rohan: I got an 81 in Section 2, a tremendous jump from 50 in my previous sitting. Your teachings about what examiners want, ideas and how to structure helped tremendously." width="200" height="114" loading="lazy" decoding="async"></div>
-          </figure>
-          <figure class="receipt reveal" style="--receipt-w: 600px">
-            <span class="receipt__tag">62 → 70 overall</span>
-            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202024-11-27%20at%2010.33.58%20am.png" alt="Message to Rohan: just got my GAMSAT results back and I got a 70, which is an 8 point increase from my previous 62." width="1176" height="116" loading="lazy" decoding="async"></div>
-          </figure>
-          <figure class="receipt reveal" style="--receipt-w: 640px">
-            <span class="receipt__tag">Dentistry offer</span>
-            <div class="receipt__shot"><img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.50%20pm.png" alt="Message to Rohan: I wanted to share the exciting news that I've been accepted into dentistry. I truly appreciate all your support and guidance during my GAMSAT S1 preparation." width="1288" height="328" loading="lazy" decoding="async"></div>
-          </figure>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -1273,7 +1418,7 @@
             <p><em>"My essays don't get better."</em> You write a baseline essay over the break. Rohan marks it and gives you one thing to fix and a drill to fix it. In February you write a timed mock. He marks that too, so you can see if the fix stuck. Pay in full and he marks a third.</p>
             <figure class="receipt" style="--receipt-w: 300px">
               <span class="receipt__tag">On the S2 method</span>
-              <div class="receipt__shot"><img src="/assets/testimonials/testimonial-new-01.png" alt="Student message: Rohan brought a unique perspective and method to my S2 essays. Using his approach, I developed a style of writing that was versatile and successful for the GAMSAT. Highly recommended!" width="522" height="516" loading="lazy" decoding="async"></div>
+              <div class="receipt__shot"><img src="/assets/testimonials/hd/s2-method.webp" alt="Student message: Rohan brought a unique perspective and method to my S2 essays. Using his approach, I developed a style of writing that was versatile and successful for the GAMSAT. Highly recommended!" width="506" height="475" loading="lazy" decoding="async"></div>
             </figure>
           </div>
         </div>
