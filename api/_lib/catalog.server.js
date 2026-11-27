@@ -117,6 +117,32 @@ const SERVER_EXTENSIONS = {
     },
   },
 
+  'march-intensive': {
+    deliveryType: 'cohort-onboarding',
+    fulfillmentLabel: 'Send cohort onboarding email',
+    fulfillmentSlug: 'march-intensive',
+    driveFolderSlug: 'blueprint', // shares Blueprint Drive folder
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE',
+    cohortEmail: {
+      subject: "Welcome to the GAMSAT March Intensive 👋 Let's get started.",
+      startLine: 'Classes start Saturday 12 December at 9am AEDT (S1) and Sunday 13 December at 7pm AEDT (S2). Your Last-Two Diagnostic will reach you before the first class, so do it before Saturday and we will go through it together.',
+    },
+  },
+
+  'march-intensive-premium': {
+    deliveryType: 'cohort-onboarding',
+    fulfillmentLabel: 'Send cohort onboarding email',
+    fulfillmentSlug: 'march-intensive-premium',
+    driveFolderSlug: 'blueprint', // shares Blueprint Drive folder
+    // Same Kit tag as Base so Premium buyers get every Intensive email;
+    // the product slug in the purchase log tells the tiers apart.
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE',
+    cohortEmail: {
+      subject: "Welcome to GAMSAT March Intensive Premium 👋 Let's get started.",
+      startLine: 'Classes start Saturday 12 December at 9am AEDT (S1) and Sunday 13 December at 7pm AEDT (S2). Your Last-Two Diagnostic will reach you before the first class, so do it before Saturday and we will go through it together. Your first semi-private with Rohan is Sunday 17 January at 8pm AEDT, and Shayan will be in touch to book your private diagnostic in early January.',
+    },
+  },
+
   's1-comprehensive': {
     deliveryType: 'cohort-onboarding',
     fulfillmentLabel: 'Send cohort onboarding email',

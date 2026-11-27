@@ -44,10 +44,12 @@ function addAnalyticsMetadata(metadata, body = {}) {
   const cohort = getSafeMetadataValue(body.cohort, 50);
   const gaClientId = getSafeMetadataValue(body.gaClientId || body.ga_client_id, 100);
   const gaSessionId = getSafeMetadataValue(body.gaSessionId || body.ga_session_id, 100);
+  const sittingNumber = getSafeMetadataValue(body.sittingNumber || body.gamsat_sitting, 50);
 
   if (cohort) metadata.cohort = cohort;
   if (gaClientId) metadata.ga_client_id = gaClientId;
   if (gaSessionId) metadata.ga_session_id = gaSessionId;
+  if (sittingNumber) metadata.gamsat_sitting = sittingNumber;
 
   return metadata;
 }
@@ -403,6 +405,7 @@ function buildInstalmentSessionPayload({
   cohort = '',
   gaClientId = '',
   gaSessionId = '',
+  sittingNumber = '',
 }) {
   const oneTimeLineItems = buildOneTimeCheckoutLineItems(slug, upsellSlug, upsellQuantity, upsellSlug2);
   const plan = CATALOG[slug] && CATALOG[slug].instalment ? CATALOG[slug].instalment.plan : null;
@@ -420,7 +423,7 @@ function buildInstalmentSessionPayload({
     customer_name: customer.customerName,
     customer_phone: customer.phone,
   };
-  addAnalyticsMetadata(metadata, { cohort, gaClientId, gaSessionId });
+  addAnalyticsMetadata(metadata, { cohort, gaClientId, gaSessionId, sittingNumber });
 
   if (upsellSlug) {
     metadata.upsell_slug = upsellSlug;
@@ -769,6 +772,7 @@ async function handleInstalmentCheckout(req, res, body, origin) {
         cohort: body.cohort,
         gaClientId: body.gaClientId || body.ga_client_id,
         gaSessionId: body.gaSessionId || body.ga_session_id,
+        sittingNumber: body.sittingNumber || body.gamsat_sitting,
       });
     }
 

@@ -498,6 +498,21 @@
   color: var(--co-text-dim);
 }
 
+.checkout-select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23ffffff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+}
+
+.checkout-select option {
+  background: var(--co-surface-r);
+  color: var(--co-text);
+}
+
 .checkout-gmail-note,
 .checkout-field-hint {
   font-family: var(--font-sans);

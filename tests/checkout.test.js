@@ -4143,3 +4143,113 @@ test('PayPal validation reads custom_id from the capture when the purchase unit 
 
   assert.equal(wrongProduct.error, 'Captured PayPal product does not match checkout product.');
 });
+
+test('march-intensive catalog, 3-pay instalments, and sitting-number metadata work end to end', async () => {
+  const product = PRODUCTS['march-intensive'];
+  assert.ok(product, 'march-intensive should exist in PRODUCTS');
+  assert.equal(product.price, 1699);
+  assert.equal(product.askSittingNumber, true);
+  assert.equal(CATALOG['march-intensive'].available, true);
+  assert.deepEqual(getPaymentModeOptions('march-intensive'), ['full', 'instalments']);
+
+  const instalmentMarkup = buildInstalmentLinkMarkup(product);
+  assert.match(instalmentMarkup, /Pay in 3 instalments/);
+  assert.match(instalmentMarkup, /3 × \$629 instalments/);
+  assert.match(instalmentMarkup, /\(\$1,887 total\)/);
+
+  const planSummary = getInstalmentPlanSummary({
+    pageSlug: 'march-intensive',
+    paymentMode: 'instalments',
+    price: 1699,
+  });
+  assert.equal(planSummary.dueToday, 629);
+  assert.equal(planSummary.futurePaymentCount, 2);
+  assert.equal(planSummary.futurePaymentAmount, 629);
+
+  // Verify sitting number flows into Stripe PaymentIntent and Subscription metadata.
+  const capturedIntents = [];
+  const capturedSessions = [];
+  const previousSecret = process.env.STRIPE_SECRET_KEY;
+  const previousPrice = process.env.STRIPE_PRICE_MARCH_INTENSIVE_INSTALMENT;
+  process.env.STRIPE_SECRET_KEY = 'sk_test_march_intensive';
+  process.env.STRIPE_PRICE_MARCH_INTENSIVE_INSTALMENT = 'price_1UgOGgH5JsZI731GoLkqqO2P';
+
+  createPaymentIntentHandler.__setStripeFactory(() => ({
+    paymentIntents: {
+      async create(payload) {
+        capturedIntents.push(payload);
+        return { id: 'pi_march_test', client_secret: 'pi_march_secret' };
+      },
+    },
+    checkout: {
+      sessions: {
+        async create(payload) {
+          capturedSessions.push(payload);
+          return { id: 'cs_march_test', url: 'https://checkout.stripe.com/c/pay/cs_march_test' };
+        },
+      },
+    },
+  }));
+
+  try {
+    const oneOffRes = {
+      statusCode: 200,
+      headers: {},
+      body: null,
+      setHeader(k, v) { this.headers[k] = v; },
+      status(code) { this.statusCode = code; return this; },
+      json(data) { this.body = data; return this; },
+      end() { return this; },
+    };
+    await createPaymentIntentHandler({
+      method: 'POST',
+      headers: { origin: 'https://www.rohanstutoring.com' },
+      body: {
+        mode: 'one_off',
+        slug: 'march-intensive',
+        email: 'student@example.com',
+        customerName: 'Alex Student',
+        phone: '+61 400 123 456',
+        sittingNumber: 'second',
+      },
+    }, oneOffRes);
+    assert.equal(oneOffRes.statusCode, 200);
+    assert.equal(capturedIntents.length, 1);
+    assert.equal(capturedIntents[0].amount, 169900);
+    assert.equal(capturedIntents[0].metadata.gamsat_sitting, 'second');
+
+    const instRes = {
+      statusCode: 200,
+      headers: {},
+      body: null,
+      setHeader(k, v) { this.headers[k] = v; },
+      status(code) { this.statusCode = code; return this; },
+      json(data) { this.body = data; return this; },
+      end() { return this; },
+    };
+    await createPaymentIntentHandler({
+      method: 'POST',
+      headers: { origin: 'https://www.rohanstutoring.com' },
+      body: {
+        mode: 'instalment',
+        paymentMode: 'instalments',
+        slug: 'march-intensive',
+        email: 'student@example.com',
+        customerName: 'Alex Student',
+        phone: '+61 400 123 456',
+        sittingNumber: 'third_or_more',
+      },
+    }, instRes);
+    assert.equal(instRes.statusCode, 200);
+    assert.equal(capturedSessions.length, 1);
+    assert.equal(capturedSessions[0].line_items[0].price, 'price_1UgOGgH5JsZI731GoLkqqO2P');
+    assert.equal(capturedSessions[0].metadata.gamsat_sitting, 'third_or_more');
+    assert.equal(capturedSessions[0].subscription_data.metadata.gamsat_sitting, 'third_or_more');
+  } finally {
+    createPaymentIntentHandler.__resetForTests();
+    if (previousSecret === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = previousSecret;
+    if (previousPrice === undefined) delete process.env.STRIPE_PRICE_MARCH_INTENSIVE_INSTALMENT;
+    else process.env.STRIPE_PRICE_MARCH_INTENSIVE_INSTALMENT = previousPrice;
+  }
+});

@@ -40,10 +40,17 @@
         price: e.priceCents !== null ? e.priceCents / 100 : undefined,
         features: e.features || [],
         isDigital: e.isDigital,
-        instalment: e.instalment ? { label: e.instalment.label, url: e.instalment.url } : null,
+        instalment: e.instalment
+          ? {
+              label: e.instalment.label,
+              url: e.instalment.url,
+              count: e.instalment.plan ? e.instalment.plan.count : 4,
+            }
+          : null,
         successType: e.successType,
       };
       if (e.afterpay) prod.afterpay = true;
+      if (e.askSittingNumber) prod.askSittingNumber = true;
       if (e.hasPkgSelector) {
         prod.hasPkgSelector = true;
         prod.packages = (e.packages || []).map(function (pkg) {
@@ -641,8 +648,9 @@
   function buildInstalmentLinkMarkup(product) {
     if (!product?.instalment) return '';
 
+    const count = product.instalment.count || 4;
     return `
-      <span class="checkout-instalment-link__eyebrow">Pay in 4 instalments</span>
+      <span class="checkout-instalment-link__eyebrow">Pay in ${count} instalments</span>
       <span class="checkout-instalment-link__main">${getInstalmentPlanText(product)}</span>
       <span class="checkout-instalment-link__note">Opens secure Stripe instalment checkout</span>
     `;
@@ -1572,12 +1580,24 @@
     if (banner) banner.hidden = false;
   }
 
+  function maybeShowSittingNumberField(product) {
+    const field = qs('#sitting-number-field');
+    const select = qs('#sitting-number');
+    if (!field || !select) return;
+
+    const shouldShow = Boolean(product && product.askSittingNumber);
+    field.hidden = !shouldShow;
+    select.required = shouldShow;
+  }
+
   function validateForm() {
     const firstNameInput = qs('#first-name');
     const lastNameInput = qs('#last-name');
     const emailInput = qs('#email');
     const phoneInput = qs('#phone');
     const addressInput = qs('#billing-address');
+    const sittingField = qs('#sitting-number-field');
+    const sittingSelect = qs('#sitting-number');
     const termsInput = qs('#terms-accepted');
 
     const firstName = firstNameInput?.value.trim() || '';
@@ -1585,9 +1605,15 @@
     const email = emailInput?.value.trim() || '';
     const phone = phoneInput?.value.trim() || '';
     const address = addressInput?.value.trim() || '';
+    const sittingRequired = Boolean(sittingField && !sittingField.hidden && sittingSelect);
+    const sittingNumber = sittingRequired ? (sittingSelect.value || '').trim() : '';
 
     if (!firstName || !lastName || !email || !phone || !address) {
       return { ok: false, error: 'Please fill in all fields.' };
+    }
+
+    if (sittingRequired && !sittingNumber) {
+      return { ok: false, error: 'Please select which GAMSAT sitting this is for you.' };
     }
 
     if (!emailInput?.checkValidity() || !EMAIL_PATTERN.test(email)) {
@@ -1600,6 +1626,7 @@
 
     return {
       ok: true,
+      ...(sittingNumber ? { sittingNumber } : {}),
       billingDetails: {
         name: `${firstName} ${lastName}`,
         email,
@@ -1680,6 +1707,7 @@
 
     if (gaTrackingIds.gaClientId) payload.gaClientId = gaTrackingIds.gaClientId;
     if (gaTrackingIds.gaSessionId) payload.gaSessionId = gaTrackingIds.gaSessionId;
+    if (validation && validation.sittingNumber) payload.sittingNumber = validation.sittingNumber;
 
     if (selection.upsell && selection.upsellSelected) {
       const upsellQuantity = getUpsellQuantity(selection);
@@ -1738,6 +1766,16 @@
       const payerName = ev.payerName || '';
       const payerEmail = ev.payerEmail || '';
       const payerPhone = ev.payerPhone || '';
+      const sittingField = qs('#sitting-number-field');
+      const sittingSelect = qs('#sitting-number');
+      const sittingRequired = Boolean(sittingField && !sittingField.hidden && sittingSelect);
+      const sittingNumber = sittingRequired ? (sittingSelect.value || '').trim() : '';
+
+      if (sittingRequired && !sittingNumber) {
+        ev.complete('fail');
+        showCardError('Please select which GAMSAT sitting this is for you before paying.');
+        return;
+      }
 
       if (!payerEmail || !payerPhone) {
         ev.complete('fail');
@@ -1759,6 +1797,7 @@
       try {
         const payload = buildCheckoutPayload(selection, {
           ok: true,
+          ...(sittingNumber ? { sittingNumber } : {}),
           billingDetails: { name: payerName, email: payerEmail, phone: payerPhone, address: { line1: '' } },
         });
 
@@ -1961,6 +2000,7 @@
     setupPaymentMode(productSlug, selection);
     maybeShowGmailNote(product);
     maybeShowEssayBanner(productSlug);
+    maybeShowSittingNumberField(product);
     renderOrderBump(productSlug, selection);
     selection.checkoutReady = false;
 

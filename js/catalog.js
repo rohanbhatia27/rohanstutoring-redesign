@@ -44,6 +44,13 @@
       label: 'Join Waitlist',
       publicMessage: 'Enrolment for the summer cohort is closed. Join the waitlist and we will reach out when the next intake opens.',
     },
+    // GAMSAT March Intensive (12 Dec 2026 – 13 Mar 2027), capped at 15 seats.
+    marchIntensive: {
+      status: 'open',
+      available: true,
+      label: 'Enrol Now',
+      publicMessage: 'Enrolments are open for the GAMSAT March Intensive. First class Saturday 12 December 2026; enrolment closes Thursday 10 December.',
+    },
   };
 
   const COHORT_STATUS_BY_SLUG = {
@@ -51,6 +58,8 @@
     's1-comprehensive': 'soldOut',
     's2-comprehensive': 'enrolmentClosed',
     mastery: 'soldOut',
+    'march-intensive': 'marchIntensive',
+    'march-intensive-premium': 'marchIntensive',
   };
 
   function getCohortStatusForSlug(slug) {
@@ -384,6 +393,93 @@
         lockRuntimePrice: true,
       },
       pageSlug: 'comprehensive',
+    },
+
+    'march-intensive': {
+      slug: 'march-intensive',
+      name: 'GAMSAT March Intensive',
+      title: 'GAMSAT March Intensive',
+      // 16 live classes over 8 weekends (12 Dec 2026 – 13 Mar 2027), Base tier only.
+      // Paid in full: $1,699 (+1 bonus marked essay = 3 total).
+      // Instalments: 3 x $629/month ($1,887 total, ~11% premium).
+      priceCents: 169900,
+      available: isCohortAvailable('march-intensive'),
+      highTicket: true,
+      afterpay: false,
+      instalmentEligible: true,
+      askSittingNumber: true,
+      allowedUpsells: [],
+      upsellPriceOverrides: {},
+      image: '/assets/courses/comprehensive-course-card.webp',
+      tagline: '16 live classes over 8 weekends  Starts 12 Dec',
+      features: [
+        '16 live S1 & S2 classes with Rohan (all recorded)',
+        'Full Blueprint library from day one (80+ hours)',
+        'Weekly Game Plan + No-Backslide Holiday Plan',
+        '2 essays marked by Rohan (+1 bonus if paid in full)',
+        'Timed S2 mock + live debrief & 2 bonus sessions',
+        'Two-class refund guarantee',
+      ],
+      isDigital: false,
+      successType: 'cohort',
+      instalment: {
+        label: 'or 3 × $629 instalments ($1,887 total) →',
+        url: '/checkout/?product=march-intensive&paymentMode=instalments',
+        plan: {
+          count: 3,
+          firstPayment: 629,
+          recurringPayment: 629,
+          // price_1UgOGgH5JsZI731GoLkqqO2P — $629/month, active in Stripe on
+          // prod_VhnsORhgTOTM9a (Rohan's GAMSAT March Intensive).
+          priceEnvKey: 'STRIPE_PRICE_MARCH_INTENSIVE_INSTALMENT',
+        },
+      },
+      orderBump: null,
+      pageSlug: 'march-intensive',
+    },
+
+    'march-intensive-premium': {
+      slug: 'march-intensive-premium',
+      name: 'GAMSAT March Intensive Premium',
+      title: 'GAMSAT March Intensive Premium',
+      // Premium tier, capped at 6. Everything in Base plus 4 semi-privates
+      // with Rohan (max 6 students), 3 extra marked essays (5 total) and a
+      // 30-minute private diagnostic with Shayan.
+      // Paid in full: $2,599. Instalments: 3 x $959/month ($2,877 total).
+      priceCents: 259900,
+      available: isCohortAvailable('march-intensive-premium'),
+      highTicket: true,
+      afterpay: false,
+      instalmentEligible: true,
+      askSittingNumber: true,
+      allowedUpsells: [],
+      upsellPriceOverrides: {},
+      image: '/assets/courses/comprehensive-course-card.webp',
+      tagline: 'Premium · 6 places · Starts 12 Dec',
+      features: [
+        'Everything in the March Intensive',
+        '4 semi-privates with Rohan (max 6 students)',
+        '5 essays marked by Rohan in total',
+        '30-minute private diagnostic with Shayan',
+        '16 live S1 & S2 classes (all recorded) + Blueprint library',
+        'Two-class refund guarantee',
+      ],
+      isDigital: false,
+      successType: 'cohort',
+      instalment: {
+        label: 'or 3 × $959 instalments ($2,877 total) →',
+        url: '/checkout/?product=march-intensive-premium&paymentMode=instalments',
+        plan: {
+          count: 3,
+          firstPayment: 959,
+          recurringPayment: 959,
+          // price_1UgWCOH5JsZI731GOP9uEg4I — $959/month, active in Stripe on
+          // prod_Vhw4ZmULxfYOfD (Rohan's GAMSAT March Intensive Premium).
+          priceEnvKey: 'STRIPE_PRICE_MARCH_INTENSIVE_PREMIUM_INSTALMENT',
+        },
+      },
+      orderBump: null,
+      pageSlug: 'march-intensive',
     },
 
     's1-comprehensive': {
