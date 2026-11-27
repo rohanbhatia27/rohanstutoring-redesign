@@ -756,7 +756,17 @@
   color: var(--text-muted);
   font-size: 0.92rem;
 }
-.mi-stat__body { grid-column: 2; margin-top: 48px; max-width: 54ch; }
+.mi-stat__body { grid-column: 2; grid-row: 4; margin-top: 48px; max-width: 54ch; }
+.mi-stat__media { grid-column: 1; grid-row: 4; margin-top: 52px; align-self: start; }
+.mi-stat__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 24px 48px rgba(8,15,26,0.14);
+}
+.mi-stat__media p { margin: 12px 0 0; color: var(--text-muted); font-size: 0.84rem; }
 .mi-stat__body p { color: var(--text-muted); margin: 0 0 14px; }
 .mi-stat__body p strong { color: var(--text); font-weight: 600; }
 
@@ -963,7 +973,8 @@
 }
 @media (max-width: 900px) {
   .mi-stat__inner { grid-template-columns: 1fr; }
-  .mi-stat__body { grid-column: 1; margin-top: 32px; }
+  .mi-stat__body { grid-column: 1; grid-row: auto; margin-top: 32px; }
+  .mi-stat__media { grid-column: 1; grid-row: auto; margin-top: 32px; }
   .mi-timetable__layout { grid-template-columns: 1fr; }
   .mi-timetable__header { position: static; }
 }
@@ -1289,6 +1300,10 @@
         <span class="label">We asked students what cost them marks in September</span>
         <blockquote class="mi-stat__quote">"I get it down to two options and pick the wrong&nbsp;one."</blockquote>
         <figcaption class="mi-stat__cite">22 out of 53 said this.</figcaption>
+        <div class="mi-stat__media">
+          <img src="/assets/class-preview-s1.webp" alt="Rohan teaching a live S1 class on Zoom, working through a Louis MacNeice poem and its inference questions" width="1969" height="1249" loading="lazy" decoding="async">
+          <p>A live S1 class. We go from the question back to the exact words in the passage.</p>
+        </div>
         <div class="mi-stat__body">
           <p>You read the passage. You got it down to two. Then you picked the wrong one. You make that call dozens of times in one sitting, and right now you make it the same way every time.</p>
           <p>That call is what the S1 classes fix. We go back to the passage, find the exact words that split the two options, and work out why the wrong one looked right. Then you do it again on poetry, arguments, visuals and dense prose until you can do it on the clock.</p>
