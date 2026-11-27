@@ -632,11 +632,11 @@
 .mi-proof {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  align-self: center;
-  width: 100%;
-  max-width: 470px;
-  justify-self: end;
+  gap: 14px;
+  align-self: stretch;
+  min-width: 0;
+  /* Bleed the collage to the right edge of the window */
+  margin-right: calc(-1 * (max(0px, (100vw - 1200px) / 2) + 24px));
 }
 .mi-proof__caption {
   margin: 0;
@@ -646,20 +646,25 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.mi-proof__shot { margin: 0; }
-.mi-proof__shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.35);
+.mi-collage {
+  position: relative;
+  flex: 1;
+  min-height: 520px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 18px 0 0 18px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-right: 0;
+  background: #FBEFE6;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
 }
-.mi-proof__shot--tall { width: 78%; align-self: flex-end; }
-.mi-proof__shot figcaption {
-  margin-top: 10px;
-  color: var(--text-light);
-  font-size: 0.82rem;
+.mi-collage img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left top;
 }
 
 /* Pull quote */
@@ -890,7 +895,10 @@
 }
 
 @media (max-width: 1024px) {
-  .mi-proof { justify-self: start; max-width: 520px; }
+}
+@media (max-width: 960px) {
+  .mi-proof { margin-right: -24px; }
+  .mi-collage { flex: none; min-height: 0; aspect-ratio: 4 / 3; }
 }
 @media (max-width: 900px) {
   .mi-stat__inner { grid-template-columns: 1fr; }
@@ -906,7 +914,6 @@
 @media (max-width: 640px) {
   .mi-results { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .mi-results__who { font-size: 0.72rem; }
-  .mi-proof__shot--tall { width: 88%; }
   .mi-schedule__row { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
   .mi-schedule__row--head { display: none; }
   .mi-schedule__row--note > span:last-child,
@@ -1083,13 +1090,12 @@
 
         <aside class="mi-proof reveal reveal--delay-2 visible" aria-label="Messages from students on results day">
           <p class="mi-proof__caption">Results day, unedited</p>
-          <figure class="mi-proof__shot mi-proof__shot--wide">
-            <img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.57%20pm.png" alt="Message to Rohan: I scored 9 points better in S1! Thank you for your help." width="936" height="156" loading="eager">
-            <figcaption>S1 up 9 on a re-sit</figcaption>
-          </figure>
-          <figure class="mi-proof__shot mi-proof__shot--tall">
-            <img src="/assets/testimonials/Screenshot%202026-05-21%20at%205.04.26%20pm.png" alt="Message to Rohan: I was able to score a 75, 6 marks up from last time. I got an offer for DMD at USYD and will be starting next year." width="562" height="396" loading="eager">
-            <figcaption>75, up 6, then a USYD offer</figcaption>
+          <figure class="mi-collage">
+            <img src="/assets/testimonials/results-collage-1920.webp"
+                 srcset="/assets/testimonials/results-collage-1200.webp 1200w, /assets/testimonials/results-collage-1920.webp 1920w"
+                 sizes="(max-width: 960px) 100vw, 60vw"
+                 alt="Collage of messages and reviews from Rohan's students: Roheed's S2 jump from 50 to 81, S1 up 9 points, an offer into USYD's DMD program, 62 to 70 overall, 75 and a DMD offer at USYD, a dentistry offer, 70 to 76, S2 up 10 to 70, and five-star reviews of the classes."
+                 width="1920" height="980" loading="eager" fetchpriority="high">
           </figure>
         </aside>
       </div>
