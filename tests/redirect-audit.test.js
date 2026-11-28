@@ -191,7 +191,7 @@ test('launch redirect audit csv covers legacy redirects and high-risk money path
 
   assert.equal(
     bySource.get('https://www.rohanstutoring.com/store/p/comprehensive')?.expected,
-    'https://www.rohanstutoring.com/courses/comprehensive'
+    'https://www.rohanstutoring.com/courses/march-intensive'
   );
   assert.equal(bySource.has('https://www.rohanstutoring.com/book-your-gameplan'), false);
   assert.equal(

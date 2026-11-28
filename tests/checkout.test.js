@@ -882,6 +882,25 @@ test('initCheckoutPage shows the waitlist for a sold-out sprint instead of start
   }
 });
 
+test('paused live course checkout links point visitors to March Intensive', async () => {
+  const previousWindow = global.window;
+  const previousDocument = global.document;
+  try {
+    for (const slug of ['comprehensive', 'mastery', 's1-comprehensive', 's2-comprehensive']) {
+      const { windowObject, documentObject, elements } = createCheckoutSubmitTestEnv(`?product=${slug}`);
+      global.window = windowObject;
+      global.document = documentObject;
+      await initCheckoutPage();
+      assert.equal(elements['#checkout-grid'].hidden, true);
+      assert.equal(elements['#checkout-not-found'].hidden, false);
+      assert.match(elements['#checkout-not-found'].innerHTML, /href="\/courses\/march-intensive"/);
+    }
+  } finally {
+    global.window = previousWindow;
+    global.document = previousDocument;
+  }
+});
+
 test('initCheckoutPage queues checkout lead recovery after a valid email is entered', async () => {
   const previousWindow = global.window;
   const previousDocument = global.document;

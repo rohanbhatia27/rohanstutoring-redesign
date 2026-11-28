@@ -3,15 +3,15 @@
 # - critical direct-response pages that should return 200 with no redirect surprises
 source,expected,label
 /store,/courses,legacy store root
-/store/gamsat-comprehensive-course,/courses/comprehensive,legacy comprehensive slug
-/store/p/comprehensive,/courses/comprehensive,legacy gumroad comprehensive
+/store/gamsat-comprehensive-course,/courses/march-intensive,legacy comprehensive slug
+/store/p/comprehensive,/courses/march-intensive,legacy gumroad comprehensive
 /store/p/rohans-gamsat-blueprint-the-full-package,/courses/blueprint,legacy gumroad blueprint
 /store/p/advanced-mastery-series,/courses/advanced,legacy gumroad advanced
 /store/p/the-expert-essay-collection,/courses/essay-collection,legacy gumroad essay collection
 /store/p/s2-essay-marking,/courses/essay-marking,legacy gumroad essay marking
 /store/p/s2course,/courses,legacy section 2 course index
-/store/p/section2-mastery,/courses/blueprint,legacy section 2 mastery
-/store/gamsat-mastery-course,/courses/blueprint,legacy mastery slug
+/store/p/section2-mastery,/courses/march-intensive,legacy section 2 mastery
+/store/gamsat-mastery-course,/courses/march-intensive,legacy mastery slug
 /store/p/gamsat-starter-pack,/courses/starter-pack,legacy starter pack
 /store/p/s1-rescue-sprint,/courses/s1-rescue-sprint,legacy s1 sprint
 /store/p/s2-rescue-sprint,/courses/s2-rescue-sprint,legacy s2 sprint
@@ -28,12 +28,12 @@ source,expected,label
 /ireland-gamsat.html,/ireland-gamsat,html canonical redirect
 /courses/advanced.html,/courses/advanced,html product redirect
 /courses/blueprint.html,/courses/blueprint,html product redirect
-/courses/comprehensive.html,/courses/comprehensive,html product redirect
-/courses/s1-comprehensive.html,/courses/s1-comprehensive,html product redirect
-/courses/s2-comprehensive.html,/courses/s2-comprehensive,html product redirect
+/courses/comprehensive.html,/courses/march-intensive,html product redirect
+/courses/s1-comprehensive.html,/courses/march-intensive,html product redirect
+/courses/s2-comprehensive.html,/courses/march-intensive,html product redirect
 /courses/essay-collection.html,/courses/essay-collection,html product redirect
 /courses/essay-marking.html,/courses/essay-marking,html product redirect
-/courses/mastery.html,/courses/mastery,html product redirect
+/courses/mastery.html,/courses/march-intensive,html product redirect
 /courses/private-mentoring.html,/courses/private-mentoring,html product redirect
 /courses/s1-rescue-sprint.html,/courses/s1-rescue-sprint,html product redirect
 /courses/s2-rescue-sprint.html,/courses/s2-rescue-sprint,html product redirect
@@ -46,15 +46,15 @@ source,expected,label
 /blog/the-biggest-s2-mistake.html,/blog/the-biggest-s2-mistake,html blog redirect
 /,/,homepage
 /courses,/courses,courses index
-/courses/comprehensive,/courses/comprehensive,flagship course page
-/courses/mastery,/courses/mastery,mastery course page
+/courses/comprehensive,/courses/march-intensive,flagship course page
+/courses/mastery,/courses/march-intensive,mastery course page
 /courses/blueprint,/courses/blueprint,blueprint course page
 /courses/advanced,/courses/advanced,advanced course page
 /courses/essay-collection,/courses/essay-collection,essay collection page
 /courses/essay-marking,/courses/essay-marking,essay marking page
 /courses/private-mentoring,/courses/private-mentoring,private mentoring page
-/courses/s1-comprehensive,/courses/s1-comprehensive,s1 comprehensive page
-/courses/s2-comprehensive,/courses/s2-comprehensive,s2 comprehensive page
+/courses/s1-comprehensive,/courses/march-intensive,s1 comprehensive page
+/courses/s2-comprehensive,/courses/march-intensive,s2 comprehensive page
 /courses/starter-pack,/courses/starter-pack,starter pack page
 /courses/s1-rescue-sprint,/courses/s1-rescue-sprint,s1 rescue sprint page
 /courses/s2-rescue-sprint,/courses/s2-rescue-sprint,s2 rescue sprint page

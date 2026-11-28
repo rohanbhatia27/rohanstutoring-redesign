@@ -56,8 +56,8 @@ test('quiz question copy avoids stale month offsets and misleading score bands',
 });
 
 test('quiz only exposes the four current outcomes', () => {
-  assert.match(quizJs, /MASTERY_CALL:\s*{/);
-  assert.match(quizJs, /COMPREHENSIVE:\s*{/);
+  assert.match(quizJs, /MARCH_INTENSIVE_PREMIUM:\s*{/);
+  assert.match(quizJs, /MARCH_INTENSIVE:\s*{/);
   assert.match(quizJs, /BLUEPRINT:\s*{/);
   assert.match(quizJs, /START_HERE:\s*{/);
   assert.doesNotMatch(quizJs, /ELITE_EXCELLENCE:\s*{/);
@@ -67,11 +67,25 @@ test('quiz only exposes the four current outcomes', () => {
 test('quiz reroutes advanced resitters and essay-only pain into current outcomes', () => {
   assert.doesNotMatch(quizJs, /return OUTCOMES\.ELITE_EXCELLENCE/);
   assert.doesNotMatch(quizJs, /return OUTCOMES\.ESSAY_ACCELERATOR/);
-  assert.match(quizJs, /return OUTCOMES\.MASTERY_CALL/);
+  assert.match(quizJs, /return OUTCOMES\.MARCH_INTENSIVE_PREMIUM/);
   assert.match(quizJs, /return OUTCOMES\.BLUEPRINT/);
 });
 
-test('quiz pushes qualified leads into comprehensive and mastery under the stronger sales posture', () => {
+test('both live quiz outcomes lead with March Intensive', () => {
+  const route = loadQuizRouter();
+  const answers = {
+    timeline: 'mar-2027', attempts: 'once', current: 'mocked', target: 'competitive',
+    section: 's1', hours: '10-20', blocker: 'timing',
+  };
+  const standard = route(answers);
+  const premium = route({ ...answers, attempts: 'multi' });
+
+  assert.equal(standard.primaryCta.url, '/courses/march-intensive');
+  assert.equal(premium.primaryCta.url, '/courses/march-intensive#pricing');
+  assert.match(quizJs, /getCohortStatusForSlug\('march-intensive'\)/);
+});
+
+test('quiz routes qualified leads into the standard and premium live paths', () => {
   const route = loadQuizRouter();
 
   assert.equal(
@@ -97,7 +111,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
       hours: '5-10',
       blocker: 'essays',
     }).id,
-    'COMPREHENSIVE'
+    'MARCH_INTENSIVE'
   );
 
   assert.equal(
@@ -110,7 +124,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
       hours: '5-10',
       blocker: 'materials',
     }).id,
-    'COMPREHENSIVE'
+    'MARCH_INTENSIVE'
   );
 
   assert.equal(
@@ -123,7 +137,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
       hours: '10-20',
       blocker: 'timing',
     }).id,
-    'MASTERY_CALL'
+    'MARCH_INTENSIVE_PREMIUM'
   );
 
   assert.equal(
@@ -136,7 +150,7 @@ test('quiz pushes qualified leads into comprehensive and mastery under the stron
       hours: '10-20',
       blocker: 'materials',
     }).id,
-    'COMPREHENSIVE'
+    'MARCH_INTENSIVE'
   );
 });
 
@@ -156,10 +170,10 @@ test('quiz only routes into live cohorts for the March 2027 sitting while enrolm
   const resitter = { attempts: 'multi', current: 'mocked', target: 'competitive', section: 's1', hours: '10-20', blocker: 'timing' };
   const committed = { attempts: 'once', current: 'mocked', target: 'competitive', section: 's2', hours: '10-20', blocker: 'essays' };
 
-  assert.equal(route({ ...resitter, timeline: 'mar-2027' }).id, 'MASTERY_CALL');
+  assert.equal(route({ ...resitter, timeline: 'mar-2027' }).id, 'MARCH_INTENSIVE_PREMIUM');
   assert.equal(route({ ...resitter, timeline: 'sep-2027' }).id, 'BLUEPRINT');
-  assert.equal(route({ ...resitter, timeline: 'unsure' }).id, 'MASTERY_CALL');
-  assert.equal(route({ ...committed, timeline: 'mar-2027' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...resitter, timeline: 'unsure' }).id, 'MARCH_INTENSIVE_PREMIUM');
+  assert.equal(route({ ...committed, timeline: 'mar-2027' }).id, 'MARCH_INTENSIVE');
   assert.equal(route({ ...committed, timeline: 'later' }).id, 'BLUEPRINT');
   assert.equal(route({ ...committed, timeline: 'mar-2027' }, { cohortOpen: false }).id, 'BLUEPRINT');
   assert.equal(route({ ...resitter, timeline: 'mar-2027' }, { cohortOpen: false }).id, 'BLUEPRINT');
@@ -177,15 +191,15 @@ test('quiz page loads the catalog before quiz.js and routes with live cohort sta
   assert.match(quizJs, /routeAnswers\(state\.answers, \{ cohortOpen: isLiveCohortOpen\(\) \}\)/);
 });
 
-test('only the Mastery result offers the consultation link; Comprehensive points at the course', () => {
+test('only the premium result offers a consultation as a secondary action', () => {
   const route = loadQuizRouter();
-  const comprehensive = route({ timeline: 'mar-2027', attempts: 'once', current: 'mocked', target: 'competitive', section: 's2', hours: '10-20', blocker: 'essays' });
-  const mastery = route({ timeline: 'mar-2027', attempts: 'multi', current: 'mocked', target: 'competitive', section: 's1', hours: '10-20', blocker: 'timing' });
+  const standard = route({ timeline: 'mar-2027', attempts: 'once', current: 'mocked', target: 'competitive', section: 's2', hours: '10-20', blocker: 'essays' });
+  const premium = route({ timeline: 'mar-2027', attempts: 'multi', current: 'mocked', target: 'competitive', section: 's1', hours: '10-20', blocker: 'timing' });
 
-  assert.equal(comprehensive.primaryCta.url, '/courses/comprehensive');
-  assert.equal(comprehensive.primaryCta.label, 'See the Comprehensive Course');
-  assert.doesNotMatch(comprehensive.primaryCta.url + comprehensive.secondaryCta.url, /calendly\.com/i);
-  assert.match(mastery.primaryCta.url, /calendly\.com\/rohansgamsat\/gamsat-strategy-consultation/);
+  assert.equal(standard.primaryCta.url, '/courses/march-intensive');
+  assert.equal(standard.primaryCta.label, 'See the March Intensive');
+  assert.doesNotMatch(standard.primaryCta.url + standard.secondaryCta.url, /calendly\.com/i);
+  assert.match(premium.secondaryCta.url, /calendly\.com\/rohansgamsat\/gamsat-strategy-consultation/);
 });
 
 test('quiz lead payload includes the chosen sitting', () => {
@@ -209,25 +223,25 @@ test('quiz widens live-course routing for committed March 2027 students and unde
   const mar = { timeline: 'mar-2027', section: 's1' };
 
   // A: first-timers who do not know where to start, with hours and a real goal
-  assert.equal(route({ ...mar, attempts: 'first', current: 'mocked', target: 'competitive', hours: '5-10', blocker: 'no-plan' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'first', current: 'mocked', target: 'competitive', hours: '5-10', blocker: 'no-plan' }).id, 'MARCH_INTENSIVE');
   assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'figuring-out', hours: '5-10', blocker: 'no-plan' }).id, 'START_HERE');
 
   // B: no full mock yet with a realistic goal and 5+ hours
-  assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'realistic', hours: '10-20', blocker: 'materials' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'realistic', hours: '10-20', blocker: 'materials' }).id, 'MARCH_INTENSIVE');
   assert.equal(route({ ...mar, attempts: 'first', current: 'new', target: 'realistic', hours: 'sub5', blocker: 'materials' }).id, 'BLUEPRINT');
 
   // C: one-time sitters chasing the ceiling with 10+ hours
-  assert.equal(route({ ...mar, attempts: 'once', current: 'exam-ready', target: 'maximise', hours: '20plus', blocker: 'plateau' }).id, 'MASTERY_CALL');
-  assert.equal(route({ ...mar, attempts: 'once', current: 'mocked', target: 'maximise', hours: '5-10', blocker: 'plateau' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'once', current: 'exam-ready', target: 'maximise', hours: '20plus', blocker: 'plateau' }).id, 'MARCH_INTENSIVE_PREMIUM');
+  assert.equal(route({ ...mar, attempts: 'once', current: 'mocked', target: 'maximise', hours: '5-10', blocker: 'plateau' }).id, 'MARCH_INTENSIVE');
 
   // D: re-sitters still deciding are treated as March 2027; first-timers and later sittings are not
-  assert.equal(route({ timeline: 'unsure', section: 's1', attempts: 'multi', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'timing' }).id, 'MASTERY_CALL');
-  assert.equal(route({ timeline: 'unsure', section: 's2', attempts: 'once', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'essays' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ timeline: 'unsure', section: 's1', attempts: 'multi', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'timing' }).id, 'MARCH_INTENSIVE_PREMIUM');
+  assert.equal(route({ timeline: 'unsure', section: 's2', attempts: 'once', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'essays' }).id, 'MARCH_INTENSIVE');
   assert.equal(route({ timeline: 'unsure', section: 's2', attempts: 'first', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'essays' }).id, 'START_HERE');
   assert.equal(route({ timeline: 'sep-2027', section: 's1', attempts: 'multi', current: 'mocked', target: 'competitive', hours: '10-20', blocker: 'timing' }).id, 'BLUEPRINT');
 
   // E: under 5 hours but has progress and an ambitious goal
-  assert.equal(route({ ...mar, attempts: 'once', current: 'building', target: 'competitive', hours: 'sub5', blocker: 'materials' }).id, 'COMPREHENSIVE');
+  assert.equal(route({ ...mar, attempts: 'once', current: 'building', target: 'competitive', hours: 'sub5', blocker: 'materials' }).id, 'MARCH_INTENSIVE');
   assert.equal(route({ ...mar, attempts: 'once', current: 'building', target: 'realistic', hours: 'sub5', blocker: 'materials' }).id, 'BLUEPRINT');
   assert.equal(route({ ...mar, attempts: 'once', current: 'new', target: 'competitive', hours: 'sub5', blocker: 'materials' }).id, 'BLUEPRINT');
 

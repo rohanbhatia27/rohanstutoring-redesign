@@ -3,15 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-test('mastery flagship card uses the dedicated featured image asset', () => {
+test('courses page features March Intensive and hides the previous live offers', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'courses.html'), 'utf8');
-  const masteryCard = html.match(/<a href="\/courses\/mastery" class="flagship-card flagship-card--premium reveal">[\s\S]*?<\/a>/);
-
-  assert.ok(masteryCard, 'expected mastery flagship card in courses.html');
-  assert.match(masteryCard[0], /<img\b[^>]*src="\/assets\/courses\/mastery-course-card\.webp"/);
-  assert.match(masteryCard[0], /\balt="GAMSAT Mastery Program"/);
-  assert.match(masteryCard[0], /\bwidth="960"/);
-  assert.match(masteryCard[0], /\bheight="540"/);
+  assert.match(html, /<h1[^>]*>GAMSAT March Intensive<\/h1>/);
+  assert.doesNotMatch(html, /\/courses\/(?:comprehensive|mastery|s[12]-comprehensive)\b/);
 });
 
 test('courses page removes unused GSAP bundles and keeps above-the-fold course art sized and eager', () => {
@@ -20,9 +15,9 @@ test('courses page removes unused GSAP bundles and keeps above-the-fold course a
   assert.doesNotMatch(html, /gsap\.min\.js/, 'courses page should not load gsap');
   assert.doesNotMatch(html, /ScrollTrigger\.min\.js/, 'courses page should not load ScrollTrigger');
 
-  const heroPromo = html.match(/<a href="\/courses\/comprehensive" class="hero-promo-card">[\s\S]*?<\/a>/);
+  const heroPromo = html.match(/<a href="\/courses\/march-intensive" class="hero-promo-card">[\s\S]*?<\/a>/);
   assert.ok(heroPromo, 'expected hero promo card in courses.html');
-  assert.match(heroPromo[0], /<img\b[^>]*src="\/assets\/courses\/comprehensive-course-card\.webp"[^>]*width="960"[^>]*height="540"/);
+  assert.match(heroPromo[0], /<img\b[^>]*src="\/assets\/class-preview-s1\.webp"[^>]*width="1969"[^>]*height="1249"/);
   assert.doesNotMatch(heroPromo[0], /\bloading="lazy"/, 'above-the-fold promo image should not lazy load');
 });
 
@@ -38,12 +33,5 @@ test('courses page course tiles declare intrinsic image dimensions for key card 
       html,
       new RegExp(`<img\\b[^>]*src="${src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*width="${width}"[^>]*height="${height}"`)
     );
-  }
-
-  const comprehensiveCards = html.match(/<img\b[^>]*src="\/assets\/courses\/comprehensive-course-card\.webp"[^>]*>/g) || [];
-  assert.ok(comprehensiveCards.length >= 1, 'expected at least one comprehensive course card image');
-  for (const card of comprehensiveCards) {
-    assert.match(card, /\bwidth="960"/);
-    assert.match(card, /\bheight="540"/);
   }
 });

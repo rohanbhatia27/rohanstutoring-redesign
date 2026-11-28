@@ -100,11 +100,9 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
     '/game-plan-thank-you.html -> /game-plan-thank-you',
     '/courses/advanced.html -> /courses/advanced',
     '/courses/blueprint.html -> /courses/blueprint',
-    '/courses/comprehensive.html -> /courses/comprehensive',
     '/courses/march-intensive.html -> /courses/march-intensive',
     '/courses/essay-collection.html -> /courses/essay-collection',
     '/courses/essay-marking.html -> /courses/essay-marking',
-    '/courses/mastery.html -> /courses/mastery',
     '/courses/private-mentoring.html -> /courses/private-mentoring',
     '/courses/s1-rescue-sprint.html -> /courses/s1-rescue-sprint',
     '/courses/s2-rescue-sprint.html -> /courses/s2-rescue-sprint',
@@ -119,6 +117,20 @@ test('vercel redirects normalize .html public pages to clean URLs', () => {
 
   for (const rule of expected) {
     assert.ok(redirects.includes(rule), `Missing redirect: ${rule}`);
+  }
+});
+
+test('paused live course URLs temporarily redirect to March Intensive and leave the sitemap', () => {
+  const { redirects } = JSON.parse(read('vercel.json'));
+  const sitemap = read('sitemap.xml');
+  for (const slug of ['comprehensive', 'mastery', 's1-comprehensive', 's2-comprehensive']) {
+    for (const suffix of ['', '.html']) {
+      const source = `/courses/${slug}${suffix}`;
+      const redirect = redirects.find((rule) => rule.source === source);
+      assert.equal(redirect?.destination, '/courses/march-intensive', source);
+      assert.equal(redirect?.permanent, false, source);
+    }
+    assert.ok(!sitemap.includes(`/courses/${slug}</loc>`), slug);
   }
 });
 
@@ -224,12 +236,10 @@ test('courses page drops the comprehensive upsell while comprehensive is sold ou
   assert.doesNotMatch(html, /Take the full Comprehensive Course/i);
 });
 
-test('courses page does not expose merge conflict markers in live cards', () => {
+test('courses page does not expose merge conflict markers', () => {
   const html = read('courses.html');
 
   assert.doesNotMatch(html, /<<<<<<<|=======|>>>>>>>/);
-  assert.match(html, /GAMSAT Live Comprehensive Course[\s\S]*80\+ hr library/);
-  assert.doesNotMatch(html, /GAMSAT Live Comprehensive Course[\s\S]*50\+ hr library/);
 });
 
 test('public forms do not ship placeholder Turnstile site keys', () => {

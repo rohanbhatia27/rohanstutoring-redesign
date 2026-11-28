@@ -1957,7 +1957,10 @@
     }
 
     if (!isProductAvailable(productSlug)) {
-      notFound.innerHTML = '<p>This product is currently unavailable. <a href="/contact">Join the waitlist →</a></p>';
+      const pausedLiveCourse = ['comprehensive', 'mastery', 's1-comprehensive', 's2-comprehensive'].includes(productSlug);
+      notFound.innerHTML = pausedLiveCourse
+        ? '<p>Enrolment for this course has closed. <a href="/courses/march-intensive">See the March Intensive →</a></p>'
+        : '<p>This product is currently unavailable. <a href="/contact">Join the waitlist →</a></p>';
       notFound.hidden = false;
       return;
     }

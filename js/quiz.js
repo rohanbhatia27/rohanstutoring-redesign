@@ -94,8 +94,8 @@ console.log('[quiz] loaded, questions:', QUESTIONS.length);
 const CALENDLY = 'https://calendly.com/rohansgamsat/gamsat-strategy-consultation';
 
 const PRODUCT_IMAGES = {
-  MASTERY_CALL: { src: 'assets/rohan/rohan-mentoring-3637.webp', alt: 'Mastery mentoring program' },
-  COMPREHENSIVE: { src: 'assets/courses/comprehensive-course-card.webp', alt: 'Comprehensive course' },
+  MARCH_INTENSIVE_PREMIUM: { src: 'assets/rohan/rohan-mentoring-3637.webp', alt: 'Rohan teaching GAMSAT students' },
+  MARCH_INTENSIVE: { src: 'assets/class-preview-s1.webp', alt: 'Rohan teaching a live Section 1 class' },
   BLUEPRINT: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Blueprint course' },
   START_HERE: { src: 'assets/courses/blueprint-course-card.webp', alt: 'Essentials Playbook' },
 };
@@ -109,67 +109,53 @@ const SITTING_NOTES = {
 };
 
 const OUTCOMES = {
-  MASTERY_CALL: {
-    id: 'MASTERY_CALL',
-    name: 'The Mastery Path',
-    teaser: "You've sat this before. You know what doesn't work. The problem is not effort or time. Nobody has looked at your specific score profile and rebuilt your prep around what's actually leaking points. That's what one-to-one coaching is for.",
+  MARCH_INTENSIVE_PREMIUM: {
+    id: 'MARCH_INTENSIVE_PREMIUM',
+    name: 'March Intensive Premium',
+    teaser: 'Your prep would benefit from live S1 and S2 classes plus a closer look at where you lose marks. Premium adds four small-group sessions, eight marked essays in total, and a private diagnostic.',
     planHtml: `
-      <p>After more than one attempt, the bottleneck is rarely content. Usually nobody has looked at your score profile and rebuilt your prep around the gaps it shows. Mastery puts one-to-one work on top of the 20 live classes, and it runs up to the March 2027 sitting. This is the structure we'd work through together.</p>
-      <h3>Phase 1: Now to 29 November: Diagnose before classes start</h3>
-      <p class="plan-phase-focus">Weekly focus: one full diagnostic paper, your personalised roadmap, essays marked from week one.</p>
+      <h3>Before the first class</h3>
       <ol>
-        <li>Sit a full timed paper, then break it down question by question.</li>
-        <li>Build your roadmap from that evidence: your background, current scores, available hours, and what went wrong last time.</li>
-        <li>Start an essay rhythm now. Marking is unlimited, so use it.</li>
+        <li>Use the S1 diagnostic and a baseline essay to identify one priority for each section.</li>
+        <li>Start the relevant Blueprint modules and note what you want to discuss in coaching.</li>
       </ol>
-      <h3>Phase 2: The ten cohort weeks: Volume under pressure</h3>
-      <p class="plan-phase-focus">Weekly focus: both live classes, timed mini-papers, private tutorials on your biggest leak.</p>
+      <h3>During the Intensive</h3>
       <ol>
-        <li>Use the live classes for the method and your private tutorials for whichever section is leaking the most marks.</li>
-        <li>Bring your worst mock to a private tutorial and work out why you lost the marks, not just which answers were wrong.</li>
-        <li>Lock in your S2 structure so each essay stops feeling like a fresh fight.</li>
+        <li>Bring a timed set or a marked essay to small-group coaching so you can work on a specific mistake.</li>
+        <li>Use the diagnostic session to review patterns in your practice and decide what to work on between classes.</li>
       </ol>
-      <h3>Phase 3: After the final class: Sharpen and simulate for March 2027</h3>
-      <p class="plan-phase-focus">Weekly focus: a full mock every week, recovery in between, no new content.</p>
+      <h3>Before each sitting</h3>
       <ol>
-        <li>Sit full mocks in exam conditions and stop studying new material.</li>
-        <li>Sort out stamina, food, and your exam-morning routine.</li>
-        <li>Use your last monthly check-in to walk into the exam with a plan for each section.</li>
+        <li>Use the timed S2 mock and debrief to settle on an exam-day writing plan.</li>
+        <li>Keep a record of recurring S1 errors and revisit them in timed sets.</li>
       </ol>
     `,
-    primaryCta: { label: 'Book a free strategy consultation', url: CALENDLY },
-    secondaryCta: { label: 'See the Mastery Program', url: '/courses/mastery' },
+    primaryCta: { label: 'See March Intensive Premium', url: '/courses/march-intensive#pricing' },
+    secondaryCta: { label: 'Book a free strategy consultation', url: CALENDLY },
   },
-  COMPREHENSIVE: {
-    id: 'COMPREHENSIVE',
-    name: 'The Comprehensive Path',
-    teaser: "You've got the hours to put in. The gap is real, but you can close it. Free resources probably won't get you there. Live teaching and essay feedback usually will, with a weekly structure that keeps you honest until exam day.",
+  MARCH_INTENSIVE: {
+    id: 'MARCH_INTENSIVE',
+    name: 'GAMSAT March Intensive',
+    teaser: 'Build a weekly routine around live Section 1 and Section 2 classes, with direct essay feedback from Rohan. The course starts Saturday 12 December, and every class is recorded.',
     planHtml: `
-      <p>Most students underestimate how much their blind spots cost them, and blind spots don't fix themselves. The Comprehensive Course is built for this gap. Classes start Sunday 29 November and run until 14 March, in time for the March 2027 sitting. Here's how I'd use the time between now and exam day.</p>
-      <h3>Phase 1: Now to 29 November: Get ahead before classes start</h3>
-      <p class="plan-phase-focus">Weekly focus: the recorded library, one essay a week, one diagnostic mock.</p>
+      <h3>Before the first class</h3>
       <ol>
-        <li>Sit a timed diagnostic early so you know where your marks are going before the first class.</li>
-        <li>Start the S1 and S2 recorded modules. You get the library as soon as you enrol.</li>
-        <li>S3 fundamentals: don't skip chemistry and physics reasoning, even if your background is biology.</li>
-        <li>Write one essay a week from now. Don't wait until you feel ready.</li>
+        <li>Complete the S1 diagnostic and write a baseline essay to see where you lose marks.</li>
+        <li>Use the Blueprint library to review the skills that caused the most trouble.</li>
       </ol>
-      <h3>Phase 2: The ten cohort weeks: Apply under pressure, refine the essay</h3>
-      <p class="plan-phase-focus">Weekly focus: both live classes, timed section drills, two essays a week.</p>
+      <h3>During the Intensive</h3>
       <ol>
-        <li>Treat the live classes as fixed appointments. Weekly times are confirmed before the first class, and every session is recorded.</li>
-        <li>Stop doing untimed practice. Every question from here has a clock on it.</li>
-        <li>Pick one S2 structure and stick with it for three weeks before changing anything.</li>
+        <li>Block out Saturday mornings for S1 and Sunday evenings for S2, Sydney time, or set a regular time to watch the recordings.</li>
+        <li>Practise the reasoning from each S1 class in a timed set. Use feedback from each marked essay to choose one change for your next draft.</li>
+        <li>Keep any Section 3 practice in a separate study block.</li>
       </ol>
-      <h3>Phase 3: After the final class: Exam simulation and taper for March 2027</h3>
-      <p class="plan-phase-focus">Weekly focus: full mocks, review as long as you sat each one, no new content.</p>
+      <h3>Before each sitting</h3>
       <ol>
-        <li>Simulate exam day start times. Your brain needs to be sharp at 9am, not 9pm.</li>
-        <li>Patch only the top three recurring error patterns from your mocks. Ignore the rest.</li>
-        <li>In the final week, drop volume by half. Sleep and confidence matter more than one more paper.</li>
+        <li>Use the timed S2 mock and debrief to practise your exam-day writing routine.</li>
+        <li>As the S1 sitting approaches, review recurring mistakes and practise under exam timing.</li>
       </ol>
     `,
-    primaryCta: { label: 'See the Comprehensive Course', url: '/courses/comprehensive' },
+    primaryCta: { label: 'See the March Intensive', url: '/courses/march-intensive' },
     secondaryCta: { label: 'Browse All Courses', url: '/courses' },
   },
   BLUEPRINT: {
@@ -181,7 +167,7 @@ const OUTCOMES = {
       <h3>Phase 1: Weeks 1 to 4: Content first, context second</h3>
       <p class="plan-phase-focus">Weekly focus: work through S1 and S2 foundations modules, one essay per week.</p>
       <ol>
-        <li>Commit to finishing the S1 and S2 mastery modules in the first four weeks.</li>
+        <li>Commit to finishing the S1 and S2 foundations modules in the first four weeks.</li>
         <li>Write one essay a week, using the Expert Essay Collection as your reference library.</li>
         <li>Do not skip ahead to advanced material. Foundations compound.</li>
       </ol>
@@ -221,7 +207,7 @@ const OUTCOMES = {
       <ol>
         <li>Add a second essay per week. Volume matters now.</li>
         <li>Start timed practice, even if scores drop. Untimed practice is a trap.</li>
-        <li>Decide on your next product: Blueprint for self-paced, Comprehensive for live classes.</li>
+        <li>Decide on your next product: Blueprint for self-paced study, or March Intensive if you are sitting in March 2027 and want live classes.</li>
       </ol>
       <h3>Phase 3: Weeks 10 to 12: Decide and commit</h3>
       <p class="plan-phase-focus">Weekly focus: pick your main course and transition in.</p>
@@ -255,7 +241,7 @@ function routeAnswers(a, { cohortOpen = true } = {}) {
   if (a.blocker === 'no-plan' && a.attempts === 'first' && !(liveCohortFit && highHours && seriousGoal)) return OUTCOMES.START_HERE;
   if (earlyPrep && a.target === 'figuring-out') return OUTCOMES.START_HERE;
 
-  // 2. High-friction re-sitters who need hands-on support (Mastery runs with the live cohort)
+  // 2. High-friction re-sitters who need hands-on support (March Intensive Premium)
   if (
     liveCohortFit &&
     a.attempts === 'multi' &&
@@ -263,12 +249,12 @@ function routeAnswers(a, { cohortOpen = true } = {}) {
     (a.blocker === 'plateau' || a.blocker === 'timing' || a.blocker === 'materials') &&
     highHours
   ) {
-    return OUTCOMES.MASTERY_CALL;
+    return OUTCOMES.MARCH_INTENSIVE_PREMIUM;
   }
 
   // 3. Exam-ready multi-attempters chasing the ceiling
   if (liveCohortFit && a.current === 'exam-ready' && a.target === 'maximise' && a.attempts === 'multi') {
-    return OUTCOMES.MASTERY_CALL;
+    return OUTCOMES.MARCH_INTENSIVE_PREMIUM;
   }
 
   // 4. One-time sitters chasing the ceiling with serious hours
@@ -280,14 +266,14 @@ function routeAnswers(a, { cohortOpen = true } = {}) {
     (a.blocker === 'plateau' || a.blocker === 'timing') &&
     bigHours
   ) {
-    return OUTCOMES.MASTERY_CALL;
+    return OUTCOMES.MARCH_INTENSIVE_PREMIUM;
   }
 
   // 5. Live course for March 2027 students with 5+ hours and a real goal
-  if (liveCohortFit && highHours && seriousGoal) return OUTCOMES.COMPREHENSIVE;
+  if (liveCohortFit && highHours && seriousGoal) return OUTCOMES.MARCH_INTENSIVE;
 
   // 6. Under 5 hours, but already started and aiming for a competitive score
-  if (liveCohortFit && a.hours === 'sub5' && hasProgress && ambitiousGoal) return OUTCOMES.COMPREHENSIVE;
+  if (liveCohortFit && a.hours === 'sub5' && hasProgress && ambitiousGoal) return OUTCOMES.MARCH_INTENSIVE;
 
   // 7. Self-paced fallback for everyone else, including later sittings and closed cohorts
   return OUTCOMES.BLUEPRINT;
@@ -299,7 +285,7 @@ window.__quizTest = { routeAnswers, OUTCOMES };
 function isLiveCohortOpen() {
   const catalog = window.ProductCatalog;
   if (!catalog || typeof catalog.getCohortStatusForSlug !== 'function') return true;
-  const status = catalog.getCohortStatusForSlug('comprehensive');
+  const status = catalog.getCohortStatusForSlug('march-intensive');
   return !status || status.available === true;
 }
 
@@ -347,6 +333,8 @@ function loadState() {
     state.index = Number.isInteger(parsed.index) ? parsed.index : 0;
     state.completed = Boolean(parsed.completed);
     state.outcomeId = typeof parsed.outcomeId === 'string' ? parsed.outcomeId : null;
+    if (state.outcomeId === 'COMPREHENSIVE') state.outcomeId = 'MARCH_INTENSIVE';
+    if (state.outcomeId === 'MASTERY_CALL') state.outcomeId = 'MARCH_INTENSIVE_PREMIUM';
     state.unlocked = Boolean(parsed.unlocked);
   } catch (e) { /* ignore */ }
 }

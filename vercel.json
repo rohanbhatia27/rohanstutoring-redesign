@@ -117,13 +117,13 @@
     },
     {
       "source": "/store/gamsat-comprehensive-course",
-      "destination": "/courses/comprehensive",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/store/p/comprehensive",
-      "destination": "/courses/comprehensive",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/store/p/rohans-gamsat-blueprint-the-full-package",
@@ -152,13 +152,13 @@
     },
     {
       "source": "/store/p/section2-mastery",
-      "destination": "/courses/blueprint",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/store/gamsat-mastery-course",
-      "destination": "/courses/blueprint",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/store",
@@ -276,9 +276,14 @@
       "permanent": true
     },
     {
+      "source": "/courses/comprehensive",
+      "destination": "/courses/march-intensive",
+      "permanent": false
+    },
+    {
       "source": "/courses/comprehensive.html",
-      "destination": "/courses/comprehensive",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/courses/march-intensive-s1.html",
@@ -296,14 +301,24 @@
       "permanent": true
     },
     {
+      "source": "/courses/s1-comprehensive",
+      "destination": "/courses/march-intensive",
+      "permanent": false
+    },
+    {
       "source": "/courses/s1-comprehensive.html",
-      "destination": "/courses/s1-comprehensive",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
+    },
+    {
+      "source": "/courses/s2-comprehensive",
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/courses/s2-comprehensive.html",
-      "destination": "/courses/s2-comprehensive",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/courses/essay-collection.html",
@@ -316,9 +331,14 @@
       "permanent": true
     },
     {
+      "source": "/courses/mastery",
+      "destination": "/courses/march-intensive",
+      "permanent": false
+    },
+    {
       "source": "/courses/mastery.html",
-      "destination": "/courses/mastery",
-      "permanent": true
+      "destination": "/courses/march-intensive",
+      "permanent": false
     },
     {
       "source": "/courses/private-mentoring.html",

@@ -47,32 +47,12 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://www.rohanstutoring.com/courses/comprehensive</loc>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
     <loc>https://www.rohanstutoring.com/courses/blueprint</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://www.rohanstutoring.com/courses/advanced</loc>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://www.rohanstutoring.com/courses/mastery</loc>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://www.rohanstutoring.com/courses/s1-comprehensive</loc>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://www.rohanstutoring.com/courses/s2-comprehensive</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>

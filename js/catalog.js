@@ -410,7 +410,7 @@
       askSittingNumber: true,
       allowedUpsells: [],
       upsellPriceOverrides: {},
-      image: '/assets/courses/comprehensive-course-card.webp',
+      image: '/assets/class-preview-s1.webp',
       tagline: '16 live classes over 8 weekends  Starts 12 Dec',
       features: [
         '16 live S1 & S2 classes with Rohan (all recorded)',
@@ -454,7 +454,7 @@
       askSittingNumber: true,
       allowedUpsells: [],
       upsellPriceOverrides: {},
-      image: '/assets/courses/comprehensive-course-card.webp',
+      image: '/assets/class-preview-s1.webp',
       tagline: 'Premium · 6 places · Starts 12 Dec',
       features: [
         'Everything in the March Intensive',
@@ -496,7 +496,7 @@
       askSittingNumber: true,
       allowedUpsells: [],
       upsellPriceOverrides: {},
-      image: '/assets/courses/comprehensive-course-card.webp',
+      image: '/assets/class-preview-s1.webp',
       tagline: '8 live S1 classes  Starts 12 Dec',
       features: [
         '8 live S1 classes with Rohan (all recorded)',
@@ -535,7 +535,7 @@
       askSittingNumber: true,
       allowedUpsells: [],
       upsellPriceOverrides: {},
-      image: '/assets/courses/comprehensive-course-card.webp',
+      image: '/assets/class-preview-s2-strategy.webp',
       tagline: '8 live S2 classes  Starts 13 Dec',
       features: [
         '8 live S2 classes with Rohan (all recorded)',
