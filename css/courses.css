@@ -50,27 +50,12 @@
   border-inline-start: 1px solid var(--border);
   padding-inline-start: 16px;
 }
-.courses-hero__price {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 9px;
-  margin-top: 12px;
-  color: var(--text-dark-soft);
-  font-size: 0.9rem;
-}
-.courses-hero__price strong {
-  color: var(--off-white);
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  letter-spacing: -0.035em;
-}
 .courses-hero__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 24px;
-  margin-top: 12px;
+  margin-top: 20px;
 }
 .courses-hero__cta {
   min-height: 52px;

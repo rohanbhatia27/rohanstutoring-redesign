@@ -32,7 +32,7 @@ test('March Intensive hero links to the enrolment options and timetable', () => 
     assert.ok(hero.includes(`href="/courses/march-intensive#${id}"`), id);
     assert.ok(landing.includes(`id="${id}"`), id);
   }
-  assert.match(hero, /A\$1,699/);
+  assert.doesNotMatch(hero, /A\$1,699|A\$629/);
   assert.match(hero, /full refund/);
   assert.match(hero, /10 December/);
 });
