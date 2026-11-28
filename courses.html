@@ -31,9 +31,9 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Geist:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/product.css">
-  <link rel="stylesheet" href="css/courses.css">
+  <link rel="stylesheet" href="/css/courses.css?v=20261128-hero">
 </head>
-<body>
+<body class="courses-page" data-floating-quiz-cta="off">
 
   <nav class="nav" id="nav">
     <div class="nav__inner">
@@ -112,69 +112,69 @@
 
   <main id="main-content">
 
-  <!-- HERO -->
-  <section class="courses-hero">
-    <div class="courses-hero__bg">
-      <div class="hero__grain"></div>
-      <div class="hero__orb hero__orb--1"></div>
-      <div class="hero__orb hero__orb--2"></div>
-    </div>
+  <section class="courses-hero" aria-labelledby="march-intensive-title">
     <div class="container">
       <div class="courses-hero__inner">
-        <div class="courses-hero__left">
-          <span class="label reveal">Live coaching for March 2027</span>
-          <h1 class="reveal reveal--delay-1">GAMSAT March Intensive</h1>
-          <p class="reveal reveal--delay-2">Get a weekly plan for Sections 1 and 2 before the March sitting. The first class is Saturday 12 December.</p>
-          <a href="/courses/march-intensive" class="btn btn--primary btn--lg courses-hero__cta reveal reveal--delay-2">See timetable and enrol</a>
-          <div class="courses-hero__stats reveal reveal--delay-3">
-            <div class="courses-hero__stat"><span>1,500+</span><small>students coached</small></div>
-            <div class="courses-hero__stat"><span>Top 1%</span><small>GAMSAT score</small></div>
+        <div class="courses-hero__copy">
+          <p class="courses-hero__edition">Live weekend course · March 2027</p>
+          <h1 id="march-intensive-title">GAMSAT <span>March Intensive</span></h1>
+          <p class="courses-hero__intro">Learn to separate the last two answers in Section 1 and improve your Section 2 essays with feedback from Rohan.</p>
+
+          <p class="courses-hero__dates">
+            <span>Starts <time datetime="2026-12-12">12 December</time></span>
+            <span>Enrol by <time datetime="2026-12-10">10 December</time></span>
+          </p>
+          <p class="courses-hero__price">
+            <strong>A$1,699</strong>
+            <span>upfront or 3 × A$629 monthly</span>
+          </p>
+          <div class="courses-hero__actions">
+            <a href="/courses/march-intensive#pricing" class="btn courses-hero__cta">See pricing &amp; enrol <span aria-hidden="true">→</span></a>
+            <a href="/courses/march-intensive#timetable" class="courses-hero__link">View timetable</a>
           </div>
+          <p class="courses-hero__guarantee"><strong>Two-class guarantee.</strong> Try the first two classes and email before the third for a full refund.</p>
         </div>
-        <div class="courses-hero__right reveal reveal--delay-2">
-          <a href="/courses/march-intensive" class="hero-promo-card">
-            <div class="hero-promo-card__image">
-              <img src="/assets/class-preview-s1.webp" alt="Rohan working through a Section 1 inference question in a live class" width="1969" height="1249" loading="eager" decoding="async" fetchpriority="high">
-            </div>
-            <div class="hero-promo-card__body">
-              <div class="hero-promo-card__badges">
-                <span class="badge badge--green">Enrolment closes 10 December</span>
-              </div>
-              <h2>16 live classes over 8 weekends</h2>
-              <p>S1 on Saturday mornings and S2 on Sunday evenings, Sydney time. Every class is recorded.</p>
-              <div class="hero-promo-card__includes">
-                <span>✓ At least 4 essays marked by Rohan</span>
-                <span>✓ Full Blueprint library from day one</span>
-                <span>✓ Timed S2 mock with live debrief</span>
-                <span>✓ Two-class refund guarantee</span>
-              </div>
-              <div class="hero-promo-card__footer">
-                <div class="hero-promo-card__price">
-                  <span class="price-now">From A$1,699</span>
-                </div>
-                <span class="hero-promo-card__cta">View course →</span>
-              </div>
-            </div>
-          </a>
-        </div>
+
+        <figure class="courses-portrait">
+          <div class="courses-portrait__image">
+            <picture>
+              <source type="image/avif" srcset="/assets/homepage/rohan-hero-720.avif 720w, /assets/homepage/rohan-hero-1080.avif 1080w" sizes="(max-width: 760px) calc(100vw - 48px), 500px">
+              <img src="/assets/homepage/rohan-hero-720.webp"
+                srcset="/assets/homepage/rohan-hero-720.webp 720w, /assets/homepage/rohan-hero-1080.webp 1080w"
+                sizes="(max-width: 760px) calc(100vw - 48px), 500px"
+                alt="Rohan Bhatia" width="720" height="720" loading="eager" decoding="async" fetchpriority="high">
+            </picture>
+          </div>
+          <figcaption class="courses-portrait__caption">
+            <div><strong>Rohan Bhatia</strong><span>Your Section 1 and 2 tutor</span></div>
+            <div><span>Top 1% GAMSAT score</span><span>1,500+ students coached</span></div>
+          </figcaption>
+        </figure>
       </div>
+
+      <ul class="courses-hero__benefits" aria-label="Included in the March Intensive">
+        <li>
+          <strong>16 live classes</strong>
+          <span>8 weekends. Every class is recorded.</span>
+        </li>
+        <li>
+          <strong>4 essays marked by Rohan</strong>
+          <span>A fifth marked essay when you pay upfront.</span>
+        </li>
+        <li>
+          <strong>Timed mock and Blueprint access</strong>
+          <span>Live Section 2 mock debrief and 80+ hours of recordings.</span>
+        </li>
+      </ul>
     </div>
   </section>
 
-  <section class="courses-quiz-spotlight" aria-labelledby="courses-quiz-spotlight-title">
-    <div class="container">
-      <div class="courses-quiz-spotlight__card">
-        <div class="courses-quiz-spotlight__copy">
-          <h2 id="courses-quiz-spotlight-title">Not sure which course fits?</h2>
-          <p>Answer seven quick questions and get a tailored recommendation for the right course, support level, and direction based on your timeline, score gap, and weekly study capacity.</p>
-        </div>
-        <div class="courses-quiz-spotlight__actions">
-          <p class="courses-quiz-spotlight__eyebrow">Low-friction guidance before you browse</p>
-          <a href="/quiz?source=courses-spotlight" class="btn btn--primary btn--lg" data-quiz-source="courses-spotlight">Take the 2-minute quiz</a>
-        </div>
-      </div>
+  <div class="courses-quiz-spotlight">
+    <div class="container courses-quiz-spotlight__inner">
+      <p>Need help choosing a study plan?</p>
+      <a href="/quiz?source=courses-spotlight" data-quiz-source="courses-spotlight">Take the 2-minute quiz <span aria-hidden="true">→</span></a>
     </div>
-  </section>
+  </div>
 
   <!-- SELF-PACED -->
   <section class="courses-section">

@@ -1,85 +1,208 @@
-/* courses.css — all styles live in product.css which is shared */
-/* This file exists so courses.html has a clean separate link */
-/* All course index styles are defined in css/product.css */
+/* Courses page */
+.courses-page {
+  --header-height: 88px;
+  --courses-ink: #101f30;
+  --courses-blue: #245478;
+  --courses-muted: #45596a;
+  --courses-paper: #f9f7f2;
+  --courses-line: #d9dbd8;
+}
 
-.courses-quiz-spotlight {
-  position: relative;
-  z-index: 2;
-  margin-top: -44px;
-  padding: 0 0 40px;
-  background:
-    linear-gradient(180deg, rgba(8, 15, 26, 0) 0, rgba(8, 15, 26, 0) 40px, var(--off-white, #F4F7FB) 40px),
-    radial-gradient(circle at top right, rgba(22, 119, 190, 0.08), transparent 32%),
-    var(--off-white, #F4F7FB);
+.courses-page .nav { background: var(--courses-ink); }
+.courses-page .nav__inner { padding-block: 12px; }
+.courses-page .nav__logo-img { height: 64px; }
+
+.courses-hero {
+  padding: calc(var(--header-height) + clamp(36px, 4.6vw, 68px)) 0 28px;
+  background: var(--courses-paper);
+  color: var(--courses-ink);
 }
-.courses-quiz-spotlight__card {
+.courses-hero__inner {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
-  gap: 32px;
-  padding: 36px;
-  border: 1px solid rgba(13, 24, 39, 0.08);
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(22, 119, 190, 0.07), rgba(22, 119, 190, 0)) top / 100% 120px no-repeat,
-    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 251, 0.98));
-  color: var(--text);
-  box-shadow: 0 22px 46px rgba(8, 15, 26, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(36px, 5.75vw, 88px);
 }
-.courses-quiz-spotlight__copy .label { color: var(--blue); }
-.courses-quiz-spotlight__copy h2 {
-  color: var(--text);
-  margin-bottom: 16px;
-  font-size: clamp(1.9rem, 3vw, 2.8rem);
-  line-height: 1.04;
+.courses-hero__edition {
+  color: var(--courses-blue);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
-.courses-quiz-spotlight__copy p {
-  max-width: 56ch;
-  color: var(--text);
+.courses-hero h1 {
+  margin-block: 12px 18px;
+  color: var(--courses-ink);
+  font-size: clamp(3.2rem, 5.3vw, 5.25rem);
+  line-height: 0.94;
+  letter-spacing: -0.057em;
+  font-weight: 700;
 }
-.courses-quiz-spotlight__points {
+.courses-hero h1 span {
+  display: block;
+  color: var(--courses-blue);
+}
+.courses-hero__intro {
+  max-width: 49ch;
+  color: var(--courses-muted);
+  font-size: clamp(1rem, 1.45vw, 1.18rem);
+  line-height: 1.58;
+}
+.courses-hero__dates {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 6px 16px;
+  margin-top: 22px;
+  color: var(--courses-muted);
+  font-size: 0.85rem;
 }
-.courses-quiz-spotlight__points span {
+.courses-hero__dates time {
+  color: var(--courses-ink);
+  font-weight: 700;
+}
+.courses-hero__dates span + span {
+  border-inline-start: 1px solid var(--courses-line);
+  padding-inline-start: 16px;
+}
+.courses-hero__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 9px;
+  margin-top: 12px;
+  color: var(--courses-muted);
+  font-size: 0.9rem;
+}
+.courses-hero__price strong {
+  color: var(--courses-ink);
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  letter-spacing: -0.035em;
+}
+.courses-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  margin-top: 12px;
+}
+.courses-hero__cta {
+  min-height: 52px;
+  gap: 16px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: var(--courses-ink);
+  color: var(--courses-paper);
+}
+.courses-hero__cta:hover {
+  transform: none;
+  background: var(--courses-blue);
+}
+.courses-hero__link {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 10px 14px;
-  border: 1px solid rgba(13, 24, 39, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 500;
+  min-height: 44px;
+  color: var(--courses-blue);
+  font-size: 0.93rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
 }
-.courses-quiz-spotlight__actions {
+.courses-hero__guarantee {
+  max-width: 46ch;
+  margin-top: 12px;
+  color: var(--courses-muted);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+.courses-hero__guarantee strong { color: var(--courses-ink); }
+.courses-page main a:focus-visible {
+  outline: 2px solid var(--courses-blue);
+  outline-offset: 4px;
+}
+
+.courses-portrait {
+  display: grid;
+  overflow: hidden;
+  min-width: 0;
+  border-radius: 12px;
+  background: var(--courses-ink);
+}
+.courses-portrait__image {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 5 / 4;
+  background: linear-gradient(145deg, #d8e4ec, #9db6cb);
+}
+.courses-portrait__image img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 80%;
+  height: auto;
+  margin-inline: auto;
+}
+.courses-portrait__caption {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 28px;
-  border-radius: 20px;
-  background: linear-gradient(160deg, rgba(8, 15, 26, 0.97), rgba(13, 24, 39, 0.93));
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: var(--white);
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 16px 20px;
+  color: #d5e0e9;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
-.courses-quiz-spotlight__eyebrow {
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(201, 213, 228, 0.78);
+.courses-portrait__caption div { display: grid; align-content: center; }
+.courses-portrait__caption strong {
+  color: #f9f7f2;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
 }
-.courses-quiz-spotlight__actions .btn { width: 100%; }
-.courses-quiz-spotlight__actions p {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.92rem;
-  line-height: 1.6;
+
+.courses-hero__benefits {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr 1.12fr;
+  margin-top: clamp(24px, 3.5vw, 48px);
+  border-block: 1px solid var(--courses-line);
+}
+.courses-hero__benefits li {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 16px clamp(12px, 2vw, 28px);
+}
+.courses-hero__benefits li:first-child { padding-inline-start: 0; }
+.courses-hero__benefits li + li { border-inline-start: 1px solid var(--courses-line); }
+.courses-hero__benefits strong {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+.courses-hero__benefits span {
+  color: var(--courses-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.courses-quiz-spotlight { background: var(--courses-paper); }
+.courses-quiz-spotlight__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 12px;
+  padding-bottom: 24px;
+  color: var(--courses-muted);
+  font-size: 0.88rem;
+}
+.courses-quiz-spotlight__inner a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--courses-blue);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
 }
 
 .course-tile--quiz {
@@ -113,35 +236,30 @@
 }
 
 @media (max-width: 860px) {
-  .courses-quiz-spotlight__card {
-    grid-template-columns: 1fr;
-    padding: 28px 24px;
-  }
-  .courses-quiz-spotlight {
-    margin-top: -28px;
-    padding-bottom: 32px;
-  }
-}
-@media (max-width: 640px) {
-  .courses-quiz-spotlight {
-    margin-top: -16px;
-    padding: 0 0 24px;
-  }
-  .courses-quiz-spotlight__card {
-    gap: 24px;
-    padding: 24px 20px;
-    border-radius: 20px;
-  }
-  .courses-quiz-spotlight__actions {
-    padding: 18px;
-  }
-  .course-tile__price--quiz {
-    font-size: 0.72rem;
-  }
+  .courses-page { --header-height: 72px; }
+  .courses-page .nav__inner { padding-block: 10px; }
+  .courses-page .nav__logo-img { height: 52px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .courses-quiz-spotlight__card {
-    transition: none;
+@media (max-width: 760px) {
+  .courses-hero__inner { grid-template-columns: 1fr; gap: 28px; }
+  .courses-hero h1 { font-size: clamp(2.75rem, 9.3vw, 4.5rem); }
+  .courses-portrait { max-width: 540px; }
+  .courses-portrait__image { aspect-ratio: 7 / 5; }
+  .courses-portrait__image img { width: 70%; }
+}
+
+@media (max-width: 540px) {
+  .courses-hero { padding-top: calc(var(--header-height) + 28px); }
+  .courses-hero h1 { margin-block: 10px 14px; }
+  .courses-hero__dates { margin-top: 16px; }
+  .courses-hero__actions { column-gap: 16px; }
+  .courses-portrait__caption { padding: 12px 14px; }
+  .courses-hero__benefits { grid-template-columns: 1fr; }
+  .courses-hero__benefits li { padding: 12px 0; }
+  .courses-hero__benefits li + li {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--courses-line);
   }
+  .course-tile__price--quiz { font-size: 0.72rem; }
 }
