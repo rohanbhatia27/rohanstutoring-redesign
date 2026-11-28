@@ -281,6 +281,16 @@
       "permanent": true
     },
     {
+      "source": "/courses/march-intensive-s1.html",
+      "destination": "/courses/march-intensive-s1",
+      "permanent": true
+    },
+    {
+      "source": "/courses/march-intensive-s2.html",
+      "destination": "/courses/march-intensive-s2",
+      "permanent": true
+    },
+    {
       "source": "/courses/march-intensive.html",
       "destination": "/courses/march-intensive",
       "permanent": true

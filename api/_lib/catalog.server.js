@@ -143,6 +143,30 @@ const SERVER_EXTENSIONS = {
     },
   },
 
+  'march-intensive-s1': {
+    deliveryType: 'cohort-onboarding',
+    fulfillmentLabel: 'Send cohort onboarding email',
+    fulfillmentSlug: 'march-intensive-s1',
+    driveFolderSlug: 'blueprint', // shares Blueprint Drive folder
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE',
+    cohortEmail: {
+      subject: "Welcome to the GAMSAT March Intensive 👋 Let's get started.",
+      startLine: 'Classes start Saturday 12 December at 9am AEDT. Your Last-Two Diagnostic will reach you before then, so do it before the first class and we will go through it together.',
+    },
+  },
+
+  'march-intensive-s2': {
+    deliveryType: 'cohort-onboarding',
+    fulfillmentLabel: 'Send cohort onboarding email',
+    fulfillmentSlug: 'march-intensive-s2',
+    driveFolderSlug: 'blueprint', // shares Blueprint Drive folder
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE',
+    cohortEmail: {
+      subject: "Welcome to the GAMSAT March Intensive 👋 Let's get started.",
+      startLine: 'Classes start Sunday 13 December at 7pm AEDT.',
+    },
+  },
+
   's1-comprehensive': {
     deliveryType: 'cohort-onboarding',
     fulfillmentLabel: 'Send cohort onboarding email',

@@ -482,6 +482,84 @@
       pageSlug: 'march-intensive',
     },
 
+    // DRAFT, do not deploy yet: the $399/month Stripe price does not exist, so
+    // instalments fail until it is created and the env var below is set.
+    'march-intensive-s1': {
+      slug: 'march-intensive-s1',
+      name: 'GAMSAT March Intensive: Section 1',
+      title: 'GAMSAT March Intensive: Section 1 Only',
+      priceCents: 94900,
+      available: true,
+      highTicket: true,
+      afterpay: false,
+      instalmentEligible: true,
+      askSittingNumber: true,
+      allowedUpsells: [],
+      upsellPriceOverrides: {},
+      image: '/assets/courses/comprehensive-course-card.webp',
+      tagline: '8 live S1 classes  Starts 12 Dec',
+      features: [
+        '8 live S1 classes with Rohan (all recorded)',
+        'Section 1 Blueprint from day one',
+        'Last-Two Diagnostic + S1 Keep-Warm Clinic',
+        'Weekly Game Plan + No-Backslide Holiday Plan',
+        'Two-class refund guarantee',
+      ],
+      isDigital: false,
+      successType: 'cohort',
+      instalment: {
+        label: 'or 3 × $399 instalments ($1,197 total) →',
+        url: '/checkout/?product=march-intensive-s1&paymentMode=instalments',
+        plan: {
+          count: 3,
+          firstPayment: 399,
+          recurringPayment: 399,
+          priceEnvKey: 'STRIPE_PRICE_MARCH_INTENSIVE_S1_INSTALMENT',
+        },
+      },
+      orderBump: null,
+      pageSlug: 'march-intensive-s1',
+    },
+
+    // DRAFT, do not deploy yet: the $399/month Stripe price does not exist, so
+    // instalments fail until it is created and the env var below is set.
+    'march-intensive-s2': {
+      slug: 'march-intensive-s2',
+      name: 'GAMSAT March Intensive: Section 2',
+      title: 'GAMSAT March Intensive: Section 2 Only',
+      priceCents: 94900,
+      available: true,
+      highTicket: true,
+      afterpay: false,
+      instalmentEligible: true,
+      askSittingNumber: true,
+      allowedUpsells: [],
+      upsellPriceOverrides: {},
+      image: '/assets/courses/comprehensive-course-card.webp',
+      tagline: '8 live S2 classes  Starts 13 Dec',
+      features: [
+        '8 live S2 classes with Rohan (all recorded)',
+        '4 essays marked by Rohan',
+        'Timed S2 mock + live debrief',
+        'Section 2 Blueprint from day one',
+        'Two-class refund guarantee',
+      ],
+      isDigital: false,
+      successType: 'cohort',
+      instalment: {
+        label: 'or 3 × $399 instalments ($1,197 total) →',
+        url: '/checkout/?product=march-intensive-s2&paymentMode=instalments',
+        plan: {
+          count: 3,
+          firstPayment: 399,
+          recurringPayment: 399,
+          priceEnvKey: 'STRIPE_PRICE_MARCH_INTENSIVE_S2_INSTALMENT',
+        },
+      },
+      orderBump: null,
+      pageSlug: 'march-intensive-s2',
+    },
+
     's1-comprehensive': {
       slug: 's1-comprehensive',
       name: 'Section 1 Comprehensive Course',
