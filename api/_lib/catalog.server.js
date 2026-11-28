@@ -148,7 +148,9 @@ const SERVER_EXTENSIONS = {
     fulfillmentLabel: 'Send cohort onboarding email',
     fulfillmentSlug: 'march-intensive-s1',
     driveFolderSlug: 'blueprint', // shares Blueprint Drive folder
-    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE',
+    // Own tag (Purchased - March Intensive S1 Only) so these buyers can be
+    // kept out of emails meant for the full Intensive.
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE_S1',
     cohortEmail: {
       subject: "Welcome to the GAMSAT March Intensive 👋 Let's get started.",
       startLine: 'Classes start Saturday 12 December at 9am AEDT. Your Last-Two Diagnostic will reach you before then, so do it before the first class and we will go through it together.',
@@ -160,7 +162,9 @@ const SERVER_EXTENSIONS = {
     fulfillmentLabel: 'Send cohort onboarding email',
     fulfillmentSlug: 'march-intensive-s2',
     driveFolderSlug: 'blueprint', // shares Blueprint Drive folder
-    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE',
+    // Own tag (Purchased - March Intensive S2 Only) so these buyers can be
+    // kept out of emails meant for the full Intensive.
+    purchaseTagEnv: 'KIT_TAG_ID_PURCHASED_MARCH_INTENSIVE_S2',
     cohortEmail: {
       subject: "Welcome to the GAMSAT March Intensive 👋 Let's get started.",
       startLine: 'Classes start Sunday 13 December at 7pm AEDT.',

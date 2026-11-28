@@ -482,8 +482,8 @@
       pageSlug: 'march-intensive',
     },
 
-    // DRAFT, do not deploy yet: the $399/month Stripe price does not exist, so
-    // instalments fail until it is created and the env var below is set.
+    // S1-only option: 8 Saturday classes (12 Dec 2026 – 13 Mar 2027).
+    // price_1UgcMIH5JsZI731GC3jY90PM — $399/month on prod_Vi2RvlGdS0lNPw.
     'march-intensive-s1': {
       slug: 'march-intensive-s1',
       name: 'GAMSAT March Intensive: Section 1',
@@ -521,8 +521,8 @@
       pageSlug: 'march-intensive-s1',
     },
 
-    // DRAFT, do not deploy yet: the $399/month Stripe price does not exist, so
-    // instalments fail until it is created and the env var below is set.
+    // S2-only option: 8 Sunday classes (13 Dec 2026 – 21 Feb 2027).
+    // price_1UgcMIH5JsZI731GBNQ58qNC — $399/month on prod_Vi2RacSGKYhUhr.
     'march-intensive-s2': {
       slug: 'march-intensive-s2',
       name: 'GAMSAT March Intensive: Section 2',
