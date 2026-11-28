@@ -15,11 +15,11 @@ test('courses page removes unused GSAP bundles and keeps above-the-fold course a
   assert.doesNotMatch(html, /gsap\.min\.js/, 'courses page should not load gsap');
   assert.doesNotMatch(html, /ScrollTrigger\.min\.js/, 'courses page should not load ScrollTrigger');
 
-  const portrait = html.match(/<img\b[^>]*src="\/assets\/homepage\/rohan-hero-720\.webp"[^>]*>/);
-  assert.ok(portrait, 'expected a portrait of Rohan in the course hero');
-  assert.match(portrait[0], /width="720"[^>]*height="720"/);
-  assert.match(portrait[0], /loading="eager"/);
-  assert.doesNotMatch(html, /class-preview-s1\.webp/);
+  const logo = html.match(/<img\b[^>]*src="\/assets\/brand\/rohans-gamsat-logo\.webp"[^>]*>/);
+  assert.ok(logo, 'expected the business logo in the course hero');
+  assert.match(logo[0], /width="640"[^>]*height="794"/);
+  assert.match(logo[0], /loading="eager"/);
+  assert.doesNotMatch(html, /class-preview-s1\.webp|\/assets\/homepage\/rohan-hero-/);
 });
 
 test('March Intensive hero links to the enrolment options and timetable', () => {
